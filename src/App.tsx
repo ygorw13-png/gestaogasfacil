@@ -12,6 +12,7 @@ import EntranceSales from "./pages/entrance/EntranceSales";
 import SalesHistory from "./pages/entrance/SalesHistory";
 import Orders from "./pages/orders/Orders";
 import Clients from "./pages/clients/Clients";
+import Resellers from "./pages/resellers/Resellers";
 import Promissory from "./pages/promissory/Promissory";
 import Expenses from "./pages/finance/Expenses";
 import Settings from "./pages/settings/Settings";
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="entrance/sales" element={<SalesHistory />} />
               <Route path="orders" element={<Orders />} />
               <Route path="clients" element={<Clients />} />
+              <Route path="resellers" element={<Resellers />} />
               <Route path="promissory" element={<Promissory />} />
               <Route path="expenses" element={<Expenses />} />
               <Route 

@@ -16,6 +16,7 @@ interface ProductSelectionProps {
   onProductChange: (value: string) => void;
   onQuantityChange: (value: number) => void;
   onUnitPriceChange: (value: number) => void;
+  readOnlyPrice?: boolean;
 }
 
 export function ProductSelection({
@@ -25,6 +26,7 @@ export function ProductSelection({
   onProductChange,
   onQuantityChange,
   onUnitPriceChange,
+  readOnlyPrice = false,
 }: ProductSelectionProps) {
   return (
     <div className="space-y-4">
@@ -65,7 +67,12 @@ export function ProductSelection({
             step="0.01"
             value={unitPrice}
             onChange={(e) => onUnitPriceChange(Number(e.target.value))}
+            readOnly={readOnlyPrice}
+            className={readOnlyPrice ? "bg-muted" : ""}
           />
+          {readOnlyPrice && (
+            <p className="text-xs text-muted-foreground">Valor fixado no cadastro do agregado</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -76,6 +83,7 @@ export function ProductSelection({
             step="0.01"
             value={(quantity * unitPrice).toFixed(2)}
             readOnly
+            className="bg-muted"
           />
         </div>
       </div>

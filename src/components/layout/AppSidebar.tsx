@@ -9,7 +9,8 @@ import {
   DollarSign, 
   Settings,
   Truck,
-  MapPin
+  MapPin,
+  Tags
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,6 +37,7 @@ export function AppSidebar() {
     { title: "Portaria", path: "/entrance", icon: Store },
     { title: "Pedidos", path: "/orders", icon: Truck },
     { title: "Clientes", path: "/clients", icon: Users },
+    { title: "Agregados", path: "/resellers", icon: Tags },
     { title: "Promissórias", path: "/promissory", icon: FileText },
     { title: "Despesas", path: "/expenses", icon: DollarSign },
   ];
