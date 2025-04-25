@@ -2,11 +2,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText } from "lucide-react";
-import { mockDrivers } from "../../data/mockRouteReports";
+import { DateRangeFilter } from "./filters/DateRangeFilter";
+import { DriverFilter } from "./filters/DriverFilter";
 
 interface RouteReportsFilterProps {
   startDate: string;
@@ -34,42 +32,16 @@ export function RouteReportsFilter({
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="startDate">Data Inicial</Label>
-            <Input
-              id="startDate"
-              type="date"
-              value={startDate}
-              onChange={(e) => onStartDateChange(e.target.value)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="endDate">Data Final</Label>
-            <Input
-              id="endDate"
-              type="date"
-              value={endDate}
-              onChange={(e) => onEndDateChange(e.target.value)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="driverId">Motorista</Label>
-            <Select value={driverId} onValueChange={onDriverIdChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um motorista" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Motoristas</SelectItem>
-                {mockDrivers.map((driver) => (
-                  <SelectItem key={driver.id} value={driver.id}>
-                    {driver.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <DateRangeFilter
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={onStartDateChange}
+            onEndDateChange={onEndDateChange}
+          />
+          <DriverFilter
+            driverId={driverId}
+            onDriverIdChange={onDriverIdChange}
+          />
         </div>
         
         <div className="flex justify-end">
