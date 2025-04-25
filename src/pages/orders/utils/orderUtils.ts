@@ -29,3 +29,25 @@ export const formatDate = (date: Date | undefined) => {
   return date.toLocaleDateString('pt-BR') + " " + 
          date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 };
+
+export const formatStatus = (status: string) => {
+  const statusMap: Record<string, string> = {
+    pending: "Pendente",
+    assigned: "Atribuído",
+    delivering: "Em entrega",
+    delivered: "Entregue",
+    cancelled: "Cancelado",
+  };
+  return statusMap[status] || status;
+};
+
+export const getOrderStatusColor = (status: string) => {
+  const colorMap: Record<string, string> = {
+    pending: "bg-yellow-500",
+    assigned: "bg-blue-500",
+    delivering: "bg-amber-500",
+    delivered: "bg-green-600",
+    cancelled: "bg-red-500",
+  };
+  return colorMap[status] || "bg-gray-500";
+};

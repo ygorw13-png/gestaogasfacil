@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, Truck } from "lucide-react";
 import NewOrderForm from "./NewOrderForm";
-import OrdersList from "./OrdersList";
+import { OrdersList } from "./OrdersList";
 import OrdersMap from "./OrdersMap";
 import OrderStats from "./components/OrderStats";
 import { useOrders } from "./hooks/useOrders";
@@ -49,10 +49,10 @@ export default function Orders() {
         <TabsContent value="list">
           <OrdersList 
             orders={orders} 
-            onAssign={handleAssignOrder}
+            onAssignOrder={handleAssignOrder}
             onStartDelivery={handleStartDelivery} 
-            onComplete={handleCompleteOrder}
-            onCancel={handleCancelOrder}
+            onCompleteOrder={handleCompleteOrder}
+            onCancelOrder={handleCancelOrder}
           />
         </TabsContent>
 

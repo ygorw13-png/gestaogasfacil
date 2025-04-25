@@ -1,12 +1,9 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Order, OrderStatus } from "./types";
-import { formatStatus, getOrderStatusColor } from "./utils/orderUtils";
+import { Order } from "./types";
 import { CompleteOrderDialog } from "./components/CompleteOrderDialog";
 import { AssignOrderDialog } from "./components/AssignOrderDialog";
 import { OrderTableRow } from "./components/OrderTableRow";
@@ -85,11 +82,11 @@ export function OrdersList({
             <OrderTableRow
               key={order.id}
               order={order}
-              onAssignClick={handleAssignClick}
+              onAssign={handleAssignClick}
               onStartClick={onStartDelivery}
-              onCompleteClick={handleCompleteClick}
-              onCancelClick={onCancelOrder}
-              onViewClick={(id) => navigate(`/orders/${id}`)}
+              onComplete={handleCompleteClick}
+              onCancel={onCancelOrder}
+              onViewDetails={() => navigate(`/orders/${order.id}`)}
             />
           ))}
         </TableBody>

@@ -9,17 +9,17 @@ import { ptBR } from 'date-fns/locale';
 
 interface OrderTableRowProps {
   order: Order;
-  onAssign: () => void;
-  onStartDelivery: () => void;
-  onComplete: () => void;
-  onCancel: () => void;
+  onAssign: (orderId: string) => void;
+  onStartClick: (orderId: string) => void;
+  onComplete: (orderId: string) => void;
+  onCancel: (orderId: string) => void;
   onViewDetails: () => void;
 }
 
 export function OrderTableRow({
   order,
   onAssign,
-  onStartDelivery,
+  onStartClick,
   onComplete,
   onCancel,
   onViewDetails,
@@ -61,14 +61,14 @@ export function OrderTableRow({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={onAssign}
+                onClick={() => onAssign(order.id)}
               >
                 <Clipboard size={14} className="mr-1" /> Atribuir
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={onCancel}
+                onClick={() => onCancel(order.id)}
               >
                 <X size={14} />
               </Button>
@@ -78,7 +78,7 @@ export function OrderTableRow({
             <Button
               variant="outline"
               size="sm"
-              onClick={onStartDelivery}
+              onClick={() => onStartClick(order.id)}
             >
               <Truck size={14} className="mr-1" /> Iniciado
             </Button>
@@ -87,7 +87,7 @@ export function OrderTableRow({
             <Button
               variant="outline"
               size="sm"
-              onClick={onComplete}
+              onClick={() => onComplete(order.id)}
             >
               <Check size={14} className="mr-1" /> Concluir
             </Button>
