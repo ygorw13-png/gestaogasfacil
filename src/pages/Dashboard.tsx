@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { 
   Home, 
@@ -64,7 +65,7 @@ export default function Dashboard() {
       </div>
 
       {!hasFullAccess && (
-        <Alert variant="warning" className="bg-yellow-50 border-yellow-200">
+        <Alert variant="warning" className="border-yellow-200 bg-yellow-50">
           <AlertCircle className="h-4 w-4 text-yellow-600" />
           <AlertDescription className="text-yellow-700">
             Você tem acesso limitado ao dashboard. Algumas informações só estão disponíveis para usuários com perfis de Administrador ou Gerente.
