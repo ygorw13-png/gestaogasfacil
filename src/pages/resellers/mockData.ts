@@ -12,6 +12,7 @@ export const mockResellers: Reseller[] = [
     priceP20: 150,
     priceP45: 280,
     priceWater: 8,
+    notes: "Cliente desde janeiro de 2024, bom histórico de pagamentos.",
     createdAt: new Date("2024-01-15"),
   },
   {
@@ -24,6 +25,7 @@ export const mockResellers: Reseller[] = [
     priceP20: 155,
     priceP45: 290,
     priceWater: 9,
+    notes: "Prefere entregas às terças e quintas.",
     createdAt: new Date("2024-02-20"),
   },
   {

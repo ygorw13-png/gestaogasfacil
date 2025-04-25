@@ -14,9 +14,10 @@ import { Reseller } from "../types";
 interface ResellersListProps {
   resellers: Reseller[];
   canViewPrices: boolean;
+  onViewReseller: (reseller: Reseller) => void;
 }
 
-export function ResellersList({ resellers, canViewPrices }: ResellersListProps) {
+export function ResellersList({ resellers, canViewPrices, onViewReseller }: ResellersListProps) {
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -71,7 +72,12 @@ export function ResellersList({ resellers, canViewPrices }: ResellersListProps) 
                   </>
                 )}
                 <TableCell className="text-right">
-                  <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="h-8 w-8 p-0" 
+                    onClick={() => onViewReseller(reseller)}
+                  >
                     <Eye className="h-4 w-4" />
                   </Button>
                 </TableCell>

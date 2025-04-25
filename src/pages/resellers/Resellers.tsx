@@ -15,10 +15,14 @@ import { mockResellers } from "./mockData";
 import { ResellersList } from "./components/ResellersList";
 import { NewResellerForm } from "./components/NewResellerForm";
 import { ResellersSalesHistory } from "./components/ResellersSalesHistory";
+import { Reseller } from "./types";
+import { ResellerDetailsDialog } from "./components/ResellerDetailsDialog";
 
 export default function Resellers() {
   const [resellers, setResellers] = useState(mockResellers);
   const [isNewResellerOpen, setIsNewResellerOpen] = useState(false);
+  const [selectedReseller, setSelectedReseller] = useState<Reseller | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { user } = useAuth();
   
   const canManageResellers = user?.role === 'admin' || user?.role === 'manager';
@@ -31,6 +35,11 @@ export default function Resellers() {
     };
     setResellers([newReseller, ...resellers]);
     setIsNewResellerOpen(false);
+  };
+
+  const handleViewReseller = (reseller: Reseller) => {
+    setSelectedReseller(reseller);
+    setIsDetailsOpen(true);
   };
 
   return (
@@ -54,6 +63,13 @@ export default function Resellers() {
         </DialogContent>
       </Dialog>
 
+      <ResellerDetailsDialog 
+        open={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
+        reseller={selectedReseller}
+        canViewPrices={canManageResellers}
+      />
+
       <Tabs defaultValue="list" className="space-y-4">
         <TabsList>
           <TabsTrigger value="list">Agregados</TabsTrigger>
@@ -65,7 +81,11 @@ export default function Resellers() {
               <CardTitle>Lista de Agregados</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResellersList resellers={resellers} canViewPrices={canManageResellers} />
+              <ResellersList 
+                resellers={resellers} 
+                canViewPrices={canManageResellers}
+                onViewReseller={handleViewReseller}
+              />
             </CardContent>
           </Card>
         </TabsContent>
