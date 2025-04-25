@@ -1,4 +1,3 @@
-
 import { useLocation, Link } from "react-router-dom";
 import { 
   Home, 
@@ -10,7 +9,8 @@ import {
   Settings,
   Truck,
   MapPin,
-  Tags
+  Tags,
+  Car
 } from "lucide-react";
 import {
   Sidebar,
@@ -40,6 +40,7 @@ export function AppSidebar() {
     { title: "Agregados", path: "/resellers", icon: Tags },
     { title: "Promissórias", path: "/promissory", icon: FileText },
     { title: "Despesas", path: "/expenses", icon: DollarSign },
+    { title: "Frota", path: "/fleet", icon: Car },
   ];
 
   // Itens do menu apenas para admin e manager
