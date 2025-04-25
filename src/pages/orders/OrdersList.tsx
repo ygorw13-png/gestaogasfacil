@@ -1,149 +1,114 @@
 
 import { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Order } from "./types";
-import { Clipboard } from "lucide-react";
-import OrderDetails from "./OrderDetails";
-import { OrderTableRow } from "./components/OrderTableRow";
-import { AssignOrderDialog } from "./components/AssignOrderDialog";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Order, OrderStatus } from "./types";
+import { formatStatus, getOrderStatusColor } from "./utils/orderUtils";
 import { CompleteOrderDialog } from "./components/CompleteOrderDialog";
-
-// Mock delivery staff
-const deliveryStaff = [
-  { id: "1", name: "Carlos" },
-  { id: "2", name: "Pedro" },
-  { id: "3", name: "André" },
-  { id: "4", name: "Paulo" },
-];
+import { AssignOrderDialog } from "./components/AssignOrderDialog";
+import { OrderTableRow } from "./components/OrderTableRow";
 
 interface OrdersListProps {
   orders: Order[];
-  onAssign: (orderId: string, deliveryPerson: string) => void;
+  onAssignOrder: (orderId: string, deliveryPerson: string) => void;
   onStartDelivery: (orderId: string) => void;
-  onComplete: (orderId: string, paymentMethod: string) => void;
-  onCancel: (orderId: string) => void;
+  onCompleteOrder: (orderId: string, paymentMethod: string) => void;
+  onCancelOrder: (orderId: string) => void;
 }
 
-export default function OrdersList({ 
-  orders,
-  onAssign,
-  onStartDelivery,
-  onComplete,
-  onCancel
-}: OrdersListProps) {
-  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [selectedDeliveryPerson, setSelectedDeliveryPerson] = useState<string>("");
-  const [paymentMethod, setPaymentMethod] = useState<string>("cash");
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const [detailsOrderId, setDetailsOrderId] = useState<string | null>(null);
+const deliveryStaff = [
+  { id: "1", name: "João Silva" },
+  { id: "2", name: "Maria Santos" },
+  { id: "3", name: "Pedro Oliveira" },
+];
 
-  const handleOpenAssignDialog = (orderId: string) => {
-    setSelectedOrderId(orderId);
-    setAssignDialogOpen(true);
+export function OrdersList({ 
+  orders, 
+  onAssignOrder, 
+  onStartDelivery, 
+  onCompleteOrder, 
+  onCancelOrder 
+}: OrdersListProps) {
+  const navigate = useNavigate();
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isCompleteDialogOpen, setIsCompleteDialogOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  const [selectedDeliveryPerson, setSelectedDeliveryPerson] = useState("");
+
+  const handleAssignClick = (orderId: string) => {
+    setSelectedOrder(orderId);
+    setIsAssignDialogOpen(true);
+  };
+
+  const handleCompleteClick = (orderId: string) => {
+    setSelectedOrder(orderId);
+    setIsCompleteDialogOpen(true);
+  };
+
+  const handleDeliveryPersonChange = (value: string) => {
+    setSelectedDeliveryPerson(value);
   };
 
   const handleAssignSubmit = () => {
-    if (selectedOrderId && selectedDeliveryPerson) {
-      onAssign(selectedOrderId, selectedDeliveryPerson);
-      setAssignDialogOpen(false);
-      setSelectedOrderId(null);
+    if (selectedOrder && selectedDeliveryPerson) {
+      onAssignOrder(selectedOrder, selectedDeliveryPerson);
       setSelectedDeliveryPerson("");
+      setIsAssignDialogOpen(false);
     }
   };
 
-  const handleOpenCompleteDialog = (orderId: string) => {
-    setSelectedOrderId(orderId);
-    setCompleteDialogOpen(true);
-  };
-
-  const handleCompleteSubmit = () => {
-    if (selectedOrderId) {
-      onComplete(selectedOrderId, paymentMethod);
-      setCompleteDialogOpen(false);
-      setSelectedOrderId(null);
-      setPaymentMethod("cash");
+  const handleCompleteSubmit = (paymentMethod: string) => {
+    if (selectedOrder) {
+      onCompleteOrder(selectedOrder, paymentMethod);
+      setIsCompleteDialogOpen(false);
     }
-  };
-
-  const handleViewDetails = (orderId: string) => {
-    setDetailsOrderId(orderId);
-    setDetailsOpen(true);
   };
 
   return (
     <div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Horário</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Endereço</TableHead>
-              <TableHead>Produto</TableHead>
-              <TableHead>Qtd.</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.map((order) => (
-              <OrderTableRow
-                key={order.id}
-                order={order}
-                onAssign={() => handleOpenAssignDialog(order.id)}
-                onStartDelivery={() => onStartDelivery(order.id)}
-                onComplete={() => handleOpenCompleteDialog(order.id)}
-                onCancel={() => onCancel(order.id)}
-                onViewDetails={() => handleViewDetails(order.id)}
-              />
-            ))}
-            {orders.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                  <div className="flex flex-col items-center justify-center">
-                    <Clipboard size={32} className="mb-2 opacity-30" />
-                    <p>Nenhum pedido encontrado</p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>ID</TableHead>
+            <TableHead>Cliente</TableHead>
+            <TableHead>Endereço</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Data</TableHead>
+            <TableHead>Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {orders.map((order) => (
+            <OrderTableRow
+              key={order.id}
+              order={order}
+              onAssignClick={handleAssignClick}
+              onStartClick={onStartDelivery}
+              onCompleteClick={handleCompleteClick}
+              onCancelClick={onCancelOrder}
+              onViewClick={(id) => navigate(`/orders/${id}`)}
+            />
+          ))}
+        </TableBody>
+      </Table>
+      
       <AssignOrderDialog
-        isOpen={assignDialogOpen}
-        onOpenChange={setAssignDialogOpen}
+        isOpen={isAssignDialogOpen}
+        onOpenChange={setIsAssignDialogOpen}
         selectedDeliveryPerson={selectedDeliveryPerson}
-        onDeliveryPersonChange={setSelectedDeliveryPerson}
+        onDeliveryPersonChange={handleDeliveryPersonChange}
         onSubmit={handleAssignSubmit}
         deliveryStaff={deliveryStaff}
       />
-
+      
       <CompleteOrderDialog
-        isOpen={completeDialogOpen}
-        onOpenChange={setCompleteDialogOpen}
-        paymentMethod={paymentMethod}
-        onPaymentMethodChange={setPaymentMethod}
+        isOpen={isCompleteDialogOpen}
+        onOpenChange={setIsCompleteDialogOpen}
         onSubmit={handleCompleteSubmit}
       />
-
-      {detailsOrderId && (
-        <OrderDetails 
-          orderId={detailsOrderId}
-          orders={orders}
-          isOpen={detailsOpen}
-          onOpenChange={setDetailsOpen}
-        />
-      )}
     </div>
   );
 }

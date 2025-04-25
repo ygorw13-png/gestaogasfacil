@@ -9,6 +9,7 @@ import { SalesChart } from "./dashboard/components/SalesChart";
 import { StockChart } from "./dashboard/components/StockChart";
 import { TopSellers } from "./dashboard/components/TopSellers";
 import { AdminSection } from "./dashboard/components/AdminSection";
+import { PromissoryStats } from "./dashboard/components/PromissoryStats";
 import { salesData, overviewData, topSellers } from "./dashboard/data";
 
 export default function Dashboard() {
@@ -42,6 +43,7 @@ export default function Dashboard() {
         <TabsList>
           <TabsTrigger value="sales">Vendas</TabsTrigger>
           <TabsTrigger value="stock">Estoque</TabsTrigger>
+          <TabsTrigger value="promissory">Promissórias</TabsTrigger>
           {hasFullAccess && <TabsTrigger value="sellers">Vendedores</TabsTrigger>}
         </TabsList>
         
@@ -58,6 +60,12 @@ export default function Dashboard() {
         <TabsContent value="stock" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <StockChart />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="promissory" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <PromissoryStats />
           </div>
         </TabsContent>
         
