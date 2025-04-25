@@ -1,15 +1,16 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Store, DollarSign, User, Plus, ShoppingCart, CreditCard, FileText, Package, Clock, Droplet, Truck } from "lucide-react";
+import { Plus, User, ShoppingCart, DollarSign, CreditCard, FileText, Truck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import NewSaleForm from "./NewSaleForm";
 import CashierClosing from "./CashierClosing";
+import { StatisticsCards } from "./components/statistics/StatisticsCards";
+import { RecentSalesTable } from "./components/sales/RecentSalesTable";
+import { PaymentsByType } from "./components/payments/PaymentsByType";
 
-// Mock data
 const cashierData = {
   cash: 2345.50,
   credit: 1250.00,
@@ -73,6 +74,12 @@ export default function EntranceSales() {
     });
   };
 
+  const glpSales = {
+    p13: 38,
+    p20: 2,
+    p45: 2,
+  };
+
   return (
     <div className="space-y-6 animate-in pb-20">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -100,44 +107,11 @@ export default function EntranceSales() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Vendas Hoje</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R$ {cashierData.totalSales.toFixed(2).replace('.', ',')}</div>
-            <p className="text-xs text-muted-foreground">
-              +12% desde ontem
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vendas de GLP</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">42 unidades</div>
-            <p className="text-xs text-muted-foreground">
-              38 P13 | 2 P20 | 2 P45
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vendas de Água</CardTitle>
-            <Droplet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">28 galões</div>
-            <p className="text-xs text-muted-foreground">
-              Média de 3 galões/hora
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <StatisticsCards 
+        totalSales={cashierData.totalSales}
+        glpSales={glpSales}
+        waterSales={28}
+      />
 
       <div className="overflow-hidden">
         <Tabs defaultValue="sales" className="space-y-4">
@@ -162,35 +136,7 @@ export default function EntranceSales() {
                 <CardTitle>Vendas Recentes</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left font-medium py-2">Horário</th>
-                        <th className="text-left font-medium py-2">Cliente</th>
-                        <th className="text-left font-medium py-2">Produto</th>
-                        <th className="text-center font-medium py-2">Qtd</th>
-                        <th className="text-left font-medium py-2">Pagamento</th>
-                        <th className="text-right font-medium py-2">Valor</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentSales.map(sale => (
-                        <tr key={sale.id} className="border-b">
-                          <td className="py-2">{sale.time}</td>
-                          <td className="py-2">{sale.client}</td>
-                          <td className="py-2">{sale.product}</td>
-                          <td className="py-2 text-center">{sale.quantity}</td>
-                          <td className="py-2">{sale.payment}</td>
-                          <td className="py-2 text-right">R$ {sale.amount.toFixed(2).replace('.', ',')}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="mt-4 flex justify-center">
-                  <Button variant="outline" size="sm">Ver todas as vendas</Button>
-                </div>
+                <RecentSalesTable sales={recentSales} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -202,19 +148,7 @@ export default function EntranceSales() {
                   <CardTitle>Vendas por Tipo de Pagamento</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {salesByType.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between border-b pb-2 last:border-0">
-                        <div className="flex items-center gap-2">
-                          {item.icon}
-                          <span>{item.type}</span>
-                        </div>
-                        <div className="font-medium">
-                          R$ {item.amount.toFixed(2).replace('.', ',')}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <PaymentsByType payments={salesByType} />
                 </CardContent>
               </Card>
               
