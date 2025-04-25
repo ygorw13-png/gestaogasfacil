@@ -58,7 +58,7 @@ export function AppSidebar() {
                 const isActive = location.pathname === item.path;
                 return (
                   <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton asChild active={isActive}>
+                    <SidebarMenuButton asChild>
                       <Link
                         to={item.path}
                         className={cn(
