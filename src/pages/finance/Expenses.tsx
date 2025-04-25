@@ -1,44 +1,30 @@
 
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, FileText, FileMinus, FilePlus, Car, Wrench, User } from "lucide-react";
+import { Calendar, FileMinus, FilePlus, Car, Wrench } from "lucide-react";
+import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
+import { addDays } from "date-fns";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import FuelExpenses from "./components/FuelExpenses";
 import MaintenanceExpenses from "./components/MaintenanceExpenses";
 import MiscExpenses from "./components/MiscExpenses";
 import FixedExpenses from "./components/FixedExpenses";
 
 export default function Expenses() {
-  const [selectedPeriod, setSelectedPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: addDays(new Date(), 7)
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Despesas</h1>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={selectedPeriod === 'daily' ? 'default' : 'outline'}
-            onClick={() => setSelectedPeriod('daily')}
-          >
-            <Calendar className="mr-2 h-4 w-4" />
-            Diário
-          </Button>
-          <Button
-            variant={selectedPeriod === 'weekly' ? 'default' : 'outline'}
-            onClick={() => setSelectedPeriod('weekly')}
-          >
-            <Calendar className="mr-2 h-4 w-4" />
-            Semanal
-          </Button>
-          <Button
-            variant={selectedPeriod === 'monthly' ? 'default' : 'outline'}
-            onClick={() => setSelectedPeriod('monthly')}
-          >
-            <Calendar className="mr-2 h-4 w-4" />
-            Mensal
-          </Button>
-        </div>
+        <DateRangePicker
+          date={dateRange}
+          onDateChange={setDateRange}
+        />
       </div>
       
       <Tabs defaultValue="fuel" className="w-full">
@@ -62,19 +48,19 @@ export default function Expenses() {
         </TabsList>
 
         <TabsContent value="fuel">
-          <FuelExpenses period={selectedPeriod} />
+          <FuelExpenses dateRange={dateRange} />
         </TabsContent>
 
         <TabsContent value="maintenance">
-          <MaintenanceExpenses period={selectedPeriod} />
+          <MaintenanceExpenses dateRange={dateRange} />
         </TabsContent>
 
         <TabsContent value="misc">
-          <MiscExpenses period={selectedPeriod} />
+          <MiscExpenses dateRange={dateRange} />
         </TabsContent>
 
         <TabsContent value="fixed">
-          <FixedExpenses period={selectedPeriod} />
+          <FixedExpenses dateRange={dateRange} />
         </TabsContent>
       </Tabs>
     </div>

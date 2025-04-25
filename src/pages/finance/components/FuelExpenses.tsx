@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,10 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import NewFuelExpenseForm from "./forms/NewFuelExpenseForm";
 
 interface FuelExpensesProps {
-  period: 'daily' | 'weekly' | 'monthly';
+  dateRange?: DateRange;
 }
 
-export default function FuelExpenses({ period }: FuelExpensesProps) {
+export default function FuelExpenses({ dateRange }: FuelExpensesProps) {
   const [open, setOpen] = useState(false);
 
   return (

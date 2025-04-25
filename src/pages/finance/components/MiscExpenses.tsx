@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,10 +6,10 @@ import { Plus, FileText } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface MiscExpensesProps {
-  period: 'daily' | 'weekly' | 'monthly';
+  dateRange?: DateRange;
 }
 
-export default function MiscExpenses({ period }: MiscExpensesProps) {
+export default function MiscExpenses({ dateRange }: MiscExpensesProps) {
   const [open, setOpen] = useState(false);
 
   return (

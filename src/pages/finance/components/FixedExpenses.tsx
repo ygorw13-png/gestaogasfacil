@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,10 +6,10 @@ import { Plus, Calendar } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface FixedExpensesProps {
-  period: 'daily' | 'weekly' | 'monthly';
+  dateRange?: DateRange;
 }
 
-export default function FixedExpenses({ period }: FixedExpensesProps) {
+export default function FixedExpenses({ dateRange }: FixedExpensesProps) {
   const [open, setOpen] = useState(false);
 
   return (
