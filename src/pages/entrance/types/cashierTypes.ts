@@ -1,3 +1,4 @@
+
 export interface CashierQuantities {
   p13: number;
   p20: number;
@@ -12,13 +13,15 @@ export interface PaymentSummaryProps {
 }
 
 export interface InventoryTableProps {
-  data: {
+  data: Array<{
     product: string;
     initial: number;
     additions: number;
     sales: number;
     final: number;
-  }[];
+  }> & {
+    inventoryMovements?: InventoryMovement[];
+  };
 }
 
 export interface InventoryMovement {
