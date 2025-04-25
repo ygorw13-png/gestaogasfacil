@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +24,7 @@ import {
   SheetFooter
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const clients = [
   { id: 1, name: "Maria Silva", phone: "(11) 98765-4321", type: "Regular" },
@@ -57,7 +57,7 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
   };
 
   const FormContent = () => (
-    <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <ClientSelection
         selectedClient={selectedClient}
         onSelectClient={setSelectedClient}
@@ -89,7 +89,6 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
     </form>
   );
 
-  // Use Sheet for mobile and Dialog for desktop
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -99,7 +98,7 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
             <span>Nova Venda</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
+        <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Registrar Nova Venda</SheetTitle>
             <SheetDescription>
@@ -107,9 +106,9 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
             </SheetDescription>
           </SheetHeader>
           
-          <div className="py-4 overflow-y-auto max-h-[calc(85vh-180px)]">
+          <ScrollArea className="h-[calc(90vh-220px)] pr-4">
             <FormContent />
-          </div>
+          </ScrollArea>
           
           <SheetFooter className="border-t pt-4 mt-2">
             <div className="flex w-full gap-2 justify-end">
@@ -134,7 +133,7 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
           <span>Nova Venda</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Registrar Nova Venda</DialogTitle>
           <DialogDescription>
@@ -142,9 +141,9 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
           </DialogDescription>
         </DialogHeader>
         
-        <div className="overflow-y-auto flex-1 py-2 pr-2">
+        <ScrollArea className="flex-1 pr-4">
           <FormContent />
-        </div>
+        </ScrollArea>
         
         <DialogFooter className="sm:justify-between border-t pt-4 mt-2">
           <div className="hidden sm:block">
