@@ -9,7 +9,7 @@ import { RouteReports } from "./components/RouteReports";
 import { AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export default function Routes() {
+export default function RoutesPage() {
   const { user } = useAuth();
   
   // Verificamos se o usuário tem permissão (apenas admin ou manager)
@@ -23,7 +23,7 @@ export default function Routes() {
         <h1 className="text-3xl font-bold tracking-tight">Gestão de Rotas</h1>
       </div>
       
-      <Alert variant="info" className="mb-6 bg-blue-50 border-blue-200">
+      <Alert variant="warning" className="mb-6 bg-blue-50 border-blue-200">
         <AlertTriangle className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-blue-700">
           Esta área é exclusiva para gerenciamento de rotas de entrega. Todas as vendas e movimentações dos motoristas são registradas aqui.

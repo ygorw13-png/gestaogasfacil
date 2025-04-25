@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +16,7 @@ import Settings from "./pages/settings/Settings";
 import Routes from "./pages/routes/Routes";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
+import RoutesPage from "./pages/routes/RoutesPage";
 
 const queryClient = new QueryClient();
 
@@ -69,7 +69,7 @@ const App = () => (
                 path="routes" 
                 element={
                   <PrivateRoute requiredRole="admin">
-                    <Routes />
+                    <RoutesPage />
                   </PrivateRoute>
                 } 
               />
