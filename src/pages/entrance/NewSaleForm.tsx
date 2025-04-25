@@ -99,7 +99,7 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
             <span>Nova Venda</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
+        <SheetContent side="bottom" className="h-[90vh]">
           <SheetHeader>
             <SheetTitle>Registrar Nova Venda</SheetTitle>
             <SheetDescription>
@@ -107,11 +107,15 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
             </SheetDescription>
           </SheetHeader>
           
-          <ScrollArea className="h-[calc(90vh-220px)] pr-4">
-            <FormContent />
-          </ScrollArea>
+          <div className="py-4 flex-1 h-[calc(90vh-180px)]">
+            <ScrollArea className="h-full">
+              <div className="pr-4">
+                <FormContent />
+              </div>
+            </ScrollArea>
+          </div>
           
-          <SheetFooter className="border-t pt-4 mt-2">
+          <SheetFooter className="border-t pt-4">
             <div className="flex w-full gap-2 justify-end">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
@@ -134,7 +138,7 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
           <span>Nova Venda</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Registrar Nova Venda</DialogTitle>
           <DialogDescription>
@@ -142,29 +146,26 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 pr-4">
-          <FormContent />
-        </ScrollArea>
+        <div className="py-4">
+          <ScrollArea className="h-[60vh]">
+            <div className="pr-4">
+              <FormContent />
+            </div>
+          </ScrollArea>
+        </div>
         
-        <DialogFooter className="sm:justify-between border-t pt-4 mt-2">
-          <div className="hidden sm:block">
-            <Button 
-              type="button" 
-              variant="link"
-              className="text-destructive"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancelar
-            </Button>
-          </div>
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit" onClick={(e) => {e.preventDefault(); onSubmit();}}>
-              Registrar Venda
-            </Button>
-          </div>
+        <DialogFooter className="border-t pt-4">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+            className="mr-2"
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" onClick={(e) => {e.preventDefault(); onSubmit();}}>
+            Registrar Venda
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
