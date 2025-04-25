@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,6 +15,7 @@ import { InventoryTable } from "../InventoryTable";
 import { ObservationsSection } from "../ObservationsSection";
 import { CashierData } from "../../types/cashierTypes";
 import { inventoryClosing } from "../../data/mockData";
+import { formatCurrency, formatQuantities } from "@/lib/formatUtils";
 
 interface CashierClosingDialogProps {
   isOpen: boolean;
@@ -49,7 +51,11 @@ export function CashierClosingDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <PaymentSummary data={cashierData} />
+          <PaymentSummary 
+            data={cashierData} 
+            formatCurrency={formatCurrency}
+            formatQuantities={formatQuantities}
+          />
           <InventoryTable data={inventoryClosing} />
           <ObservationsSection />
           <DialogFooter>
