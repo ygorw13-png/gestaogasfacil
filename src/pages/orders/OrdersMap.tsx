@@ -1,6 +1,5 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Order } from "./Orders";
+import { Order } from "./types";
 import { MapPin } from "lucide-react";
 
 interface OrdersMapProps {

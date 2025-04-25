@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Table,
@@ -10,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Order } from "./Orders";
+import { Order } from "./types";
 import { 
   Check, X, Truck, Clock, PhoneCall, 
   Clipboard, AlertCircle, CheckCircle 
