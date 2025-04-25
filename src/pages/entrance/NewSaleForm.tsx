@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -11,29 +9,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Users, Search } from "lucide-react";
-import { 
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Plus } from "lucide-react";
+import { ClientSelection } from "./components/sale-form/ClientSelection";
+import { PaymentMethodSelect } from "./components/sale-form/PaymentMethodSelect";
+import { ProductSelection } from "./components/sale-form/ProductSelection";
+import { CylinderMovement } from "./components/sale-form/CylinderMovement";
 
 const clients = [
   { id: 1, name: "Maria Silva", phone: "(11) 98765-4321", type: "Regular" },
@@ -50,16 +30,14 @@ interface NewSaleFormProps {
 }
 
 export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleFormProps) {
-  const [clientSearchOpen, setClientSearchOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<typeof clients[0] | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [product, setProduct] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [unitPrice, setUnitPrice] = useState(120);
   const [loanGas, setLoanGas] = useState(false);
   const [cylinderMovement, setCylinderMovement] = useState<'none' | 'loan' | 'return'>('none');
   const [movementQuantity, setMovementQuantity] = useState(1);
-
-  const handleSelectClient = (client: typeof clients[0]) => {
-    setSelectedClient(client);
-    setClientSearchOpen(false);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,161 +60,34 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Cliente</Label>
-              <div className="flex gap-2">
-                <Popover open={clientSearchOpen} onOpenChange={setClientSearchOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className="w-full justify-between"
-                    >
-                      {selectedClient ? selectedClient.name : "Selecionar cliente"}
-                      <Search className="h-4 w-4 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[300px] p-0">
-                    <Command>
-                      <CommandInput placeholder="Buscar cliente..." />
-                      <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
-                      <CommandList>
-                        <CommandGroup heading="Clientes">
-                          {clients.map((client) => (
-                            <CommandItem
-                              key={client.id}
-                              onSelect={() => handleSelectClient(client)}
-                              className="cursor-pointer"
-                            >
-                              <div className="flex flex-col">
-                                <span>{client.name}</span>
-                                <span className="text-xs text-muted-foreground">{client.phone}</span>
-                              </div>
-                              <span className="text-xs ml-auto bg-muted px-2 py-0.5 rounded-full">
-                                {client.type}
-                              </span>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <Button type="button" variant="outline" size="icon">
-                  <Users className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="paymentMethod">Forma de Pagamento</Label>
-              <Select>
-                <SelectTrigger id="paymentMethod">
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">Dinheiro</SelectItem>
-                  <SelectItem value="credit">Cartão de Crédito</SelectItem>
-                  <SelectItem value="debit">Cartão de Débito</SelectItem>
-                  <SelectItem value="pix">PIX</SelectItem>
-                  <SelectItem value="promissory">Promissória</SelectItem>
-                  <SelectItem value="voucher">Vale Gás</SelectItem>
-                  <SelectItem value="partner">Convênio</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="product">Produto</Label>
-              <Select>
-                <SelectTrigger id="product">
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="p13">GLP P13</SelectItem>
-                  <SelectItem value="p20">GLP P20</SelectItem>
-                  <SelectItem value="p45">GLP P45</SelectItem>
-                  <SelectItem value="water">Água 20L</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="quantity">Quantidade</Label>
-              <Input type="number" id="quantity" defaultValue="1" min="1" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="unitPrice">Valor Unitário (R$)</Label>
-              <Input type="number" id="unitPrice" step="0.01" defaultValue="120.00" />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="totalPrice">Valor Total (R$)</Label>
-              <Input type="number" id="totalPrice" step="0.01" defaultValue="120.00" readOnly />
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox id="loanGas" checked={loanGas} onCheckedChange={(checked) => setLoanGas(!!checked)} />
-            <Label htmlFor="loanGas" className="text-sm font-normal">
-              Empréstimo de casco (cliente não está devolvendo casco vazio)
-            </Label>
-          </div>
-
-          {loanGas && (
-            <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
-              <p className="text-amber-800 text-sm">
-                Empréstimo de casco registrado. Um casco vazio ficará pendente para este cliente.
-              </p>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <Label>Movimentação de Vasilhame</Label>
-            <RadioGroup
-              defaultValue="none"
-              onValueChange={(value) => setCylinderMovement(value as 'none' | 'loan' | 'return')}
-              className="flex flex-col space-y-1"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="none" id="none" />
-                <Label htmlFor="none">Sem movimentação</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="loan" id="loan" />
-                <Label htmlFor="loan">Empréstimo de vasilhame</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="return" id="return" />
-                <Label htmlFor="return">Devolução de vasilhame</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {cylinderMovement !== 'none' && (
-            <div className="space-y-2">
-              <Label htmlFor="movementQuantity">Quantidade de vasilhames</Label>
-              <Input
-                type="number"
-                id="movementQuantity"
-                value={movementQuantity}
-                onChange={(e) => setMovementQuantity(Number(e.target.value))}
-                min={1}
-              />
-            </div>
-          )}
-
-          {cylinderMovement === 'loan' && (
-            <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
-              <p className="text-amber-800 text-sm">
-                Empréstimo de {movementQuantity} vasilhame(s) será registrado para este cliente.
-              </p>
-            </div>
-          )}
+          <ClientSelection
+            selectedClient={selectedClient}
+            onSelectClient={setSelectedClient}
+            clients={clients}
+          />
+          
+          <PaymentMethodSelect
+            value={paymentMethod}
+            onChange={setPaymentMethod}
+          />
+          
+          <ProductSelection
+            product={product}
+            quantity={quantity}
+            unitPrice={unitPrice}
+            onProductChange={setProduct}
+            onQuantityChange={setQuantity}
+            onUnitPriceChange={setUnitPrice}
+          />
+          
+          <CylinderMovement
+            loanGas={loanGas}
+            cylinderMovement={cylinderMovement}
+            movementQuantity={movementQuantity}
+            onLoanGasChange={setLoanGas}
+            onCylinderMovementChange={setCylinderMovement}
+            onMovementQuantityChange={setMovementQuantity}
+          />
 
           <DialogFooter className="sm:justify-between">
             <div className="hidden sm:block">
