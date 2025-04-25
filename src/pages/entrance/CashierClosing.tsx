@@ -29,6 +29,15 @@ interface CashierData {
   promissory: number;
   gasVoucher: number;
   totalSales: number;
+  // Add quantities for each payment type
+  quantities: {
+    cash: { p13: number; p20: number; p45: number; water: number; };
+    credit: { p13: number; p20: number; p45: number; water: number; };
+    debit: { p13: number; p20: number; p45: number; water: number; };
+    pix: { p13: number; p20: number; p45: number; water: number; };
+    promissory: { p13: number; p20: number; p45: number; water: number; };
+    gasVoucher: { p13: number; p20: number; p45: number; water: number; };
+  };
 }
 
 interface CashierClosingProps {
@@ -41,6 +50,15 @@ interface CashierClosingProps {
 export default function CashierClosing({ isOpen, onOpenChange, onSubmit, cashierData }: CashierClosingProps) {
   const formatCurrency = (value: number) => {
     return value.toFixed(2).replace('.', ',');
+  };
+
+  const formatQuantities = (quantities: { p13: number; p20: number; p45: number; water: number; }) => {
+    const parts = [];
+    if (quantities.p13) parts.push(`${quantities.p13} P13`);
+    if (quantities.p20) parts.push(`${quantities.p20} P20`);
+    if (quantities.p45) parts.push(`${quantities.p45} P45`);
+    if (quantities.water) parts.push(`${quantities.water} Água`);
+    return parts.join(', ');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -64,7 +82,7 @@ export default function CashierClosing({ isOpen, onOpenChange, onSubmit, cashier
           <span>Fechar Caixa</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Fechamento de Caixa da Portaria</DialogTitle>
           <DialogDescription>
@@ -74,51 +92,52 @@ export default function CashierClosing({ isOpen, onOpenChange, onSubmit, cashier
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Valores Recebidos</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="cashAmount">Dinheiro (R$)</Label>
+                <Label htmlFor="cashAmount">Dinheiro</Label>
                 <Input 
                   id="cashAmount" 
-                  defaultValue={formatCurrency(cashierData.cash)}
+                  value={`R$ ${formatCurrency(cashierData.cash)} (${formatQuantities(cashierData.quantities.cash)})`}
+                  readOnly
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="creditAmount">Cartão de Crédito (R$)</Label>
+                <Label htmlFor="creditAmount">Cartão de Crédito</Label>
                 <Input 
                   id="creditAmount" 
-                  defaultValue={formatCurrency(cashierData.credit)}
+                  value={`R$ ${formatCurrency(cashierData.credit)} (${formatQuantities(cashierData.quantities.credit)})`}
                   readOnly
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="debitAmount">Cartão de Débito (R$)</Label>
+                <Label htmlFor="debitAmount">Cartão de Débito</Label>
                 <Input 
                   id="debitAmount" 
-                  defaultValue={formatCurrency(cashierData.debit)}
+                  value={`R$ ${formatCurrency(cashierData.debit)} (${formatQuantities(cashierData.quantities.debit)})`}
                   readOnly
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pixAmount">PIX (R$)</Label>
+                <Label htmlFor="pixAmount">PIX</Label>
                 <Input 
                   id="pixAmount" 
-                  defaultValue={formatCurrency(cashierData.pix)}
+                  value={`R$ ${formatCurrency(cashierData.pix)} (${formatQuantities(cashierData.quantities.pix)})`}
                   readOnly
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="promissoryAmount">Promissórias (R$)</Label>
+                <Label htmlFor="promissoryAmount">Promissórias</Label>
                 <Input 
                   id="promissoryAmount" 
-                  defaultValue={formatCurrency(cashierData.promissory)}
+                  value={`R$ ${formatCurrency(cashierData.promissory)} (${formatQuantities(cashierData.quantities.promissory)})`}
                   readOnly
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="gasVoucherAmount">Vale Gás (R$)</Label>
+                <Label htmlFor="gasVoucherAmount">Vale Gás</Label>
                 <Input 
                   id="gasVoucherAmount" 
-                  defaultValue={formatCurrency(cashierData.gasVoucher)}
+                  value={`R$ ${formatCurrency(cashierData.gasVoucher)} (${formatQuantities(cashierData.quantities.gasVoucher)})`}
                   readOnly
                 />
               </div>
@@ -184,7 +203,7 @@ export default function CashierClosing({ isOpen, onOpenChange, onSubmit, cashier
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Observações</h3>
             <textarea 
-              className="w-full min-h-[80px] p-2 border rounded-md"
+              className="w-full min-h-[100px] p-3 border rounded-md resize-y"
               placeholder="Digite observações sobre o fechamento de caixa..."
             ></textarea>
           </div>

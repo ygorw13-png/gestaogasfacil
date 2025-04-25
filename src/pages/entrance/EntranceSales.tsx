@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +16,15 @@ const cashierData = {
   pix: 1500.00,
   promissory: 850.00,
   gasVoucher: 520.00,
-  totalSales: 7451.25
+  totalSales: 7451.25,
+  quantities: {
+    cash: { p13: 15, p20: 2, p45: 1, water: 10 },
+    credit: { p13: 8, p20: 1, p45: 0, water: 5 },
+    debit: { p13: 6, p20: 1, p45: 0, water: 3 },
+    pix: { p13: 10, p20: 0, p45: 1, water: 7 },
+    promissory: { p13: 5, p20: 1, p45: 0, water: 4 },
+    gasVoucher: { p13: 3, p20: 0, p45: 0, water: 2 }
+  }
 };
 
 const salesByType = [
