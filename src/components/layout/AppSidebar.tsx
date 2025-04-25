@@ -8,7 +8,8 @@ import {
   FileText, 
   DollarSign, 
   Settings,
-  Truck
+  Truck,
+  MapPin
 } from "lucide-react";
 import {
   Sidebar,
@@ -23,21 +24,34 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-
-// Navigation menu items
-const menuItems = [
-  { title: "Dashboard", path: "/", icon: Home },
-  { title: "Estoque", path: "/inventory", icon: Box },
-  { title: "Portaria", path: "/entrance", icon: Store },
-  { title: "Pedidos", path: "/orders", icon: Truck },
-  { title: "Clientes", path: "/clients", icon: Users },
-  { title: "Promissórias", path: "/promissory", icon: FileText },
-  { title: "Despesas", path: "/expenses", icon: DollarSign },
-  { title: "Configurações", path: "/settings", icon: Settings },
-];
+import { useAuth } from "@/contexts/AuthContext";
 
 export function AppSidebar() {
   const location = useLocation();
+  const { user } = useAuth();
+  
+  // Itens do menu baseados na permissão
+  const baseMenuItems = [
+    { title: "Dashboard", path: "/", icon: Home },
+    { title: "Portaria", path: "/entrance", icon: Store },
+    { title: "Pedidos", path: "/orders", icon: Truck },
+    { title: "Clientes", path: "/clients", icon: Users },
+    { title: "Promissórias", path: "/promissory", icon: FileText },
+    { title: "Despesas", path: "/expenses", icon: DollarSign },
+  ];
+
+  // Itens do menu apenas para admin e manager
+  const adminMenuItems = [
+    { title: "Estoque", path: "/inventory", icon: Box },
+    { title: "Rotas", path: "/routes", icon: MapPin },
+    { title: "Configurações", path: "/settings", icon: Settings },
+  ];
+
+  // Combina os menus baseado no papel do usuário
+  const menuItems = [
+    ...baseMenuItems,
+    ...(user?.role === 'admin' || user?.role === 'manager' ? adminMenuItems : [])
+  ];
 
   return (
     <Sidebar>

@@ -14,6 +14,7 @@ import Clients from "./pages/clients/Clients";
 import Promissory from "./pages/promissory/Promissory";
 import Expenses from "./pages/finance/Expenses";
 import Settings from "./pages/settings/Settings";
+import Routes from "./pages/routes/Routes";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 
@@ -64,6 +65,14 @@ const App = () => (
               <Route path="clients" element={<Clients />} />
               <Route path="promissory" element={<Promissory />} />
               <Route path="expenses" element={<Expenses />} />
+              <Route 
+                path="routes" 
+                element={
+                  <PrivateRoute requiredRole="admin">
+                    <Routes />
+                  </PrivateRoute>
+                } 
+              />
               <Route 
                 path="settings" 
                 element={
