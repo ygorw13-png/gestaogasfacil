@@ -1,7 +1,9 @@
 
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
-import { Control } from "react-hook-form";
+import { AlertTriangle } from "lucide-react";
+import { Control, useFormState } from "react-hook-form";
 import { FormValues } from "../types/formTypes";
 
 interface ClientFormSectionProps {
@@ -9,16 +11,30 @@ interface ClientFormSectionProps {
 }
 
 export function ClientFormSection({ control }: ClientFormSectionProps) {
+  const { errors } = useFormState({ control });
+  
+  const hasErrors = !!errors.clientName || !!errors.clientPhone || !!errors.street || !!errors.number;
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Dados do Cliente</h3>
+      
+      {hasErrors && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Por favor, preencha todos os campos obrigatórios corretamente.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField
           control={control}
           name="clientName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nome</FormLabel>
+              <FormLabel>Nome *</FormLabel>
               <FormControl>
                 <Input placeholder="Nome do cliente" {...field} />
               </FormControl>
@@ -32,9 +48,17 @@ export function ClientFormSection({ control }: ClientFormSectionProps) {
           name="clientPhone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Telefone</FormLabel>
+              <FormLabel>Telefone *</FormLabel>
               <FormControl>
-                <Input placeholder="Telefone do cliente" {...field} />
+                <Input 
+                  placeholder="Somente números" 
+                  maxLength={11}
+                  {...field} 
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    field.onChange(value);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -48,7 +72,7 @@ export function ClientFormSection({ control }: ClientFormSectionProps) {
           name="street"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Rua</FormLabel>
+              <FormLabel>Rua *</FormLabel>
               <FormControl>
                 <Input placeholder="Nome da rua" {...field} />
               </FormControl>
@@ -62,7 +86,7 @@ export function ClientFormSection({ control }: ClientFormSectionProps) {
           name="number"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Número</FormLabel>
+              <FormLabel>Número *</FormLabel>
               <FormControl>
                 <Input placeholder="Número" {...field} />
               </FormControl>

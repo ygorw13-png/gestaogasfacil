@@ -1,7 +1,9 @@
 
 import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
-import { Control } from "react-hook-form";
+import { AlertTriangle } from "lucide-react";
+import { Control, useFormState } from "react-hook-form";
 import { FormValues } from "../types/formTypes";
 
 interface ProductsFormSectionProps {
@@ -21,9 +23,23 @@ export function ProductsFormSection({
   hasWater,
   onToggleProduct
 }: ProductsFormSectionProps) {
+  const { errors } = useFormState({ control });
+  
+  const hasErrors = !!errors.gasP13 || !!errors.gasP20 || !!errors.gasP45 || !!errors.water;
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Produtos</h3>
+      
+      {hasErrors && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Por favor, corrija as quantidades inválidas abaixo.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <ProductInput
           control={control}
@@ -92,6 +108,7 @@ function ProductInput({ control, name, label, isEnabled, onToggle }: ProductInpu
               <Input
                 type="number"
                 min="0"
+                max="99"
                 disabled={!isEnabled}
                 value={isEnabled ? field.value : 0}
                 onChange={(e) => {

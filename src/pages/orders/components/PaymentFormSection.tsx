@@ -2,7 +2,9 @@
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Control } from "react-hook-form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
+import { Control, useFormState } from "react-hook-form";
 import { FormValues } from "../types/formTypes";
 
 interface PaymentFormSectionProps {
@@ -10,15 +12,29 @@ interface PaymentFormSectionProps {
 }
 
 export function PaymentFormSection({ control }: PaymentFormSectionProps) {
+  const { errors } = useFormState({ control });
+  
+  const hasErrors = !!errors.paymentMethod || !!errors.observations;
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Pagamento e Observações</h3>
+      
+      {hasErrors && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Por favor, corrija os erros abaixo antes de continuar.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <FormField
         control={control}
         name="paymentMethod"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Forma de Pagamento</FormLabel>
+            <FormLabel>Forma de Pagamento *</FormLabel>
             <Select
               onValueChange={field.onChange}
               value={field.value}
@@ -50,6 +66,8 @@ export function PaymentFormSection({ control }: PaymentFormSectionProps) {
             <FormControl>
               <Textarea
                 placeholder="Observações adicionais sobre o pedido"
+                className="resize-none"
+                maxLength={500}
                 {...field}
               />
             </FormControl>
