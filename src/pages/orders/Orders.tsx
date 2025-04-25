@@ -25,8 +25,6 @@ export default function Orders() {
         <h1 className="text-3xl font-bold tracking-tight">Gestão de Pedidos</h1>
         <div>
           <NewOrderForm
-            isOpen={isNewOrderOpen}
-            onOpenChange={setIsNewOrderOpen}
             onSubmit={handleAddOrder}
           />
         </div>

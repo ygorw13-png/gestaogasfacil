@@ -1,5 +1,4 @@
 
-// Vamos corrigir o erro de build relacionado à propriedade className no Select
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,8 +15,10 @@ import { Order } from "./types";
 const formSchema = z.object({
   clientName: z.string().min(1, "Nome do cliente é obrigatório"),
   clientPhone: z.string().min(1, "Telefone é obrigatório"),
-  address: z.string().min(1, "Endereço é obrigatório"),
-  reference: z.string().optional(),
+  street: z.string().min(1, "Rua é obrigatória"),
+  number: z.string().min(1, "Número é obrigatório"),
+  complement: z.string().optional(),
+  neighborhood: z.string().optional(),
   gasP13: z.number().min(0, "Não pode ser negativo").optional(),
   gasP20: z.number().min(0, "Não pode ser negativo").optional(),
   gasP45: z.number().min(0, "Não pode ser negativo").optional(),
@@ -38,8 +39,10 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
     defaultValues: {
       clientName: "",
       clientPhone: "",
-      address: "",
-      reference: "",
+      street: "",
+      number: "",
+      complement: "",
+      neighborhood: "",
       gasP13: 0,
       gasP20: 0,
       gasP45: 0,
@@ -63,22 +66,42 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
       return;
     }
     
+    // Determine which product has quantity > 0
+    let product = "";
+    let quantity = 0;
+    
+    if (values.gasP13 && values.gasP13 > 0) {
+      product = "Gás P13";
+      quantity = values.gasP13;
+    } else if (values.gasP20 && values.gasP20 > 0) {
+      product = "Gás P20";
+      quantity = values.gasP20;
+    } else if (values.gasP45 && values.gasP45 > 0) {
+      product = "Gás P45";
+      quantity = values.gasP45;
+    } else if (values.water && values.water > 0) {
+      product = "Água";
+      quantity = values.water;
+    }
+    
     const order: Order = {
-      id: "", // Será gerado no backend
+      id: (Math.random() * 1000).toFixed(0), // Temporary ID
       clientName: values.clientName,
       clientPhone: values.clientPhone,
-      address: values.address,
-      reference: values.reference || "",
-      products: {
-        gasP13: values.gasP13 || 0,
-        gasP20: values.gasP20 || 0,
-        gasP45: values.gasP45 || 0,
-        water: values.water || 0,
+      address: {
+        street: values.street,
+        number: values.number,
+        complement: values.complement,
+        neighborhood: values.neighborhood,
       },
-      paymentMethod: values.paymentMethod,
-      observations: values.observations || "",
-      status: "pending",
+      product,
+      quantity,
+      price: 0, // This would typically be calculated based on the product
+      hasEmptyCylinder: true, // Default value
+      isCompletePackage: false, // Default value
       createdAt: new Date(),
+      status: "pending",
+      notes: values.observations
     };
     
     onSubmit(order);
@@ -130,33 +153,65 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
                 />
               </div>
               
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Endereço</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Endereço completo" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="street"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Rua</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome da rua" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Número" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               
-              <FormField
-                control={form.control}
-                name="reference"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ponto de Referência</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ponto de referência (opcional)" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="complement"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Complemento</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Complemento (opcional)" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="neighborhood"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bairro</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Bairro (opcional)" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
             
             <div className="space-y-4">
@@ -204,7 +259,6 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
                   />
                 </div>
                 
-                {/* Outros produtos seguem o mesmo padrão */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-sm font-medium" htmlFor="gasP20">

@@ -69,12 +69,13 @@ export function OrdersList({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
+            <TableHead>Horário</TableHead>
             <TableHead>Cliente</TableHead>
             <TableHead>Endereço</TableHead>
+            <TableHead>Produto</TableHead>
+            <TableHead>Quantidade</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Data</TableHead>
-            <TableHead>Ações</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
