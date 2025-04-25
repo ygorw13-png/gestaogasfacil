@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -6,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Order } from "./Orders";
+import { Order } from "./types";
 import { Badge } from "@/components/ui/badge";
 import { 
   Clock, Check, X, Truck, PhoneCall,
