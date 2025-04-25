@@ -1,9 +1,31 @@
-
 export interface CashierQuantities {
   p13: number;
   p20: number;
   p45: number;
   water: number;
+}
+
+export interface PaymentSummaryProps {
+  data: CashierData;
+  formatCurrency: (value: number) => string;
+  formatQuantities: (quantities: CashierQuantities) => string;
+}
+
+export interface InventoryTableProps {
+  data: {
+    product: string;
+    initial: number;
+    additions: number;
+    sales: number;
+    final: number;
+  }[];
+}
+
+export interface InventoryMovement {
+  product: string;
+  quantity: number;
+  type: 'loan' | 'return';
+  timestamp: string;
 }
 
 export interface CashierData {
@@ -22,20 +44,5 @@ export interface CashierData {
     promissory: CashierQuantities;
     gasVoucher: CashierQuantities;
   };
-}
-
-export interface PaymentSummaryProps {
-  data: CashierData;
-  formatCurrency: (value: number) => string;
-  formatQuantities: (quantities: CashierQuantities) => string;
-}
-
-export interface InventoryTableProps {
-  data: {
-    product: string;
-    initial: number;
-    additions: number;
-    sales: number;
-    final: number;
-  }[];
+  inventoryMovements: InventoryMovement[];
 }

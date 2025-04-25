@@ -1,9 +1,8 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { CheckCircle, XCircle } from "lucide-react";
 import { InventoryTableProps } from "../types/cashierTypes";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const InventoryTable = ({ data }: InventoryTableProps) => {
   const [loans, setLoans] = useState<{ [key: string]: number }>({});
@@ -15,6 +14,24 @@ export const InventoryTable = ({ data }: InventoryTableProps) => {
     const expected = item.initial + item.additions - item.sales - loanValue + returnValue;
     return expected;
   };
+
+  useEffect(() => {
+    if (data.inventoryMovements) {
+      const newLoans: { [key: string]: number } = {};
+      const newReturns: { [key: string]: number } = {};
+
+      data.inventoryMovements.forEach((movement) => {
+        if (movement.type === 'loan') {
+          newLoans[movement.product] = (newLoans[movement.product] || 0) + movement.quantity;
+        } else {
+          newReturns[movement.product] = (newReturns[movement.product] || 0) + movement.quantity;
+        }
+      });
+
+      setLoans(newLoans);
+      setReturns(newReturns);
+    }
+  }, [data.inventoryMovements]);
 
   const handleLoanChange = (product: string, value: string) => {
     setLoans(prev => ({

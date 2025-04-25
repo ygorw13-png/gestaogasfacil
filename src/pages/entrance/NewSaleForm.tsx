@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,8 +33,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-// Mock clients for search
 const clients = [
   { id: 1, name: "Maria Silva", phone: "(11) 98765-4321", type: "Regular" },
   { id: 2, name: "João Oliveira", phone: "(11) 91234-5678", type: "Regular" },
@@ -54,6 +53,8 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
   const [clientSearchOpen, setClientSearchOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<typeof clients[0] | null>(null);
   const [loanGas, setLoanGas] = useState(false);
+  const [cylinderMovement, setCylinderMovement] = useState<'none' | 'loan' | 'return'>('none');
+  const [movementQuantity, setMovementQuantity] = useState(1);
 
   const handleSelectClient = (client: typeof clients[0]) => {
     setSelectedClient(client);
@@ -190,6 +191,49 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
             <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
               <p className="text-amber-800 text-sm">
                 Empréstimo de casco registrado. Um casco vazio ficará pendente para este cliente.
+              </p>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <Label>Movimentação de Vasilhame</Label>
+            <RadioGroup
+              defaultValue="none"
+              onValueChange={(value) => setCylinderMovement(value as 'none' | 'loan' | 'return')}
+              className="flex flex-col space-y-1"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="none" id="none" />
+                <Label htmlFor="none">Sem movimentação</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="loan" id="loan" />
+                <Label htmlFor="loan">Empréstimo de vasilhame</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="return" id="return" />
+                <Label htmlFor="return">Devolução de vasilhame</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {cylinderMovement !== 'none' && (
+            <div className="space-y-2">
+              <Label htmlFor="movementQuantity">Quantidade de vasilhames</Label>
+              <Input
+                type="number"
+                id="movementQuantity"
+                value={movementQuantity}
+                onChange={(e) => setMovementQuantity(Number(e.target.value))}
+                min={1}
+              />
+            </div>
+          )}
+
+          {cylinderMovement === 'loan' && (
+            <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
+              <p className="text-amber-800 text-sm">
+                Empréstimo de {movementQuantity} vasilhame(s) será registrado para este cliente.
               </p>
             </div>
           )}
