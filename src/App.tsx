@@ -1,8 +1,9 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes as RouterRoutes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Dashboard from "./pages/Dashboard";
@@ -13,7 +14,6 @@ import Clients from "./pages/clients/Clients";
 import Promissory from "./pages/promissory/Promissory";
 import Expenses from "./pages/finance/Expenses";
 import Settings from "./pages/settings/Settings";
-import Routes from "./pages/routes/Routes";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import RoutesPage from "./pages/routes/RoutesPage";
@@ -41,7 +41,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
+          <RouterRoutes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<AppLayout />}>
               <Route 
@@ -83,7 +83,7 @@ const App = () => (
               />
             </Route>
             <Route path="*" element={<NotFound />} />
-          </Routes>
+          </RouterRoutes>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
