@@ -2,8 +2,13 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { PaymentSummaryProps } from "../types/cashierTypes";
+import { formatCurrency, formatQuantities } from "@/lib/formatUtils";
 
-export const PaymentSummary = ({ data, formatCurrency, formatQuantities }: PaymentSummaryProps) => {
+export const PaymentSummary = ({ 
+  data, 
+  formatCurrency: customFormatCurrency = formatCurrency, 
+  formatQuantities: customFormatQuantities = formatQuantities 
+}: PaymentSummaryProps) => {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Valores Recebidos</h3>
@@ -12,7 +17,7 @@ export const PaymentSummary = ({ data, formatCurrency, formatQuantities }: Payme
           <Label htmlFor="cashAmount">Dinheiro</Label>
           <Input 
             id="cashAmount" 
-            value={`R$ ${formatCurrency(data.cash)} (${formatQuantities(data.quantities.cash)})`}
+            value={`R$ ${customFormatCurrency(data.cash)} (${customFormatQuantities(data.quantities.cash)})`}
             readOnly
           />
         </div>
@@ -20,7 +25,7 @@ export const PaymentSummary = ({ data, formatCurrency, formatQuantities }: Payme
           <Label htmlFor="creditAmount">Cartão de Crédito</Label>
           <Input 
             id="creditAmount" 
-            value={`R$ ${formatCurrency(data.credit)} (${formatQuantities(data.quantities.credit)})`}
+            value={`R$ ${customFormatCurrency(data.credit)} (${customFormatQuantities(data.quantities.credit)})`}
             readOnly
           />
         </div>
@@ -28,7 +33,7 @@ export const PaymentSummary = ({ data, formatCurrency, formatQuantities }: Payme
           <Label htmlFor="debitAmount">Cartão de Débito</Label>
           <Input 
             id="debitAmount" 
-            value={`R$ ${formatCurrency(data.debit)} (${formatQuantities(data.quantities.debit)})`}
+            value={`R$ ${customFormatCurrency(data.debit)} (${customFormatQuantities(data.quantities.debit)})`}
             readOnly
           />
         </div>
@@ -36,7 +41,7 @@ export const PaymentSummary = ({ data, formatCurrency, formatQuantities }: Payme
           <Label htmlFor="pixAmount">PIX</Label>
           <Input 
             id="pixAmount" 
-            value={`R$ ${formatCurrency(data.pix)} (${formatQuantities(data.quantities.pix)})`}
+            value={`R$ ${customFormatCurrency(data.pix)} (${customFormatQuantities(data.quantities.pix)})`}
             readOnly
           />
         </div>
@@ -44,7 +49,7 @@ export const PaymentSummary = ({ data, formatCurrency, formatQuantities }: Payme
           <Label htmlFor="promissoryAmount">Promissórias</Label>
           <Input 
             id="promissoryAmount" 
-            value={`R$ ${formatCurrency(data.promissory)} (${formatQuantities(data.quantities.promissory)})`}
+            value={`R$ ${customFormatCurrency(data.promissory)} (${customFormatQuantities(data.quantities.promissory)})`}
             readOnly
           />
         </div>
@@ -52,7 +57,7 @@ export const PaymentSummary = ({ data, formatCurrency, formatQuantities }: Payme
           <Label htmlFor="gasVoucherAmount">Vale Gás</Label>
           <Input 
             id="gasVoucherAmount" 
-            value={`R$ ${formatCurrency(data.gasVoucher)} (${formatQuantities(data.quantities.gasVoucher)})`}
+            value={`R$ ${customFormatCurrency(data.gasVoucher)} (${customFormatQuantities(data.quantities.gasVoucher)})`}
             readOnly
           />
         </div>
@@ -61,11 +66,11 @@ export const PaymentSummary = ({ data, formatCurrency, formatQuantities }: Payme
         <div className="bg-secondary rounded-md p-3 w-full sm:w-64">
           <div className="flex justify-between font-medium">
             <span>Total em Sistema:</span>
-            <span>R$ {formatCurrency(data.totalSales)}</span>
+            <span>R$ {customFormatCurrency(data.totalSales)}</span>
           </div>
           <div className="flex justify-between">
             <span>Total Conferido:</span>
-            <span>R$ {formatCurrency(data.totalSales)}</span>
+            <span>R$ {customFormatCurrency(data.totalSales)}</span>
           </div>
           <div className="flex justify-between mt-2 pt-2 border-t">
             <span>Diferença:</span>

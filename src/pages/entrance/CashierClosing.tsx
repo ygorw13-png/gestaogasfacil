@@ -14,6 +14,7 @@ import { PaymentSummary } from "./components/PaymentSummary";
 import { InventoryTable } from "./components/InventoryTable";
 import { ObservationsSection } from "./components/ObservationsSection";
 import { CashierData } from "./types/cashierTypes";
+import { formatCurrency, formatQuantities } from "@/lib/formatUtils";
 
 interface CashierClosingProps {
   isOpen: boolean;
@@ -22,20 +23,12 @@ interface CashierClosingProps {
   cashierData: CashierData;
 }
 
-export default function CashierClosing({ isOpen, onOpenChange, onSubmit, cashierData }: CashierClosingProps) {
-  const formatCurrency = (value: number) => {
-    return value.toFixed(2).replace('.', ',');
-  };
-
-  const formatQuantities = (quantities: { p13: number; p20: number; p45: number; water: number; }) => {
-    const parts = [];
-    if (quantities.p13) parts.push(`${quantities.p13} P13`);
-    if (quantities.p20) parts.push(`${quantities.p20} P20`);
-    if (quantities.p45) parts.push(`${quantities.p45} P45`);
-    if (quantities.water) parts.push(`${quantities.water} Água`);
-    return parts.join(', ');
-  };
-
+export default function CashierClosing({ 
+  isOpen, 
+  onOpenChange, 
+  onSubmit, 
+  cashierData 
+}: CashierClosingProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit();
