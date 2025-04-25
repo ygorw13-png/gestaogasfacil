@@ -2,6 +2,7 @@
 import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AlertTriangle } from "lucide-react";
 import { Control, useFormState } from "react-hook-form";
 import { FormValues } from "../types/formTypes";
@@ -28,19 +29,20 @@ export function ProductsFormSection({
   const hasErrors = !!errors.gasP13 || !!errors.gasP20 || !!errors.gasP45 || !!errors.water;
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium">Produtos</h3>
-      
-      {hasErrors && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            Por favor, corrija as quantidades inválidas abaixo.
-          </AlertDescription>
-        </Alert>
-      )}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium">Produtos</h3>
+        {hasErrors && (
+          <Alert variant="destructive" className="w-fit py-2 px-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Por favor, corrija as quantidades inválidas abaixo.
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <ProductInput
           control={control}
           name="gasP13"
@@ -87,16 +89,15 @@ interface ProductInputProps {
 
 function ProductInput({ control, name, label, isEnabled, onToggle }: ProductInputProps) {
   return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
+    <div className="bg-card p-4 rounded-lg border">
+      <div className="flex items-center justify-between mb-3">
         <label className="text-sm font-medium" htmlFor={name}>
           {label}
         </label>
-        <input
-          type="checkbox"
+        <Checkbox
+          id={`${name}-toggle`}
           checked={isEnabled}
-          onChange={(e) => onToggle(e.target.checked)}
-          className="h-4 w-4 rounded border-gray-300"
+          onCheckedChange={onToggle}
         />
       </div>
       <FormField
@@ -115,6 +116,7 @@ function ProductInput({ control, name, label, isEnabled, onToggle }: ProductInpu
                   const value = parseInt(e.target.value);
                   field.onChange(isNaN(value) ? 0 : value);
                 }}
+                className="text-lg"
               />
             </FormControl>
             <FormMessage />

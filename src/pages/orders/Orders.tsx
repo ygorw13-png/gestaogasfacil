@@ -42,7 +42,7 @@ export default function Orders() {
       </div>
 
       <Dialog open={isNewOrderOpen} onOpenChange={setIsNewOrderOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Novo Pedido</DialogTitle>
           </DialogHeader>
