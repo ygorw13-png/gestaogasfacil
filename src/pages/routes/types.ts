@@ -1,4 +1,3 @@
-
 export interface RouteItem {
   id: string;
   date: string;
@@ -62,10 +61,8 @@ export interface RouteFormValues {
     gasP13: number;
     gasP20: number;
     gasP45: number;
-    emptyGasP13: number;
-    emptyGasP20: number;
-    emptyGasP45: number;
     water: number;
   };
+  promissoryNotesToCollect: string[];
   notes?: string;
 }
