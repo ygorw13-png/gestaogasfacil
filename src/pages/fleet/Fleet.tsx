@@ -3,6 +3,9 @@ import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import VehiclesList from "./components/VehiclesList";
 import VehicleAssignments from "./components/VehicleAssignments";
+import MaintenanceSchedule from "./components/MaintenanceSchedule";
+import FuelTracking from "./components/FuelTracking";
+import VehicleExpenses from "./components/VehicleExpenses";
 
 export default function Fleet() {
   return (
@@ -12,15 +15,27 @@ export default function Fleet() {
       </div>
       
       <Tabs defaultValue="vehicles" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="vehicles">Veículos</TabsTrigger>
           <TabsTrigger value="assignments">Atribuições</TabsTrigger>
+          <TabsTrigger value="maintenance">Manutenções</TabsTrigger>
+          <TabsTrigger value="fuel">Abastecimentos</TabsTrigger>
+          <TabsTrigger value="expenses">Despesas</TabsTrigger>
         </TabsList>
         <TabsContent value="vehicles">
           <VehiclesList />
         </TabsContent>
         <TabsContent value="assignments">
           <VehicleAssignments />
+        </TabsContent>
+        <TabsContent value="maintenance">
+          <MaintenanceSchedule />
+        </TabsContent>
+        <TabsContent value="fuel">
+          <FuelTracking />
+        </TabsContent>
+        <TabsContent value="expenses">
+          <VehicleExpenses />
         </TabsContent>
       </Tabs>
     </div>
