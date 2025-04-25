@@ -68,9 +68,11 @@ export default function NewMaintenanceForm({ onSuccess }: NewMaintenanceFormProp
       type: typeLabel,
       description: data.description || typeLabel,
       scheduledDate: data.scheduledDate,
+      completionDate: null,
       estimatedCost: data.estimatedCost,
-      priority: data.priority,
+      actualCost: null,
       status: "scheduled",
+      priority: data.priority,
       mileage: vehicle?.mileage || 0,
     };
     

@@ -41,7 +41,12 @@ export default function NewVehicleForm({ onSuccess }: NewVehicleFormProps) {
     // Por enquanto, apenas simulamos a adição
     const newVehicle = {
       id: `vehicle-${Date.now()}`,
-      ...data,
+      plate: data.plate,
+      model: data.model,
+      year: data.year,
+      type: data.type,
+      status: data.status,
+      mileage: data.mileage,
       lastMaintenance: null,
       documentExpiration: null,
     };

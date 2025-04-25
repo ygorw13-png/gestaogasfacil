@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -52,7 +52,7 @@ export default function NewFuelEntryForm({ onSuccess }: NewFuelEntryFormProps) {
   const watchPricePerLiter = form.watch("pricePerLiter");
   
   // Atualiza o custo total quando os valores mudam
-  React.useEffect(() => {
+  useEffect(() => {
     const cost = watchLiters * watchPricePerLiter;
     setTotalCost(cost);
   }, [watchLiters, watchPricePerLiter]);
