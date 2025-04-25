@@ -1,6 +1,5 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { CheckCircle, XCircle } from "lucide-react";
 import { InventoryTableProps, InventoryMovement } from "../types/cashierTypes";
 import { useState, useEffect } from "react";
@@ -17,7 +16,7 @@ export const InventoryTable = ({ data }: InventoryTableProps) => {
   };
 
   useEffect(() => {
-    // Check if data has inventoryMovements property before accessing it
+    // Calculate loans and returns from inventory movements
     const movements = 'inventoryMovements' in data ? data.inventoryMovements : [];
     if (movements && movements.length > 0) {
       const newLoans: { [key: string]: number } = {};
@@ -35,20 +34,6 @@ export const InventoryTable = ({ data }: InventoryTableProps) => {
       setReturns(newReturns);
     }
   }, [data]);
-
-  const handleLoanChange = (product: string, value: string) => {
-    setLoans(prev => ({
-      ...prev,
-      [product]: Number(value) || 0
-    }));
-  };
-
-  const handleReturnChange = (product: string, value: string) => {
-    setReturns(prev => ({
-      ...prev,
-      [product]: Number(value) || 0
-    }));
-  };
 
   return (
     <div className="space-y-4">
@@ -79,24 +64,8 @@ export const InventoryTable = ({ data }: InventoryTableProps) => {
                   <TableCell className="text-right">{item.initial}</TableCell>
                   <TableCell className="text-right">{item.additions}</TableCell>
                   <TableCell className="text-right">{item.sales}</TableCell>
-                  <TableCell className="text-right">
-                    <Input
-                      type="number"
-                      value={loans[item.product] || ""}
-                      onChange={(e) => handleLoanChange(item.product, e.target.value)}
-                      className="w-20 text-right"
-                      min="0"
-                    />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Input
-                      type="number"
-                      value={returns[item.product] || ""}
-                      onChange={(e) => handleReturnChange(item.product, e.target.value)}
-                      className="w-20 text-right"
-                      min="0"
-                    />
-                  </TableCell>
+                  <TableCell className="text-right">{loans[item.product] || 0}</TableCell>
+                  <TableCell className="text-right">{returns[item.product] || 0}</TableCell>
                   <TableCell className="text-right">{expectedFinal}</TableCell>
                   <TableCell className="text-right">{item.final}</TableCell>
                   <TableCell className="text-right">
