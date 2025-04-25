@@ -27,9 +27,9 @@ const cashierData = {
     gasVoucher: { p13: 3, p20: 0, p45: 0, water: 2 }
   },
   inventoryMovements: [
-    { product: 'P13', quantity: 2, type: 'loan', timestamp: '2025-04-25T15:30:00' },
-    { product: 'P13', quantity: 1, type: 'return', timestamp: '2025-04-25T16:00:00' },
-    { product: 'P20', quantity: 1, type: 'loan', timestamp: '2025-04-25T14:45:00' }
+    { product: 'P13', quantity: 2, type: 'loan' as const, timestamp: '2025-04-25T15:30:00' },
+    { product: 'P13', quantity: 1, type: 'return' as const, timestamp: '2025-04-25T16:00:00' },
+    { product: 'P20', quantity: 1, type: 'loan' as const, timestamp: '2025-04-25T14:45:00' }
   ]
 };
 
@@ -254,3 +254,4 @@ export default function EntranceSales() {
     </div>
   );
 }
+

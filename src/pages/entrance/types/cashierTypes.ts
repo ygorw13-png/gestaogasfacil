@@ -12,6 +12,13 @@ export interface PaymentSummaryProps {
   formatQuantities: (quantities: CashierQuantities) => string;
 }
 
+export interface InventoryMovement {
+  product: string;
+  quantity: number;
+  type: 'loan' | 'return';
+  timestamp: string;
+}
+
 export interface InventoryTableProps {
   data: Array<{
     product: string;
@@ -22,13 +29,6 @@ export interface InventoryTableProps {
   }> & {
     inventoryMovements?: InventoryMovement[];
   };
-}
-
-export interface InventoryMovement {
-  product: string;
-  quantity: number;
-  type: 'loan' | 'return';
-  timestamp: string;
 }
 
 export interface CashierData {
