@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,7 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { mockVehicles, mockVehicleExpenses } from "../../data/mockData";
+import { mockVehicles, mockVehicleExpenses } from "../../data";
 
 const expenseSchema = z.object({
   vehicleId: z.string().min(1, "Veículo é obrigatório"),

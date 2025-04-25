@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { mockFuelEntries, mockVehicles } from "../../data/mockData";
+import { mockFuelEntries, mockVehicles } from "../../data";
 import { VehicleSelect } from "./fuel-entry/VehicleSelect";
 import { FuelDetails } from "./fuel-entry/FuelDetails";
 import { fuelSchema, type FuelFormData } from "./schemas/fuelEntrySchema";

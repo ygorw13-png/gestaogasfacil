@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Car, FileText, Fuel } from "lucide-react";
 import NewFuelEntryForm from "./forms/NewFuelEntryForm";
 import { useToast } from "@/hooks/use-toast";
-import { mockFuelEntries } from "../data/mockData";
+import { mockFuelEntries } from "../data";
 
 export default function FuelTracking() {
   const [open, setOpen] = useState(false);

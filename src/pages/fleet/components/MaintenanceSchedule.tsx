@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +8,7 @@ import { Plus, Calendar, Car, Wrench, FileText } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NewMaintenanceForm from "./forms/NewMaintenanceForm";
 import { useToast } from "@/hooks/use-toast";
-import { mockMaintenances } from "../data/mockData";
+import { mockMaintenances } from "../data";
 
 export default function MaintenanceSchedule() {
   const [open, setOpen] = useState(false);

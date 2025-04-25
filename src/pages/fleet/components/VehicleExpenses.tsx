@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Car, FileText, DollarSign } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockVehicleExpenses } from "../data/mockData";
+import { mockVehicleExpenses } from "../data";
 import { useToast } from "@/hooks/use-toast";
 import NewExpenseForm from "./forms/NewExpenseForm";
 

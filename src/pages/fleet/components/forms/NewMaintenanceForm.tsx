@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { mockMaintenances, mockVehicles } from "../../data/mockData";
+import { mockMaintenances, mockVehicles } from "../../data";
 import { maintenanceSchema, maintenanceTypes, MaintenanceFormData } from "./schemas/maintenanceFormSchema";
 import { VehicleSelect } from "./maintenance/VehicleSelect";
 import { MaintenanceTypeSelect } from "./maintenance/MaintenanceTypeSelect";

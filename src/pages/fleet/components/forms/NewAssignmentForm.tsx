@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { mockVehicles, mockEmployees, mockAssignments } from "../../data/mockData";
+import { mockVehicles, mockEmployees, mockAssignments } from "../../data";
 
 const assignmentSchema = z.object({
   vehicleId: z.string().min(1, "Veículo é obrigatório"),
@@ -33,7 +32,6 @@ interface NewAssignmentFormProps {
 export default function NewAssignmentForm({ onSuccess, assignment, isEditing = false }: NewAssignmentFormProps) {
   const [availableVehicles, setAvailableVehicles] = useState(mockVehicles.filter(v => v.status === 'active'));
   
-  // For editing, we include the currently assigned vehicle
   useEffect(() => {
     if (isEditing && assignment) {
       const assignedVehicle = mockVehicles.find(v => v.id === assignment.vehicleId);
@@ -54,10 +52,7 @@ export default function NewAssignmentForm({ onSuccess, assignment, isEditing = f
   });
 
   const onSubmit = (data: z.infer<typeof assignmentSchema>) => {
-    // Em um ambiente real, enviaríamos para o backend
-    // Por enquanto, apenas simulamos a adição/atualização
     if (isEditing && assignment) {
-      // Update existing assignment
       const assignmentIndex = mockAssignments.findIndex(a => a.id === assignment.id);
       
       if (assignmentIndex !== -1) {
@@ -76,7 +71,6 @@ export default function NewAssignmentForm({ onSuccess, assignment, isEditing = f
         };
       }
     } else {
-      // Create new assignment
       const vehicle = mockVehicles.find(v => v.id === data.vehicleId);
       const employee = mockEmployees.find(e => e.id === data.employeeId);
       

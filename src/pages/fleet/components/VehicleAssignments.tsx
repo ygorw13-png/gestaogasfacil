@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, User, Edit, Trash2, Car } from "lucide-react";
 import NewAssignmentForm from "./forms/NewAssignmentForm";
 import { useToast } from "@/hooks/use-toast";
-import { mockAssignments } from "../data/mockData";
+import { mockAssignments } from "../data";
 
 export default function VehicleAssignments() {
   const [open, setOpen] = useState(false);

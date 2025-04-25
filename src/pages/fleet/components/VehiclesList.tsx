@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +9,7 @@ import NewVehicleForm from "./forms/NewVehicleForm";
 import EditVehicleForm from "./forms/EditVehicleForm";
 import { useToast } from "@/hooks/use-toast";
 import VehicleDetailsDialog from "./dialogs/VehicleDetailsDialog";
-import { mockVehicles } from "../data/mockData";
+import { mockVehicles } from "../data";
 
 export default function VehiclesList() {
   const [open, setOpen] = useState(false);

@@ -1,7 +1,7 @@
 
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockVehicles } from "../../../data/mockData";
+import { mockVehicles } from "../../../data";
 import { UseFormReturn } from "react-hook-form";
 import { FuelFormData } from "../schemas/fuelEntrySchema";
 
