@@ -1,6 +1,5 @@
 
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { PaymentSummaryProps } from "../types/cashierTypes";
 import { formatCurrency, formatQuantities } from "@/lib/formatUtils";
 
@@ -13,55 +12,67 @@ export const PaymentSummary = ({
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Valores Recebidos</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="space-y-2">
+        <div className="bg-card rounded-lg border p-4 space-y-2">
           <Label htmlFor="cashAmount">Dinheiro</Label>
-          <Input 
-            id="cashAmount" 
-            value={`R$ ${customFormatCurrency(data.cash)} (${customFormatQuantities(data.quantities.cash)})`}
-            readOnly
-          />
+          <div className="text-xl font-semibold text-primary">
+            R$ {customFormatCurrency(data.cash)}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {customFormatQuantities(data.quantities.cash)}
+          </div>
         </div>
-        <div className="space-y-2">
+
+        <div className="bg-card rounded-lg border p-4 space-y-2">
           <Label htmlFor="creditAmount">Cartão de Crédito</Label>
-          <Input 
-            id="creditAmount" 
-            value={`R$ ${customFormatCurrency(data.credit)} (${customFormatQuantities(data.quantities.credit)})`}
-            readOnly
-          />
+          <div className="text-xl font-semibold text-primary">
+            R$ {customFormatCurrency(data.credit)}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {customFormatQuantities(data.quantities.credit)}
+          </div>
         </div>
-        <div className="space-y-2">
+
+        <div className="bg-card rounded-lg border p-4 space-y-2">
           <Label htmlFor="debitAmount">Cartão de Débito</Label>
-          <Input 
-            id="debitAmount" 
-            value={`R$ ${customFormatCurrency(data.debit)} (${customFormatQuantities(data.quantities.debit)})`}
-            readOnly
-          />
+          <div className="text-xl font-semibold text-primary">
+            R$ {customFormatCurrency(data.debit)}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {customFormatQuantities(data.quantities.debit)}
+          </div>
         </div>
-        <div className="space-y-2">
+
+        <div className="bg-card rounded-lg border p-4 space-y-2">
           <Label htmlFor="pixAmount">PIX</Label>
-          <Input 
-            id="pixAmount" 
-            value={`R$ ${customFormatCurrency(data.pix)} (${customFormatQuantities(data.quantities.pix)})`}
-            readOnly
-          />
+          <div className="text-xl font-semibold text-primary">
+            R$ {customFormatCurrency(data.pix)}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {customFormatQuantities(data.quantities.pix)}
+          </div>
         </div>
-        <div className="space-y-2">
+
+        <div className="bg-card rounded-lg border p-4 space-y-2">
           <Label htmlFor="promissoryAmount">Promissórias</Label>
-          <Input 
-            id="promissoryAmount" 
-            value={`R$ ${customFormatCurrency(data.promissory)} (${customFormatQuantities(data.quantities.promissory)})`}
-            readOnly
-          />
+          <div className="text-xl font-semibold text-primary">
+            R$ {customFormatCurrency(data.promissory)}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {customFormatQuantities(data.quantities.promissory)}
+          </div>
         </div>
-        <div className="space-y-2">
+
+        <div className="bg-card rounded-lg border p-4 space-y-2">
           <Label htmlFor="gasVoucherAmount">Vale Gás</Label>
-          <Input 
-            id="gasVoucherAmount" 
-            value={`R$ ${customFormatCurrency(data.gasVoucher)} (${customFormatQuantities(data.quantities.gasVoucher)})`}
-            readOnly
-          />
+          <div className="text-xl font-semibold text-primary">
+            R$ {customFormatCurrency(data.gasVoucher)}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {customFormatQuantities(data.quantities.gasVoucher)}
+          </div>
         </div>
       </div>
+
       <div className="flex justify-end">
         <div className="bg-secondary rounded-md p-3 w-full sm:w-64">
           <div className="flex justify-between font-medium">
