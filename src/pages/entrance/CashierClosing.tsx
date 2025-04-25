@@ -1,7 +1,5 @@
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -11,34 +9,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { CheckCircle, XCircle } from "lucide-react";
-
-interface CashierData {
-  cash: number;
-  credit: number;
-  debit: number;
-  pix: number;
-  promissory: number;
-  gasVoucher: number;
-  totalSales: number;
-  // Add quantities for each payment type
-  quantities: {
-    cash: { p13: number; p20: number; p45: number; water: number; };
-    credit: { p13: number; p20: number; p45: number; water: number; };
-    debit: { p13: number; p20: number; p45: number; water: number; };
-    pix: { p13: number; p20: number; p45: number; water: number; };
-    promissory: { p13: number; p20: number; p45: number; water: number; };
-    gasVoucher: { p13: number; p20: number; p45: number; water: number; };
-  };
-}
+import { CheckCircle } from "lucide-react";
+import { PaymentSummary } from "./components/PaymentSummary";
+import { InventoryTable } from "./components/InventoryTable";
+import { ObservationsSection } from "./components/ObservationsSection";
+import { CashierData } from "./types/cashierTypes";
 
 interface CashierClosingProps {
   isOpen: boolean;
@@ -66,7 +41,7 @@ export default function CashierClosing({ isOpen, onOpenChange, onSubmit, cashier
     onSubmit();
   };
 
-  // Mock inventory data for closing
+  // Mock inventory data
   const inventoryClosing = [
     { product: 'GLP P13', initial: 15, additions: 5, sales: 8, final: 12 },
     { product: 'GLP P20', initial: 3, additions: 1, sales: 2, final: 2 },
@@ -90,124 +65,13 @@ export default function CashierClosing({ isOpen, onOpenChange, onSubmit, cashier
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Valores Recebidos</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="cashAmount">Dinheiro</Label>
-                <Input 
-                  id="cashAmount" 
-                  value={`R$ ${formatCurrency(cashierData.cash)} (${formatQuantities(cashierData.quantities.cash)})`}
-                  readOnly
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="creditAmount">Cartão de Crédito</Label>
-                <Input 
-                  id="creditAmount" 
-                  value={`R$ ${formatCurrency(cashierData.credit)} (${formatQuantities(cashierData.quantities.credit)})`}
-                  readOnly
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="debitAmount">Cartão de Débito</Label>
-                <Input 
-                  id="debitAmount" 
-                  value={`R$ ${formatCurrency(cashierData.debit)} (${formatQuantities(cashierData.quantities.debit)})`}
-                  readOnly
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="pixAmount">PIX</Label>
-                <Input 
-                  id="pixAmount" 
-                  value={`R$ ${formatCurrency(cashierData.pix)} (${formatQuantities(cashierData.quantities.pix)})`}
-                  readOnly
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="promissoryAmount">Promissórias</Label>
-                <Input 
-                  id="promissoryAmount" 
-                  value={`R$ ${formatCurrency(cashierData.promissory)} (${formatQuantities(cashierData.quantities.promissory)})`}
-                  readOnly
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gasVoucherAmount">Vale Gás</Label>
-                <Input 
-                  id="gasVoucherAmount" 
-                  value={`R$ ${formatCurrency(cashierData.gasVoucher)} (${formatQuantities(cashierData.quantities.gasVoucher)})`}
-                  readOnly
-                />
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <div className="bg-secondary rounded-md p-3 w-full sm:w-64">
-                <div className="flex justify-between font-medium">
-                  <span>Total em Sistema:</span>
-                  <span>R$ {formatCurrency(cashierData.totalSales)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Total Conferido:</span>
-                  <span>R$ {formatCurrency(cashierData.totalSales)}</span>
-                </div>
-                <div className="flex justify-between mt-2 pt-2 border-t">
-                  <span>Diferença:</span>
-                  <span className="text-green-600 font-medium">R$ 0,00</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Fechamento de Estoque</h3>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Produto</TableHead>
-                    <TableHead className="text-right">Inicial</TableHead>
-                    <TableHead className="text-right">Adições</TableHead>
-                    <TableHead className="text-right">Vendas</TableHead>
-                    <TableHead className="text-right">Final</TableHead>
-                    <TableHead className="text-right">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {inventoryClosing.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{item.product}</TableCell>
-                      <TableCell className="text-right">{item.initial}</TableCell>
-                      <TableCell className="text-right">{item.additions}</TableCell>
-                      <TableCell className="text-right">{item.sales}</TableCell>
-                      <TableCell className="text-right">{item.final}</TableCell>
-                      <TableCell className="text-right">
-                        {item.initial + item.additions - item.sales === item.final ? (
-                          <span className="inline-flex items-center text-green-600">
-                            <CheckCircle className="h-4 w-4 mr-1" /> Ok
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center text-red-600">
-                            <XCircle className="h-4 w-4 mr-1" /> Verificar
-                          </span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Observações</h3>
-            <textarea 
-              className="w-full min-h-[100px] p-3 border rounded-md resize-y"
-              placeholder="Digite observações sobre o fechamento de caixa..."
-            ></textarea>
-          </div>
-
+          <PaymentSummary 
+            data={cashierData}
+            formatCurrency={formatCurrency}
+            formatQuantities={formatQuantities}
+          />
+          <InventoryTable data={inventoryClosing} />
+          <ObservationsSection />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
