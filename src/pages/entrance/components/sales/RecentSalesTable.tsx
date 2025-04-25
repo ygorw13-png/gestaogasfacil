@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface Sale {
   id: number;
@@ -16,6 +17,12 @@ interface RecentSalesTableProps {
 }
 
 export function RecentSalesTable({ sales }: RecentSalesTableProps) {
+  const navigate = useNavigate();
+  
+  const handleViewAllSales = () => {
+    navigate("/entrance/sales");
+  };
+  
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -43,7 +50,9 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
         </tbody>
       </table>
       <div className="mt-4 flex justify-center">
-        <Button variant="outline" size="sm">Ver todas as vendas</Button>
+        <Button variant="outline" size="sm" onClick={handleViewAllSales}>
+          Ver todas as vendas
+        </Button>
       </div>
     </div>
   );

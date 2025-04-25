@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/inventory/Inventory";
 import EntranceSales from "./pages/entrance/EntranceSales";
+import SalesHistory from "./pages/entrance/SalesHistory";
 import Orders from "./pages/orders/Orders";
 import Clients from "./pages/clients/Clients";
 import Promissory from "./pages/promissory/Promissory";
@@ -61,6 +62,7 @@ const App = () => (
                 } 
               />
               <Route path="entrance" element={<EntranceSales />} />
+              <Route path="entrance/sales" element={<SalesHistory />} />
               <Route path="orders" element={<Orders />} />
               <Route path="clients" element={<Clients />} />
               <Route path="promissory" element={<Promissory />} />
