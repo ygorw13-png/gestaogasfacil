@@ -16,22 +16,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useState } from "react";
 
 interface CompleteOrderDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  paymentMethod: string;
-  onPaymentMethodChange: (value: string) => void;
-  onSubmit: () => void;
+  onSubmit: (paymentMethod: string) => void;
 }
 
 export function CompleteOrderDialog({
   isOpen,
   onOpenChange,
-  paymentMethod,
-  onPaymentMethodChange,
   onSubmit,
 }: CompleteOrderDialogProps) {
+  const [paymentMethod, setPaymentMethod] = useState("");
+
+  const handleSubmit = () => {
+    onSubmit(paymentMethod);
+    setPaymentMethod("");
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -46,7 +50,7 @@ export function CompleteOrderDialog({
             <Label htmlFor="paymentMethod">Forma de Pagamento</Label>
             <Select 
               value={paymentMethod} 
-              onValueChange={onPaymentMethodChange}
+              onValueChange={setPaymentMethod}
             >
               <SelectTrigger id="paymentMethod">
                 <SelectValue placeholder="Selecione" />
@@ -69,7 +73,10 @@ export function CompleteOrderDialog({
           >
             Cancelar
           </Button>
-          <Button onClick={onSubmit}>
+          <Button 
+            onClick={handleSubmit}
+            disabled={!paymentMethod}
+          >
             Confirmar Entrega
           </Button>
         </DialogFooter>
