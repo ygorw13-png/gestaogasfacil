@@ -3,8 +3,9 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Store, DollarSign, User, Plus, ShoppingCart, CreditCard, FileText, Package, Clock, Droplet } from "lucide-react";
+import { Store, DollarSign, User, Plus, ShoppingCart, CreditCard, FileText, Package, Clock, Droplet, Truck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 import NewSaleForm from "./NewSaleForm";
 import CashierClosing from "./CashierClosing";
 
@@ -76,6 +77,13 @@ export default function EntranceSales() {
             onSubmit={handleCashierClosingSubmit}
             cashierData={cashierData}
           />
+
+          <Button variant="outline" asChild>
+            <Link to="/orders" className="flex items-center gap-2">
+              <Truck size={16} />
+              <span>Ver Pedidos</span>
+            </Link>
+          </Button>
         </div>
       </div>
 

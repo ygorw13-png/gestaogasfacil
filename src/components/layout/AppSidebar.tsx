@@ -7,7 +7,8 @@ import {
   Users, 
   FileText, 
   DollarSign, 
-  Settings
+  Settings,
+  Truck
 } from "lucide-react";
 import {
   Sidebar,
@@ -28,6 +29,7 @@ const menuItems = [
   { title: "Dashboard", path: "/", icon: Home },
   { title: "Estoque", path: "/inventory", icon: Box },
   { title: "Portaria", path: "/entrance", icon: Store },
+  { title: "Pedidos", path: "/orders", icon: Truck },
   { title: "Clientes", path: "/clients", icon: Users },
   { title: "Promissórias", path: "/promissory", icon: FileText },
   { title: "Despesas", path: "/expenses", icon: DollarSign },
