@@ -1,7 +1,14 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, Truck } from "lucide-react";
+import { Package, Plus, Truck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import NewOrderForm from "./NewOrderForm";
 import { OrdersList } from "./OrdersList";
 import OrdersMap from "./OrdersMap";
@@ -19,16 +26,29 @@ export default function Orders() {
     handleCancelOrder,
   } = useOrders();
 
+  const onNewOrderSubmit = (order: any) => {
+    handleAddOrder(order);
+    setIsNewOrderOpen(false);
+  };
+
   return (
     <div className="space-y-6 animate-in">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Gestão de Pedidos</h1>
-        <div>
-          <NewOrderForm
-            onSubmit={handleAddOrder}
-          />
-        </div>
+        <Button onClick={() => setIsNewOrderOpen(true)} size="default">
+          <Plus className="mr-2 h-4 w-4" />
+          Novo Pedido
+        </Button>
       </div>
+
+      <Dialog open={isNewOrderOpen} onOpenChange={setIsNewOrderOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Novo Pedido</DialogTitle>
+          </DialogHeader>
+          <NewOrderForm onSubmit={onNewOrderSubmit} />
+        </DialogContent>
+      </Dialog>
 
       <OrderStats orders={orders} />
 

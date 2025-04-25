@@ -1,11 +1,8 @@
-
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -58,7 +55,6 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
   const [hasWater, setHasWater] = useState(false);
 
   const handleSubmit = (values: FormValues) => {
-    // Validação adicional para garantir que pelo menos um produto foi selecionado
     const hasProducts = values.gasP13 || values.gasP20 || values.gasP45 || values.water;
     
     if (!hasProducts) {
@@ -66,7 +62,6 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
       return;
     }
     
-    // Determine which product has quantity > 0
     let product = "";
     let quantity = 0;
     
@@ -85,7 +80,7 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
     }
     
     const order: Order = {
-      id: (Math.random() * 1000).toFixed(0), // Temporary ID
+      id: (Math.random() * 1000).toFixed(0),
       clientName: values.clientName,
       clientPhone: values.clientPhone,
       address: {
@@ -96,9 +91,9 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
       },
       product,
       quantity,
-      price: 0, // This would typically be calculated based on the product
-      hasEmptyCylinder: true, // Default value
-      isCompletePackage: false, // Default value
+      price: 0,
+      hasEmptyCylinder: true,
+      isCompletePackage: false,
       createdAt: new Date(),
       status: "pending",
       notes: values.observations
@@ -113,320 +108,138 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Novo Pedido</CardTitle>
-        <CardDescription>Cadastre um novo pedido de gás ou água</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Dados do Cliente</h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="clientName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome do cliente" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="clientPhone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Telefone do cliente" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="street"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Rua</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome da rua" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Número</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Número" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="complement"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Complemento</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Complemento (opcional)" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="neighborhood"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bairro</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Bairro (opcional)" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Dados do Cliente</h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="clientName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nome do cliente" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Produtos</h3>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium" htmlFor="gasP13">
-                      Gás P13
-                    </label>
-                    <input
-                      type="checkbox"
-                      checked={hasGasP13}
-                      onChange={(e) => {
-                        setHasGasP13(e.target.checked);
-                        if (!e.target.checked) {
-                          form.setValue("gasP13", 0);
-                        } else {
-                          form.setValue("gasP13", 1);
-                        }
-                      }}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="gasP13"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            disabled={!hasGasP13}
-                            value={hasGasP13 ? field.value : 0}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              field.onChange(isNaN(value) ? 0 : value);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium" htmlFor="gasP20">
-                      Gás P20
-                    </label>
-                    <input
-                      type="checkbox"
-                      checked={hasGasP20}
-                      onChange={(e) => {
-                        setHasGasP20(e.target.checked);
-                        if (!e.target.checked) {
-                          form.setValue("gasP20", 0);
-                        } else {
-                          form.setValue("gasP20", 1);
-                        }
-                      }}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="gasP20"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            disabled={!hasGasP20}
-                            value={hasGasP20 ? field.value : 0}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              field.onChange(isNaN(value) ? 0 : value);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium" htmlFor="gasP45">
-                      Gás P45
-                    </label>
-                    <input
-                      type="checkbox"
-                      checked={hasGasP45}
-                      onChange={(e) => {
-                        setHasGasP45(e.target.checked);
-                        if (!e.target.checked) {
-                          form.setValue("gasP45", 0);
-                        } else {
-                          form.setValue("gasP45", 1);
-                        }
-                      }}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="gasP45"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            disabled={!hasGasP45}
-                            value={hasGasP45 ? field.value : 0}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              field.onChange(isNaN(value) ? 0 : value);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium" htmlFor="water">
-                      Água
-                    </label>
-                    <input
-                      type="checkbox"
-                      checked={hasWater}
-                      onChange={(e) => {
-                        setHasWater(e.target.checked);
-                        if (!e.target.checked) {
-                          form.setValue("water", 0);
-                        } else {
-                          form.setValue("water", 1);
-                        }
-                      }}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="water"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            disabled={!hasWater}
-                            value={hasWater ? field.value : 0}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              field.onChange(isNaN(value) ? 0 : value);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </div>
+            <FormField
+              control={form.control}
+              name="clientPhone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Telefone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Telefone do cliente" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="street"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rua</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nome da rua" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Pagamento e Observações</h3>
+            <FormField
+              control={form.control}
+              name="number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Número</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Número" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="complement"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Complemento</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Complemento (opcional)" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="neighborhood"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bairro</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Bairro (opcional)" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Produtos</h3>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium" htmlFor="gasP13">
+                  Gás P13
+                </label>
+                <input
+                  type="checkbox"
+                  checked={hasGasP13}
+                  onChange={(e) => {
+                    setHasGasP13(e.target.checked);
+                    if (!e.target.checked) {
+                      form.setValue("gasP13", 0);
+                    } else {
+                      form.setValue("gasP13", 1);
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+              </div>
               <FormField
                 control={form.control}
-                name="paymentMethod"
+                name="gasP13"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Forma de Pagamento</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a forma de pagamento" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="money">Dinheiro</SelectItem>
-                        <SelectItem value="credit">Cartão de Crédito</SelectItem>
-                        <SelectItem value="debit">Cartão de Débito</SelectItem>
-                        <SelectItem value="pix">PIX</SelectItem>
-                        <SelectItem value="promissory">Promissória</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="observations"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Observações</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Observações adicionais sobre o pedido"
-                        {...field}
+                      <Input
+                        type="number"
+                        min="0"
+                        disabled={!hasGasP13}
+                        value={hasGasP13 ? field.value : 0}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          field.onChange(isNaN(value) ? 0 : value);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -435,14 +248,188 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
               />
             </div>
             
-            <CardFooter className="px-0">
-              <Button type="submit" className="ml-auto">
-                Cadastrar Pedido
-              </Button>
-            </CardFooter>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium" htmlFor="gasP20">
+                  Gás P20
+                </label>
+                <input
+                  type="checkbox"
+                  checked={hasGasP20}
+                  onChange={(e) => {
+                    setHasGasP20(e.target.checked);
+                    if (!e.target.checked) {
+                      form.setValue("gasP20", 0);
+                    } else {
+                      form.setValue("gasP20", 1);
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="gasP20"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        disabled={!hasGasP20}
+                        value={hasGasP20 ? field.value : 0}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          field.onChange(isNaN(value) ? 0 : value);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium" htmlFor="gasP45">
+                  Gás P45
+                </label>
+                <input
+                  type="checkbox"
+                  checked={hasGasP45}
+                  onChange={(e) => {
+                    setHasGasP45(e.target.checked);
+                    if (!e.target.checked) {
+                      form.setValue("gasP45", 0);
+                    } else {
+                      form.setValue("gasP45", 1);
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="gasP45"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        disabled={!hasGasP45}
+                        value={hasGasP45 ? field.value : 0}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          field.onChange(isNaN(value) ? 0 : value);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium" htmlFor="water">
+                  Água
+                </label>
+                <input
+                  type="checkbox"
+                  checked={hasWater}
+                  onChange={(e) => {
+                    setHasWater(e.target.checked);
+                    if (!e.target.checked) {
+                      form.setValue("water", 0);
+                    } else {
+                      form.setValue("water", 1);
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="water"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        disabled={!hasWater}
+                        value={hasWater ? field.value : 0}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          field.onChange(isNaN(value) ? 0 : value);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Pagamento e Observações</h3>
+          <FormField
+            control={form.control}
+            name="paymentMethod"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Forma de Pagamento</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a forma de pagamento" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="money">Dinheiro</SelectItem>
+                    <SelectItem value="credit">Cartão de Crédito</SelectItem>
+                    <SelectItem value="debit">Cartão de Débito</SelectItem>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="promissory">Promissória</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="observations"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Observações</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Observações adicionais sobre o pedido"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <div className="flex justify-end gap-4">
+          <Button type="submit">
+            Cadastrar Pedido
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }
