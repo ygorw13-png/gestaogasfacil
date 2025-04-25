@@ -74,7 +74,7 @@ export default function EntranceSales() {
   };
 
   return (
-    <div className="space-y-6 animate-in">
+    <div className="space-y-6 animate-in pb-20">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Portaria</h1>
         <div className="flex flex-wrap gap-2">
@@ -139,119 +139,120 @@ export default function EntranceSales() {
         </Card>
       </div>
 
-      <Tabs defaultValue="sales" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="sales" className="flex items-center gap-2">
-            <ShoppingCart size={14} />
-            <span>Vendas</span>
-          </TabsTrigger>
-          <TabsTrigger value="payments" className="flex items-center gap-2">
-            <DollarSign size={14} />
-            <span>Pagamentos</span>
-          </TabsTrigger>
-          <TabsTrigger value="attendants" className="flex items-center gap-2">
-            <User size={14} />
-            <span>Atendentes</span>
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="sales">
-          <Card>
-            <CardHeader>
-              <CardTitle>Vendas Recentes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left font-medium py-2">Horário</th>
-                      <th className="text-left font-medium py-2">Cliente</th>
-                      <th className="text-left font-medium py-2">Produto</th>
-                      <th className="text-center font-medium py-2">Qtd</th>
-                      <th className="text-left font-medium py-2">Pagamento</th>
-                      <th className="text-right font-medium py-2">Valor</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentSales.map(sale => (
-                      <tr key={sale.id} className="border-b">
-                        <td className="py-2">{sale.time}</td>
-                        <td className="py-2">{sale.client}</td>
-                        <td className="py-2">{sale.product}</td>
-                        <td className="py-2 text-center">{sale.quantity}</td>
-                        <td className="py-2">{sale.payment}</td>
-                        <td className="py-2 text-right">R$ {sale.amount.toFixed(2).replace('.', ',')}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="mt-4 flex justify-center">
-                <Button variant="outline" size="sm">Ver todas as vendas</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="payments">
-          <div className="grid gap-4 md:grid-cols-2">
+      <div className="overflow-hidden">
+        <Tabs defaultValue="sales" className="space-y-4">
+          <TabsList className="mb-2">
+            <TabsTrigger value="sales" className="flex items-center gap-2">
+              <ShoppingCart size={14} />
+              <span>Vendas</span>
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="flex items-center gap-2">
+              <DollarSign size={14} />
+              <span>Pagamentos</span>
+            </TabsTrigger>
+            <TabsTrigger value="attendants" className="flex items-center gap-2">
+              <User size={14} />
+              <span>Atendentes</span>
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="sales" className="mt-0">
             <Card>
               <CardHeader>
-                <CardTitle>Vendas por Tipo de Pagamento</CardTitle>
+                <CardTitle>Vendas Recentes</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {salesByType.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between border-b pb-2 last:border-0">
-                      <div className="flex items-center gap-2">
-                        {item.icon}
-                        <span>{item.type}</span>
-                      </div>
-                      <div className="font-medium">
-                        R$ {item.amount.toFixed(2).replace('.', ',')}
-                      </div>
-                    </div>
-                  ))}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left font-medium py-2">Horário</th>
+                        <th className="text-left font-medium py-2">Cliente</th>
+                        <th className="text-left font-medium py-2">Produto</th>
+                        <th className="text-center font-medium py-2">Qtd</th>
+                        <th className="text-left font-medium py-2">Pagamento</th>
+                        <th className="text-right font-medium py-2">Valor</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentSales.map(sale => (
+                        <tr key={sale.id} className="border-b">
+                          <td className="py-2">{sale.time}</td>
+                          <td className="py-2">{sale.client}</td>
+                          <td className="py-2">{sale.product}</td>
+                          <td className="py-2 text-center">{sale.quantity}</td>
+                          <td className="py-2">{sale.payment}</td>
+                          <td className="py-2 text-right">R$ {sale.amount.toFixed(2).replace('.', ',')}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-4 flex justify-center">
+                  <Button variant="outline" size="sm">Ver todas as vendas</Button>
                 </div>
               </CardContent>
             </Card>
-            
+          </TabsContent>
+          
+          <TabsContent value="payments" className="mt-0">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Vendas por Tipo de Pagamento</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {salesByType.map((item, index) => (
+                      <div key={index} className="flex items-center justify-between border-b pb-2 last:border-0">
+                        <div className="flex items-center gap-2">
+                          {item.icon}
+                          <span>{item.type}</span>
+                        </div>
+                        <div className="font-medium">
+                          R$ {item.amount.toFixed(2).replace('.', ',')}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Gráfico de Pagamentos</CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-center justify-center">
+                  <div className="text-center py-10 text-muted-foreground">
+                    <p>Gráfico em desenvolvimento.</p>
+                    <p className="text-sm">Será implementado na próxima versão.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="attendants" className="mt-0">
             <Card>
               <CardHeader>
-                <CardTitle>Gráfico de Pagamentos</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Atendentes da Portaria</CardTitle>
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <Plus size={14} />
+                    <span>Adicionar Atendente</span>
+                  </Button>
+                </div>
               </CardHeader>
-              <CardContent className="flex items-center justify-center">
+              <CardContent>
                 <div className="text-center py-10 text-muted-foreground">
-                  <p>Gráfico em desenvolvimento.</p>
+                  <p>Módulo de atendentes em desenvolvimento.</p>
                   <p className="text-sm">Será implementado na próxima versão.</p>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="attendants">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Atendentes da Portaria</CardTitle>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <Plus size={14} />
-                  <span>Adicionar Atendente</span>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-10 text-muted-foreground">
-                <p>Módulo de atendentes em desenvolvimento.</p>
-                <p className="text-sm">Será implementado na próxima versão.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
-
