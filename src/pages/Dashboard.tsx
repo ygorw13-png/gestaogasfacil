@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Home, 
@@ -6,11 +5,14 @@ import {
   TrendingUp, 
   AlertCircle, 
   Package, 
-  Droplet
+  Droplet,
+  Lock
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { useAuth } from "@/contexts/AuthContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Mock data for the dashboard
 const salesData = [
@@ -47,6 +49,9 @@ const topSellers = [
 
 export default function Dashboard() {
   const [timeframe, setTimeframe] = useState("today");
+  const { user } = useAuth();
+
+  const hasFullAccess = user?.role === 'admin' || user?.role === 'manager';
 
   return (
     <div className="space-y-6 animate-in">
@@ -57,6 +62,15 @@ export default function Dashboard() {
           <span className="text-sm font-medium">{new Date().toLocaleString()}</span>
         </div>
       </div>
+
+      {!hasFullAccess && (
+        <Alert variant="warning" className="bg-yellow-50 border-yellow-200">
+          <AlertCircle className="h-4 w-4 text-yellow-600" />
+          <AlertDescription className="text-yellow-700">
+            Você tem acesso limitado ao dashboard. Algumas informações só estão disponíveis para usuários com perfis de Administrador ou Gerente.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -116,7 +130,7 @@ export default function Dashboard() {
         <TabsList>
           <TabsTrigger value="sales">Vendas</TabsTrigger>
           <TabsTrigger value="stock">Estoque</TabsTrigger>
-          <TabsTrigger value="sellers">Vendedores</TabsTrigger>
+          {hasFullAccess && <TabsTrigger value="sellers">Vendedores</TabsTrigger>}
         </TabsList>
         
         <TabsContent value="sales" className="space-y-4">
@@ -224,38 +238,88 @@ export default function Dashboard() {
           </div>
         </TabsContent>
         
-        <TabsContent value="sellers" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Vendedores</CardTitle>
-              <CardDescription>
-                Vendedores com melhor desempenho no período atual
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {topSellers.map((seller) => (
-                  <div key={seller.id} className="flex items-center justify-between border-b pb-2 last:border-0">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-gasflow-100 text-gasflow-700 w-9 h-9 rounded-full flex items-center justify-center">
-                        {seller.id}
+        {hasFullAccess && (
+          <TabsContent value="sellers" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Vendedores</CardTitle>
+                <CardDescription>
+                  Vendedores com melhor desempenho no período atual
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {topSellers.map((seller) => (
+                    <div key={seller.id} className="flex items-center justify-between border-b pb-2 last:border-0">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-gasflow-100 text-gasflow-700 w-9 h-9 rounded-full flex items-center justify-center">
+                          {seller.id}
+                        </div>
+                        <div>
+                          <p className="font-medium">{seller.name}</p>
+                          <p className="text-sm text-muted-foreground">{seller.sales} vendas</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{seller.name}</p>
-                        <p className="text-sm text-muted-foreground">{seller.sales} vendas</p>
+                      <div className="text-right">
+                        <p className="font-medium">{seller.value}</p>
+                        <p className="text-sm text-muted-foreground">Total</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">{seller.value}</p>
-                      <p className="text-sm text-muted-foreground">Total</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
+
+      {user?.role === 'admin' && (
+        <Card className="border-gasflow-200 bg-gasflow-50">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <Lock className="h-4 w-4 text-gasflow-700" />
+              <CardTitle className="text-gasflow-700">Área de Administração</CardTitle>
+            </div>
+            <CardDescription>
+              Esta seção só é visível para usuários com permissão de Administrador
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Aqui você tem acesso a informações administrativas e relatórios avançados.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+              <Card>
+                <CardHeader className="p-4">
+                  <CardTitle className="text-base">Faturamento Total</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  <div className="text-xl font-bold">R$ 42.580,00</div>
+                  <p className="text-xs text-muted-foreground">Último mês</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="p-4">
+                  <CardTitle className="text-base">Média de Vendas</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  <div className="text-xl font-bold">R$ 1.580,00</div>
+                  <p className="text-xs text-muted-foreground">Por dia</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="p-4">
+                  <CardTitle className="text-base">Taxa de Conversão</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  <div className="text-xl font-bold">87%</div>
+                  <p className="text-xs text-muted-foreground">+2% desde semana passada</p>
+                </CardContent>
+              </Card>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

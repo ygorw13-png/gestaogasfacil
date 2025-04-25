@@ -1,5 +1,5 @@
 
-import { Bell, User, Menu } from "lucide-react";
+import { Bell, User, Menu, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,13 +12,30 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Badge } from "@/components/ui/badge";
 
 export function TopBar() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   
   const handleLogout = () => {
-    // Future logout logic would go here
+    logout();
     navigate('/login');
+  };
+
+  // Mapeamento de roles para exibição em português
+  const roleLabels = {
+    admin: 'Administrador',
+    manager: 'Gerente',
+    operator: 'Operador'
+  };
+
+  // Mapeamento de roles para cores
+  const roleColors = {
+    admin: 'bg-red-100 text-red-800 hover:bg-red-200',
+    manager: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
+    operator: 'bg-green-100 text-green-800 hover:bg-green-200'
   };
 
   return (
@@ -31,6 +48,12 @@ export function TopBar() {
         <div className="flex-1"></div>
         
         <div className="flex items-center gap-4">
+          {user && (
+            <Badge variant="outline" className={user.role ? roleColors[user.role] : ''}>
+              {user.role ? roleLabels[user.role] : 'Usuário'}
+            </Badge>
+          )}
+          
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
             <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
@@ -40,17 +63,31 @@ export function TopBar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-9 w-9">
-                  <AvatarFallback className="bg-gasflow-100 text-gasflow-700">AU</AvatarFallback>
+                  <AvatarFallback className="bg-gasflow-100 text-gasflow-700">
+                    {user?.name ? user.name.substring(0, 2).toUpperCase() : 'AU'}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                <div>
+                  {user?.name || 'Usuário'}
+                  {user?.role && (
+                    <p className="text-xs font-normal text-muted-foreground mt-1">
+                      {roleLabels[user.role]}
+                    </p>
+                  )}
+                </div>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Perfil</DropdownMenuItem>
-              <DropdownMenuItem>Configurações</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/profile')}>Perfil</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/settings')}>Configurações</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>Sair</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
