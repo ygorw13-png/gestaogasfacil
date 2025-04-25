@@ -90,7 +90,7 @@ export default function SalesHistory() {
                   <SelectValue placeholder="Forma de Pagamento" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="todos">Todos</SelectItem>
                   <SelectItem value="Dinheiro">Dinheiro</SelectItem>
                   <SelectItem value="Crédito">Crédito</SelectItem>
                   <SelectItem value="Débito">Débito</SelectItem>
