@@ -1,13 +1,14 @@
-
 import { Lock, TrendingUp, Users, DollarSign, ChartPie, Settings, FileText, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function AdminSection() {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const navigate = useNavigate();
 
   const handleGenerateMonthlyReport = () => {
     setIsGeneratingReport(true);
@@ -19,7 +20,11 @@ export function AdminSection() {
         title: "Relatório gerado com sucesso",
         description: "O relatório mensal foi gerado e está pronto para download.",
         action: (
-          <Button variant="outline" size="sm" onClick={() => toast({ title: "Download iniciado" })}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleDownloadReport}
+          >
             <Download className="h-4 w-4 mr-1" />
             Download
           </Button>
@@ -28,9 +33,35 @@ export function AdminSection() {
     }, 1500);
   };
 
+  const handleDownloadReport = () => {
+    // Criando um blob com conteúdo de exemplo para download
+    const reportContent = "Relatório Mensal GasFlow Aqua\n\n" +
+      "Data: " + new Date().toLocaleDateString() + "\n" +
+      "Receita Mensal: R$ 42.580,00\n" +
+      "Média de Vendas Diária: R$ 1.580,00\n" +
+      "Taxa de Conversão: 87%\n\n" +
+      "Relatório gerado automaticamente pelo sistema GasFlow Aqua.";
+    
+    // Criando o arquivo e iniciando o download
+    const blob = new Blob([reportContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "relatorio_mensal.txt";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({ 
+      title: "Download iniciado",
+      description: "O arquivo foi enviado para sua pasta de downloads"
+    });
+  };
+
   const handleOpenSettings = () => {
-    // Redirecionar para a página de configurações
-    window.location.href = "/settings";
+    // Utilizando o React Router para navegação em vez de window.location
+    navigate("/settings");
   };
 
   return (
