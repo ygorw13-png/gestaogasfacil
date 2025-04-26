@@ -3,152 +3,12 @@ import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { formatCurrency } from "@/lib/formatUtils";
-
-// Função para gerar dados de exemplo para o relatório
-const generateReportData = (dateRange: DateRange) => {
-  const from = dateRange.from!;
-  const to = dateRange.to || dateRange.from!;
-  
-  // Dados simulados de vendas diárias no período
-  const dailySales: { data: string; valor: number }[] = [];
-  let currentDate = new Date(from);
-  
-  while (currentDate <= to) {
-    const formattedDate = format(currentDate, "dd/MM/yyyy", { locale: ptBR });
-    // Gera um valor aleatório entre 800 e 2500 para as vendas diárias
-    const randomSales = Math.round(800 + Math.random() * 1700);
-    dailySales.push({ data: formattedDate, valor: randomSales });
-    
-    // Avança para o próximo dia
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-  
-  // Calcula totais e médias
-  const totalSales = dailySales.reduce((sum, day) => sum + day.valor, 0);
-  const averageSales = totalSales / dailySales.length;
-  
-  // Produtos mais vendidos (dados simulados)
-  const topProducts = [
-    { produto: "Água Mineral 20L", quantidade: Math.round(dailySales.length * 25 * (0.8 + Math.random() * 0.4)), percentual: "35%" },
-    { produto: "Água Mineral 10L", quantidade: Math.round(dailySales.length * 18 * (0.8 + Math.random() * 0.4)), percentual: "25%" },
-    { produto: "Água Mineral 5L", quantidade: Math.round(dailySales.length * 15 * (0.8 + Math.random() * 0.4)), percentual: "20%" },
-    { produto: "Água Mineral 1.5L", quantidade: Math.round(dailySales.length * 12 * (0.8 + Math.random() * 0.4)), percentual: "15%" },
-    { produto: "Água Mineral 500ml", quantidade: Math.round(dailySales.length * 5 * (0.8 + Math.random() * 0.4)), percentual: "5%" },
-  ];
-  
-  // Métricas financeiras
-  const financialMetrics = {
-    receitaBruta: totalSales,
-    custoOperacional: totalSales * 0.45,
-    margemLucro: 55,
-    taxaCrescimento: 4.3,
-  };
-  
-  // Sugestões baseadas nos dados
-  const suggestions = [
-    "Aumente o estoque de Água Mineral 20L em 15% para atender à demanda crescente.",
-    `Considere uma promoção para Água Mineral 500ml, que representa apenas ${topProducts[4].percentual} das vendas.`,
-    `A margem de lucro atual de ${financialMetrics.margemLucro}% está acima da média do setor. Considere estratégias para manter este desempenho.`,
-    "Implemente um programa de fidelidade para clientes frequentes para aumentar a retenção.",
-    `A taxa de crescimento de ${financialMetrics.taxaCrescimento}% indica uma tendência positiva. Considere expandir para novas áreas.`
-  ];
-  
-  return {
-    periodo: {
-      inicio: format(from, "dd/MM/yyyy", { locale: ptBR }),
-      fim: format(to, "dd/MM/yyyy", { locale: ptBR })
-    },
-    vendasDiarias: dailySales,
-    totais: {
-      vendasTotais: totalSales,
-      mediaDiaria: averageSales,
-      diasAnalisados: dailySales.length
-    },
-    produtosMaisVendidos: topProducts,
-    metricasFinanceiras: financialMetrics,
-    sugestoes: suggestions
-  };
-};
+import { generateReportData } from "./utils/reportDataGenerator";
+import { excelStyles } from "./utils/excelStyles";
 
 export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> => {
   const reportData = generateReportData(dateRange);
   const xlsx = await import('xlsx');
-
-  // Configurações de estilo com cores GasFlow
-  const headerStyle = {
-    font: { bold: true, color: { rgb: "FFFFFF" } },
-    fill: { fgColor: { rgb: "22C55E" } }, // Verde GasFlow (gasflow-500)
-    alignment: { horizontal: "center", vertical: "center" },
-    border: {
-      top: { style: "thin", color: { rgb: "15803D" } }, // gasflow-700
-      bottom: { style: "thin", color: { rgb: "15803D" } },
-      left: { style: "thin", color: { rgb: "15803D" } },
-      right: { style: "thin", color: { rgb: "15803D" } }
-    }
-  };
-
-  const titleStyle = {
-    font: { bold: true, size: 14, color: { rgb: "166534" } }, // gasflow-800
-    fill: { fgColor: { rgb: "F0FDF4" } }, // gasflow-50
-    alignment: { horizontal: "center", vertical: "center" },
-    border: {
-      top: { style: "medium", color: { rgb: "15803D" } }, // gasflow-700
-      bottom: { style: "medium", color: { rgb: "15803D" } },
-      left: { style: "medium", color: { rgb: "15803D" } },
-      right: { style: "medium", color: { rgb: "15803D" } }
-    }
-  };
-
-  const subHeaderStyle = {
-    font: { bold: true, color: { rgb: "166534" } }, // gasflow-800
-    fill: { fgColor: { rgb: "DCFCE7" } }, // gasflow-100
-    alignment: { horizontal: "left" },
-    border: {
-      top: { style: "thin", color: { rgb: "16A34A" } }, // gasflow-600
-      bottom: { style: "thin", color: { rgb: "16A34A" } },
-      left: { style: "thin", color: { rgb: "16A34A" } },
-      right: { style: "thin", color: { rgb: "16A34A" } }
-    }
-  };
-
-  const dataStyle = {
-    font: { color: { rgb: "333333" } },
-    border: {
-      top: { style: "thin", color: { rgb: "BBBBBB" } },
-      bottom: { style: "thin", color: { rgb: "BBBBBB" } },
-      left: { style: "thin", color: { rgb: "BBBBBB" } },
-      right: { style: "thin", color: { rgb: "BBBBBB" } }
-    },
-    alignment: { horizontal: "right", vertical: "center" }
-  };
-
-  const dateStyle = {
-    font: { color: { rgb: "333333" } },
-    border: {
-      top: { style: "thin", color: { rgb: "BBBBBB" } },
-      bottom: { style: "thin", color: { rgb: "BBBBBB" } },
-      left: { style: "thin", color: { rgb: "BBBBBB" } },
-      right: { style: "thin", color: { rgb: "BBBBBB" } }
-    },
-    alignment: { horizontal: "center", vertical: "center" }
-  };
-  
-  const highlightStyle = {
-    font: { bold: true, color: { rgb: "166534" } },
-    fill: { fgColor: { rgb: "BBF7D0" } }, // gasflow-200
-    border: {
-      top: { style: "thin", color: { rgb: "16A34A" } },
-      bottom: { style: "thin", color: { rgb: "16A34A" } },
-      left: { style: "thin", color: { rgb: "16A34A" } },
-      right: { style: "thin", color: { rgb: "16A34A" } }
-    },
-    alignment: { horizontal: "left", vertical: "center" }
-  };
-
-  const footerStyle = {
-    font: { italic: true, color: { rgb: "666666" } },
-    alignment: { horizontal: "right" }
-  };
 
   const workbook = xlsx.utils.book_new();
 
@@ -206,7 +66,7 @@ export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> =
     const colWidths = [{ wch: 30 }, { wch: 25 }, { wch: 22 }];
     ws['!cols'] = colWidths;
     
-    // Ajustar alturas das linhas - FIX: Usar um array para o '!rows' propriedade
+    // Ajustar alturas das linhas
     const rowHeights: Array<{ hpt: number }> = [];
     rowHeights[0] = { hpt: 30 }; // Altura do título principal
     ws['!rows'] = rowHeights;
@@ -225,7 +85,7 @@ export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> =
 
         // Estilo do título principal
         if (row === 0) {
-          ws[cellRef].s = titleStyle;
+          ws[cellRef].s = excelStyles.titleStyle;
         }
         // Estilo dos cabeçalhos de seções
         else if (
@@ -235,7 +95,7 @@ export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> =
           (row === 2 && col === 0 && name === "Análise de Produtos") ||
           (row === 2 && col === 0 && name === "Vendas Diárias")
         ) {
-          ws[cellRef].s = headerStyle;
+          ws[cellRef].s = excelStyles.headerStyle;
         }
         // Estilo dos subcabeçalhos ou labels importantes
         else if (
@@ -250,13 +110,13 @@ export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> =
             data[row][0] === "Taxa de Crescimento")) || 
           (row === 2 && name !== "Resumo Executivo")
         ) {
-          ws[cellRef].s = subHeaderStyle;
+          ws[cellRef].s = excelStyles.subHeaderStyle;
         }
         // Estilo para as recomendações
         else if (row >= 16 && row <= 20 && name === "Resumo Executivo") {
-          ws[cellRef].s = dataStyle;
+          ws[cellRef].s = excelStyles.dataStyle;
           // Destaque para os números das recomendações
-          if (col === 0) ws[cellRef].s = highlightStyle;
+          if (col === 0) ws[cellRef].s = excelStyles.highlightStyle;
         }
         // Estilo para datas e números
         else if (
@@ -266,14 +126,14 @@ export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> =
           (row >= 10 && row <= 13 && col === 1)
         ) {
           if (col === 0 && name === "Vendas Diárias" && row > 2) {
-            ws[cellRef].s = dateStyle;
+            ws[cellRef].s = excelStyles.dateStyle;
           } else {
-            ws[cellRef].s = dataStyle;
+            ws[cellRef].s = excelStyles.dataStyle;
           }
         }
         // Rodapé do relatório
         else if (row === range.e.r && name === "Resumo Executivo") {
-          ws[cellRef].s = footerStyle;
+          ws[cellRef].s = excelStyles.footerStyle;
         }
       }
     }
