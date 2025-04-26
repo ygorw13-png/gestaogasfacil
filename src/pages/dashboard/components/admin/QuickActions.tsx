@@ -22,8 +22,6 @@ export function QuickActions() {
     
     // Simula o tempo necessário para gerar o relatório
     setTimeout(() => {
-      setIsGeneratingReport(false);
-      
       // Gerar o arquivo Excel
       generateExcelReport(dateRange)
         .then(blob => {
@@ -35,6 +33,7 @@ export function QuickActions() {
           const fromDate = dateRange.from?.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-');
           const toDate = dateRange.to?.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-');
           
+          // Configuração correta para download do arquivo Excel
           link.href = url;
           link.download = `RelatorioGasFlowAqua_${fromDate}_a_${toDate}.xlsx`;
           document.body.appendChild(link);
@@ -46,6 +45,8 @@ export function QuickActions() {
             title: "Relatório gerado com sucesso",
             description: "O relatório foi gerado e o download iniciado automaticamente.",
           });
+          
+          setIsGeneratingReport(false);
         })
         .catch(error => {
           console.error("Erro ao gerar relatório:", error);
@@ -54,8 +55,9 @@ export function QuickActions() {
             description: "Ocorreu um erro ao gerar o relatório. Tente novamente.",
             variant: "destructive",
           });
+          setIsGeneratingReport(false);
         });
-    }, 1500);
+    }, 1000);
   };
 
   const handleOpenSettings = () => {

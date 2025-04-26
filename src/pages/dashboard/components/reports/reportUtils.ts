@@ -2,6 +2,7 @@
 import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { formatCurrency } from "@/lib/formatUtils";
 
 // Função para gerar dados de exemplo para o relatório
 const generateReportData = (dateRange: DateRange) => {
@@ -71,64 +72,81 @@ const generateReportData = (dateRange: DateRange) => {
 
 // Função para criar um arquivo Excel com os dados do relatório
 export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> => {
-  // Simula a geração do arquivo Excel
-  // Em uma implementação real, você usaria uma biblioteca como ExcelJS ou xlsx
-  
   // Gera dados de exemplo para o relatório
   const reportData = generateReportData(dateRange);
   
-  // Em uma aplicação real, você usaria algo como:
-  // const workbook = new ExcelJS.Workbook();
-  // const worksheet = workbook.addWorksheet('Relatório de Vendas');
-  // ... adicionar dados ao worksheet ...
-  // return workbook.xlsx.writeBuffer().then(buffer => new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  // Utilizamos a biblioteca XLSX (que já está instalada) para criar um arquivo Excel adequado
+  // Importamos a biblioteca de forma dinâmica para não carregar desnecessariamente
+  const xlsx = await import('xlsx');
   
-  // Por enquanto, vamos simular a criação do arquivo usando um blob de texto
-  const reportContent = `
-RELATÓRIO MENSAL GASFLOW AQUA
-
-Período: ${reportData.periodo.inicio} a ${reportData.periodo.fim}
-
-RESUMO EXECUTIVO:
-Total de Vendas: R$ ${reportData.totais.vendasTotais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-Média Diária: R$ ${reportData.totais.mediaDiaria.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-Dias Analisados: ${reportData.totais.diasAnalisados}
-
-PRODUTOS MAIS VENDIDOS:
-1. ${reportData.produtosMaisVendidos[0].produto}: ${reportData.produtosMaisVendidos[0].quantidade} unidades (${reportData.produtosMaisVendidos[0].percentual})
-2. ${reportData.produtosMaisVendidos[1].produto}: ${reportData.produtosMaisVendidos[1].quantidade} unidades (${reportData.produtosMaisVendidos[1].percentual})
-3. ${reportData.produtosMaisVendidos[2].produto}: ${reportData.produtosMaisVendidos[2].quantidade} unidades (${reportData.produtosMaisVendidos[2].percentual})
-4. ${reportData.produtosMaisVendidos[3].produto}: ${reportData.produtosMaisVendidos[3].quantidade} unidades (${reportData.produtosMaisVendidos[3].percentual})
-5. ${reportData.produtosMaisVendidos[4].produto}: ${reportData.produtosMaisVendidos[4].quantidade} unidades (${reportData.produtosMaisVendidos[4].percentual})
-
-MÉTRICAS FINANCEIRAS:
-Receita Bruta: R$ ${reportData.metricasFinanceiras.receitaBruta.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-Custo Operacional: R$ ${reportData.metricasFinanceiras.custoOperacional.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-Margem de Lucro: ${reportData.metricasFinanceiras.margemLucro}%
-Taxa de Crescimento: ${reportData.metricasFinanceiras.taxaCrescimento}%
-
-SUGESTÕES DE OTIMIZAÇÃO:
-- ${reportData.sugestoes[0]}
-- ${reportData.sugestoes[1]}
-- ${reportData.sugestoes[2]}
-- ${reportData.sugestoes[3]}
-- ${reportData.sugestoes[4]}
-
-DETALHAMENTO DE VENDAS DIÁRIAS:
-${reportData.vendasDiarias.map(day => `${day.data}: R$ ${day.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`).join('\n')}
-
-Relatório gerado automaticamente pelo sistema GasFlow Aqua em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
-`;
-
-  // Esta é uma simulação - em uma aplicação real, você retornaria um arquivo Excel real
-  // Para esta demonstração, retornamos um arquivo de texto simulando o conteúdo do Excel
-  return new Promise(resolve => {
-    // Simula um pequeno delay para parecer que está processando
-    setTimeout(() => {
-      const blob = new Blob([reportContent], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-      });
-      resolve(blob);
-    }, 500);
+  // Criamos as planilhas para o arquivo Excel
+  const workbook = xlsx.utils.book_new();
+  
+  // Planilha de resumo
+  const resumoData = [
+    ["RELATÓRIO MENSAL GASFLOW AQUA"],
+    [""],
+    ["Período:", `${reportData.periodo.inicio} a ${reportData.periodo.fim}`],
+    [""],
+    ["RESUMO EXECUTIVO:"],
+    ["Total de Vendas:", `R$ ${formatCurrency(reportData.totais.vendasTotais)}`],
+    ["Média Diária:", `R$ ${formatCurrency(reportData.totais.mediaDiaria)}`],
+    ["Dias Analisados:", reportData.totais.diasAnalisados],
+    [""],
+    ["MÉTRICAS FINANCEIRAS:"],
+    ["Receita Bruta:", `R$ ${formatCurrency(reportData.metricasFinanceiras.receitaBruta)}`],
+    ["Custo Operacional:", `R$ ${formatCurrency(reportData.metricasFinanceiras.custoOperacional)}`],
+    ["Margem de Lucro:", `${reportData.metricasFinanceiras.margemLucro}%`],
+    ["Taxa de Crescimento:", `${reportData.metricasFinanceiras.taxaCrescimento}%`],
+    [""],
+    ["SUGESTÕES DE OTIMIZAÇÃO:"],
+    ["", reportData.sugestoes[0]],
+    ["", reportData.sugestoes[1]],
+    ["", reportData.sugestoes[2]],
+    ["", reportData.sugestoes[3]],
+    ["", reportData.sugestoes[4]],
+    [""],
+    ["Relatório gerado em:", new Date().toLocaleDateString('pt-BR')]
+  ];
+  
+  // Planilha de produtos
+  const produtosData = [
+    ["PRODUTOS MAIS VENDIDOS"],
+    ["Produto", "Quantidade", "Percentual"],
+    ...reportData.produtosMaisVendidos.map(p => [p.produto, p.quantidade, p.percentual])
+  ];
+  
+  // Planilha de vendas diárias
+  const vendasData = [
+    ["DETALHAMENTO DE VENDAS DIÁRIAS"],
+    ["Data", "Valor"],
+    ...reportData.vendasDiarias.map(day => [day.data, day.valor])
+  ];
+  
+  // Adicionar planilhas ao workbook
+  xlsx.utils.book_append_sheet(
+    workbook, 
+    xlsx.utils.aoa_to_sheet(resumoData), 
+    "Resumo"
+  );
+  
+  xlsx.utils.book_append_sheet(
+    workbook, 
+    xlsx.utils.aoa_to_sheet(produtosData), 
+    "Produtos"
+  );
+  
+  xlsx.utils.book_append_sheet(
+    workbook, 
+    xlsx.utils.aoa_to_sheet(vendasData), 
+    "Vendas Diárias"
+  );
+  
+  // Conversão para formato binário do Excel
+  const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' });
+  
+  // Criação do Blob com o tipo MIME correto para Excel
+  return new Blob([excelBuffer], { 
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
   });
 };
