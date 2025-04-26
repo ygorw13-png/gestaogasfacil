@@ -1,4 +1,3 @@
-
 import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -70,83 +69,123 @@ const generateReportData = (dateRange: DateRange) => {
   };
 };
 
-// Função para criar um arquivo Excel com os dados do relatório
 export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> => {
-  // Gera dados de exemplo para o relatório
   const reportData = generateReportData(dateRange);
-  
-  // Utilizamos a biblioteca XLSX (que já está instalada) para criar um arquivo Excel adequado
-  // Importamos a biblioteca de forma dinâmica para não carregar desnecessariamente
   const xlsx = await import('xlsx');
-  
-  // Criamos as planilhas para o arquivo Excel
+
+  // Configurações de estilo
+  const headerStyle = {
+    font: { bold: true, color: { rgb: "FFFFFF" } },
+    fill: { fgColor: { rgb: "22C55E" } }, // Verde GasFlow
+    alignment: { horizontal: "center" },
+    border: {
+      top: { style: "thin" },
+      bottom: { style: "thin" },
+      left: { style: "thin" },
+      right: { style: "thin" }
+    }
+  };
+
+  const subHeaderStyle = {
+    font: { bold: true },
+    fill: { fgColor: { rgb: "F0FDF4" } }, // Verde claro
+    border: {
+      top: { style: "thin" },
+      bottom: { style: "thin" },
+      left: { style: "thin" },
+      right: { style: "thin" }
+    }
+  };
+
   const workbook = xlsx.utils.book_new();
-  
-  // Planilha de resumo
+
+  // Planilha de Resumo Executivo
   const resumoData = [
     ["RELATÓRIO MENSAL GASFLOW AQUA"],
     [""],
-    ["Período:", `${reportData.periodo.inicio} a ${reportData.periodo.fim}`],
+    ["Período de Análise:", `${reportData.periodo.inicio} a ${reportData.periodo.fim}`],
     [""],
-    ["RESUMO EXECUTIVO:"],
-    ["Total de Vendas:", `R$ ${formatCurrency(reportData.totais.vendasTotais)}`],
-    ["Média Diária:", `R$ ${formatCurrency(reportData.totais.mediaDiaria)}`],
-    ["Dias Analisados:", reportData.totais.diasAnalisados],
+    ["MÉTRICAS PRINCIPAIS"],
+    ["Total de Vendas", `R$ ${formatCurrency(reportData.totais.vendasTotais)}`],
+    ["Média Diária", `R$ ${formatCurrency(reportData.totais.mediaDiaria)}`],
+    ["Dias Analisados", reportData.totais.diasAnalisados],
     [""],
-    ["MÉTRICAS FINANCEIRAS:"],
-    ["Receita Bruta:", `R$ ${formatCurrency(reportData.metricasFinanceiras.receitaBruta)}`],
-    ["Custo Operacional:", `R$ ${formatCurrency(reportData.metricasFinanceiras.custoOperacional)}`],
-    ["Margem de Lucro:", `${reportData.metricasFinanceiras.margemLucro}%`],
-    ["Taxa de Crescimento:", `${reportData.metricasFinanceiras.taxaCrescimento}%`],
+    ["DESEMPENHO FINANCEIRO"],
+    ["Receita Bruta", `R$ ${formatCurrency(reportData.metricasFinanceiras.receitaBruta)}`],
+    ["Custo Operacional", `R$ ${formatCurrency(reportData.metricasFinanceiras.custoOperacional)}`],
+    ["Margem de Lucro", `${reportData.metricasFinanceiras.margemLucro}%`],
+    ["Taxa de Crescimento", `${reportData.metricasFinanceiras.taxaCrescimento}%`],
     [""],
-    ["SUGESTÕES DE OTIMIZAÇÃO:"],
-    ["", reportData.sugestoes[0]],
-    ["", reportData.sugestoes[1]],
-    ["", reportData.sugestoes[2]],
-    ["", reportData.sugestoes[3]],
-    ["", reportData.sugestoes[4]],
+    ["RECOMENDAÇÕES ESTRATÉGICAS"],
+    ["1.", reportData.sugestoes[0]],
+    ["2.", reportData.sugestoes[1]],
+    ["3.", reportData.sugestoes[2]],
+    ["4.", reportData.sugestoes[3]],
+    ["5.", reportData.sugestoes[4]],
     [""],
-    ["Relatório gerado em:", new Date().toLocaleDateString('pt-BR')]
+    [`Relatório gerado em: ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}`]
   ];
-  
-  // Planilha de produtos
+
+  // Planilha de Produtos
   const produtosData = [
-    ["PRODUTOS MAIS VENDIDOS"],
-    ["Produto", "Quantidade", "Percentual"],
+    ["ANÁLISE DE PRODUTOS"],
+    [""],
+    ["Produto", "Quantidade Vendida", "Participação nas Vendas"],
     ...reportData.produtosMaisVendidos.map(p => [p.produto, p.quantidade, p.percentual])
   ];
-  
-  // Planilha de vendas diárias
+
+  // Planilha de Vendas Diárias
   const vendasData = [
     ["DETALHAMENTO DE VENDAS DIÁRIAS"],
-    ["Data", "Valor"],
-    ...reportData.vendasDiarias.map(day => [day.data, day.valor])
+    [""],
+    ["Data", "Valor (R$)"],
+    ...reportData.vendasDiarias.map(day => [
+      day.data,
+      formatCurrency(day.valor)
+    ])
   ];
-  
-  // Adicionar planilhas ao workbook
-  xlsx.utils.book_append_sheet(
-    workbook, 
-    xlsx.utils.aoa_to_sheet(resumoData), 
-    "Resumo"
-  );
-  
-  xlsx.utils.book_append_sheet(
-    workbook, 
-    xlsx.utils.aoa_to_sheet(produtosData), 
-    "Produtos"
-  );
-  
-  xlsx.utils.book_append_sheet(
-    workbook, 
-    xlsx.utils.aoa_to_sheet(vendasData), 
-    "Vendas Diárias"
-  );
-  
-  // Conversão para formato binário do Excel
-  const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' });
-  
-  // Criação do Blob com o tipo MIME correto para Excel
-  return new Blob([excelBuffer], { 
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+
+  // Adicionar e formatar as planilhas
+  const addSheetWithStyles = (data: any[][], name: string) => {
+    const ws = xlsx.utils.aoa_to_sheet(data);
+    
+    // Configurar larguras das colunas
+    const colWidths = [{ wch: 25 }, { wch: 20 }, { wch: 20 }];
+    ws['!cols'] = colWidths;
+
+    // Aplicar estilos
+    const range = xlsx.utils.decode_range(ws['!ref'] || "A1");
+    for (let row = range.s.r; row <= range.e.r; row++) {
+      for (let col = range.s.c; col <= range.e.c; col++) {
+        const cellRef = xlsx.utils.encode_cell({ r: row, c: col });
+        if (!ws[cellRef]) continue;
+
+        // Estilo do cabeçalho principal
+        if (row === 0) {
+          ws[cellRef].s = headerStyle;
+        }
+        // Estilo dos subcabeçalhos
+        else if (data[row] && data[row][0] && !data[row][0].toString().match(/^\d/)) {
+          ws[cellRef].s = subHeaderStyle;
+        }
+      }
+    }
+
+    xlsx.utils.book_append_sheet(workbook, ws, name);
+  };
+
+  addSheetWithStyles(resumoData, "Resumo Executivo");
+  addSheetWithStyles(produtosData, "Análise de Produtos");
+  addSheetWithStyles(vendasData, "Vendas Diárias");
+
+  // Gerar arquivo Excel com as configurações aplicadas
+  const excelBuffer = xlsx.write(workbook, {
+    bookType: 'xlsx',
+    type: 'array',
+    compression: true
+  });
+
+  return new Blob([excelBuffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   });
 };
