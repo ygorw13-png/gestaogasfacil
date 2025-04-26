@@ -1,3 +1,4 @@
+
 import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -73,28 +74,80 @@ export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> =
   const reportData = generateReportData(dateRange);
   const xlsx = await import('xlsx');
 
-  // Configurações de estilo
+  // Configurações de estilo com cores GasFlow
   const headerStyle = {
     font: { bold: true, color: { rgb: "FFFFFF" } },
-    fill: { fgColor: { rgb: "22C55E" } }, // Verde GasFlow
-    alignment: { horizontal: "center" },
+    fill: { fgColor: { rgb: "22C55E" } }, // Verde GasFlow (gasflow-500)
+    alignment: { horizontal: "center", vertical: "center" },
     border: {
-      top: { style: "thin" },
-      bottom: { style: "thin" },
-      left: { style: "thin" },
-      right: { style: "thin" }
+      top: { style: "thin", color: { rgb: "15803D" } }, // gasflow-700
+      bottom: { style: "thin", color: { rgb: "15803D" } },
+      left: { style: "thin", color: { rgb: "15803D" } },
+      right: { style: "thin", color: { rgb: "15803D" } }
+    }
+  };
+
+  const titleStyle = {
+    font: { bold: true, size: 14, color: { rgb: "166534" } }, // gasflow-800
+    fill: { fgColor: { rgb: "F0FDF4" } }, // gasflow-50
+    alignment: { horizontal: "center", vertical: "center" },
+    border: {
+      top: { style: "medium", color: { rgb: "15803D" } }, // gasflow-700
+      bottom: { style: "medium", color: { rgb: "15803D" } },
+      left: { style: "medium", color: { rgb: "15803D" } },
+      right: { style: "medium", color: { rgb: "15803D" } }
     }
   };
 
   const subHeaderStyle = {
-    font: { bold: true },
-    fill: { fgColor: { rgb: "F0FDF4" } }, // Verde claro
+    font: { bold: true, color: { rgb: "166534" } }, // gasflow-800
+    fill: { fgColor: { rgb: "DCFCE7" } }, // gasflow-100
+    alignment: { horizontal: "left" },
     border: {
-      top: { style: "thin" },
-      bottom: { style: "thin" },
-      left: { style: "thin" },
-      right: { style: "thin" }
+      top: { style: "thin", color: { rgb: "16A34A" } }, // gasflow-600
+      bottom: { style: "thin", color: { rgb: "16A34A" } },
+      left: { style: "thin", color: { rgb: "16A34A" } },
+      right: { style: "thin", color: { rgb: "16A34A" } }
     }
+  };
+
+  const dataStyle = {
+    font: { color: { rgb: "333333" } },
+    border: {
+      top: { style: "thin", color: { rgb: "BBBBBB" } },
+      bottom: { style: "thin", color: { rgb: "BBBBBB" } },
+      left: { style: "thin", color: { rgb: "BBBBBB" } },
+      right: { style: "thin", color: { rgb: "BBBBBB" } }
+    },
+    alignment: { horizontal: "right", vertical: "center" }
+  };
+
+  const dateStyle = {
+    font: { color: { rgb: "333333" } },
+    border: {
+      top: { style: "thin", color: { rgb: "BBBBBB" } },
+      bottom: { style: "thin", color: { rgb: "BBBBBB" } },
+      left: { style: "thin", color: { rgb: "BBBBBB" } },
+      right: { style: "thin", color: { rgb: "BBBBBB" } }
+    },
+    alignment: { horizontal: "center", vertical: "center" }
+  };
+  
+  const highlightStyle = {
+    font: { bold: true, color: { rgb: "166534" } },
+    fill: { fgColor: { rgb: "BBF7D0" } }, // gasflow-200
+    border: {
+      top: { style: "thin", color: { rgb: "16A34A" } },
+      bottom: { style: "thin", color: { rgb: "16A34A" } },
+      left: { style: "thin", color: { rgb: "16A34A" } },
+      right: { style: "thin", color: { rgb: "16A34A" } }
+    },
+    alignment: { horizontal: "left", vertical: "center" }
+  };
+
+  const footerStyle = {
+    font: { italic: true, color: { rgb: "666666" } },
+    alignment: { horizontal: "right" }
   };
 
   const workbook = xlsx.utils.book_new();
@@ -150,8 +203,18 @@ export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> =
     const ws = xlsx.utils.aoa_to_sheet(data);
     
     // Configurar larguras das colunas
-    const colWidths = [{ wch: 25 }, { wch: 20 }, { wch: 20 }];
+    const colWidths = [{ wch: 30 }, { wch: 25 }, { wch: 22 }];
     ws['!cols'] = colWidths;
+    
+    // Ajustar alturas das linhas
+    const rowHeights = {};
+    rowHeights[0] = { hpt: 30 }; // Altura do título principal
+    ws['!rows'] = rowHeights;
+
+    // Mesclar células para o título principal
+    if (data[0] && data[0][0]) {
+      ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }];
+    }
 
     // Aplicar estilos
     const range = xlsx.utils.decode_range(ws['!ref'] || "A1");
@@ -160,13 +223,57 @@ export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> =
         const cellRef = xlsx.utils.encode_cell({ r: row, c: col });
         if (!ws[cellRef]) continue;
 
-        // Estilo do cabeçalho principal
+        // Estilo do título principal
         if (row === 0) {
+          ws[cellRef].s = titleStyle;
+        }
+        // Estilo dos cabeçalhos de seções
+        else if (
+          (data[row] && data[row][0] === "MÉTRICAS PRINCIPAIS") || 
+          (data[row] && data[row][0] === "DESEMPENHO FINANCEIRO") || 
+          (data[row] && data[row][0] === "RECOMENDAÇÕES ESTRATÉGICAS") ||
+          (row === 2 && col === 0 && name === "Análise de Produtos") ||
+          (row === 2 && col === 0 && name === "Vendas Diárias")
+        ) {
           ws[cellRef].s = headerStyle;
         }
-        // Estilo dos subcabeçalhos
-        else if (data[row] && data[row][0] && !data[row][0].toString().match(/^\d/)) {
+        // Estilo dos subcabeçalhos ou labels importantes
+        else if (
+          (data[row] && 
+           (data[row][0] === "Período de Análise:" || 
+            data[row][0] === "Total de Vendas" || 
+            data[row][0] === "Média Diária" || 
+            data[row][0] === "Dias Analisados" || 
+            data[row][0] === "Receita Bruta" || 
+            data[row][0] === "Custo Operacional" || 
+            data[row][0] === "Margem de Lucro" || 
+            data[row][0] === "Taxa de Crescimento")) || 
+          (row === 2 && name !== "Resumo Executivo")
+        ) {
           ws[cellRef].s = subHeaderStyle;
+        }
+        // Estilo para as recomendações
+        else if (row >= 16 && row <= 20 && name === "Resumo Executivo") {
+          ws[cellRef].s = dataStyle;
+          // Destaque para os números das recomendações
+          if (col === 0) ws[cellRef].s = highlightStyle;
+        }
+        // Estilo para datas e números
+        else if (
+          (name === "Vendas Diárias" && row > 2) || 
+          (name === "Análise de Produtos" && row > 2) ||
+          (row >= 5 && row <= 7 && col === 1) || 
+          (row >= 10 && row <= 13 && col === 1)
+        ) {
+          if (col === 0 && name === "Vendas Diárias" && row > 2) {
+            ws[cellRef].s = dateStyle;
+          } else {
+            ws[cellRef].s = dataStyle;
+          }
+        }
+        // Rodapé do relatório
+        else if (row === range.e.r && name === "Resumo Executivo") {
+          ws[cellRef].s = footerStyle;
         }
       }
     }
