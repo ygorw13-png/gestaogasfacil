@@ -206,8 +206,8 @@ export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> =
     const colWidths = [{ wch: 30 }, { wch: 25 }, { wch: 22 }];
     ws['!cols'] = colWidths;
     
-    // Ajustar alturas das linhas
-    const rowHeights = {};
+    // Ajustar alturas das linhas - FIX: Usar um array para o '!rows' propriedade
+    const rowHeights: Array<{ hpt: number }> = [];
     rowHeights[0] = { hpt: 30 }; // Altura do título principal
     ws['!rows'] = rowHeights;
 
