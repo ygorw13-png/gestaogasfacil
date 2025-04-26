@@ -5,58 +5,57 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { DateRange } from "react-day-picker";
+import { ReportDialog } from "./reports/ReportDialog";
+import { generateExcelReport } from "./reports/reportUtils";
 
 export function AdminSection() {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleGenerateMonthlyReport = () => {
+  const handleGenerateMonthlyReport = (dateRange: DateRange | undefined) => {
+    if (!dateRange || !dateRange.from) return;
+    
     setIsGeneratingReport(true);
+    setReportDialogOpen(false);
     
     // Simula o tempo necessário para gerar o relatório
     setTimeout(() => {
       setIsGeneratingReport(false);
-      toast({
-        title: "Relatório gerado com sucesso",
-        description: "O relatório mensal foi gerado e está pronto para download.",
-        action: (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleDownloadReport}
-          >
-            <Download className="h-4 w-4 mr-1" />
-            Download
-          </Button>
-        ),
-      });
+      
+      // Gerar o arquivo Excel
+      generateExcelReport(dateRange)
+        .then(blob => {
+          // Criar link para download
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          
+          // Formatação de data para o nome do arquivo
+          const fromDate = dateRange.from?.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-');
+          const toDate = dateRange.to?.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\//g, '-');
+          
+          link.href = url;
+          link.download = `RelatorioGasFlowAqua_${fromDate}_a_${toDate}.xlsx`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          
+          toast({
+            title: "Relatório gerado com sucesso",
+            description: "O relatório foi gerado e o download iniciado automaticamente.",
+          });
+        })
+        .catch(error => {
+          console.error("Erro ao gerar relatório:", error);
+          toast({
+            title: "Erro ao gerar relatório",
+            description: "Ocorreu um erro ao gerar o relatório. Tente novamente.",
+            variant: "destructive",
+          });
+        });
     }, 1500);
-  };
-
-  const handleDownloadReport = () => {
-    // Criando um blob com conteúdo de exemplo para download
-    const reportContent = "Relatório Mensal GasFlow Aqua\n\n" +
-      "Data: " + new Date().toLocaleDateString() + "\n" +
-      "Receita Mensal: R$ 42.580,00\n" +
-      "Média de Vendas Diária: R$ 1.580,00\n" +
-      "Taxa de Conversão: 87%\n\n" +
-      "Relatório gerado automaticamente pelo sistema GasFlow Aqua.";
-    
-    // Criando o arquivo e iniciando o download
-    const blob = new Blob([reportContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "relatorio_mensal.txt";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    toast({ 
-      title: "Download iniciado",
-      description: "O arquivo foi enviado para sua pasta de downloads"
-    });
   };
 
   const handleOpenSettings = () => {
@@ -131,7 +130,7 @@ export function AdminSection() {
                 <Button 
                   variant="outline" 
                   className="w-full"
-                  onClick={handleGenerateMonthlyReport}
+                  onClick={() => setReportDialogOpen(true)}
                   disabled={isGeneratingReport}
                 >
                   {isGeneratingReport ? (
@@ -220,6 +219,13 @@ export function AdminSection() {
           </TabsContent>
         </Tabs>
       </CardContent>
+      
+      <ReportDialog 
+        open={reportDialogOpen}
+        onOpenChange={setReportDialogOpen}
+        onGenerateReport={handleGenerateMonthlyReport}
+        isGeneratingReport={isGeneratingReport}
+      />
     </Card>
   );
 }
