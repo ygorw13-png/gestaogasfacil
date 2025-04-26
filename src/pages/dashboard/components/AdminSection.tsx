@@ -1,10 +1,38 @@
 
-import { Lock, TrendingUp, Users, DollarSign, ChartPie, Settings } from "lucide-react";
+import { Lock, TrendingUp, Users, DollarSign, ChartPie, Settings, FileText, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export function AdminSection() {
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+  const handleGenerateMonthlyReport = () => {
+    setIsGeneratingReport(true);
+    
+    // Simula o tempo necessário para gerar o relatório
+    setTimeout(() => {
+      setIsGeneratingReport(false);
+      toast({
+        title: "Relatório gerado com sucesso",
+        description: "O relatório mensal foi gerado e está pronto para download.",
+        action: (
+          <Button variant="outline" size="sm" onClick={() => toast({ title: "Download iniciado" })}>
+            <Download className="h-4 w-4 mr-1" />
+            Download
+          </Button>
+        ),
+      });
+    }, 1500);
+  };
+
+  const handleOpenSettings = () => {
+    // Redirecionar para a página de configurações
+    window.location.href = "/settings";
+  };
+
   return (
     <Card className="border-gasflow-200 bg-gasflow-50">
       <CardHeader className="pb-2">
@@ -69,11 +97,29 @@ export function AdminSection() {
                 <CardTitle className="text-base">Ações Rápidas</CardTitle>
               </CardHeader>
               <CardContent className="p-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                <Button variant="outline" className="w-full">
-                  <ChartPie className="h-4 w-4 mr-2" />
-                  Relatório Mensal
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleGenerateMonthlyReport}
+                  disabled={isGeneratingReport}
+                >
+                  {isGeneratingReport ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Relatório Mensal
+                    </>
+                  )}
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleOpenSettings}
+                >
                   <Settings className="h-4 w-4 mr-2" />
                   Configurações
                 </Button>
@@ -146,4 +192,3 @@ export function AdminSection() {
     </Card>
   );
 }
-
