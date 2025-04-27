@@ -54,7 +54,7 @@ export function SalesFilters({
             <SelectValue placeholder="Filtrar por produto" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os produtos</SelectItem>
+            <SelectItem value="all">Todos os produtos</SelectItem>
             <SelectItem value="GLP P13">GLP P13</SelectItem>
             <SelectItem value="GLP P20">GLP P20</SelectItem>
             <SelectItem value="GLP P45">GLP P45</SelectItem>
@@ -67,7 +67,7 @@ export function SalesFilters({
             <SelectValue placeholder="Forma de Pagamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             <SelectItem value="Dinheiro">Dinheiro</SelectItem>
             <SelectItem value="Crédito">Crédito</SelectItem>
             <SelectItem value="Débito">Débito</SelectItem>
