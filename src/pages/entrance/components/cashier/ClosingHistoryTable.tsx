@@ -1,9 +1,10 @@
 
+import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ClosingExportButton } from "./ClosingExportButton";
 import { PartialClosing } from "./CashierClosingDialog";
 import { ClosingExportData } from "../../types/cashierTypes";
-import { useState, useMemo } from "react";
+import { useClosingHistory } from "../../hooks/useClosingHistory";
 import { ClosingFilters } from "./table/ClosingFilters";
 import { DailySummaryRow } from "./table/DailySummaryRow";
 import { ClosingEntryRow } from "./table/ClosingEntryRow";
@@ -16,58 +17,11 @@ export function ClosingHistoryTable({ partialClosings }: ClosingHistoryTableProp
   const [searchDate, setSearchDate] = useState("");
   const [filterType, setFilterType] = useState<"all" | "partial" | "total">("all");
   
-  const formattedClosings = useMemo(() => {
-    return [...partialClosings].reverse().map(closing => {
-      const date = new Date(closing.timestamp);
-      return {
-        ...closing,
-        formattedDate: date.toLocaleDateString('pt-BR'),
-        formattedTime: date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-        formattedDateTime: `${date.toLocaleDateString('pt-BR')} às ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
-      };
-    });
-  }, [partialClosings]);
-  
-  const filteredClosings = useMemo(() => {
-    let filtered = formattedClosings;
-    
-    if (searchDate) {
-      filtered = filtered.filter(c => c.formattedDate.includes(searchDate));
-    }
-    
-    if (filterType !== "all") {
-      filtered = filtered.filter(c => filterType === "partial");
-    }
-    
-    return filtered;
-  }, [formattedClosings, searchDate, filterType]);
-  
-  const groupedByDate = useMemo(() => {
-    const groups: Record<string, typeof formattedClosings> = {};
-    
-    formattedClosings.forEach(closing => {
-      if (!groups[closing.formattedDate]) {
-        groups[closing.formattedDate] = [];
-      }
-      groups[closing.formattedDate].push(closing);
-    });
-    
-    return groups;
-  }, [formattedClosings]);
-  
-  const calculateDailyTotals = (closings: typeof formattedClosings) => {
-    return closings.reduce(
-      (acc, closing) => {
-        acc.sales += closing.totalSales;
-        acc.p13 += closing.quantities.p13;
-        acc.p20 += closing.quantities.p20;
-        acc.p45 += closing.quantities.p45;
-        acc.water += closing.quantities.water;
-        return acc;
-      },
-      { sales: 0, p13: 0, p20: 0, p45: 0, water: 0 }
-    );
-  };
+  const {
+    filteredClosings,
+    groupedByDate,
+    calculateDailyTotals
+  } = useClosingHistory(partialClosings, searchDate, filterType);
 
   const exportData = useMemo((): ClosingExportData[] => {
     return filteredClosings.map(closing => ({
