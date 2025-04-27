@@ -1,20 +1,12 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency } from "@/lib/formatUtils";
-import { PartialClosing } from "./CashierClosingDialog";
-import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Download, Filter } from "lucide-react";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { ClosingExportButton } from "./ClosingExportButton";
+import { PartialClosing } from "./CashierClosingDialog";
 import { ClosingExportData } from "../../types/cashierTypes";
+import { useState, useMemo } from "react";
+import { ClosingFilters } from "./table/ClosingFilters";
+import { DailySummaryRow } from "./table/DailySummaryRow";
+import { ClosingEntryRow } from "./table/ClosingEntryRow";
 
 interface ClosingHistoryTableProps {
   partialClosings: PartialClosing[];
@@ -44,17 +36,12 @@ export function ClosingHistoryTable({ partialClosings }: ClosingHistoryTableProp
     }
     
     if (filterType !== "all") {
-      filtered = filtered.filter(c => {
-        // Todos os fechamentos existentes são parciais neste momento
-        // Mas no futuro teremos fechamentos totais também
-        return filterType === "partial";
-      });
+      filtered = filtered.filter(c => filterType === "partial");
     }
     
     return filtered;
   }, [formattedClosings, searchDate, filterType]);
   
-  // Agrupar por data para mostrar saldo acumulado
   const groupedByDate = useMemo(() => {
     const groups: Record<string, typeof formattedClosings> = {};
     
@@ -82,7 +69,6 @@ export function ClosingHistoryTable({ partialClosings }: ClosingHistoryTableProp
     );
   };
 
-  // Preparar dados para exportação
   const exportData = useMemo((): ClosingExportData[] => {
     return filteredClosings.map(closing => ({
       date: closing.formattedDateTime,
@@ -93,7 +79,6 @@ export function ClosingHistoryTable({ partialClosings }: ClosingHistoryTableProp
       p45Quantity: closing.quantities.p45,
       waterQuantity: closing.quantities.water,
       paymentMethods: {
-        // Valores estimados já que não temos o detalhamento real
         cash: closing.totalSales * 0.3,
         credit: closing.totalSales * 0.2,
         debit: closing.totalSales * 0.15,
@@ -103,7 +88,6 @@ export function ClosingHistoryTable({ partialClosings }: ClosingHistoryTableProp
       },
       inventory: {
         initial: {
-          // Valores fictícios, no futuro seriam reais
           p13: closing.quantities.p13 + 10,
           p20: closing.quantities.p20 + 5,
           p45: closing.quantities.p45 + 3,
@@ -128,39 +112,22 @@ export function ClosingHistoryTable({ partialClosings }: ClosingHistoryTableProp
     );
   }
 
+  const hasActiveFilters = searchDate !== "" || filterType !== "all";
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <Input 
-            value={searchDate} 
-            onChange={(e) => setSearchDate(e.target.value)}
-            placeholder="Filtrar por data (dd/mm/aaaa)"
-            className="max-w-xs"
-          />
-          <Select value={filterType} onValueChange={(v) => setFilterType(v as any)}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Tipo de Fechamento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="partial">Parcial</SelectItem>
-              <SelectItem value="total">Total</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => {
-              setSearchDate("");
-              setFilterType("all");
-            }}
-            disabled={!searchDate && filterType === "all"}
-            className="h-10"
-          >
-            Limpar
-          </Button>
-        </div>
+        <ClosingFilters
+          searchDate={searchDate}
+          filterType={filterType}
+          onSearchChange={setSearchDate}
+          onFilterChange={setFilterType}
+          onClearFilters={() => {
+            setSearchDate("");
+            setFilterType("all");
+          }}
+          hasActiveFilters={hasActiveFilters}
+        />
         
         <ClosingExportButton 
           data={exportData}
@@ -188,28 +155,11 @@ export function ClosingHistoryTable({ partialClosings }: ClosingHistoryTableProp
               
               return (
                 <>
-                  {closings.map((closing, i) => (
-                    <TableRow key={closing.id}>
-                      <TableCell>{closing.formattedDateTime}</TableCell>
-                      <TableCell>Parcial</TableCell>
-                      <TableCell className="text-right">{closing.quantities.p13}</TableCell>
-                      <TableCell className="text-right">{closing.quantities.p20}</TableCell>
-                      <TableCell className="text-right">{closing.quantities.p45}</TableCell>
-                      <TableCell className="text-right">{closing.quantities.water}</TableCell>
-                      <TableCell className="text-right font-medium">R$ {formatCurrency(closing.totalSales)}</TableCell>
-                    </TableRow>
+                  {closings.map((closing) => (
+                    <ClosingEntryRow key={closing.id} closing={closing} />
                   ))}
                   
-                  {/* Linha de resumo diário */}
-                  <TableRow className="bg-muted/50">
-                    <TableCell className="font-medium">{date} (Total)</TableCell>
-                    <TableCell>Diário</TableCell>
-                    <TableCell className="text-right font-medium">{dailyTotals.p13}</TableCell>
-                    <TableCell className="text-right font-medium">{dailyTotals.p20}</TableCell>
-                    <TableCell className="text-right font-medium">{dailyTotals.p45}</TableCell>
-                    <TableCell className="text-right font-medium">{dailyTotals.water}</TableCell>
-                    <TableCell className="text-right font-medium">R$ {formatCurrency(dailyTotals.sales)}</TableCell>
-                  </TableRow>
+                  <DailySummaryRow key={`${date}-summary`} date={date} totals={dailyTotals} />
                 </>
               );
             })}
