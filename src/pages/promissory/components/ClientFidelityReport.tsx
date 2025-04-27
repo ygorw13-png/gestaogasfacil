@@ -1,6 +1,6 @@
 
 import { useMemo } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PromissoryNote } from "../types";
 
@@ -38,21 +38,21 @@ export function ClientFidelityReport({ notes }: ClientFidelityReportProps) {
   }, [notes]);
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <Card className="col-span-2">
+    <div className="grid gap-4">
+      <Card>
         <CardHeader>
           <CardTitle>Análise de Fidelidade de Clientes</CardTitle>
           <CardDescription>
-            Top 10 clientes por volume total de notas promissórias
+            Top 10 clientes por volume financeiro e percentual de pagamento
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart
+          <ResponsiveContainer width="100%" height={500}>
+            <ComposedChart
               data={clientStats}
               margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
             >
-              <CartesianGrid strokeDasharray="3 3" className="opacity-50" />
+              <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="name" 
                 angle={-45}
@@ -62,7 +62,7 @@ export function ClientFidelityReport({ notes }: ClientFidelityReportProps) {
                 tick={{ fill: '#666', fontSize: 12 }}
               />
               <YAxis 
-                yAxisId="left" 
+                yAxisId="left"
                 orientation="left"
                 tick={{ fill: '#666' }}
                 label={{ 
@@ -73,11 +73,12 @@ export function ClientFidelityReport({ notes }: ClientFidelityReportProps) {
                 }}
               />
               <YAxis 
-                yAxisId="right" 
+                yAxisId="right"
                 orientation="right"
+                domain={[0, 100]}
                 tick={{ fill: '#666' }}
                 label={{ 
-                  value: 'Quantidade e % Pagas', 
+                  value: '% de Notas Pagas', 
                   angle: 90, 
                   position: 'insideRight',
                   style: { fill: '#666' }
@@ -86,11 +87,10 @@ export function ClientFidelityReport({ notes }: ClientFidelityReportProps) {
               <Tooltip 
                 formatter={(value: number, name: string) => {
                   if (name === "totalValue") return [`R$ ${value.toFixed(2)}`, "Valor Total"];
-                  if (name === "count") return [value, "Quantidade de Notas"];
                   if (name === "paidPercent") return [`${value.toFixed(1)}%`, "% de Notas Pagas"];
+                  if (name === "count") return [value, "Quantidade de Notas"];
                   return [value, name];
                 }}
-                labelStyle={{ fontWeight: 'bold' }}
                 contentStyle={{ 
                   backgroundColor: 'white',
                   border: '1px solid #ccc',
@@ -98,42 +98,37 @@ export function ClientFidelityReport({ notes }: ClientFidelityReportProps) {
                   padding: '8px'
                 }}
               />
-              <Legend 
+              <Legend
                 verticalAlign="top"
                 height={36}
                 formatter={(value: string) => {
                   if (value === "totalValue") return "Valor Total (R$)";
-                  if (value === "count") return "Quantidade de Notas";
                   if (value === "paidPercent") return "% de Notas Pagas";
+                  if (value === "count") return "Quantidade de Notas";
                   return value;
                 }}
               />
               <Bar 
-                yAxisId="left" 
-                dataKey="totalValue" 
+                yAxisId="left"
+                dataKey="totalValue"
                 fill="#22C55E"
                 radius={[4, 4, 0, 0]}
                 name="totalValue"
+                barSize={40}
               />
-              <Bar 
-                yAxisId="right" 
-                dataKey="count" 
-                fill="#3B82F6"
-                radius={[4, 4, 0, 0]}
-                name="count"
-              />
-              <Bar 
-                yAxisId="right" 
-                dataKey="paidPercent" 
-                fill="#F59E0B"
-                radius={[4, 4, 0, 0]}
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="paidPercent"
+                stroke="#F59E0B"
+                strokeWidth={3}
+                dot={{ fill: '#F59E0B', r: 6 }}
                 name="paidPercent"
               />
-            </BarChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
     </div>
   );
 }
-
