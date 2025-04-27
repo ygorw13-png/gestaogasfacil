@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { CashierClosingDialog, PartialClosing } from "./components/cashier/CashierClosingDialog";
 import { CashierData } from "./types/cashierTypes";
@@ -6,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 interface CashierClosingProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: () => void;
+  onSubmit: () => void; // This expects a function with no parameters
   cashierData: CashierData;
 }
 
@@ -60,6 +61,7 @@ export default function CashierClosing({
       description: message
     });
     
+    // Call the parent onSubmit without passing parameters
     parentOnSubmit();
   };
   
@@ -73,3 +75,4 @@ export default function CashierClosing({
     />
   );
 }
+
