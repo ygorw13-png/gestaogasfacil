@@ -1,14 +1,25 @@
 
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
-export const ObservationsSection = () => {
+interface ObservationsSectionProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export function ObservationsSection({ value, onChange }: ObservationsSectionProps) {
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium">Observações</h3>
-      <textarea 
-        className="w-full min-h-[100px] p-3 border rounded-md resize-y"
-        placeholder="Digite observações sobre o fechamento de caixa..."
+    <div className="space-y-2">
+      <Label htmlFor="observations" className="text-base font-medium">
+        Observações
+      </Label>
+      <Textarea
+        id="observations"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Adicione observações relevantes sobre este fechamento..."
+        className="min-h-[100px] resize-none"
       />
     </div>
   );
-};
+}

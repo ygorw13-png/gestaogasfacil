@@ -49,3 +49,11 @@ export interface CashierData {
   };
   inventoryMovements: InventoryMovement[];
 }
+
+export interface PartialClosingData {
+  id: string;
+  timestamp: string;
+  quantities: CashierQuantities;
+  amount: number;
+  observations?: string;
+}
