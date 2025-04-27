@@ -131,3 +131,10 @@ export const mockPromissoryNotes: PromissoryNote[] = [
     createdAt: new Date("2025-04-25")
   }
 ];
+
+export const collectors = [
+  "Carlos Santos",
+  "Maria Oliveira",
+  "Roberto Lima",
+  "Juliana Costa"
+];

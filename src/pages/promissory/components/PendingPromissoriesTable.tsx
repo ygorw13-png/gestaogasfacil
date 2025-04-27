@@ -8,8 +8,8 @@ import { PromissoryNote } from "../types";
 
 interface PendingPromissoriesTableProps {
   promissories: PromissoryNote[];
-  onAssign: (id: number) => void;
-  onPayment: (id: number) => void;
+  onAssign: (id: string) => void;
+  onPayment: (id: string) => void;
 }
 
 export function PendingPromissoriesTable({ 

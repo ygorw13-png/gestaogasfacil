@@ -33,7 +33,7 @@ interface PaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (amount: number, method: string) => void;
-  noteId: number | null;
+  noteId: string | null;
   notes: PromissoryNote[];
 }
 

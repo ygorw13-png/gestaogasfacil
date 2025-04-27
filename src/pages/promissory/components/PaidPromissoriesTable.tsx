@@ -24,14 +24,12 @@ export function PaidPromissoriesTable({ promissories }: PaidPromissoriesTablePro
             <TableCell>{note.clientName}</TableCell>
             <TableCell>R$ {note.value.toFixed(2)}</TableCell>
             <TableCell>
-              {note.paymentHistory.length > 0
-                ? format(note.paymentHistory[0].date, "dd/MM/yyyy")
+              {note.paidAt
+                ? format(note.paidAt, "dd/MM/yyyy")
                 : "N/A"}
             </TableCell>
             <TableCell>
-              {note.paymentHistory.length > 0
-                ? note.paymentHistory[0].method
-                : "N/A"}
+              Valor pago integralmente
             </TableCell>
           </TableRow>
         ))}

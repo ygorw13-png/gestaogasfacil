@@ -1,10 +1,9 @@
-
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
-import { promissoryNotes, collectors } from "./data/mockData";
+import { mockPromissoryNotes, collectors } from "./data/mockData";
 import { PendingPromissoriesTable } from "./components/PendingPromissoriesTable";
 import { AssignPromissoryDialog } from "./components/AssignPromissoryDialog";
 import { AssignedPromissoriesTable } from "./components/AssignedPromissoriesTable";
@@ -18,13 +17,13 @@ import { PromissoryNote } from "./types";
 
 export default function Promissory() {
   const { toast } = useToast();
-  const [notes, setNotes] = useState<PromissoryNote[]>(promissoryNotes);
+  const [notes, setNotes] = useState<PromissoryNote[]>(mockPromissoryNotes);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedClient, setSelectedClient] = useState<string>("all");
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isNewPromissoryDialogOpen, setIsNewPromissoryDialogOpen] = useState(false);
-  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null);
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
 
   // Filtra as notas promissórias com base nos critérios selecionados
   const filteredNotes = useMemo(() => {
@@ -59,7 +58,7 @@ export default function Promissory() {
   }, [notes]);
 
   // Manipuladores de eventos
-  const handleAssign = (noteId: number) => {
+  const handleAssign = (noteId: string) => {
     setSelectedNoteId(noteId);
     setIsAssignDialogOpen(true);
   };
@@ -69,7 +68,7 @@ export default function Promissory() {
       setNotes(prevNotes => 
         prevNotes.map(note => 
           note.id === selectedNoteId 
-            ? { ...note, status: "assigned", collector } 
+            ? { ...note, status: "assigned", assignedTo: collector } 
             : note
         )
       );
@@ -84,7 +83,7 @@ export default function Promissory() {
     }
   };
 
-  const handlePayment = (id: number) => {
+  const handlePayment = (id: string) => {
     setSelectedNoteId(id);
     setIsPaymentDialogOpen(true);
   };
@@ -97,10 +96,7 @@ export default function Promissory() {
             ? { 
                 ...note, 
                 status: "paid",
-                paymentHistory: [
-                  ...note.paymentHistory,
-                  { date: new Date(), amount, method }
-                ] 
+                paidAt: new Date()
               } 
             : note
         )
@@ -122,7 +118,8 @@ export default function Promissory() {
     dueDate: Date;
     collector: string | null;
   }) => {
-    const newId = Math.max(...notes.map(note => note.id)) + 1;
+    const highestId = Math.max(...notes.map(note => parseInt(note.id)));
+    const newId = (highestId + 1).toString();
     
     const newNote: PromissoryNote = {
       id: newId,
@@ -130,8 +127,8 @@ export default function Promissory() {
       value: data.value,
       dueDate: data.dueDate,
       status: data.collector ? "assigned" : "pending",
-      collector: data.collector,
-      paymentHistory: []
+      createdAt: new Date(),
+      assignedTo: data.collector || undefined
     };
     
     setNotes(prevNotes => [...prevNotes, newNote]);

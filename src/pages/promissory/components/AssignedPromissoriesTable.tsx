@@ -7,7 +7,7 @@ import { PromissoryNote } from "../types";
 
 interface AssignedPromissoriesTableProps {
   promissories: PromissoryNote[];
-  onPayment: (id: number) => void;
+  onPayment: (id: string) => void;
 }
 
 export function AssignedPromissoriesTable({ promissories, onPayment }: AssignedPromissoriesTableProps) {
@@ -28,7 +28,7 @@ export function AssignedPromissoriesTable({ promissories, onPayment }: AssignedP
             <TableCell>{note.clientName}</TableCell>
             <TableCell>R$ {note.value.toFixed(2)}</TableCell>
             <TableCell>{format(note.dueDate, "dd/MM/yyyy")}</TableCell>
-            <TableCell>{note.collector}</TableCell>
+            <TableCell>{note.assignedTo}</TableCell>
             <TableCell>
               <Button
                 variant="outline"

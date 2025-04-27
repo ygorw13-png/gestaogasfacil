@@ -1,4 +1,3 @@
-
 import { PromissoryNote } from "../types";
 import * as xlsx from 'xlsx';
 import { format } from "date-fns";
@@ -69,16 +68,14 @@ export const generatePromissoryReport = async (
     ["Status:", statusFilter || "Todas"],
     [""],
     // Cabeçalhos da tabela
-    ["ID", "Cliente", "Valor (R$)", "Data Vencimento", "Status", "Cobrador", "Histórico de Pagamentos"]
+    ["ID", "Cliente", "Valor (R$)", "Data Vencimento", "Status", "Cobrador", "Data de Pagamento"]
   ];
   
   // Adicionar cada nota promissória à planilha
   notes.forEach(note => {
-    const paymentHistory = note.paymentHistory.length > 0 
-      ? note.paymentHistory.map(p => 
-          `${format(p.date, "dd/MM/yyyy")}: R$ ${p.amount.toFixed(2)} (${p.method})`
-        ).join("; ")
-      : "Sem pagamentos";
+    const paymentInfo = note.paidAt 
+      ? format(note.paidAt, "dd/MM/yyyy")
+      : "Sem pagamento";
       
     const status = {
       'pending': 'Pendente',
@@ -88,13 +85,13 @@ export const generatePromissoryReport = async (
     }[note.status] || note.status;
     
     notesData.push([
-      note.id.toString(),
+      note.id,
       note.clientName,
       note.value.toFixed(2),
       format(note.dueDate, "dd/MM/yyyy"),
       status,
-      note.collector || "Não atribuído",
-      paymentHistory
+      note.assignedTo || "Não atribuído",
+      paymentInfo
     ]);
   });
   
@@ -136,7 +133,7 @@ export const generatePromissoryReport = async (
     // Configurar larguras das colunas
     const colWidths = [
       { wch: 10 }, { wch: 25 }, { wch: 15 }, { wch: 18 }, 
-      { wch: 15 }, { wch: 20 }, { wch: 40 }
+      { wch: 15 }, { wch: 20 }, { wch: 20 }
     ];
     ws['!cols'] = colWidths;
     
