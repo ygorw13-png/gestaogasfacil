@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
+import { PromissoryNote } from "../types";
 
 const paymentMethods = [
   "Dinheiro",
@@ -29,28 +30,53 @@ const paymentMethods = [
 ];
 
 interface PaymentDialogProps {
-  isOpen: boolean;
+  open: boolean;
   onOpenChange: (open: boolean) => void;
-  promissoryId: number | null;
+  onSubmit: (amount: number, method: string) => void;
+  noteId: number | null;
+  notes: PromissoryNote[];
 }
 
 export function PaymentDialog({
-  isOpen,
+  open,
   onOpenChange,
-  promissoryId,
+  onSubmit,
+  noteId,
+  notes,
 }: PaymentDialogProps) {
   const [paymentValue, setPaymentValue] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   
+  useEffect(() => {
+    if (open && noteId) {
+      const note = notes.find(n => n.id === noteId);
+      if (note) {
+        setPaymentValue(note.value.toString());
+      }
+    }
+  }, [open, noteId, notes]);
+  
   const handleSubmit = () => {
     if (!paymentValue || !paymentMethod) {
-      toast.error("Preencha todos os campos");
+      toast({
+        title: "Dados incompletos",
+        description: "Preencha todos os campos obrigatórios",
+        variant: "destructive"
+      });
       return;
     }
     
-    // Aqui você implementaria a lógica para registrar o pagamento
-    toast.success("Pagamento registrado com sucesso");
-    onOpenChange(false);
+    const amount = parseFloat(paymentValue);
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: "Valor inválido",
+        description: "O valor do pagamento deve ser maior que zero",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    onSubmit(amount, paymentMethod);
     
     // Reset form
     setPaymentValue("");
@@ -58,7 +84,7 @@ export function PaymentDialog({
   };
   
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Registrar Pagamento</DialogTitle>
@@ -71,12 +97,12 @@ export function PaymentDialog({
             <Label htmlFor="value">Valor</Label>
             <Input
               id="value"
-              type="number"
+              type="text"
+              inputMode="decimal"
               placeholder="0.00"
-              min="0"
-              step="0.01"
               value={paymentValue}
-              onChange={(e) => setPaymentValue(e.target.value)}
+              onChange={(e) => setPaymentValue(e.target.value.replace(/[^\d.,]/g, '').replace(',', '.'))}
+              className="col-span-3"
             />
           </div>
           <div className="space-y-2">

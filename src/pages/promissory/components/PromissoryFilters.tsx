@@ -1,58 +1,60 @@
 
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Search } from "lucide-react";
-import { format } from "date-fns";
-import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 interface PromissoryFiltersProps {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  selectedDate: Date | undefined;
-  setSelectedDate: (date: Date | undefined) => void;
+  selectedStatus: string;
+  selectedClient: string;
+  onStatusChange: (value: string) => void;
+  onClientChange: (value: string) => void;
+  clients: string[];
 }
 
 export function PromissoryFilters({ 
-  searchQuery, 
-  setSearchQuery, 
-  selectedDate, 
-  setSelectedDate 
+  selectedStatus, 
+  selectedClient, 
+  onStatusChange, 
+  onClientChange, 
+  clients 
 }: PromissoryFiltersProps) {
   return (
-    <div className="flex items-center gap-2">
-      <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar cliente..."
-          className="pl-8 w-[250px]"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+    <div className="flex flex-wrap items-center gap-4 mb-4">
+      <div className="space-y-1">
+        <Label htmlFor="status-filter">Filtrar por status</Label>
+        <Select
+          value={selectedStatus}
+          onValueChange={onStatusChange}
+        >
+          <SelectTrigger id="status-filter" className="w-[180px]">
+            <SelectValue placeholder="Selecionar status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="pending">Pendentes</SelectItem>
+            <SelectItem value="assigned">Atribuídas</SelectItem>
+            <SelectItem value="paid">Pagas</SelectItem>
+            <SelectItem value="overdue">Atrasadas</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="gap-2">
-            <CalendarIcon className="h-4 w-4" />
-            {selectedDate ? format(selectedDate, "dd/MM/yyyy") : "Filtrar por data"}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={(date) => {
-              setSelectedDate(date);
-              if (date) {
-                toast.info(`Filtrando por ${format(date, "dd/MM/yyyy")}`);
-              }
-            }}
-            initialFocus
-            className="p-3 pointer-events-auto"
-          />
-        </PopoverContent>
-      </Popover>
+      
+      <div className="space-y-1">
+        <Label htmlFor="client-filter">Filtrar por cliente</Label>
+        <Select
+          value={selectedClient}
+          onValueChange={onClientChange}
+        >
+          <SelectTrigger id="client-filter" className="w-[200px]">
+            <SelectValue placeholder="Selecionar cliente" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os clientes</SelectItem>
+            {clients.map(client => (
+              <SelectItem key={client} value={client}>{client}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }

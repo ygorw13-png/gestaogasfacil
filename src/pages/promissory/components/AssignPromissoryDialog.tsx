@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,24 +19,29 @@ import {
 } from "@/components/ui/select";
 
 interface AssignPromissoryDialogProps {
-  isOpen: boolean;
+  open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedCollector: string;
-  onCollectorChange: (value: string) => void;
-  onSubmit: () => void;
   collectors: string[];
+  onSubmit: (collector: string) => void;
 }
 
 export function AssignPromissoryDialog({
-  isOpen,
+  open,
   onOpenChange,
-  selectedCollector,
-  onCollectorChange,
-  onSubmit,
   collectors,
+  onSubmit,
 }: AssignPromissoryDialogProps) {
+  const [selectedCollector, setSelectedCollector] = useState("");
+
+  const handleSubmit = () => {
+    if (selectedCollector) {
+      onSubmit(selectedCollector);
+      setSelectedCollector("");
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Atribuir Promissória</DialogTitle>
@@ -48,7 +54,7 @@ export function AssignPromissoryDialog({
             <Label htmlFor="collector">Entregador</Label>
             <Select 
               value={selectedCollector} 
-              onValueChange={onCollectorChange}
+              onValueChange={setSelectedCollector}
             >
               <SelectTrigger id="collector">
                 <SelectValue placeholder="Selecione o entregador" />
@@ -71,7 +77,7 @@ export function AssignPromissoryDialog({
             Cancelar
           </Button>
           <Button 
-            onClick={onSubmit}
+            onClick={handleSubmit}
             disabled={!selectedCollector}
           >
             Confirmar

@@ -1,113 +1,76 @@
 
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from "recharts";
+import { useMemo } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PromissoryNote } from "../types";
 
-// Dados mockados para exemplo
-const fidelityData = [
-  { id: 1, clientName: "João Silva", onTimePayments: 8, latePayments: 2, averageDaysLate: 0, totalValue: 2800.00, score: "good" },
-  { id: 2, clientName: "Maria Santos", onTimePayments: 5, latePayments: 3, averageDaysLate: 4, totalValue: 3500.00, score: "medium" },
-  { id: 3, clientName: "Pedro Souza", onTimePayments: 12, latePayments: 0, averageDaysLate: 0, totalValue: 5800.00, score: "excellent" },
-  { id: 4, clientName: "Ana Oliveira", onTimePayments: 3, latePayments: 7, averageDaysLate: 8, totalValue: 4200.00, score: "bad" },
-  { id: 5, clientName: "Roberto Carlos", onTimePayments: 6, latePayments: 4, averageDaysLate: 3, totalValue: 3800.00, score: "medium" },
-];
+interface ClientFidelityReportProps {
+  notes: PromissoryNote[];
+}
 
-const chartData = [
-  { name: "João Silva", onTime: 8, late: 2 },
-  { name: "Maria Santos", onTime: 5, late: 3 },
-  { name: "Pedro Souza", onTime: 12, late: 0 },
-  { name: "Ana Oliveira", onTime: 3, late: 7 },
-  { name: "Roberto Carlos", onTime: 6, late: 4 },
-];
+export function ClientFidelityReport({ notes }: ClientFidelityReportProps) {
+  const clientStats = useMemo(() => {
+    const stats = new Map<string, { count: number, totalValue: number, paid: number }>();
+    
+    notes.forEach(note => {
+      if (!stats.has(note.clientName)) {
+        stats.set(note.clientName, { count: 0, totalValue: 0, paid: 0 });
+      }
+      
+      const clientStat = stats.get(note.clientName)!;
+      clientStat.count += 1;
+      clientStat.totalValue += note.value;
+      
+      if (note.status === "paid") {
+        clientStat.paid += 1;
+      }
+    });
+    
+    return Array.from(stats.entries()).map(([name, data]) => ({
+      name,
+      count: data.count,
+      totalValue: data.totalValue,
+      paidPercent: data.count > 0 ? (data.paid / data.count) * 100 : 0,
+    }))
+    .sort((a, b) => b.totalValue - a.totalValue)
+    .slice(0, 10);
+  }, [notes]);
 
-export function ClientFidelityReport() {
-  const [reportView, setReportView] = useState("table");
-  
-  const getScoreColor = (score: string) => {
-    switch (score) {
-      case "excellent": return "bg-green-500 hover:bg-green-600";
-      case "good": return "bg-blue-500 hover:bg-blue-600";
-      case "medium": return "bg-yellow-500 hover:bg-yellow-600";
-      case "bad": return "bg-red-500 hover:bg-red-600";
-      default: return "bg-gray-500 hover:bg-gray-600";
-    }
-  };
-  
-  const getScoreName = (score: string) => {
-    switch (score) {
-      case "excellent": return "Excelente";
-      case "good": return "Bom";
-      case "medium": return "Regular";
-      case "bad": return "Ruim";
-      default: return "Desconhecido";
-    }
-  };
-  
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <Tabs value={reportView} onValueChange={setReportView}>
-          <TabsList>
-            <TabsTrigger value="table">Tabela</TabsTrigger>
-            <TabsTrigger value="chart">Gráfico</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="table" className="pt-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Pagamentos em Dia</TableHead>
-                  <TableHead>Pagamentos Atrasados</TableHead>
-                  <TableHead>Média de Atraso (dias)</TableHead>
-                  <TableHead>Valor Total</TableHead>
-                  <TableHead>Classificação</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {fidelityData.map((client) => (
-                  <TableRow key={client.id}>
-                    <TableCell>{client.clientName}</TableCell>
-                    <TableCell>{client.onTimePayments}</TableCell>
-                    <TableCell>{client.latePayments}</TableCell>
-                    <TableCell>{client.averageDaysLate}</TableCell>
-                    <TableCell>R$ {client.totalValue.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Badge className={getScoreColor(client.score)}>
-                        {getScoreName(client.score)}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TabsContent>
-          
-          <TabsContent value="chart" className="pt-4">
-            <ChartContainer config={{
-              onTime: { label: "Em Dia", color: "#22c55e" },
-              late: { label: "Atrasados", color: "#ef4444" }
-            }} className="h-80">
-              <BarChart data={chartData} barGap={4}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis allowDecimals={false} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="onTime" fill="var(--color-onTime)" name="Em Dia" />
-                <Bar dataKey="late" fill="var(--color-late)" name="Atrasados" />
-                <Legend />
-              </BarChart>
-            </ChartContainer>
-          </TabsContent>
-        </Tabs>
+    <Card className="col-span-4">
+      <CardHeader>
+        <CardTitle>Fidelidade de Clientes</CardTitle>
+        <CardDescription>
+          Análise dos clientes com maior volume de notas promissórias
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart
+            data={clientStats}
+            margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+              dataKey="name" 
+              angle={-45}
+              textAnchor="end"
+              height={70}
+            />
+            <YAxis yAxisId="left" />
+            <YAxis yAxisId="right" orientation="right" />
+            <Tooltip formatter={(value, name) => {
+              if (name === "totalValue") return [`R$ ${Number(value).toFixed(2)}`, "Valor Total"];
+              if (name === "count") return [value, "Quantidade"];
+              if (name === "paidPercent") return [`${Number(value).toFixed(1)}%`, "% Pagas"];
+              return [value, name];
+            }} />
+            <Legend />
+            <Bar yAxisId="left" dataKey="totalValue" name="Valor Total (R$)" fill="#22C55E" />
+            <Bar yAxisId="left" dataKey="count" name="Quantidade" fill="#3B82F6" />
+            <Bar yAxisId="right" dataKey="paidPercent" name="% Pagas" fill="#F59E0B" />
+          </BarChart>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
   );

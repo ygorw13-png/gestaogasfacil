@@ -193,7 +193,8 @@ export default function Promissory() {
         <TabsContent value="pending" className="space-y-4">
           <PendingPromissoriesTable 
             promissories={pendingNotes} 
-            onAssign={handleAssign} 
+            onAssign={handleAssign}
+            onPayment={handlePayment}
           />
         </TabsContent>
 
