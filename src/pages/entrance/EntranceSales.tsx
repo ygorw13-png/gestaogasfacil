@@ -66,7 +66,7 @@ const salesByType = [
   { type: 'Vale Gás', amount: 520.00, icon: <CreditCard className="h-4 w-4 text-orange-600" /> },
 ];
 
-const recentSales = [
+const initialRecentSales = [
   { id: 1, time: '16:45', client: 'Maria Silva', product: 'GLP P13', quantity: 1, payment: 'PIX', amount: 120.00 },
   { id: 2, time: '16:30', client: 'João Oliveira', product: 'Água 20L', quantity: 2, payment: 'Dinheiro', amount: 24.00 },
   { id: 3, time: '16:15', client: 'André Santos', product: 'GLP P13', quantity: 1, payment: 'Crédito', amount: 120.00 },
@@ -79,14 +79,44 @@ export default function EntranceSales() {
   const [newSaleOpen, setNewSaleOpen] = useState(false);
   const [cashierClosingOpen, setCashierClosingOpen] = useState(false);
   const [cashierData, setCashierData] = useState<CashierData>(activeCashierData);
+  const [recentSales, setRecentSales] = useState(initialRecentSales);
+  const [glpSales, setGlpSales] = useState({
+    p13: 38,
+    p20: 2,
+    p45: 2,
+  });
+  const [waterSales, setWaterSales] = useState(28);
 
-  const handleNewSaleSubmit = () => {
-    setNewSaleOpen(false);
+  const handleNewSaleSubmit = (newSale: any) => {
+    // Adiciona a nova venda à lista de vendas recentes
+    const updatedSales = [newSale, ...recentSales.slice(0, 4)]; // Mantém apenas os 5 mais recentes
+    setRecentSales(updatedSales);
+    
+    // Atualiza os dados do caixa
+    const newTotal = cashierData.totalSales + newSale.amount;
+    setCashierData({
+      ...cashierData,
+      totalSales: newTotal,
+    });
+    
+    // Atualiza as estatísticas de produtos vendidos
+    if (newSale.product.includes('P13')) {
+      setGlpSales(prev => ({ ...prev, p13: prev.p13 + newSale.quantity }));
+    } else if (newSale.product.includes('P20')) {
+      setGlpSales(prev => ({ ...prev, p20: prev.p20 + newSale.quantity }));
+    } else if (newSale.product.includes('P45')) {
+      setGlpSales(prev => ({ ...prev, p45: prev.p45 + newSale.quantity }));
+    } else if (newSale.product.includes('Água')) {
+      setWaterSales(prev => prev + newSale.quantity);
+    }
+    
     toast({
       title: "Venda registrada",
       description: "A venda foi registrada com sucesso.",
       variant: "default",
     });
+    
+    setNewSaleOpen(false);
   };
 
   const handleCashierClosingSubmit = () => {
@@ -99,12 +129,13 @@ export default function EntranceSales() {
     
     // Reseta os dados do caixa após o fechamento total
     setCashierData(initialCashierData);
-  };
-
-  const glpSales = {
-    p13: 38,
-    p20: 2,
-    p45: 2,
+    setRecentSales([]);
+    setGlpSales({
+      p13: 0,
+      p20: 0,
+      p45: 0,
+    });
+    setWaterSales(0);
   };
 
   return (
@@ -137,7 +168,7 @@ export default function EntranceSales() {
       <StatisticsCards 
         totalSales={cashierData.totalSales}
         glpSales={glpSales}
-        waterSales={28}
+        waterSales={waterSales}
       />
 
       <div className="overflow-hidden">

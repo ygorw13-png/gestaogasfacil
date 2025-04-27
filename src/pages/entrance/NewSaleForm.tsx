@@ -47,7 +47,7 @@ const clients = [
 interface NewSaleFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: () => void;
+  onSubmit: (sale: any) => void;
 }
 
 export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleFormProps) {
@@ -106,6 +106,8 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
 
     // Clear the form
     setSelectedClient(null);
+    setSelectedReseller(null);
+    setSaleType("regular");
     setPaymentMethod("");
     setProduct("");
     setQuantity(1);
@@ -114,8 +116,8 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
     setCylinderMovement('none');
     setMovementQuantity(1);
 
-    onSubmit();
-    onOpenChange(false);
+    // Pass the sale data to the parent component
+    onSubmit(newSale);
   };
 
   const FormContent = () => (
@@ -203,7 +205,7 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button type="submit" onClick={(e) => {e.preventDefault(); onSubmit();}}>
+              <Button type="submit" onClick={handleSubmit}>
                 Registrar Venda
               </Button>
             </div>
@@ -246,7 +248,7 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
           >
             Cancelar
           </Button>
-          <Button type="submit" onClick={(e) => {e.preventDefault(); onSubmit();}}>
+          <Button type="submit" onClick={handleSubmit}>
             Registrar Venda
           </Button>
         </DialogFooter>
