@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useMemo } from "react"; // Add this import
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ClosingExportButton } from "./ClosingExportButton";
 import { PartialClosing } from "./CashierClosingDialog";

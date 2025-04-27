@@ -1,8 +1,8 @@
-
 import { PaymentSummary } from "../../PaymentSummary";
 import { InventoryTable } from "../../InventoryTable";
 import { CashierData } from "../../../types/cashierTypes";
 import { formatCurrency, formatQuantities } from "@/lib/formatUtils";
+import { getTotalSalesFromPartials, getTotalQuantityFromPartials } from "../../../utils/cashierUtils";
 
 interface CashierClosingSummaryProps {
   cashierData: CashierData;
@@ -67,18 +67,6 @@ export function CashierClosingSummary({
     </div>
   );
 }
-
-// Funções auxiliares movidas do arquivo original
-const getTotalSalesFromPartials = (partialClosings: any[]): number => {
-  return partialClosings.reduce((total, closing) => total + closing.totalSales, 0);
-};
-
-const getTotalQuantityFromPartials = (
-  partialClosings: any[], 
-  productType: 'p13' | 'p20' | 'p45' | 'water'
-): number => {
-  return partialClosings.reduce((total, closing) => total + closing.quantities[productType], 0);
-};
 
 const getInventoryForPartialClosing = (inventory: any, partialClosings: any[]) => {
   return inventory;
