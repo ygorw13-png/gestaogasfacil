@@ -26,52 +26,114 @@ export function ClientFidelityReport({ notes }: ClientFidelityReportProps) {
       }
     });
     
-    return Array.from(stats.entries()).map(([name, data]) => ({
-      name,
-      count: data.count,
-      totalValue: data.totalValue,
-      paidPercent: data.count > 0 ? (data.paid / data.count) * 100 : 0,
-    }))
-    .sort((a, b) => b.totalValue - a.totalValue)
-    .slice(0, 10);
+    return Array.from(stats.entries())
+      .map(([name, data]) => ({
+        name,
+        count: data.count,
+        totalValue: data.totalValue,
+        paidPercent: data.count > 0 ? (data.paid / data.count) * 100 : 0,
+      }))
+      .sort((a, b) => b.totalValue - a.totalValue)
+      .slice(0, 10);
   }, [notes]);
 
   return (
-    <Card className="col-span-4">
-      <CardHeader>
-        <CardTitle>Fidelidade de Clientes</CardTitle>
-        <CardDescription>
-          Análise dos clientes com maior volume de notas promissórias
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart
-            data={clientStats}
-            margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="name" 
-              angle={-45}
-              textAnchor="end"
-              height={70}
-            />
-            <YAxis yAxisId="left" />
-            <YAxis yAxisId="right" orientation="right" />
-            <Tooltip formatter={(value, name) => {
-              if (name === "totalValue") return [`R$ ${Number(value).toFixed(2)}`, "Valor Total"];
-              if (name === "count") return [value, "Quantidade"];
-              if (name === "paidPercent") return [`${Number(value).toFixed(1)}%`, "% Pagas"];
-              return [value, name];
-            }} />
-            <Legend />
-            <Bar yAxisId="left" dataKey="totalValue" name="Valor Total (R$)" fill="#22C55E" />
-            <Bar yAxisId="left" dataKey="count" name="Quantidade" fill="#3B82F6" />
-            <Bar yAxisId="right" dataKey="paidPercent" name="% Pagas" fill="#F59E0B" />
-          </BarChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
+    <div className="grid gap-4 md:grid-cols-2">
+      <Card className="col-span-2">
+        <CardHeader>
+          <CardTitle>Análise de Fidelidade de Clientes</CardTitle>
+          <CardDescription>
+            Top 10 clientes por volume total de notas promissórias
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart
+              data={clientStats}
+              margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" className="opacity-50" />
+              <XAxis 
+                dataKey="name" 
+                angle={-45}
+                textAnchor="end"
+                height={70}
+                interval={0}
+                tick={{ fill: '#666', fontSize: 12 }}
+              />
+              <YAxis 
+                yAxisId="left" 
+                orientation="left"
+                tick={{ fill: '#666' }}
+                label={{ 
+                  value: 'Valor Total (R$)', 
+                  angle: -90, 
+                  position: 'insideLeft',
+                  style: { fill: '#666' }
+                }}
+              />
+              <YAxis 
+                yAxisId="right" 
+                orientation="right"
+                tick={{ fill: '#666' }}
+                label={{ 
+                  value: 'Quantidade e % Pagas', 
+                  angle: 90, 
+                  position: 'insideRight',
+                  style: { fill: '#666' }
+                }}
+              />
+              <Tooltip 
+                formatter={(value: number, name: string) => {
+                  if (name === "totalValue") return [`R$ ${value.toFixed(2)}`, "Valor Total"];
+                  if (name === "count") return [value, "Quantidade de Notas"];
+                  if (name === "paidPercent") return [`${value.toFixed(1)}%`, "% de Notas Pagas"];
+                  return [value, name];
+                }}
+                labelStyle={{ fontWeight: 'bold' }}
+                contentStyle={{ 
+                  backgroundColor: 'white',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  padding: '8px'
+                }}
+              />
+              <Legend 
+                verticalAlign="top"
+                height={36}
+                formatter={(value: string) => {
+                  if (value === "totalValue") return "Valor Total (R$)";
+                  if (value === "count") return "Quantidade de Notas";
+                  if (value === "paidPercent") return "% de Notas Pagas";
+                  return value;
+                }}
+              />
+              <Bar 
+                yAxisId="left" 
+                dataKey="totalValue" 
+                fill="#22C55E"
+                radius={[4, 4, 0, 0]}
+                name="totalValue"
+              />
+              <Bar 
+                yAxisId="right" 
+                dataKey="count" 
+                fill="#3B82F6"
+                radius={[4, 4, 0, 0]}
+                name="count"
+              />
+              <Bar 
+                yAxisId="right" 
+                dataKey="paidPercent" 
+                fill="#F59E0B"
+                radius={[4, 4, 0, 0]}
+                name="paidPercent"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
+
