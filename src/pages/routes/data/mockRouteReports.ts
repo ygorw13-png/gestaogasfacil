@@ -6,7 +6,8 @@ export interface Driver {
   name: string;
 }
 
-export type { RouteReport, Driver };
+// Only export RouteReport as a type, since Driver is already exported directly
+export type { RouteReport };
 
 export const mockDrivers: Driver[] = [];
 export const mockReports: RouteReport[] = [];
