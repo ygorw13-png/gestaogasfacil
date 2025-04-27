@@ -23,6 +23,7 @@ export default function NewFuelExpenseForm({ onSuccess }: NewFuelExpenseFormProp
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      vehicleId: "", // Initialize with a non-empty string
       liters: 0,
       pricePerLiter: 0,
       notes: "",
