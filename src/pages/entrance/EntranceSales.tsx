@@ -5,7 +5,7 @@ import { StatisticsCards } from "./components/statistics/StatisticsCards";
 import { TabContent } from "./components/tabs/TabContent";
 import { EntranceHeader } from "./components/header/EntranceHeader";
 import type { CashierData } from "./types/cashierTypes";
-import type { Sale } from "./types/entranceTypes";
+import type { Sale, SalesByType } from "./types/entranceTypes";
 
 // Initial data
 const initialCashierData: CashierData = {
@@ -50,7 +50,16 @@ const activeCashierData: CashierData = {
   ]
 };
 
-const salesByType = [
+const initialSalesByType: SalesByType[] = [
+  { type: 'Dinheiro', amount: 0, icon: <DollarSign className="h-4 w-4 text-green-600" /> },
+  { type: 'Crédito', amount: 0, icon: <CreditCard className="h-4 w-4 text-blue-600" /> },
+  { type: 'Débito', amount: 0, icon: <CreditCard className="h-4 w-4 text-purple-600" /> },
+  { type: 'PIX', amount: 0, icon: <CreditCard className="h-4 w-4 text-yellow-600" /> },
+  { type: 'Promissória', amount: 0, icon: <FileText className="h-4 w-4 text-red-600" /> },
+  { type: 'Vale Gás', amount: 0, icon: <CreditCard className="h-4 w-4 text-orange-600" /> },
+];
+
+const activeSalesByType: SalesByType[] = [
   { type: 'Dinheiro', amount: 2345.50, icon: <DollarSign className="h-4 w-4 text-green-600" /> },
   { type: 'Crédito', amount: 1250.00, icon: <CreditCard className="h-4 w-4 text-blue-600" /> },
   { type: 'Débito', amount: 985.75, icon: <CreditCard className="h-4 w-4 text-purple-600" /> },
@@ -79,6 +88,7 @@ export default function EntranceSales() {
     p45: 2,
   });
   const [waterSales, setWaterSales] = useState(28);
+  const [salesByType, setSalesByType] = useState<SalesByType[]>(activeSalesByType);
 
   const handleNewSaleSubmit = (newSale: Sale) => {
     const updatedSales = [newSale, ...recentSales.slice(0, 4)];
@@ -99,6 +109,15 @@ export default function EntranceSales() {
     } else if (newSale.product.includes('Água')) {
       setWaterSales(prev => prev + newSale.quantity);
     }
+    
+    setSalesByType(prev => 
+      prev.map(item => {
+        if (item.type === newSale.payment) {
+          return { ...item, amount: item.amount + newSale.amount };
+        }
+        return item;
+      })
+    );
     
     toast({
       title: "Venda registrada",
@@ -125,6 +144,7 @@ export default function EntranceSales() {
       p45: 0,
     });
     setWaterSales(0);
+    setSalesByType(initialSalesByType);
   };
 
   return (
