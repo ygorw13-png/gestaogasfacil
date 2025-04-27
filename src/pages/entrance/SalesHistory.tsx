@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,18 +9,12 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { SalesFilters } from "./components/sales/SalesFilters";
+import { DateRange } from "react-day-picker";
+import { isSameDay, isWithinInterval, parseISO } from "date-fns";
 
-// Sample data - in a real app this would come from an API or context
 const allSales = [
   { id: 1, time: '16:45', client: 'Maria Silva', product: 'GLP P13', quantity: 1, payment: 'PIX', amount: 120.00 },
   { id: 2, time: '16:30', client: 'João Oliveira', product: 'Água 20L', quantity: 2, payment: 'Dinheiro', amount: 24.00 },
@@ -43,17 +36,39 @@ const allSales = [
 export default function SalesHistory() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterPayment, setFilterPayment] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange>();
+  const [productFilter, setProductFilter] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState("");
   
-  // Filter sales based on search term and payment filter
+  const clearFilters = () => {
+    setSearchTerm("");
+    setDateRange(undefined);
+    setProductFilter("");
+    setPaymentFilter("");
+  };
+  
   const filteredSales = allSales.filter(sale => {
-    const matchesSearch = searchTerm === "" || 
-      sale.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sale.product.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = !searchTerm || 
+      sale.client.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesPayment = filterPayment === "" || sale.payment === filterPayment;
+    const matchesProduct = !productFilter || sale.product === productFilter;
+    const matchesPayment = !paymentFilter || sale.payment === paymentFilter;
     
-    return matchesSearch && matchesPayment;
+    let matchesDate = true;
+    if (dateRange?.from) {
+      const saleDate = parseISO(`2025-04-27T${sale.time}:00`);
+      
+      if (dateRange.to) {
+        matchesDate = isWithinInterval(saleDate, {
+          start: dateRange.from,
+          end: dateRange.to
+        });
+      } else {
+        matchesDate = isSameDay(saleDate, dateRange.from);
+      }
+    }
+    
+    return matchesSearch && matchesProduct && matchesPayment && matchesDate;
   });
   
   return (
@@ -75,32 +90,17 @@ export default function SalesHistory() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle>Todas as Vendas</CardTitle>
-          <div className="flex flex-col sm:flex-row gap-4 mt-2">
-            <div className="flex-1">
-              <Input
-                placeholder="Buscar por cliente ou produto"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div className="w-full sm:w-48">
-              <Select value={filterPayment} onValueChange={setFilterPayment}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Forma de Pagamento" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                  <SelectItem value="Crédito">Crédito</SelectItem>
-                  <SelectItem value="Débito">Débito</SelectItem>
-                  <SelectItem value="PIX">PIX</SelectItem>
-                  <SelectItem value="Vale Gás">Vale Gás</SelectItem>
-                  <SelectItem value="Promissória">Promissória</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <SalesFilters 
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+            productFilter={productFilter}
+            onProductFilterChange={setProductFilter}
+            paymentFilter={paymentFilter}
+            onPaymentFilterChange={setPaymentFilter}
+            onClearFilters={clearFilters}
+          />
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -123,7 +123,9 @@ export default function SalesHistory() {
                     <TableCell>{sale.product}</TableCell>
                     <TableCell className="text-center">{sale.quantity}</TableCell>
                     <TableCell>{sale.payment}</TableCell>
-                    <TableCell className="text-right">R$ {sale.amount.toFixed(2).replace('.', ',')}</TableCell>
+                    <TableCell className="text-right">
+                      R$ {sale.amount.toFixed(2).replace('.', ',')}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
