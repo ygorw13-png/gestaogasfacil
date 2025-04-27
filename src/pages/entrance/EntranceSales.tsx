@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CreditCard, DollarSign, FileText } from "lucide-react";
 import { StatisticsCards } from "./components/statistics/StatisticsCards";
@@ -89,8 +90,35 @@ export default function EntranceSales() {
   });
   const [waterSales, setWaterSales] = useState(28);
   const [salesByType, setSalesByType] = useState<SalesByType[]>(activeSalesByType);
+  const [previousDaySales, setPreviousDaySales] = useState(6800); // Example previous day sales
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [hoursElapsed, setHoursElapsed] = useState(9); // Default work day hours
+
+  // Calculate hours elapsed since first sale or since the start of the day
+  useEffect(() => {
+    if (!startTime && recentSales.length > 0) {
+      // If there's no start time but we have sales, use the current time
+      setStartTime(new Date());
+    }
+
+    // Update hours elapsed every minute
+    const interval = setInterval(() => {
+      if (startTime) {
+        const now = new Date();
+        const elapsed = (now.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+        setHoursElapsed(Math.max(elapsed, 1)); // At least 1 hour to avoid division by zero
+      }
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, [startTime, recentSales]);
 
   const handleNewSaleSubmit = (newSale: Sale) => {
+    // Set start time if this is the first sale after reset
+    if (!startTime) {
+      setStartTime(new Date());
+    }
+    
     const updatedSales = [newSale, ...recentSales.slice(0, 4)];
     setRecentSales(updatedSales);
     
@@ -136,6 +164,10 @@ export default function EntranceSales() {
       variant: "default",
     });
     
+    // Store the current total for the next day's comparison
+    setPreviousDaySales(cashierData.totalSales);
+    
+    // Reset all data
     setCashierData(initialCashierData);
     setRecentSales([]);
     setGlpSales({
@@ -145,6 +177,10 @@ export default function EntranceSales() {
     });
     setWaterSales(0);
     setSalesByType(initialSalesByType);
+    
+    // Reset the timer for the new day
+    setStartTime(null);
+    setHoursElapsed(9); // Reset to default work day
   };
 
   return (
@@ -161,8 +197,10 @@ export default function EntranceSales() {
 
       <StatisticsCards 
         totalSales={cashierData.totalSales}
+        previousDaySales={previousDaySales}
         glpSales={glpSales}
         waterSales={waterSales}
+        hoursElapsed={hoursElapsed}
       />
 
       <div className="overflow-hidden">
