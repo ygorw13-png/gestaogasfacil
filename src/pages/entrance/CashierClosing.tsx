@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { CashierClosingDialog, PartialClosing } from "./components/cashier/CashierClosingDialog";
 import { CashierData } from "./types/cashierTypes";
@@ -42,7 +41,7 @@ const mockPartialClosings: PartialClosing[] = [
 export default function CashierClosing({ 
   isOpen, 
   onOpenChange, 
-  onSubmit, 
+  onSubmit: parentOnSubmit, 
   cashierData 
 }: CashierClosingProps) {
   const { toast } = useToast();
@@ -61,7 +60,7 @@ export default function CashierClosing({
       description: message
     });
     
-    onSubmit();
+    parentOnSubmit();
   };
   
   return (
