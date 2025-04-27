@@ -86,7 +86,36 @@ export default function NewSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleF
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const newSale = {
+      id: Date.now(),
+      time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      client: selectedClient ? selectedClient.name : "Venda Avulsa",
+      product: product === 'p13' ? 'GLP P13' : 
+               product === 'p20' ? 'GLP P20' :
+               product === 'p45' ? 'GLP P45' : 'Água 20L',
+      quantity,
+      payment: paymentMethod === 'cash' ? 'Dinheiro' :
+               paymentMethod === 'credit' ? 'Crédito' :
+               paymentMethod === 'debit' ? 'Débito' :
+               paymentMethod === 'pix' ? 'PIX' :
+               paymentMethod === 'promissory' ? 'Promissória' :
+               paymentMethod === 'gasVoucher' ? 'Vale Gás' : 'Convênio',
+      amount: quantity * unitPrice
+    };
+
+    // Clear the form
+    setSelectedClient(null);
+    setPaymentMethod("");
+    setProduct("");
+    setQuantity(1);
+    setUnitPrice(120);
+    setLoanGas(false);
+    setCylinderMovement('none');
+    setMovementQuantity(1);
+
     onSubmit();
+    onOpenChange(false);
   };
 
   const FormContent = () => (

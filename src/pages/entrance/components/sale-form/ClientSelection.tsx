@@ -26,7 +26,7 @@ interface Client {
 
 interface ClientSelectionProps {
   selectedClient: Client | null;
-  onSelectClient: (client: Client) => void;
+  onSelectClient: (client: Client | null) => void;
   clients: Client[];
 }
 
@@ -35,6 +35,11 @@ export function ClientSelection({ selectedClient, onSelectClient, clients }: Cli
 
   const handleSelectClient = (client: Client) => {
     onSelectClient(client);
+    setClientSearchOpen(false);
+  };
+
+  const handleAnonymousSale = () => {
+    onSelectClient(null);
     setClientSearchOpen(false);
   };
 
@@ -49,7 +54,7 @@ export function ClientSelection({ selectedClient, onSelectClient, clients }: Cli
               role="combobox"
               className="w-full justify-between"
             >
-              {selectedClient ? selectedClient.name : "Selecionar cliente"}
+              {selectedClient ? selectedClient.name : "Venda Avulsa"}
               <Search className="h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -58,6 +63,14 @@ export function ClientSelection({ selectedClient, onSelectClient, clients }: Cli
               <CommandInput placeholder="Buscar cliente..." />
               <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
               <CommandList>
+                <CommandGroup>
+                  <CommandItem
+                    onSelect={handleAnonymousSale}
+                    className="cursor-pointer font-medium"
+                  >
+                    Venda Avulsa
+                  </CommandItem>
+                </CommandGroup>
                 <CommandGroup heading="Clientes">
                   {clients.map((client) => (
                     <CommandItem

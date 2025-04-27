@@ -28,6 +28,11 @@ export function ProductSelection({
   onUnitPriceChange,
   readOnlyPrice = false,
 }: ProductSelectionProps) {
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9.]/g, '');
+    onUnitPriceChange(Number(value));
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -62,11 +67,11 @@ export function ProductSelection({
         <div className="space-y-2">
           <Label htmlFor="unitPrice">Valor Unitário (R$)</Label>
           <Input
-            type="number"
+            type="text"
+            inputMode="decimal"
             id="unitPrice"
-            step="0.01"
             value={unitPrice}
-            onChange={(e) => onUnitPriceChange(Number(e.target.value))}
+            onChange={handlePriceChange}
             readOnly={readOnlyPrice}
             className={readOnlyPrice ? "bg-muted" : ""}
           />
@@ -78,9 +83,8 @@ export function ProductSelection({
         <div className="space-y-2">
           <Label htmlFor="totalPrice">Valor Total (R$)</Label>
           <Input
-            type="number"
+            type="text"
             id="totalPrice"
-            step="0.01"
             value={(quantity * unitPrice).toFixed(2)}
             readOnly
             className="bg-muted"
