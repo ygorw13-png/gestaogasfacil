@@ -1,16 +1,13 @@
 
-export interface PaymentHistoryItem {
-  date: Date;
-  amount: number;
-  method: string;
-}
+export type PromissoryStatus = "pending" | "assigned" | "paid" | "overdue";
 
 export interface PromissoryNote {
-  id: number;
+  id: string;
   clientName: string;
   value: number;
   dueDate: Date;
-  status: 'pending' | 'assigned' | 'paid' | 'overdue';
-  collector: string | null;
-  paymentHistory: PaymentHistoryItem[];
+  status: PromissoryStatus;
+  createdAt: Date;
+  paidAt?: Date;
+  assignedTo?: string;
 }
