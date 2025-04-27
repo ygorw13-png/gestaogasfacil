@@ -1,19 +1,13 @@
-
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, User, ShoppingCart, DollarSign, CreditCard, FileText, Truck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
-import NewSaleForm from "./NewSaleForm";
-import CashierClosing from "./CashierClosing";
+import { CreditCard, DollarSign, FileText } from "lucide-react";
 import { StatisticsCards } from "./components/statistics/StatisticsCards";
-import { RecentSalesTable } from "./components/sales/RecentSalesTable";
-import { PaymentsByType } from "./components/payments/PaymentsByType";
-import { CashierData } from "./types/cashierTypes";
+import { TabContent } from "./components/tabs/TabContent";
+import { EntranceHeader } from "./components/header/EntranceHeader";
+import type { CashierData } from "./types/cashierTypes";
+import type { Sale } from "./types/entranceTypes";
 
-// Dados iniciais do caixa
+// Initial data
 const initialCashierData: CashierData = {
   cash: 0,
   credit: 0,
@@ -33,7 +27,6 @@ const initialCashierData: CashierData = {
   inventoryMovements: []
 };
 
-// Dados de exemplo quando o caixa está em operação
 const activeCashierData: CashierData = {
   cash: 2345.50,
   credit: 1250.00,
@@ -87,19 +80,16 @@ export default function EntranceSales() {
   });
   const [waterSales, setWaterSales] = useState(28);
 
-  const handleNewSaleSubmit = (newSale: any) => {
-    // Adiciona a nova venda à lista de vendas recentes
-    const updatedSales = [newSale, ...recentSales.slice(0, 4)]; // Mantém apenas os 5 mais recentes
+  const handleNewSaleSubmit = (newSale: Sale) => {
+    const updatedSales = [newSale, ...recentSales.slice(0, 4)];
     setRecentSales(updatedSales);
     
-    // Atualiza os dados do caixa
     const newTotal = cashierData.totalSales + newSale.amount;
     setCashierData({
       ...cashierData,
       totalSales: newTotal,
     });
     
-    // Atualiza as estatísticas de produtos vendidos
     if (newSale.product.includes('P13')) {
       setGlpSales(prev => ({ ...prev, p13: prev.p13 + newSale.quantity }));
     } else if (newSale.product.includes('P20')) {
@@ -127,7 +117,6 @@ export default function EntranceSales() {
       variant: "default",
     });
     
-    // Reseta os dados do caixa após o fechamento total
     setCashierData(initialCashierData);
     setRecentSales([]);
     setGlpSales({
@@ -140,30 +129,15 @@ export default function EntranceSales() {
 
   return (
     <div className="space-y-6 animate-in pb-20">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Portaria</h1>
-        <div className="flex flex-wrap gap-2">
-          <NewSaleForm 
-            isOpen={newSaleOpen} 
-            onOpenChange={setNewSaleOpen} 
-            onSubmit={handleNewSaleSubmit} 
-          />
-          
-          <CashierClosing
-            isOpen={cashierClosingOpen}
-            onOpenChange={setCashierClosingOpen}
-            onSubmit={handleCashierClosingSubmit}
-            cashierData={cashierData}
-          />
-
-          <Button variant="outline" asChild>
-            <Link to="/orders" className="flex items-center gap-2">
-              <Truck size={16} />
-              <span>Ver Pedidos</span>
-            </Link>
-          </Button>
-        </div>
-      </div>
+      <EntranceHeader
+        newSaleOpen={newSaleOpen}
+        cashierClosingOpen={cashierClosingOpen}
+        setNewSaleOpen={setNewSaleOpen}
+        setCashierClosingOpen={setCashierClosingOpen}
+        onNewSaleSubmit={handleNewSaleSubmit}
+        onCashierClosingSubmit={handleCashierClosingSubmit}
+        cashierData={cashierData}
+      />
 
       <StatisticsCards 
         totalSales={cashierData.totalSales}
@@ -172,78 +146,10 @@ export default function EntranceSales() {
       />
 
       <div className="overflow-hidden">
-        <Tabs defaultValue="sales" className="space-y-4">
-          <TabsList className="mb-2">
-            <TabsTrigger value="sales" className="flex items-center gap-2">
-              <ShoppingCart size={14} />
-              <span>Vendas</span>
-            </TabsTrigger>
-            <TabsTrigger value="payments" className="flex items-center gap-2">
-              <DollarSign size={14} />
-              <span>Pagamentos</span>
-            </TabsTrigger>
-            <TabsTrigger value="attendants" className="flex items-center gap-2">
-              <User size={14} />
-              <span>Atendentes</span>
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="sales" className="mt-0">
-            <Card>
-              <CardHeader>
-                <CardTitle>Vendas Recentes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <RecentSalesTable sales={recentSales} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="payments" className="mt-0">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Vendas por Tipo de Pagamento</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <PaymentsByType payments={salesByType} />
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Gráfico de Pagamentos</CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center justify-center">
-                  <div className="text-center py-10 text-muted-foreground">
-                    <p>Gráfico em desenvolvimento.</p>
-                    <p className="text-sm">Será implementado na próxima versão.</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="attendants" className="mt-0">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Atendentes da Portaria</CardTitle>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Plus size={14} />
-                    <span>Adicionar Atendente</span>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-10 text-muted-foreground">
-                  <p>Módulo de atendentes em desenvolvimento.</p>
-                  <p className="text-sm">Será implementado na próxima versão.</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        <TabContent 
+          recentSales={recentSales}
+          salesByType={salesByType}
+        />
       </div>
     </div>
   );
