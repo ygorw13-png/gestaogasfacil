@@ -57,3 +57,36 @@ export interface PartialClosingData {
   amount: number;
   observations?: string;
 }
+
+export interface ClosingExportData {
+  date: string;
+  type: 'Parcial' | 'Total';
+  totalSales: number;
+  p13Quantity: number;
+  p20Quantity: number;
+  p45Quantity: number;
+  waterQuantity: number;
+  paymentMethods: {
+    cash: number;
+    credit: number;
+    debit: number;
+    pix: number;
+    promissory: number;
+    gasVoucher: number;
+  };
+  inventory: {
+    initial: {
+      p13: number;
+      p20: number;
+      p45: number;
+      water: number;
+    };
+    final: {
+      p13: number;
+      p20: number;
+      p45: number;
+      water: number;
+    };
+  };
+  observations?: string;
+}

@@ -1,6 +1,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock, CalendarClock } from "lucide-react";
+import { Clock, CalendarClock, Calendar, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ClosingTypeTabsProps {
   type: "partial" | "total";
@@ -11,7 +12,21 @@ interface ClosingTypeTabsProps {
 export function ClosingTypeTabs({ type, setType, partialCount }: ClosingTypeTabsProps) {
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-medium">Tipo de Fechamento</h3>
+      <div className="flex items-center gap-2">
+        <h3 className="text-sm font-medium">Tipo de Fechamento</h3>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info size={16} className="text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-sm">
+              <p>Fechamento Parcial: Mantém o caixa aberto para continuar as vendas do dia.</p>
+              <p>Fechamento Total: Encerra o caixa do dia por completo.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      
       <Tabs value={type} onValueChange={(value) => setType(value as "partial" | "total")} className="w-full">
         <TabsList className="grid grid-cols-2">
           <TabsTrigger value="partial" className="flex items-center gap-2">
@@ -31,9 +46,9 @@ export function ClosingTypeTabs({ type, setType, partialCount }: ClosingTypeTabs
       </Tabs>
       <div className="text-sm text-muted-foreground mt-1">
         {type === "partial" ? (
-          <p>O fechamento parcial permite contabilizar as vendas realizadas até o momento, mantendo o caixa aberto.</p>
+          <p>O fechamento parcial permite contabilizar as vendas realizadas até o momento, mantendo o caixa aberto para novas vendas.</p>
         ) : (
-          <p>O fechamento total encerra as atividades do dia e transfere o saldo restante para o próximo dia.</p>
+          <p>O fechamento total encerra as atividades do dia, zera o caixa e transfere o saldo restante para o próximo dia.</p>
         )}
       </div>
     </div>

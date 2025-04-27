@@ -48,13 +48,17 @@ export default function CashierClosing({
   const { toast } = useToast();
   const [partialClosings] = useState<PartialClosing[]>(mockPartialClosings);
   
-  const handleSubmit = () => {
+  const handleSubmit = (type: "partial" | "total", observations?: string) => {
     // Em uma implementação real, você salvaria os dados do fechamento
     // e adicionaria à lista de fechamentos parciais se for o caso
     
+    const message = type === "partial" 
+      ? "Fechamento parcial realizado com sucesso. Os dados foram salvos e o caixa continua aberto para novas vendas."
+      : "Fechamento total do dia realizado com sucesso. O caixa foi zerado e os valores transferidos para o próximo dia.";
+    
     toast({
-      title: "Fechamento realizado com sucesso",
-      description: "Os dados foram salvos e o caixa foi atualizado."
+      title: type === "partial" ? "Fechamento parcial realizado" : "Fechamento total realizado",
+      description: message
     });
     
     onSubmit();
