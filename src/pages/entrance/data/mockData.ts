@@ -1,16 +1,16 @@
 
 export const initialInventoryClosing = [
-  { product: 'GLP P13', initial: 50, additions: 20, sales: 38, final: 32 },
-  { product: 'GLP P20', initial: 10, additions: 5, sales: 2, final: 13 },
-  { product: 'GLP P45', initial: 5, additions: 0, sales: 2, final: 3 },
-  { product: 'Água 20L', initial: 50, additions: 30, sales: 28, final: 52 },
+  { product: 'GLP P13', initial: 50, additions: 0, sales: 0, final: 50 },
+  { product: 'GLP P20', initial: 10, additions: 0, sales: 0, final: 10 },
+  { product: 'GLP P45', initial: 5, additions: 0, sales: 0, final: 5 },
+  { product: 'Água 20L', initial: 50, additions: 0, sales: 0, final: 50 },
 ];
 
 export const inventoryClosing = [
-  { product: 'GLP P13', initial: 50, additions: 20, sales: 38, final: 32 },
-  { product: 'GLP P20', initial: 10, additions: 5, sales: 2, final: 13 },
-  { product: 'GLP P45', initial: 5, additions: 0, sales: 2, final: 3 },
-  { product: 'Água 20L', initial: 50, additions: 30, sales: 28, final: 52 },
+  { product: 'GLP P13', initial: 50, additions: 0, sales: 0, final: 50 },
+  { product: 'GLP P20', initial: 10, additions: 0, sales: 0, final: 10 },
+  { product: 'GLP P45', initial: 5, additions: 0, sales: 0, final: 5 },
+  { product: 'Água 20L', initial: 50, additions: 0, sales: 0, final: 50 },
 ];
 
 // Função para retornar a contagem de estoque atual
@@ -31,6 +31,22 @@ export const updateFinalStock = (
   const index = inventoryClosing.findIndex(item => item.product.includes(product));
   if (index !== -1) {
     inventoryClosing[index].final = newFinal;
+    return true;
+  }
+  return false;
+};
+
+// Função para atualizar as vendas de estoque
+export const updateInventorySales = (
+  product: string,
+  quantity: number
+) => {
+  const index = inventoryClosing.findIndex(item => item.product.includes(product));
+  if (index !== -1) {
+    inventoryClosing[index].sales += quantity;
+    inventoryClosing[index].final = inventoryClosing[index].initial + 
+                                    inventoryClosing[index].additions - 
+                                    inventoryClosing[index].sales;
     return true;
   }
   return false;

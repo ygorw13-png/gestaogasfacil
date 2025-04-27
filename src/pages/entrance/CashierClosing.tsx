@@ -3,6 +3,7 @@ import { useState } from "react";
 import { CashierClosingDialog, PartialClosing } from "./components/cashier/CashierClosingDialog";
 import { CashierData } from "./types/cashierTypes";
 import { useToast } from "@/hooks/use-toast";
+import { resetInventory } from "./data/mockData";
 
 interface CashierClosingProps {
   isOpen: boolean;
@@ -11,33 +12,8 @@ interface CashierClosingProps {
   cashierData: CashierData;
 }
 
-// Dados de exemplo para fechamentos parciais
-const mockPartialClosings: PartialClosing[] = [
-  {
-    id: "pc1",
-    timestamp: "2025-04-27T10:30:00",
-    totalSales: 1240.00,
-    quantities: {
-      p13: 10,
-      p20: 0,
-      p45: 0,
-      water: 2
-    },
-    observations: "Fechamento parcial da manhã"
-  },
-  {
-    id: "pc2",
-    timestamp: "2025-04-27T14:15:00",
-    totalSales: 1850.50,
-    quantities: {
-      p13: 15,
-      p20: 0,
-      p45: 0,
-      water: 5
-    },
-    observations: "Fechamento parcial da tarde"
-  }
-];
+// Dados de exemplo para fechamentos parciais - inicializado vazio para um sistema limpo
+const mockPartialClosings: PartialClosing[] = [];
 
 export default function CashierClosing({ 
   isOpen, 
@@ -64,6 +40,7 @@ export default function CashierClosing({
     // Se for fechamento total, limpa os dados dos fechamentos parciais
     if (type === "total") {
       setPartialClosings([]);
+      resetInventory();
     }
     
     // Call the parent onSubmit without passing parameters

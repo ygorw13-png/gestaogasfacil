@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CreditCard, DollarSign, FileText } from "lucide-react";
 import { StatisticsCards } from "./components/statistics/StatisticsCards";
 import { TabContent } from "./components/tabs/TabContent";
 import { EntranceHeader } from "./components/header/EntranceHeader";
+import { updateInventorySales, resetInventory } from "./data/mockData";
 import type { CashierData } from "./types/cashierTypes";
 import type { Sale, SalesByType } from "./types/entranceTypes";
 
@@ -87,16 +89,22 @@ export default function EntranceSales() {
       totalSales: newTotal,
     });
     
+    // Atualizar as vendas de estoque e os contadores de produtos
     if (newSale.product.includes('P13')) {
       setGlpSales(prev => ({ ...prev, p13: prev.p13 + newSale.quantity }));
+      updateInventorySales('P13', newSale.quantity);
     } else if (newSale.product.includes('P20')) {
       setGlpSales(prev => ({ ...prev, p20: prev.p20 + newSale.quantity }));
+      updateInventorySales('P20', newSale.quantity);
     } else if (newSale.product.includes('P45')) {
       setGlpSales(prev => ({ ...prev, p45: prev.p45 + newSale.quantity }));
+      updateInventorySales('P45', newSale.quantity);
     } else if (newSale.product.includes('Água')) {
       setWaterSales(prev => prev + newSale.quantity);
+      updateInventorySales('Água', newSale.quantity);
     }
     
+    // Update payment type statistics
     setSalesByType(prev => 
       prev.map(item => {
         if (item.type === newSale.payment) {
@@ -136,6 +144,9 @@ export default function EntranceSales() {
     });
     setWaterSales(0);
     setSalesByType(initialSalesByType);
+    
+    // Reset the inventory data
+    resetInventory();
     
     // Reset the timer for the new day
     setStartTime(null);
