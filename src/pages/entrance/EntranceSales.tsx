@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,8 +11,30 @@ import CashierClosing from "./CashierClosing";
 import { StatisticsCards } from "./components/statistics/StatisticsCards";
 import { RecentSalesTable } from "./components/sales/RecentSalesTable";
 import { PaymentsByType } from "./components/payments/PaymentsByType";
+import { CashierData } from "./types/cashierTypes";
 
-const cashierData = {
+// Dados iniciais do caixa
+const initialCashierData: CashierData = {
+  cash: 0,
+  credit: 0,
+  debit: 0,
+  pix: 0,
+  promissory: 0,
+  gasVoucher: 0,
+  totalSales: 0,
+  quantities: {
+    cash: { p13: 0, p20: 0, p45: 0, water: 0 },
+    credit: { p13: 0, p20: 0, p45: 0, water: 0 },
+    debit: { p13: 0, p20: 0, p45: 0, water: 0 },
+    pix: { p13: 0, p20: 0, p45: 0, water: 0 },
+    promissory: { p13: 0, p20: 0, p45: 0, water: 0 },
+    gasVoucher: { p13: 0, p20: 0, p45: 0, water: 0 }
+  },
+  inventoryMovements: []
+};
+
+// Dados de exemplo quando o caixa está em operação
+const activeCashierData: CashierData = {
   cash: 2345.50,
   credit: 1250.00,
   debit: 985.75,
@@ -55,6 +78,7 @@ export default function EntranceSales() {
   const { toast } = useToast();
   const [newSaleOpen, setNewSaleOpen] = useState(false);
   const [cashierClosingOpen, setCashierClosingOpen] = useState(false);
+  const [cashierData, setCashierData] = useState<CashierData>(activeCashierData);
 
   const handleNewSaleSubmit = () => {
     setNewSaleOpen(false);
@@ -72,6 +96,9 @@ export default function EntranceSales() {
       description: "O caixa foi fechado com sucesso.",
       variant: "default",
     });
+    
+    // Reseta os dados do caixa após o fechamento total
+    setCashierData(initialCashierData);
   };
 
   const glpSales = {

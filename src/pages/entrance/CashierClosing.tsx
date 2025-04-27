@@ -46,7 +46,7 @@ export default function CashierClosing({
   cashierData 
 }: CashierClosingProps) {
   const { toast } = useToast();
-  const [partialClosings] = useState<PartialClosing[]>(mockPartialClosings);
+  const [partialClosings, setPartialClosings] = useState<PartialClosing[]>(mockPartialClosings);
   
   const handleSubmit = (type: "partial" | "total", observations?: string) => {
     // Em uma implementação real, você salvaria os dados do fechamento
@@ -60,6 +60,11 @@ export default function CashierClosing({
       title: type === "partial" ? "Fechamento parcial realizado" : "Fechamento total realizado",
       description: message
     });
+    
+    // Se for fechamento total, limpa os dados dos fechamentos parciais
+    if (type === "total") {
+      setPartialClosings([]);
+    }
     
     // Call the parent onSubmit without passing parameters
     parentOnSubmit();
@@ -75,4 +80,3 @@ export default function CashierClosing({
     />
   );
 }
-
