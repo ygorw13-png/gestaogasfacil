@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -13,29 +14,40 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { updateUserData } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) throw error;
-
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Bem-vindo de volta!"
-      });
       
-      navigate('/');
+      if (data && data.user) {
+        // Atualiza o contexto de autenticação com os dados do usuário
+        updateUserData({
+          id: data.user.id,
+          name: data.user.email?.split('@')[0] || 'Usuário',
+          role: 'admin' // Você pode ajustar isso conforme seu modelo de dados
+        });
+
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Bem-vindo de volta!"
+        });
+        
+        navigate('/');
+      }
     } catch (error: any) {
+      console.error("Erro de login:", error);
       toast({
         title: "Erro ao fazer login",
-        description: "Verifique suas credenciais e tente novamente",
+        description: error.message || "Verifique suas credenciais e tente novamente",
         variant: "destructive"
       });
     } finally {

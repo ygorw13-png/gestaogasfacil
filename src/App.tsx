@@ -1,8 +1,9 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes as RouterRoutes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes as RouterRoutes, Route, Navigate, useLocation } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Dashboard from "./pages/Dashboard";
@@ -21,20 +22,48 @@ import Register from "./pages/auth/Register";
 import ResetPassword from "./pages/auth/ResetPassword";
 import RoutesPage from "./pages/routes/RoutesPage";
 import Fleet from "./pages/fleet/Fleet";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
 const PrivateRoute = ({ children, requiredRole }: { children: React.ReactNode, requiredRole?: 'admin' | 'manager' }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const location = useLocation();
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  // Se ainda estiver carregando, poderia mostrar um spinner ou tela de loading
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
   }
 
+  // Se não estiver logado, redireciona para a página de login
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Se precisar de uma role específica e o usuário não tiver, redireciona
   if (requiredRole && user.role !== requiredRole) {
     return <Navigate to="/" replace />;
   }
 
+  // Se estiver tudo ok, renderiza o componente filho
+  return <>{children}</>;
+};
+
+// Componente para redirecionar usuários já logados para a página inicial
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  
+  // Se ainda estiver carregando, pode mostrar um spinner
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
+  }
+
+  // Se já estiver logado, redireciona para a página inicial
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Se não estiver logado, renderiza o componente filho (página de login, registro, etc)
   return <>{children}</>;
 };
 
@@ -46,9 +75,30 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <RouterRoutes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route 
+              path="/login" 
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/register" 
+              element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/reset-password" 
+              element={
+                <PublicRoute>
+                  <ResetPassword />
+                </PublicRoute>
+              } 
+            />
             <Route path="/" element={<AppLayout />}>
               <Route 
                 index 
@@ -66,14 +116,70 @@ const App = () => (
                   </PrivateRoute>
                 } 
               />
-              <Route path="entrance" element={<EntranceSales />} />
-              <Route path="entrance/sales" element={<SalesHistory />} />
-              <Route path="orders" element={<Orders />} />
-              <Route path="clients" element={<Clients />} />
-              <Route path="resellers" element={<Resellers />} />
-              <Route path="promissory" element={<Promissory />} />
-              <Route path="expenses" element={<Expenses />} />
-              <Route path="fleet" element={<Fleet />} />
+              <Route 
+                path="entrance" 
+                element={
+                  <PrivateRoute>
+                    <EntranceSales />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="entrance/sales" 
+                element={
+                  <PrivateRoute>
+                    <SalesHistory />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="orders" 
+                element={
+                  <PrivateRoute>
+                    <Orders />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="clients" 
+                element={
+                  <PrivateRoute>
+                    <Clients />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="resellers" 
+                element={
+                  <PrivateRoute>
+                    <Resellers />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="promissory" 
+                element={
+                  <PrivateRoute>
+                    <Promissory />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="expenses" 
+                element={
+                  <PrivateRoute>
+                    <Expenses />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="fleet" 
+                element={
+                  <PrivateRoute>
+                    <Fleet />
+                  </PrivateRoute>
+                } 
+              />
               <Route 
                 path="routes" 
                 element={
