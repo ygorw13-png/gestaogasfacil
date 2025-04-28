@@ -42,9 +42,13 @@ export function CylinderControl() {
   const fetchLoans = async () => {
     setLoadingLoans(true);
     try {
-      const response = await customTables.cylinderLoans.select();
-      if (response.error) throw response.error;
-      setLoans(response.data || []);
+      const { data, error } = await customTables.cylinderLoans.select();
+      
+      if (error) throw error;
+      
+      if (data) {
+        setLoans(data);
+      }
     } catch (error) {
       console.error("Erro ao buscar empréstimos:", error);
     } finally {
@@ -55,7 +59,7 @@ export function CylinderControl() {
   const handleRegisterLoan = async (data: CylinderLoanFormData) => {
     setLoading(true);
     try {
-      const response = await customTables.cylinderLoans.insert({
+      const { error } = await customTables.cylinderLoans.insert({
         cliente_id: data.clientId,
         tipo_cliente: data.tipoCliente,
         tipo_vasilhame: data.tipoVasilhame,
@@ -65,7 +69,7 @@ export function CylinderControl() {
         data_emprestimo: new Date().toISOString()
       });
 
-      if (response.error) throw response.error;
+      if (error) throw error;
       
       toast({
         title: "Empréstimo registrado",
@@ -99,21 +103,21 @@ export function CylinderControl() {
 
     try {
       if (returnQty === currentQty) {
-        const response = await customTables.cylinderLoans.update({
+        const { error } = await customTables.cylinderLoans.update({
           id: loanId,
           status: 'devolvido',
           data_devolucao: new Date().toISOString()
         });
           
-        if (response.error) throw response.error;
+        if (error) throw error;
       } else {
-        const response = await customTables.cylinderLoans.update({
+        const { error } = await customTables.cylinderLoans.update({
           id: loanId,
           quantidade: currentQty - returnQty,
           status: 'parcial'
         });
           
-        if (response.error) throw response.error;
+        if (error) throw error;
       }
       
       toast({
