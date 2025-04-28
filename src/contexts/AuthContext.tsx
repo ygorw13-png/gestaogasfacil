@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           } else if (data) {
             setUser({
               id: authUser.id,
-              name: data.name,
+              name: data.name || authUser.user_metadata?.name || 'Usuário',
               role: data.role as UserRole
             });
           }
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } else if (data) {
           setUser({
             id: session.user.id,
-            name: data.name,
+            name: data.name || session.user.user_metadata?.name || 'Usuário',
             role: data.role as UserRole
           });
         }

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/userTypes';
+import { Label } from '@/components/ui/label';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -42,13 +44,13 @@ export default function Login() {
           // Atualizar o contexto de autenticação com os dados do usuário
           updateUserData({
             id: user.id,
-            name: data.name,
+            name: data.name || user.user_metadata?.name || 'Usuário',
             role: data.role as UserRole
           });
 
           toast({
             title: "Login realizado com sucesso!",
-            description: `Bem-vindo(a) ${data.name}!`
+            description: `Bem-vindo(a) ${data.name || user.user_metadata?.name || 'Usuário'}!`
           });
           
           // Redirecionar baseado na role
@@ -93,7 +95,9 @@ export default function Login() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="email">E-mail</Label>
               <Input 
+                id="email"
                 type="email" 
                 placeholder="E-mail" 
                 value={email}
@@ -105,7 +109,9 @@ export default function Login() {
             </div>
             
             <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
               <Input 
+                id="password"
                 type="password" 
                 placeholder="Senha" 
                 value={password}
