@@ -1,59 +1,82 @@
 
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, User } from '@supabase/supabase-js';
+import type { UserRole } from '@/pages/auth/Login';
 
-type UserType = {
+interface User {
   id: string;
   name: string;
-  role: 'admin' | 'manager' | 'operator';
-};
+  role: UserRole;
+}
 
-type AuthContextType = {
-  user: UserType | null;
-  session: Session | null;
+interface AuthContextType {
+  user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => Promise<void>;
-  updateUserPermissions: (role: UserType['role']) => void;
-  updateUserData: (userData: UserType) => void;
-};
+  updateUserData: (userData: User) => void;
+  signOut: () => Promise<void>;
+}
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+  updateUserData: () => {},
+  signOut: async () => {},
+});
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<UserType | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Primeiro configurar o listener de alterações de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        setSession(currentSession);
-        if (currentSession?.user) {
-          setUser({
-            id: currentSession.user.id,
-            name: currentSession.user.email?.split('@')[0] || 'Usuário',
-            role: 'admin' // Ajuste conforme necessário
-          });
-        } else {
-          setUser(null);
-        }
-      }
-    );
+    // Verificar sessão atual
+    const checkUser = async () => {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        
+        if (authUser) {
+          // Buscar perfil do usuário
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name, role')
+            .eq('id', authUser.id)
+            .single();
 
-    // Depois verificar se já existe uma sessão
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      if (currentSession?.user) {
-        setUser({
-          id: currentSession.user.id,
-          name: currentSession.user.email?.split('@')[0] || 'Usuário',
-          role: 'admin' // Ajuste conforme necessário
-        });
+          if (profile) {
+            setUser({
+              id: authUser.id,
+              name: profile.name,
+              role: profile.role as UserRole
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao verificar usuário:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
+    };
+
+    checkUser();
+
+    // Escutar mudanças na autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name, role')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile) {
+          setUser({
+            id: session.user.id,
+            name: profile.name,
+            role: profile.role as UserRole
+          });
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      }
     });
 
     return () => {
@@ -61,64 +84,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) throw error;
-      
-      if (data.user) {
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error("Erro no login:", error);
-      return false;
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      setSession(null);
-    } catch (error) {
-      console.error("Erro ao fazer logout:", error);
-    }
-  };
-
-  const updateUserPermissions = (role: UserType['role']) => {
-    if (user) {
-      setUser({ ...user, role });
-    }
-  };
-
-  const updateUserData = (userData: UserType) => {
+  const updateUserData = (userData: User) => {
     setUser(userData);
   };
 
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      session, 
-      loading, 
-      login, 
-      logout, 
-      updateUserPermissions,
-      updateUserData
-    }}>
+    <AuthContext.Provider value={{ user, loading, updateUserData, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 };
