@@ -9,7 +9,132 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          cylinder_count: number | null
+          cylinder_types: Json | null
+          id: string
+          loan_date: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          cylinder_count?: number | null
+          cylinder_types?: Json | null
+          id?: string
+          loan_date?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          cylinder_count?: number | null
+          cylinder_types?: Json | null
+          id?: string
+          loan_date?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      dashboard_data: {
+        Row: {
+          created_at: string | null
+          id: string
+          sales_data: Json | null
+          stock_data: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          sales_data?: Json | null
+          stock_data?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          sales_data?: Json | null
+          stock_data?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          address: Json | null
+          assigned_at: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string | null
+          delivered_at: string | null
+          delivery_person: string | null
+          has_empty_cylinder: boolean | null
+          id: string
+          is_complete_package: boolean | null
+          notes: string | null
+          payment_method: string | null
+          price: number | null
+          product: string | null
+          quantity: number | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          address?: Json | null
+          assigned_at?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_person?: string | null
+          has_empty_cylinder?: boolean | null
+          id?: string
+          is_complete_package?: boolean | null
+          notes?: string | null
+          payment_method?: string | null
+          price?: number | null
+          product?: string | null
+          quantity?: number | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: Json | null
+          assigned_at?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          delivery_person?: string | null
+          has_empty_cylinder?: boolean | null
+          id?: string
+          is_complete_package?: boolean | null
+          notes?: string | null
+          payment_method?: string | null
+          price?: number | null
+          product?: string | null
+          quantity?: number | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

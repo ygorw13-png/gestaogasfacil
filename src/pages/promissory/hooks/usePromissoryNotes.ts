@@ -1,125 +1,99 @@
 
-import { useState, useMemo } from "react";
-import { PromissoryNote } from "../types";
-import { mockPromissoryNotes } from "../data/mockData";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { PromissoryNote } from "../types";
+import { supabase } from "@/integrations/supabase/client";
 
 export function usePromissoryNotes() {
+  const [promissoryNotes, setPromissoryNotes] = useState<PromissoryNote[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const [notes, setNotes] = useState<PromissoryNote[]>(mockPromissoryNotes);
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [selectedClient, setSelectedClient] = useState<string>("all");
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
 
-  const filteredNotes = useMemo(() => {
-    return notes.filter(note => {
-      const statusMatch = selectedStatus === "all" || note.status === selectedStatus;
-      const clientMatch = selectedClient === "all" || note.clientName === selectedClient;
-      return statusMatch && clientMatch;
-    });
-  }, [notes, selectedStatus, selectedClient]);
+  useEffect(() => {
+    fetchPromissoryNotes();
+  }, []);
 
-  const pendingNotes = useMemo(() => 
-    filteredNotes.filter(note => note.status === "pending"), 
-    [filteredNotes]
-  );
-
-  const assignedNotes = useMemo(() => 
-    filteredNotes.filter(note => note.status === "assigned"), 
-    [filteredNotes]
-  );
-
-  const paidNotes = useMemo(() => 
-    filteredNotes.filter(note => note.status === "paid"), 
-    [filteredNotes]
-  );
-
-  const clients = useMemo(() => {
-    const uniqueClients = new Set<string>();
-    notes.forEach(note => uniqueClients.add(note.clientName));
-    return Array.from(uniqueClients);
-  }, [notes]);
-
-  const handleAssign = (collector: string) => {
-    if (selectedNoteId) {
-      setNotes(prevNotes => 
-        prevNotes.map(note => 
-          note.id === selectedNoteId 
-            ? { ...note, status: "assigned", assignedTo: collector } 
-            : note
-        )
-      );
+  const fetchPromissoryNotes = async () => {
+    try {
+      // Por enquanto vamos continuar com os dados mocados
+      // Em uma implementação real, aqui fariamos uma chamada ao Supabase
+      // Quando a tabela de promissórias for criada
       
-      toast({
-        title: "Nota promissória atribuída",
-        description: `Nota atribuída a ${collector} com sucesso.`
+      // Usar dados mockados por enquanto
+      import('../data/mockData').then(({ mockPromissoryNotes }) => {
+        setPromissoryNotes(mockPromissoryNotes);
+        setLoading(false);
       });
+    } catch (error) {
+      console.error("Erro ao buscar promissórias:", error);
+      setLoading(false);
     }
   };
 
-  const handlePayment = (amount: number, method: string) => {
-    if (selectedNoteId) {
-      setNotes(prevNotes => 
-        prevNotes.map(note => 
-          note.id === selectedNoteId 
-            ? { 
-                ...note, 
-                status: "paid",
-                paidAt: new Date()
-              } 
-            : note
-        )
-      );
-      
-      toast({
-        title: "Pagamento registrado",
-        description: `Pagamento de R$ ${amount.toFixed(2)} registrado com sucesso.`
-      });
-    }
-  };
-
-  const handleNewPromissory = (data: {
-    clientName: string;
-    value: number;
-    dueDate: Date;
-    collector: string | null;
-  }) => {
-    const highestId = Math.max(...notes.map(note => parseInt(note.id)));
-    const newId = (highestId + 1).toString();
-    
+  const addPromissoryNote = (note: Omit<PromissoryNote, 'id' | 'createdAt'>) => {
     const newNote: PromissoryNote = {
-      id: newId,
-      clientName: data.clientName,
-      value: data.value,
-      dueDate: data.dueDate,
-      status: data.collector ? "assigned" : "pending",
+      id: (Math.random() * 1000).toFixed(0),
+      clientName: note.clientName,
+      value: note.value,
+      dueDate: note.dueDate,
+      status: note.status || 'pending',
       createdAt: new Date(),
-      assignedTo: data.collector || undefined
+      assignedTo: note.assignedTo
     };
-    
-    setNotes(prevNotes => [...prevNotes, newNote]);
-    
+
+    setPromissoryNotes([newNote, ...promissoryNotes]);
     toast({
-      title: "Nota promissória criada",
-      description: `Nota de R$ ${data.value.toFixed(2)} para ${data.clientName} registrada com sucesso.`
+      title: "Promissória Adicionada",
+      description: `Promissória de R$ ${note.value.toFixed(2)} para ${note.clientName} registrada com sucesso.`
+    });
+  };
+
+  const assignPromissoryNote = (id: string, collector: string) => {
+    setPromissoryNotes(
+      promissoryNotes.map((note) => {
+        if (note.id === id) {
+          return {
+            ...note,
+            status: 'assigned',
+            assignedTo: collector,
+            assignedAt: new Date()
+          };
+        }
+        return note;
+      })
+    );
+
+    toast({
+      title: "Promissória Atribuída",
+      description: `Promissória atribuída a ${collector} com sucesso.`
+    });
+  };
+
+  const markPromissoryAsPaid = (id: string) => {
+    setPromissoryNotes(
+      promissoryNotes.map((note) => {
+        if (note.id === id) {
+          return {
+            ...note,
+            status: 'paid',
+            paidAt: new Date()
+          };
+        }
+        return note;
+      })
+    );
+
+    toast({
+      title: "Promissória Paga",
+      description: "Promissória marcada como paga com sucesso."
     });
   };
 
   return {
-    notes,
-    filteredNotes,
-    pendingNotes,
-    assignedNotes,
-    paidNotes,
-    clients,
-    selectedStatus,
-    selectedClient,
-    selectedNoteId,
-    setSelectedStatus,
-    setSelectedClient,
-    setSelectedNoteId,
-    handleAssign,
-    handlePayment,
-    handleNewPromissory
+    promissoryNotes,
+    loading,
+    addPromissoryNote,
+    assignPromissoryNote,
+    markPromissoryAsPaid
   };
 }

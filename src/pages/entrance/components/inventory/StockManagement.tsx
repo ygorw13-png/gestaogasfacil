@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InventoryMovement } from "../../types/cashierTypes";
@@ -7,6 +7,7 @@ import { StockGrid } from "./StockGrid";
 import { MovementForm } from "./MovementForm";
 import { MovementsList } from "./MovementsList";
 import { InitialStockForm } from "./InitialStockForm";
+import { getCurrentStock, syncStockWithDashboard } from "@/pages/dashboard/data";
 
 interface StockManagementProps {
   currentStock: {
@@ -25,6 +26,73 @@ export function StockManagement({
   inventoryMovements
 }: StockManagementProps) {
   const [activeTab, setActiveTab] = useState<string>("movements");
+  const [initializing, setInitializing] = useState(true);
+  
+  useEffect(() => {
+    const initializeStock = async () => {
+      // Busca o estoque inicial do usuário do banco de dados
+      const stock = await getCurrentStock();
+      
+      // Inicializa o estoque com os valores do banco de dados
+      if (stock && (stock.p13 > 0 || stock.p20 > 0 || stock.p45 > 0 || stock.water > 0)) {
+        const movements: InventoryMovement[] = [];
+        
+        if (stock.p13 > 0) {
+          movements.push({
+            product: "P13",
+            quantity: stock.p13,
+            type: "initial",
+            timestamp: new Date().toISOString()
+          });
+        }
+        
+        if (stock.p20 > 0) {
+          movements.push({
+            product: "P20",
+            quantity: stock.p20,
+            type: "initial",
+            timestamp: new Date().toISOString()
+          });
+        }
+        
+        if (stock.p45 > 0) {
+          movements.push({
+            product: "P45",
+            quantity: stock.p45,
+            type: "initial",
+            timestamp: new Date().toISOString()
+          });
+        }
+        
+        if (stock.water > 0) {
+          movements.push({
+            product: "water",
+            quantity: stock.water,
+            type: "initial",
+            timestamp: new Date().toISOString()
+          });
+        }
+        
+        if (movements.length > 0) {
+          // Só aplica as movimentações se houver algum valor na base de dados
+          movements.forEach(movement => {
+            onInventoryMovement(movement);
+          });
+        }
+      }
+      
+      setInitializing(false);
+    };
+    
+    initializeStock();
+  }, [onInventoryMovement]);
+  
+  // Sincroniza automaticamente o estoque com o dashboard quando há mudanças
+  useEffect(() => {
+    if (!initializing) {
+      syncStockWithDashboard(currentStock);
+    }
+  }, [currentStock, initializing]);
   
   const calculateNetMovements = () => {
     const result = {
@@ -54,10 +122,18 @@ export function StockManagement({
   
   const movements = calculateNetMovements();
 
-  const handleInitialStockSubmit = (initialMovements: InventoryMovement[]) => {
+  const handleInitialStockSubmit = async (initialMovements: InventoryMovement[]) => {
     // Process each movement individually
     initialMovements.forEach(movement => {
       onInventoryMovement(movement);
+    });
+    
+    // Sincroniza o estoque com o dashboard
+    await syncStockWithDashboard({
+      p13: currentStock.p13,
+      p20: currentStock.p20, 
+      p45: currentStock.p45,
+      water: currentStock.water
     });
     
     // Switch back to movements tab

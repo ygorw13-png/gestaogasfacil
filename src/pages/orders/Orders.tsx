@@ -19,6 +19,7 @@ export default function Orders() {
   const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
   const {
     orders,
+    loading,
     handleAddOrder,
     handleAssignOrder,
     handleStartDelivery,
@@ -66,7 +67,8 @@ export default function Orders() {
 
         <TabsContent value="list">
           <OrdersList 
-            orders={orders} 
+            orders={orders}
+            loading={loading}
             onAssignOrder={handleAssignOrder}
             onStartDelivery={handleStartDelivery} 
             onCompleteOrder={handleCompleteOrder}
