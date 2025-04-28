@@ -32,3 +32,56 @@ export interface PartialClosing {
   observations?: string;
   hasReport: boolean;
 }
+
+// Add missing InventoryTableProps interface
+export interface InventoryTableProps {
+  data: {
+    product: string;
+    initial: number;
+    additions: number;
+    sales: number;
+    final: number;
+  }[];
+  inventoryMovements?: InventoryMovement[];
+}
+
+// Add missing PaymentSummaryProps interface
+export interface PaymentSummaryProps {
+  data: CashierData;
+  formatCurrency?: (value: number) => string;
+  formatQuantities?: (quantities: { p13: number; p20: number; p45: number; water: number }) => string;
+}
+
+// Add missing ClosingExportData interface
+export interface ClosingExportData {
+  date: string;
+  type: string;
+  totalSales: number;
+  p13Quantity: number;
+  p20Quantity: number;
+  p45Quantity: number;
+  waterQuantity: number;
+  paymentMethods: {
+    cash: number;
+    credit: number;
+    debit: number;
+    pix: number;
+    promissory: number;
+    gasVoucher: number;
+  };
+  inventory: {
+    initial: {
+      p13: number;
+      p20: number;
+      p45: number;
+      water: number;
+    };
+    final: {
+      p13: number;
+      p20: number;
+      p45: number;
+      water: number;
+    };
+  };
+  observations?: string;
+}
