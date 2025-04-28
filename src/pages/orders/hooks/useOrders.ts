@@ -27,29 +27,39 @@ export function useOrders() {
 
       if (error) throw error;
 
-      const formattedOrders = data.map(order => ({
-        id: order.id,
-        clientName: order.client_name,
-        clientPhone: order.client_phone,
-        address: order.address ? order.address : {
+      const formattedOrders: Order[] = data.map(order => {
+        // Certifique-se de que o formato do endereço seja compatível
+        const address = typeof order.address === 'object' && order.address ? {
+          street: String(order.address.street || ''),
+          number: String(order.address.number || ''),
+          complement: order.address.complement ? String(order.address.complement) : undefined,
+          neighborhood: order.address.neighborhood ? String(order.address.neighborhood) : undefined,
+        } : {
           street: '',
           number: '',
           complement: '',
           neighborhood: '',
-        },
-        product: order.product || '',
-        quantity: order.quantity || 0,
-        price: order.price || 0,
-        hasEmptyCylinder: order.has_empty_cylinder || false,
-        isCompletePackage: order.is_complete_package || false,
-        createdAt: new Date(order.created_at),
-        status: order.status as OrderStatus,
-        deliveryPerson: order.delivery_person,
-        assignedAt: order.assigned_at ? new Date(order.assigned_at) : undefined,
-        deliveredAt: order.delivered_at ? new Date(order.delivered_at) : undefined,
-        paymentMethod: order.payment_method,
-        notes: order.notes
-      }));
+        };
+
+        return {
+          id: order.id,
+          clientName: order.client_name,
+          clientPhone: order.client_phone || '',
+          address,
+          product: order.product || '',
+          quantity: Number(order.quantity) || 0,
+          price: Number(order.price) || 0,
+          hasEmptyCylinder: Boolean(order.has_empty_cylinder),
+          isCompletePackage: Boolean(order.is_complete_package),
+          createdAt: new Date(order.created_at),
+          status: order.status as OrderStatus,
+          deliveryPerson: order.delivery_person,
+          assignedAt: order.assigned_at ? new Date(order.assigned_at) : undefined,
+          deliveredAt: order.delivered_at ? new Date(order.delivered_at) : undefined,
+          paymentMethod: order.payment_method,
+          notes: order.notes
+        };
+      });
 
       setOrders(formattedOrders);
     } catch (error) {
@@ -66,8 +76,12 @@ export function useOrders() {
 
   const handleAddOrder = async (order: Order) => {
     try {
+      if (!user) {
+        throw new Error("Usuário não autenticado");
+      }
+
       const newOrderData = {
-        user_id: user?.id,
+        user_id: user.id,
         client_name: order.clientName,
         client_phone: order.clientPhone,
         address: order.address,
@@ -88,16 +102,29 @@ export function useOrders() {
 
       if (error) throw error;
 
+      // Formatar o endereço corretamente para o objeto Order
+      const address = typeof data.address === 'object' && data.address ? {
+        street: String(data.address.street || ''),
+        number: String(data.address.number || ''),
+        complement: data.address.complement ? String(data.address.complement) : undefined,
+        neighborhood: data.address.neighborhood ? String(data.address.neighborhood) : undefined,
+      } : {
+        street: '',
+        number: '',
+        complement: '',
+        neighborhood: '',
+      };
+
       const newOrder: Order = {
         id: data.id,
         clientName: data.client_name,
-        clientPhone: data.client_phone,
-        address: data.address,
-        product: data.product,
-        quantity: data.quantity,
-        price: data.price,
-        hasEmptyCylinder: data.has_empty_cylinder,
-        isCompletePackage: data.is_complete_package,
+        clientPhone: data.client_phone || '',
+        address,
+        product: data.product || '',
+        quantity: Number(data.quantity) || 0,
+        price: Number(data.price) || 0,
+        hasEmptyCylinder: Boolean(data.has_empty_cylinder),
+        isCompletePackage: Boolean(data.is_complete_package),
         createdAt: new Date(data.created_at),
         status: data.status as OrderStatus,
         notes: data.notes

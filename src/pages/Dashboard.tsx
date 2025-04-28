@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 export default function Dashboard() {
   const [timeframe, setTimeframe] = useState("today");
   const { user } = useAuth();
-  const [salesData, setSalesData] = useState([]);
+  const [salesData, setSalesData] = useState<any[]>([]);
   const [dashboardData, setDashboardData] = useState(overviewData);
   const [loading, setLoading] = useState(true);
 
@@ -40,18 +40,25 @@ export default function Dashboard() {
         if (data) {
           // Atualiza os dados do dashboard com os dados do banco de dados
           if (data.stock_data) {
+            const stockData = data.stock_data as { 
+              p13?: number; 
+              p20?: number; 
+              p45?: number; 
+              water?: number 
+            };
+            
             setDashboardData(prev => ({
               ...prev,
               totalStock: {
-                gasP13: data.stock_data.p13 || 0,
-                gasP20: data.stock_data.p20 || 0,
-                gasP45: data.stock_data.p45 || 0,
-                water: data.stock_data.water || 0
+                gasP13: stockData.p13 || 0,
+                gasP20: stockData.p20 || 0,
+                gasP45: stockData.p45 || 0,
+                water: stockData.water || 0
               }
             }));
           }
           
-          if (data.sales_data) {
+          if (data.sales_data && Array.isArray(data.sales_data)) {
             setSalesData(data.sales_data);
           }
         }

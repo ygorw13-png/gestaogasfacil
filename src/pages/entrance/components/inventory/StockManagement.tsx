@@ -8,6 +8,7 @@ import { MovementForm } from "./MovementForm";
 import { MovementsList } from "./MovementsList";
 import { InitialStockForm } from "./InitialStockForm";
 import { getCurrentStock, syncStockWithDashboard } from "@/pages/dashboard/data";
+import { supabase } from "@/integrations/supabase/client";
 
 interface StockManagementProps {
   currentStock: {

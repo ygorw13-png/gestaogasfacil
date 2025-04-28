@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const salesData = [];
 
@@ -36,11 +37,19 @@ export const getCurrentStock = async () => {
     }
     
     if (data && data.stock_data) {
+      // Garantir que stock_data é tratado como um objeto com as propriedades esperadas
+      const stockData = data.stock_data as { 
+        p13?: number; 
+        p20?: number; 
+        p45?: number; 
+        water?: number 
+      };
+      
       return {
-        p13: data.stock_data.p13 || 0,
-        p20: data.stock_data.p20 || 0,
-        p45: data.stock_data.p45 || 0,
-        water: data.stock_data.water || 0
+        p13: stockData.p13 || 0,
+        p20: stockData.p20 || 0,
+        p45: stockData.p45 || 0,
+        water: stockData.water || 0
       };
     }
     
@@ -65,10 +74,20 @@ export const getCurrentStock = async () => {
 // Função para sincronizar os estoques entre a portaria e o dashboard
 export const syncStockWithDashboard = async (stock: { p13: number; p20: number; p45: number; water: number }) => {
   try {
+    // Pegar o usuário atual
+    const { auth } = supabase;
+    const user = auth.session()?.user;
+    
+    if (!user || !user.id) {
+      console.error("Usuário não autenticado");
+      return false;
+    }
+    
     // Verifica se já existe um registro para o usuário atual
     const { data: existingData, error: checkError } = await supabase
       .from('dashboard_data')
       .select('id')
+      .eq('user_id', user.id)
       .single();
     
     if (checkError && checkError.code !== 'PGRST116') {
@@ -100,6 +119,7 @@ export const syncStockWithDashboard = async (stock: { p13: number; p20: number; 
       const { error } = await supabase
         .from('dashboard_data')
         .insert({
+          user_id: user.id,
           stock_data: {
             p13: stock.p13,
             p20: stock.p20,
