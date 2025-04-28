@@ -186,29 +186,4 @@ export function StockRequestsList() {
       </div>
     </Card>
   );
-  
-  function getStatusBadge(status: string) {
-    switch (status) {
-      case 'pendente':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pendente</Badge>;
-      case 'aprovada':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">Aprovada</Badge>;
-      case 'recusada':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">Recusada</Badge>;
-      case 'cancelada':
-        return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300">Cancelada</Badge>;
-      case 'entregue':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">Entregue</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  }
-  
-  function formatDate(dateString: string) {
-    try {
-      return format(parseISO(dateString), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
-    } catch (e) {
-      return dateString;
-    }
-  }
 }

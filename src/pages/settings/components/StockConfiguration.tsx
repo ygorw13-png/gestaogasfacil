@@ -4,8 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from "@/contexts/AuthContext";
+import { customTables } from "@/integrations/supabase/customClient";
 
 interface StockSettings {
   p13Min: number;
@@ -31,9 +31,7 @@ export function StockConfiguration() {
     const fetchStockSettings = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('configuracoes_estoque')
-          .select('*');
+        const { data, error } = await customTables.stockConfig.select();
           
         if (error) {
           throw error;
@@ -68,48 +66,40 @@ export function StockConfiguration() {
     setLoading(true);
     try {
       // Atualizar P13
-      await supabase
-        .from('configuracoes_estoque')
-        .update({ 
-          estoque_minimo: storeSettings.p13Min,
-          alerta_ativo: storeSettings.alertsEnabled,
-          atualizado_por: user?.id || '',
-          atualizado_em: new Date().toISOString()
-        })
-        .eq('produto', 'P13');
+      await customTables.stockConfig.update({ 
+        id: "P13", // Assume this is the ID
+        estoque_minimo: storeSettings.p13Min,
+        alerta_ativo: storeSettings.alertsEnabled,
+        atualizado_por: user?.id || '',
+        atualizado_em: new Date().toISOString()
+      });
         
       // Atualizar P20
-      await supabase
-        .from('configuracoes_estoque')
-        .update({ 
-          estoque_minimo: storeSettings.p20Min,
-          alerta_ativo: storeSettings.alertsEnabled,
-          atualizado_por: user?.id || '',
-          atualizado_em: new Date().toISOString()
-        })
-        .eq('produto', 'P20');
+      await customTables.stockConfig.update({ 
+        id: "P20", // Assume this is the ID
+        estoque_minimo: storeSettings.p20Min,
+        alerta_ativo: storeSettings.alertsEnabled,
+        atualizado_por: user?.id || '',
+        atualizado_em: new Date().toISOString()
+      });
         
       // Atualizar P45
-      await supabase
-        .from('configuracoes_estoque')
-        .update({ 
-          estoque_minimo: storeSettings.p45Min,
-          alerta_ativo: storeSettings.alertsEnabled,
-          atualizado_por: user?.id || '',
-          atualizado_em: new Date().toISOString()
-        })
-        .eq('produto', 'P45');
+      await customTables.stockConfig.update({ 
+        id: "P45", // Assume this is the ID
+        estoque_minimo: storeSettings.p45Min,
+        alerta_ativo: storeSettings.alertsEnabled,
+        atualizado_por: user?.id || '',
+        atualizado_em: new Date().toISOString()
+      });
         
       // Atualizar Água
-      await supabase
-        .from('configuracoes_estoque')
-        .update({ 
-          estoque_minimo: storeSettings.aguaMin,
-          alerta_ativo: storeSettings.alertsEnabled,
-          atualizado_por: user?.id || '',
-          atualizado_em: new Date().toISOString()
-        })
-        .eq('produto', 'agua');
+      await customTables.stockConfig.update({ 
+        id: "agua", // Assume this is the ID
+        estoque_minimo: storeSettings.aguaMin,
+        alerta_ativo: storeSettings.alertsEnabled,
+        atualizado_por: user?.id || '',
+        atualizado_em: new Date().toISOString()
+      });
       
       toast({
         title: "Sucesso",

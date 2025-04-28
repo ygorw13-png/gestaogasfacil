@@ -9,18 +9,18 @@ export const customTables = {
   cylinderLoans: {
     select: async (): Promise<PostgrestResponse<CylinderLoan[]>> => {
       // Use 'as any' to bypass the type checking for the table name
-      const response = await (supabase
+      const response = await supabase
         .from('cascos_emprestados' as any)
-        .select('*'));
+        .select('*');
       
       return response as PostgrestResponse<CylinderLoan[]>;
     },
     
     insert: async (data: Partial<CylinderLoan> | Partial<CylinderLoan>[]): Promise<PostgrestResponse<CylinderLoan[]>> => {
       // Use 'as any' to bypass the type checking for the table name and data
-      const response = await (supabase
+      const response = await supabase
         .from('cascos_emprestados' as any)
-        .insert(data as any));
+        .insert(data as any);
       
       return response as PostgrestResponse<CylinderLoan[]>;
     },
@@ -31,20 +31,20 @@ export const customTables = {
       }
       
       // Use 'as any' to bypass the type checking for the table name and data
-      const response = await (supabase
+      const response = await supabase
         .from('cascos_emprestados' as any)
         .update(data as any)
-        .eq('id', data.id));
+        .eq('id', data.id);
       
       return response as PostgrestResponse<CylinderLoan[]>;
     },
     
     delete: async (id: string): Promise<PostgrestResponse<CylinderLoan[]>> => {
       // Use 'as any' to bypass the type checking for the table name
-      const response = await (supabase
+      const response = await supabase
         .from('cascos_emprestados' as any)
         .delete()
-        .eq('id', id));
+        .eq('id', id);
       
       return response as PostgrestResponse<CylinderLoan[]>;
     },
@@ -54,18 +54,18 @@ export const customTables = {
   stockConfig: {
     select: async (): Promise<PostgrestResponse<StockConfig[]>> => {
       // Use 'as any' to bypass the type checking for the table name
-      const response = await (supabase
+      const response = await supabase
         .from('configuracoes_estoque' as any)
-        .select('*'));
+        .select('*');
       
       return response as PostgrestResponse<StockConfig[]>;
     },
     
     insert: async (data: Partial<StockConfig> | Partial<StockConfig>[]): Promise<PostgrestResponse<StockConfig[]>> => {
       // Use 'as any' to bypass the type checking for the table name and data
-      const response = await (supabase
+      const response = await supabase
         .from('configuracoes_estoque' as any)
-        .insert(data as any));
+        .insert(data as any);
       
       return response as PostgrestResponse<StockConfig[]>;
     },
@@ -76,20 +76,20 @@ export const customTables = {
       }
       
       // Use 'as any' to bypass the type checking for the table name and data
-      const response = await (supabase
+      const response = await supabase
         .from('configuracoes_estoque' as any)
         .update(data as any)
-        .eq('id', data.id));
+        .eq('id', data.id);
       
       return response as PostgrestResponse<StockConfig[]>;
     },
     
     delete: async (id: string): Promise<PostgrestResponse<StockConfig[]>> => {
       // Use 'as any' to bypass the type checking for the table name
-      const response = await (supabase
+      const response = await supabase
         .from('configuracoes_estoque' as any)
         .delete()
-        .eq('id', id));
+        .eq('id', id);
       
       return response as PostgrestResponse<StockConfig[]>;
     },
@@ -99,18 +99,18 @@ export const customTables = {
   stockRequests: {
     select: async (): Promise<PostgrestResponse<StockRequest[]>> => {
       // Use 'as any' to bypass the type checking for the table name
-      const response = await (supabase
+      const response = await supabase
         .from('requisicoes_estoque' as any)
-        .select('*'));
+        .select('*');
       
       return response as PostgrestResponse<StockRequest[]>;
     },
     
     insert: async (data: Partial<StockRequest> | Partial<StockRequest>[]): Promise<PostgrestResponse<StockRequest[]>> => {
       // Use 'as any' to bypass the type checking for the table name and data
-      const response = await (supabase
+      const response = await supabase
         .from('requisicoes_estoque' as any)
-        .insert(data as any));
+        .insert(data as any);
       
       return response as PostgrestResponse<StockRequest[]>;
     },
@@ -121,20 +121,20 @@ export const customTables = {
       }
       
       // Use 'as any' to bypass the type checking for the table name and data
-      const response = await (supabase
+      const response = await supabase
         .from('requisicoes_estoque' as any)
         .update(data as any)
-        .eq('id', data.id));
+        .eq('id', data.id);
       
       return response as PostgrestResponse<StockRequest[]>;
     },
     
     delete: async (id: string): Promise<PostgrestResponse<StockRequest[]>> => {
       // Use 'as any' to bypass the type checking for the table name
-      const response = await (supabase
+      const response = await supabase
         .from('requisicoes_estoque' as any)
         .delete()
-        .eq('id', id));
+        .eq('id', id);
       
       return response as PostgrestResponse<StockRequest[]>;
     },
