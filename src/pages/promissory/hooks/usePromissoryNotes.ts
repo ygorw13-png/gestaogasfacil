@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { PromissoryNote, PromissoryStatus } from "../types";
 import { supabase } from "@/integrations/supabase/client";
+import { overviewData } from "@/pages/dashboard/data";
 
 export function usePromissoryNotes() {
   const [promissoryNotes, setPromissoryNotes] = useState<PromissoryNote[]>([]);
@@ -25,12 +26,26 @@ export function usePromissoryNotes() {
       // Usar dados mockados por enquanto
       import('../data/mockData').then(({ mockPromissoryNotes }) => {
         setPromissoryNotes(mockPromissoryNotes);
+        
+        // Atualizar dados do dashboard
+        updateDashboardData(mockPromissoryNotes);
+        
         setLoading(false);
       });
     } catch (error) {
       console.error("Erro ao buscar promissórias:", error);
       setLoading(false);
     }
+  };
+  
+  // Atualizar dados do dashboard com base nas promissórias
+  const updateDashboardData = (notes: PromissoryNote[]) => {
+    const pendingNotes = notes.filter(note => note.status === "pending" || note.status === "overdue");
+    const pendingValue = pendingNotes.reduce((sum, note) => sum + note.value, 0);
+    
+    // Atualizar os dados do dashboard
+    overviewData.promissoryNotes = pendingNotes.length;
+    overviewData.promissoryValue = `R$ ${pendingValue.toFixed(2).replace('.', ',')}`;
   };
 
   // Filtrar notas com base no status e cliente selecionados
@@ -61,7 +76,12 @@ export function usePromissoryNotes() {
       assignedTo: note.assignedTo
     };
 
-    setPromissoryNotes([newNote, ...promissoryNotes]);
+    const updatedNotes = [newNote, ...promissoryNotes];
+    setPromissoryNotes(updatedNotes);
+    
+    // Atualizar dados do dashboard
+    updateDashboardData(updatedNotes);
+    
     toast({
       title: "Promissória Adicionada",
       description: `Promissória de R$ ${note.value.toFixed(2)} para ${note.clientName} registrada com sucesso.`
@@ -70,18 +90,21 @@ export function usePromissoryNotes() {
 
   const handleAssign = (collector: string) => {
     if (selectedNoteId) {
-      setPromissoryNotes(
-        promissoryNotes.map((note) => {
-          if (note.id === selectedNoteId) {
-            return {
-              ...note,
-              status: 'assigned' as PromissoryStatus,
-              assignedTo: collector,
-            };
-          }
-          return note;
-        })
-      );
+      const updatedNotes = promissoryNotes.map((note) => {
+        if (note.id === selectedNoteId) {
+          return {
+            ...note,
+            status: 'assigned' as PromissoryStatus,
+            assignedTo: collector,
+          };
+        }
+        return note;
+      });
+      
+      setPromissoryNotes(updatedNotes);
+      
+      // Atualizar dados do dashboard
+      updateDashboardData(updatedNotes);
 
       toast({
         title: "Promissória Atribuída",
@@ -92,18 +115,21 @@ export function usePromissoryNotes() {
 
   const handlePayment = (amount: number, method: string) => {
     if (selectedNoteId) {
-      setPromissoryNotes(
-        promissoryNotes.map((note) => {
-          if (note.id === selectedNoteId) {
-            return {
-              ...note,
-              status: 'paid' as PromissoryStatus,
-              paidAt: new Date()
-            };
-          }
-          return note;
-        })
-      );
+      const updatedNotes = promissoryNotes.map((note) => {
+        if (note.id === selectedNoteId) {
+          return {
+            ...note,
+            status: 'paid' as PromissoryStatus,
+            paidAt: new Date()
+          };
+        }
+        return note;
+      });
+      
+      setPromissoryNotes(updatedNotes);
+      
+      // Atualizar dados do dashboard
+      updateDashboardData(updatedNotes);
 
       toast({
         title: "Promissória Paga",
