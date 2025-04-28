@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { UserRole, roleLabels } from "@/types/userTypes";
 import { customTables } from "@/integrations/supabase/customClient";
+import { DbProfile } from "@/types/supabaseTypes";
 
 export function UserManagement() {
   const { toast } = useToast();
@@ -26,7 +27,12 @@ export function UserManagement() {
         }
         
         if (data) {
-          setUsers(data as Array<{id: string, name: string, role: UserRole}>);
+          // Convert from DbProfile to our internal user format
+          setUsers(data.map(profile => ({
+            id: profile.id,
+            name: profile.name,
+            role: profile.role as UserRole
+          })));
         }
       } catch (error) {
         console.error("Erro ao carregar usuários:", error);

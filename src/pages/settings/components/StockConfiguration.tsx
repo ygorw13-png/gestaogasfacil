@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { customTables } from "@/integrations/supabase/customClient";
+import { StockConfig } from "@/types/supabaseTypes";
 
 interface StockSettings {
   p13Min: number;

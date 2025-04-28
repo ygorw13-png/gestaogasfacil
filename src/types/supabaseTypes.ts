@@ -6,7 +6,7 @@ export interface StockConfig {
   produto: string;
   estoque_minimo: number;
   alerta_ativo: boolean;
-  destinatarios_alerta?: Json[];
+  destinatarios_alerta?: Json;
   atualizado_por: string;
   atualizado_em: string;
 }
@@ -18,10 +18,7 @@ export interface StockRequest {
   data_solicitacao: string;
   data_processamento?: string;
   processado_por?: string;
-  itens: Array<{
-    produto: string;
-    quantidade: number;
-  }>;
+  itens: Json;
   observacoes?: string;
   origem: 'portaria' | 'rota' | 'estoque';
   destino: 'portaria' | 'rota' | 'estoque';
@@ -79,4 +76,10 @@ export interface Report {
   destinatarios?: any[];
   status: 'sucesso' | 'falha' | 'pendente';
   detalhes_erro?: string;
+}
+
+export interface DbProfile {
+  id: string;
+  name: string;
+  role: string;
 }

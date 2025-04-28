@@ -142,7 +142,7 @@ export function StockRequestsList() {
                     <TableCell className="capitalize">{req.destino}</TableCell>
                     <TableCell>
                       <ul className="list-disc list-inside">
-                        {req.itens.map((item: any, i: number) => (
+                        {Array.isArray(req.itens) && req.itens.map((item: any, i: number) => (
                           <li key={i}>
                             {item.quantidade}x {item.produto === 'agua' ? 'Água 20L' : `GLP ${item.produto}`}
                           </li>
