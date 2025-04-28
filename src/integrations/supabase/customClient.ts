@@ -16,9 +16,10 @@ export const customTables = {
     },
     
     insert: async (data: Omit<CylinderLoan, 'id'> | Omit<CylinderLoan, 'id'>[]): Promise<PostgrestResponse<CylinderLoan[]>> => {
+      // Cast the data to match the expected database schema to fix type errors
       const response = await supabase
         .from('cascos_emprestados')
-        .insert(data);
+        .insert(data as any);
       return response as PostgrestResponse<CylinderLoan[]>;
     },
     
@@ -51,9 +52,10 @@ export const customTables = {
     },
     
     insert: async (data: Omit<StockConfig, 'id'> | Omit<StockConfig, 'id'>[]): Promise<PostgrestResponse<StockConfig[]>> => {
+      // Cast the data to match the expected database schema to fix type errors
       const response = await supabase
         .from('configuracoes_estoque')
-        .insert(data);
+        .insert(data as any);
       return response as PostgrestResponse<StockConfig[]>;
     },
     
@@ -86,9 +88,10 @@ export const customTables = {
     },
     
     insert: async (data: Omit<StockRequest, 'id'> | Omit<StockRequest, 'id'>[]): Promise<PostgrestResponse<StockRequest[]>> => {
+      // Cast the data to match the expected database schema to fix type errors
       const response = await supabase
         .from('requisicoes_estoque')
-        .insert(data);
+        .insert(data as any);
       return response as PostgrestResponse<StockRequest[]>;
     },
     

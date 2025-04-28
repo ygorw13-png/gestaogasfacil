@@ -47,7 +47,8 @@ export function CylinderControl() {
       if (error) throw error;
       
       if (data) {
-        setLoans(data || []);
+        // Fix: Ensure data is treated as an array of CylinderLoan objects
+        setLoans(Array.isArray(data) ? data : []);
       }
     } catch (error) {
       console.error("Erro ao buscar empréstimos:", error);

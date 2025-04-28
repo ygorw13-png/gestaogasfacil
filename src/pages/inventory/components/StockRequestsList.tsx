@@ -26,7 +26,8 @@ export function StockRequestsList() {
       if (error) throw error;
       
       if (data) {
-        setRequests(data || []);
+        // Fix: Ensure data is treated as an array of StockRequest objects
+        setRequests(Array.isArray(data) ? data : []);
       }
     } catch (error: any) {
       console.error("Erro ao buscar requisições:", error);

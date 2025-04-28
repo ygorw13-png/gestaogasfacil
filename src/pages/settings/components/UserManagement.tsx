@@ -26,7 +26,7 @@ export function UserManagement() {
           throw error;
         }
         
-        if (data) {
+        if (data && Array.isArray(data)) {
           // Convert from DbProfile to our internal user format
           setUsers(data.map(profile => ({
             id: profile.id,

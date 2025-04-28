@@ -27,7 +27,8 @@ export function StockAlert({ currentStock }: StockAlertProps) {
         if (error) throw error;
         
         if (data) {
-          setStockConfigs(data || []);
+          // Fix: Ensure data is treated as an array of StockConfig objects
+          setStockConfigs(Array.isArray(data) ? data : []);
         }
       } catch (error) {
         console.error("Erro ao buscar configurações de estoque:", error);

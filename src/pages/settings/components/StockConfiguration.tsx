@@ -38,7 +38,7 @@ export function StockConfiguration() {
           throw error;
         }
         
-        if (data && data.length > 0) {
+        if (data && Array.isArray(data) && data.length > 0) {
           // Mapear configurações
           const p13Setting = data.find(item => item.produto === 'P13');
           const p20Setting = data.find(item => item.produto === 'P20');
