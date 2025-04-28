@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -21,6 +22,7 @@ export function StockAlert({ currentStock }: StockAlertProps) {
   useEffect(() => {
     const fetchStockConfigs = async () => {
       try {
+        // Use our custom client to query stock configurations
         const { data, error } = await customTables.stockConfig.select();
         
         if (error) throw error;

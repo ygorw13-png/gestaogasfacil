@@ -49,13 +49,14 @@ export function CylinderControl() {
   const fetchLoans = async () => {
     setLoadingLoans(true);
     try {
-      const { data, error } = await customTables.cylinderLoans.select()
+      const { data, error } = await customTables.cylinderLoans
+        .select()
         .select('*, registrado_por(name)');
         
       if (error) throw error;
       
       if (data) {
-        setLoans(data as CylinderLoan[]);
+        setLoans(data as unknown as CylinderLoan[]);
       }
     } catch (error) {
       console.error("Erro ao buscar empréstimos:", error);
@@ -92,10 +93,8 @@ export function CylinderControl() {
         description: `${quantidade} vasilhame(s) de ${tipoVasilhame === 'agua' ? 'Água 20L' : `GLP ${tipoVasilhame}`} emprestado(s) com sucesso`
       });
       
-      // Limpar o formulário
       setQuantidade(1);
       
-      // Atualizar a lista de empréstimos
       fetchLoans();
       
     } catch (error: any) {
@@ -123,7 +122,6 @@ export function CylinderControl() {
 
     try {
       if (returnQty === currentQty) {
-        // Se a quantidade for igual, marcar como devolvido totalmente
         const { error } = await customTables.cylinderLoans.update({
           id: loanId,
           status: 'devolvido',
@@ -132,7 +130,6 @@ export function CylinderControl() {
           
         if (error) throw error;
       } else {
-        // Se for devolução parcial, diminuir a quantidade e mudar o status
         const { error } = await customTables.cylinderLoans.update({
           id: loanId,
           quantidade: currentQty - returnQty,
@@ -147,7 +144,6 @@ export function CylinderControl() {
         description: `${returnQty} vasilhame(s) devolvido(s) com sucesso`
       });
       
-      // Atualizar a lista de empréstimos
       fetchLoans();
       
     } catch (error: any) {

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -107,6 +108,7 @@ export function StockRequest({ onRequestCreated }: StockRequestProps) {
     
     setIsLoading(true);
     try {
+      // Use our custom client for inserting stock requests
       const { data, error } = await customTables.stockRequests.insert({
         solicitante_id: user?.id,
         status: 'pendente',

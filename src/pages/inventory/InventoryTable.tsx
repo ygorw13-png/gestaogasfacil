@@ -26,11 +26,11 @@ export interface InventoryItem {
   stock: number;
   category: string;
   min_stock: number;
-  type?: string; // Make optional since we're not using it now
-  status?: string; // Make optional since we're not using it now
-  location?: string; // Make optional since we're not using it now
-  quantity?: number; // Make optional since we're not using it now (we use stock instead)
-  lastUpdate?: string; // Make optional since we're not using it now
+  type?: string;
+  status?: string;
+  location?: string;
+  quantity?: number;
+  lastUpdate?: string;
 }
 
 interface InventoryTableProps {

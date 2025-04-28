@@ -41,12 +41,56 @@ export default function Inventory() {
     setActiveTab("requests");
   };
 
-  // Prepare inventory table props
+  // Prepare inventory table props with complete properties matching the interface
   const inventoryData: InventoryItem[] = [
-    { id: 1, product: "GLP P13", stock: currentStock.p13, category: "GLP", min_stock: 20 },
-    { id: 2, product: "GLP P20", stock: currentStock.p20, category: "GLP", min_stock: 5 },
-    { id: 3, product: "GLP P45", stock: currentStock.p45, category: "GLP", min_stock: 5 },
-    { id: 4, product: "Água 20L", stock: currentStock.water, category: "Água", min_stock: 20 }
+    { 
+      id: 1, 
+      product: "GLP P13", 
+      stock: currentStock.p13, 
+      category: "GLP", 
+      min_stock: 20,
+      status: "Disponível",
+      location: "Estoque",
+      quantity: currentStock.p13,
+      type: "GLP",
+      lastUpdate: new Date().toISOString()
+    },
+    { 
+      id: 2, 
+      product: "GLP P20", 
+      stock: currentStock.p20, 
+      category: "GLP", 
+      min_stock: 5,
+      status: "Disponível",
+      location: "Estoque",
+      quantity: currentStock.p20,
+      type: "GLP",
+      lastUpdate: new Date().toISOString()
+    },
+    { 
+      id: 3, 
+      product: "GLP P45", 
+      stock: currentStock.p45, 
+      category: "GLP", 
+      min_stock: 5,
+      status: "Disponível",
+      location: "Estoque",
+      quantity: currentStock.p45,
+      type: "GLP",
+      lastUpdate: new Date().toISOString()
+    },
+    { 
+      id: 4, 
+      product: "Água 20L", 
+      stock: currentStock.water, 
+      category: "Água", 
+      min_stock: 20,
+      status: "Disponível",
+      location: "Estoque",
+      quantity: currentStock.water,
+      type: "Água",
+      lastUpdate: new Date().toISOString()
+    }
   ];
 
   return (
