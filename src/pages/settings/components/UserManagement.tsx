@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,18 +25,13 @@ export function UserManagement() {
           throw error;
         }
         
-        if (data) {
-          // Fix the type issue by properly handling data as an array
-          const profiles = data as unknown as DbProfile[];
-          
-          if (Array.isArray(profiles)) {
-            // Convert from DbProfile to our internal user format
-            setUsers(profiles.map(profile => ({
-              id: profile.id,
-              name: profile.name,
-              role: profile.role as UserRole
-            })));
-          }
+        if (data && Array.isArray(data)) {
+          // Convert from DbProfile to our internal user format
+          setUsers(data.map((profile: DbProfile) => ({
+            id: profile.id,
+            name: profile.name,
+            role: profile.role as UserRole
+          })));
         }
       } catch (error) {
         console.error("Erro ao carregar usuários:", error);

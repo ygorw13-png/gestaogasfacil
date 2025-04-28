@@ -27,8 +27,12 @@ export function StockAlert({ currentStock }: StockAlertProps) {
         if (error) throw error;
         
         if (data) {
-          // Fix the type issue by directly asserting the type
-          setStockConfigs(data as unknown as StockConfig[]);
+          // Fix the type issue by properly handling the data
+          if (Array.isArray(data)) {
+            setStockConfigs(data as StockConfig[]);
+          } else {
+            setStockConfigs([]);
+          }
         }
       } catch (error) {
         console.error("Erro ao buscar configurações de estoque:", error);

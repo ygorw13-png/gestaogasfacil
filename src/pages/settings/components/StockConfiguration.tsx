@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,11 +37,10 @@ export function StockConfiguration() {
           throw error;
         }
         
-        if (data) {
-          // Fix the type issue by properly handling data as an array
-          const configs = data as unknown as StockConfig[];
+        if (data && Array.isArray(data)) {
+          const configs = data as StockConfig[];
           
-          if (Array.isArray(configs) && configs.length > 0) {
+          if (configs.length > 0) {
             // Mapear configurações
             const p13Setting = configs.find(item => item.produto === 'P13');
             const p20Setting = configs.find(item => item.produto === 'P20');

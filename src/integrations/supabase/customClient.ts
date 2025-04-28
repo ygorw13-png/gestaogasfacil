@@ -8,129 +8,129 @@ import { UserRole } from "@/types/userTypes";
 export const customTables = {
   // Cylinder loans
   cylinderLoans: {
-    select: async (): Promise<PostgrestResponse<CylinderLoan[]>> => {
+    select: async () => {
       const response = await supabase
         .from('cascos_emprestados')
         .select('*');
-      return response as PostgrestResponse<CylinderLoan[]>;
+      return response;
     },
     
-    insert: async (data: Omit<CylinderLoan, 'id'> | Omit<CylinderLoan, 'id'>[]): Promise<PostgrestResponse<CylinderLoan[]>> => {
+    insert: async (data: Omit<CylinderLoan, 'id'> | Omit<CylinderLoan, 'id'>[]) => {
       // Cast the data to match the expected database schema to fix type errors
       const response = await supabase
         .from('cascos_emprestados')
         .insert(data as any);
-      return response as PostgrestResponse<CylinderLoan[]>;
+      return response;
     },
     
-    update: async (data: Partial<CylinderLoan> & { id: string }): Promise<PostgrestResponse<CylinderLoan[]>> => {
+    update: async (data: Partial<CylinderLoan> & { id: string }) => {
       const { id, ...updateData } = data;
       
       const response = await supabase
         .from('cascos_emprestados')
         .update(updateData)
         .eq('id', id);
-      return response as PostgrestResponse<CylinderLoan[]>;
+      return response;
     },
     
-    delete: async (id: string): Promise<PostgrestResponse<CylinderLoan[]>> => {
+    delete: async (id: string) => {
       const response = await supabase
         .from('cascos_emprestados')
         .delete()
         .eq('id', id);
-      return response as PostgrestResponse<CylinderLoan[]>;
+      return response;
     },
   },
   
   // Stock configuration
   stockConfig: {
-    select: async (): Promise<PostgrestResponse<StockConfig[]>> => {
+    select: async () => {
       const response = await supabase
         .from('configuracoes_estoque')
         .select('*');
-      return response as PostgrestResponse<StockConfig[]>;
+      return response;
     },
     
-    insert: async (data: Omit<StockConfig, 'id'> | Omit<StockConfig, 'id'>[]): Promise<PostgrestResponse<StockConfig[]>> => {
+    insert: async (data: Omit<StockConfig, 'id'> | Omit<StockConfig, 'id'>[]) => {
       // Cast the data to match the expected database schema to fix type errors
       const response = await supabase
         .from('configuracoes_estoque')
         .insert(data as any);
-      return response as PostgrestResponse<StockConfig[]>;
+      return response;
     },
     
-    update: async (data: Partial<StockConfig> & { id: string }): Promise<PostgrestResponse<StockConfig[]>> => {
+    update: async (data: Partial<StockConfig> & { id: string }) => {
       const { id, ...updateData } = data;
       
       const response = await supabase
         .from('configuracoes_estoque')
         .update(updateData)
         .eq('id', id);
-      return response as PostgrestResponse<StockConfig[]>;
+      return response;
     },
     
-    delete: async (id: string): Promise<PostgrestResponse<StockConfig[]>> => {
+    delete: async (id: string) => {
       const response = await supabase
         .from('configuracoes_estoque')
         .delete()
         .eq('id', id);
-      return response as PostgrestResponse<StockConfig[]>;
+      return response;
     },
   },
   
   // Stock requests
   stockRequests: {
-    select: async (): Promise<PostgrestResponse<StockRequest[]>> => {
+    select: async () => {
       const response = await supabase
         .from('requisicoes_estoque')
         .select('*');
-      return response as PostgrestResponse<StockRequest[]>;
+      return response;
     },
     
-    insert: async (data: Omit<StockRequest, 'id'> | Omit<StockRequest, 'id'>[]): Promise<PostgrestResponse<StockRequest[]>> => {
+    insert: async (data: Omit<StockRequest, 'id'> | Omit<StockRequest, 'id'>[]) => {
       // Cast the data to match the expected database schema to fix type errors
       const response = await supabase
         .from('requisicoes_estoque')
         .insert(data as any);
-      return response as PostgrestResponse<StockRequest[]>;
+      return response;
     },
     
-    update: async (data: Partial<StockRequest> & { id: string }): Promise<PostgrestResponse<StockRequest[]>> => {
+    update: async (data: Partial<StockRequest> & { id: string }) => {
       const { id, ...updateData } = data;
       
       const response = await supabase
         .from('requisicoes_estoque')
         .update(updateData)
         .eq('id', id);
-      return response as PostgrestResponse<StockRequest[]>;
+      return response;
     },
     
-    delete: async (id: string): Promise<PostgrestResponse<StockRequest[]>> => {
+    delete: async (id: string) => {
       const response = await supabase
         .from('requisicoes_estoque')
         .delete()
         .eq('id', id);
-      return response as PostgrestResponse<StockRequest[]>;
+      return response;
     },
   },
   
   // Profiles
   profiles: {
-    select: async (): Promise<PostgrestResponse<DbProfile[]>> => {
+    select: async () => {
       const response = await supabase
         .from('profiles')
         .select('*');
-      return response as PostgrestResponse<DbProfile[]>;
+      return response;
     },
     
-    update: async (data: Partial<DbProfile> & { id: string }): Promise<PostgrestResponse<DbProfile[]>> => {
+    update: async (data: Partial<DbProfile> & { id: string }) => {
       const { id, ...updateData } = data;
       
       const response = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', id);
-      return response as PostgrestResponse<DbProfile[]>;
+      return response;
     },
   },
 
