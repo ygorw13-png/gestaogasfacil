@@ -1,10 +1,12 @@
 
+import { Json } from "@/integrations/supabase/types";
+
 export interface StockConfig {
   id: string;
   produto: string;
   estoque_minimo: number;
   alerta_ativo: boolean;
-  destinatarios_alerta?: any[];
+  destinatarios_alerta?: Json[];
   atualizado_por: string;
   atualizado_em: string;
 }

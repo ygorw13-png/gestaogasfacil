@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cascos_emprestados: {
+        Row: {
+          cliente_id: string
+          data_devolucao: string | null
+          data_emprestimo: string
+          id: string
+          observacoes: string | null
+          quantidade: number
+          registrado_por: string
+          status: string
+          tipo_cliente: string
+          tipo_vasilhame: string
+        }
+        Insert: {
+          cliente_id: string
+          data_devolucao?: string | null
+          data_emprestimo: string
+          id?: string
+          observacoes?: string | null
+          quantidade: number
+          registrado_por: string
+          status: string
+          tipo_cliente: string
+          tipo_vasilhame: string
+        }
+        Update: {
+          cliente_id?: string
+          data_devolucao?: string | null
+          data_emprestimo?: string
+          id?: string
+          observacoes?: string | null
+          quantidade?: number
+          registrado_por?: string
+          status?: string
+          tipo_cliente?: string
+          tipo_vasilhame?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: string | null
@@ -45,6 +84,36 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      configuracoes_estoque: {
+        Row: {
+          alerta_ativo: boolean
+          atualizado_em: string
+          atualizado_por: string
+          destinatarios_alerta: Json | null
+          estoque_minimo: number
+          id: string
+          produto: string
+        }
+        Insert: {
+          alerta_ativo?: boolean
+          atualizado_em: string
+          atualizado_por: string
+          destinatarios_alerta?: Json | null
+          estoque_minimo?: number
+          id: string
+          produto: string
+        }
+        Update: {
+          alerta_ativo?: boolean
+          atualizado_em?: string
+          atualizado_por?: string
+          destinatarios_alerta?: Json | null
+          estoque_minimo?: number
+          id?: string
+          produto?: string
         }
         Relationships: []
       }
@@ -135,12 +204,72 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          id: string
+          name: string
+          role: string
+        }
+        Insert: {
+          id: string
+          name: string
+          role: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          role?: string
+        }
+        Relationships: []
+      }
+      requisicoes_estoque: {
+        Row: {
+          data_processamento: string | null
+          data_solicitacao: string
+          destino: string
+          id: string
+          itens: Json
+          observacoes: string | null
+          origem: string
+          processado_por: string | null
+          solicitante_id: string
+          status: string
+        }
+        Insert: {
+          data_processamento?: string | null
+          data_solicitacao: string
+          destino: string
+          id?: string
+          itens: Json
+          observacoes?: string | null
+          origem: string
+          processado_por?: string | null
+          solicitante_id: string
+          status: string
+        }
+        Update: {
+          data_processamento?: string | null
+          data_solicitacao?: string
+          destino?: string
+          id?: string
+          itens?: Json
+          observacoes?: string | null
+          origem?: string
+          processado_por?: string | null
+          solicitante_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      clear_test_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

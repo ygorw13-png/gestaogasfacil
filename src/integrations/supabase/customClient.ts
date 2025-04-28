@@ -11,7 +11,7 @@ interface Profile {
   role: UserRole;
 }
 
-// A more type-safe approach for custom tables not in the generated types
+// A more type-safe approach for custom tables
 export const customTables = {
   // Cylinder loans
   cylinderLoans: {
@@ -19,16 +19,14 @@ export const customTables = {
       const response = await supabase
         .from('cascos_emprestados')
         .select('*');
-      
-      return response as PostgrestResponse<CylinderLoan[]>;
+      return response;
     },
     
     insert: async (data: Partial<CylinderLoan> | Partial<CylinderLoan>[]): Promise<PostgrestResponse<CylinderLoan[]>> => {
       const response = await supabase
         .from('cascos_emprestados')
         .insert(data);
-      
-      return response as PostgrestResponse<CylinderLoan[]>;
+      return response;
     },
     
     update: async (data: Partial<CylinderLoan>): Promise<PostgrestResponse<CylinderLoan[]>> => {
@@ -40,8 +38,7 @@ export const customTables = {
         .from('cascos_emprestados')
         .update(data)
         .eq('id', data.id);
-      
-      return response as PostgrestResponse<CylinderLoan[]>;
+      return response;
     },
     
     delete: async (id: string): Promise<PostgrestResponse<CylinderLoan[]>> => {
@@ -49,8 +46,7 @@ export const customTables = {
         .from('cascos_emprestados')
         .delete()
         .eq('id', id);
-      
-      return response as PostgrestResponse<CylinderLoan[]>;
+      return response;
     },
   },
   
@@ -60,16 +56,14 @@ export const customTables = {
       const response = await supabase
         .from('configuracoes_estoque')
         .select('*');
-      
-      return response as PostgrestResponse<StockConfig[]>;
+      return response;
     },
     
     insert: async (data: Partial<StockConfig> | Partial<StockConfig>[]): Promise<PostgrestResponse<StockConfig[]>> => {
       const response = await supabase
         .from('configuracoes_estoque')
         .insert(data);
-      
-      return response as PostgrestResponse<StockConfig[]>;
+      return response;
     },
     
     update: async (data: Partial<StockConfig>): Promise<PostgrestResponse<StockConfig[]>> => {
@@ -81,8 +75,7 @@ export const customTables = {
         .from('configuracoes_estoque')
         .update(data)
         .eq('id', data.id);
-      
-      return response as PostgrestResponse<StockConfig[]>;
+      return response;
     },
     
     delete: async (id: string): Promise<PostgrestResponse<StockConfig[]>> => {
@@ -90,8 +83,7 @@ export const customTables = {
         .from('configuracoes_estoque')
         .delete()
         .eq('id', id);
-      
-      return response as PostgrestResponse<StockConfig[]>;
+      return response;
     },
   },
   
@@ -101,16 +93,14 @@ export const customTables = {
       const response = await supabase
         .from('requisicoes_estoque')
         .select('*');
-      
-      return response as PostgrestResponse<StockRequest[]>;
+      return response;
     },
     
     insert: async (data: Partial<StockRequest> | Partial<StockRequest>[]): Promise<PostgrestResponse<StockRequest[]>> => {
       const response = await supabase
         .from('requisicoes_estoque')
         .insert(data);
-      
-      return response as PostgrestResponse<StockRequest[]>;
+      return response;
     },
     
     update: async (data: Partial<StockRequest>): Promise<PostgrestResponse<StockRequest[]>> => {
@@ -122,8 +112,7 @@ export const customTables = {
         .from('requisicoes_estoque')
         .update(data)
         .eq('id', data.id);
-      
-      return response as PostgrestResponse<StockRequest[]>;
+      return response;
     },
     
     delete: async (id: string): Promise<PostgrestResponse<StockRequest[]>> => {
@@ -131,19 +120,17 @@ export const customTables = {
         .from('requisicoes_estoque')
         .delete()
         .eq('id', id);
-      
-      return response as PostgrestResponse<StockRequest[]>;
+      return response;
     },
   },
-
-  // Profiles (user profiles)
+  
+  // Profiles
   profiles: {
     select: async (): Promise<PostgrestResponse<Profile[]>> => {
       const response = await supabase
         .from('profiles')
-        .select('id, name, role');
-      
-      return response as PostgrestResponse<Profile[]>;
+        .select('*');
+      return response;
     },
     
     update: async (data: Partial<Profile>): Promise<PostgrestResponse<Profile[]>> => {
@@ -155,8 +142,12 @@ export const customTables = {
         .from('profiles')
         .update(data)
         .eq('id', data.id);
-      
-      return response as PostgrestResponse<Profile[]>;
-    }
+      return response;
+    },
+  },
+
+  // Utility function to clear test data
+  clearTestData: async (): Promise<void> => {
+    await supabase.rpc('clear_test_data');
   }
 };
