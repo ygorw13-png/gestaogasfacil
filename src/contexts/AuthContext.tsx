@@ -2,12 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserRole } from '@/types/userTypes';
-
-interface Organization {
-  id: string;
-  name: string;
-  owner_id: string;
-}
+import { Organization } from '@/types/supabaseTypes';
 
 interface AuthContextType {
   user: User | null;

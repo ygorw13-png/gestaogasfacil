@@ -204,23 +204,55 @@ export type Database = {
         }
         Relationships: []
       }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           id: string
           name: string
+          organization_id: string | null
           role: string
         }
         Insert: {
           id: string
           name: string
+          organization_id?: string | null
           role: string
         }
         Update: {
           id?: string
           name?: string
+          organization_id?: string | null
           role?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       requisicoes_estoque: {
         Row: {

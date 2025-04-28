@@ -1,8 +1,6 @@
 
 import { supabase } from "./client";
 import { CylinderLoan, DbProfile, StockConfig, StockRequest } from "@/types/supabaseTypes";
-import { PostgrestResponse } from "@supabase/supabase-js";
-import { UserRole } from "@/types/userTypes";
 
 // A more type-safe approach for custom tables
 export const customTables = {
@@ -16,10 +14,9 @@ export const customTables = {
     },
     
     insert: async (data: Omit<CylinderLoan, 'id'> | Omit<CylinderLoan, 'id'>[]) => {
-      // Cast the data to match the expected database schema to fix type errors
       const response = await supabase
         .from('cascos_emprestados')
-        .insert(data as any);
+        .insert(data);
       return response;
     },
     
@@ -52,10 +49,9 @@ export const customTables = {
     },
     
     insert: async (data: Omit<StockConfig, 'id'> | Omit<StockConfig, 'id'>[]) => {
-      // Cast the data to match the expected database schema to fix type errors
       const response = await supabase
         .from('configuracoes_estoque')
-        .insert(data as any);
+        .insert(data);
       return response;
     },
     
@@ -88,10 +84,9 @@ export const customTables = {
     },
     
     insert: async (data: Omit<StockRequest, 'id'> | Omit<StockRequest, 'id'>[]) => {
-      // Cast the data to match the expected database schema to fix type errors
       const response = await supabase
         .from('requisicoes_estoque')
-        .insert(data as any);
+        .insert(data);
       return response;
     },
     
@@ -123,7 +118,7 @@ export const customTables = {
       return response;
     },
     
-    // Novo método para selecionar usuários por organização
+    // Método para selecionar usuários por organização
     selectByOrganization: async (organizationId: string) => {
       const response = await supabase
         .from('profiles')
@@ -146,6 +141,7 @@ export const customTables = {
   // Organizations
   organizations: {
     select: async () => {
+      // Using raw query to avoid TypeScript issues with tables not in the types file
       const response = await supabase
         .from('organizations')
         .select('*');
@@ -153,6 +149,7 @@ export const customTables = {
     },
     
     getById: async (id: string) => {
+      // Using raw query to avoid TypeScript issues with tables not in the types file
       const response = await supabase
         .from('organizations')
         .select('*')

@@ -120,13 +120,11 @@ export function UserManagement() {
     setCreatingUser(true);
     try {
       // 1. Verificar se o e-mail já está em uso
-      const { data: existingUsers, error: checkError } = await supabase.auth.admin.listUsers({
-        email: newUserEmail
-      });
-
-      if (checkError) throw checkError;
-
-      if (existingUsers && existingUsers.length > 0) {
+      const { data: existingUsers } = await supabase.auth.admin.listUsers();
+      
+      if (existingUsers?.users && existingUsers.users.some(user => 
+        user.email === newUserEmail || user.user_metadata?.email === newUserEmail
+      )) {
         throw new Error("Este e-mail já está em uso");
       }
 
