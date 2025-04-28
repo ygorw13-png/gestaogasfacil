@@ -2,6 +2,14 @@
 import { supabase } from "./client";
 import { CylinderLoan, StockConfig, StockRequest } from "@/types/supabaseTypes";
 import { PostgrestResponse } from "@supabase/supabase-js";
+import { UserRole } from "@/types/userTypes";
+
+// Interface for profiles
+interface Profile {
+  id: string;
+  name: string;
+  role: UserRole;
+}
 
 // A more type-safe approach for custom tables not in the generated types
 export const customTables = {
@@ -13,7 +21,7 @@ export const customTables = {
         .from('cascos_emprestados' as any)
         .select('*');
       
-      return response as PostgrestResponse<CylinderLoan[]>;
+      return response;
     },
     
     insert: async (data: Partial<CylinderLoan> | Partial<CylinderLoan>[]): Promise<PostgrestResponse<CylinderLoan[]>> => {
@@ -22,7 +30,7 @@ export const customTables = {
         .from('cascos_emprestados' as any)
         .insert(data as any);
       
-      return response as PostgrestResponse<CylinderLoan[]>;
+      return response;
     },
     
     update: async (data: Partial<CylinderLoan>): Promise<PostgrestResponse<CylinderLoan[]>> => {
@@ -36,7 +44,7 @@ export const customTables = {
         .update(data as any)
         .eq('id', data.id);
       
-      return response as PostgrestResponse<CylinderLoan[]>;
+      return response;
     },
     
     delete: async (id: string): Promise<PostgrestResponse<CylinderLoan[]>> => {
@@ -46,7 +54,7 @@ export const customTables = {
         .delete()
         .eq('id', id);
       
-      return response as PostgrestResponse<CylinderLoan[]>;
+      return response;
     },
   },
   
@@ -58,7 +66,7 @@ export const customTables = {
         .from('configuracoes_estoque' as any)
         .select('*');
       
-      return response as PostgrestResponse<StockConfig[]>;
+      return response;
     },
     
     insert: async (data: Partial<StockConfig> | Partial<StockConfig>[]): Promise<PostgrestResponse<StockConfig[]>> => {
@@ -67,7 +75,7 @@ export const customTables = {
         .from('configuracoes_estoque' as any)
         .insert(data as any);
       
-      return response as PostgrestResponse<StockConfig[]>;
+      return response;
     },
     
     update: async (data: Partial<StockConfig>): Promise<PostgrestResponse<StockConfig[]>> => {
@@ -81,7 +89,7 @@ export const customTables = {
         .update(data as any)
         .eq('id', data.id);
       
-      return response as PostgrestResponse<StockConfig[]>;
+      return response;
     },
     
     delete: async (id: string): Promise<PostgrestResponse<StockConfig[]>> => {
@@ -91,7 +99,7 @@ export const customTables = {
         .delete()
         .eq('id', id);
       
-      return response as PostgrestResponse<StockConfig[]>;
+      return response;
     },
   },
   
@@ -103,7 +111,7 @@ export const customTables = {
         .from('requisicoes_estoque' as any)
         .select('*');
       
-      return response as PostgrestResponse<StockRequest[]>;
+      return response;
     },
     
     insert: async (data: Partial<StockRequest> | Partial<StockRequest>[]): Promise<PostgrestResponse<StockRequest[]>> => {
@@ -112,7 +120,7 @@ export const customTables = {
         .from('requisicoes_estoque' as any)
         .insert(data as any);
       
-      return response as PostgrestResponse<StockRequest[]>;
+      return response;
     },
     
     update: async (data: Partial<StockRequest>): Promise<PostgrestResponse<StockRequest[]>> => {
@@ -126,7 +134,7 @@ export const customTables = {
         .update(data as any)
         .eq('id', data.id);
       
-      return response as PostgrestResponse<StockRequest[]>;
+      return response;
     },
     
     delete: async (id: string): Promise<PostgrestResponse<StockRequest[]>> => {
@@ -136,7 +144,32 @@ export const customTables = {
         .delete()
         .eq('id', id);
       
-      return response as PostgrestResponse<StockRequest[]>;
+      return response;
     },
+  },
+
+  // Profiles (user profiles)
+  profiles: {
+    select: async (): Promise<PostgrestResponse<Profile[]>> => {
+      // Use direct supabase query since this is a standard table
+      const response = await supabase
+        .from('profiles')
+        .select('id, name, role');
+      
+      return response as PostgrestResponse<Profile[]>;
+    },
+    
+    update: async (data: Partial<Profile>): Promise<PostgrestResponse<Profile[]>> => {
+      if (!data.id) {
+        throw new Error("ID is required for update operations");
+      }
+      
+      const response = await supabase
+        .from('profiles')
+        .update(data)
+        .eq('id', data.id);
+      
+      return response as PostgrestResponse<Profile[]>;
+    }
   }
 };

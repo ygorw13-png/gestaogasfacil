@@ -4,8 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from '@/integrations/supabase/client';
 import { UserRole, roleLabels } from "@/types/userTypes";
+import { customTables } from "@/integrations/supabase/customClient";
 
 export function UserManagement() {
   const { toast } = useToast();
@@ -19,9 +19,7 @@ export function UserManagement() {
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, name, role');
+        const { data, error } = await customTables.profiles.select();
 
         if (error) {
           throw error;
@@ -57,10 +55,10 @@ export function UserManagement() {
     
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role: selectedRole })
-        .eq('id', selectedUserId);
+      const { error } = await customTables.profiles.update({ 
+        id: selectedUserId,
+        role: selectedRole
+      });
         
       if (error) throw error;
       
