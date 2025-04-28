@@ -3,21 +3,43 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(email, password)) {
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Login realizado com sucesso!",
+        description: "Bem-vindo de volta!"
+      });
+      
       navigate('/');
-    } else {
-      alert('Credenciais inválidas');
+    } catch (error: any) {
+      toast({
+        title: "Erro ao fazer login",
+        description: "Verifique suas credenciais e tente novamente",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,6 +56,7 @@ export default function Login() {
               placeholder="E-mail" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
               required 
             />
             <Input 
@@ -41,9 +64,12 @@ export default function Login() {
               placeholder="Senha" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
               required 
             />
-            <Button type="submit" className="w-full">Entrar</Button>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Entrando..." : "Entrar"}
+            </Button>
           </form>
         </CardContent>
       </Card>
