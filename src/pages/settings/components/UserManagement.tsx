@@ -26,13 +26,18 @@ export function UserManagement() {
           throw error;
         }
         
-        if (data && Array.isArray(data)) {
-          // Convert from DbProfile to our internal user format
-          setUsers(data.map(profile => ({
-            id: profile.id,
-            name: profile.name,
-            role: profile.role as UserRole
-          })));
+        if (data) {
+          // Fix the type issue by properly handling data as an array
+          const profiles = data as unknown as DbProfile[];
+          
+          if (Array.isArray(profiles)) {
+            // Convert from DbProfile to our internal user format
+            setUsers(profiles.map(profile => ({
+              id: profile.id,
+              name: profile.name,
+              role: profile.role as UserRole
+            })));
+          }
         }
       } catch (error) {
         console.error("Erro ao carregar usuários:", error);

@@ -26,8 +26,8 @@ export function StockRequestsList() {
       if (error) throw error;
       
       if (data) {
-        // Fix: Ensure data is treated as an array of StockRequest objects
-        setRequests(Array.isArray(data) ? data : []);
+        // Fix the type issue by directly asserting the type
+        setRequests(data as unknown as StockRequest[]);
       }
     } catch (error: any) {
       console.error("Erro ao buscar requisições:", error);

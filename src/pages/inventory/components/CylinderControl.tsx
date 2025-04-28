@@ -47,8 +47,8 @@ export function CylinderControl() {
       if (error) throw error;
       
       if (data) {
-        // Fix: Ensure data is treated as an array of CylinderLoan objects
-        setLoans(Array.isArray(data) ? data : []);
+        // Fix the type issue by directly asserting the type
+        setLoans(data as unknown as CylinderLoan[]);
       }
     } catch (error) {
       console.error("Erro ao buscar empréstimos:", error);

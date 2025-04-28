@@ -38,20 +38,25 @@ export function StockConfiguration() {
           throw error;
         }
         
-        if (data && Array.isArray(data) && data.length > 0) {
-          // Mapear configurações
-          const p13Setting = data.find(item => item.produto === 'P13');
-          const p20Setting = data.find(item => item.produto === 'P20');
-          const p45Setting = data.find(item => item.produto === 'P45');
-          const aguaSetting = data.find(item => item.produto === 'agua');
+        if (data) {
+          // Fix the type issue by properly handling data as an array
+          const configs = data as unknown as StockConfig[];
           
-          setStoreSettings({
-            p13Min: p13Setting?.estoque_minimo || 20,
-            p20Min: p20Setting?.estoque_minimo || 5,
-            p45Min: p45Setting?.estoque_minimo || 5,
-            aguaMin: aguaSetting?.estoque_minimo || 20,
-            alertsEnabled: p13Setting?.alerta_ativo !== false
-          });
+          if (Array.isArray(configs) && configs.length > 0) {
+            // Mapear configurações
+            const p13Setting = configs.find(item => item.produto === 'P13');
+            const p20Setting = configs.find(item => item.produto === 'P20');
+            const p45Setting = configs.find(item => item.produto === 'P45');
+            const aguaSetting = configs.find(item => item.produto === 'agua');
+            
+            setStoreSettings({
+              p13Min: p13Setting?.estoque_minimo || 20,
+              p20Min: p20Setting?.estoque_minimo || 5,
+              p45Min: p45Setting?.estoque_minimo || 5,
+              aguaMin: aguaSetting?.estoque_minimo || 20,
+              alertsEnabled: p13Setting?.alerta_ativo !== false
+            });
+          }
         }
       } catch (error) {
         console.error("Erro ao carregar configurações de estoque:", error);
