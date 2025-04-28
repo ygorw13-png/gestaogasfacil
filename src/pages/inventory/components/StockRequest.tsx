@@ -109,13 +109,18 @@ export function StockRequest({ onRequestCreated }: StockRequestProps) {
     
     setIsLoading(true);
     try {
+      if (!user?.id) {
+        throw new Error("Usuário não identificado");
+      }
+      
       const { data, error } = await customTables.stockRequests.insert({
-        solicitante_id: user?.id,
+        solicitante_id: user.id,
         status: 'pendente',
         itens,
         observacoes,
         origem,
-        destino
+        destino,
+        data_solicitacao: new Date().toISOString()
       });
         
       if (error) throw error;

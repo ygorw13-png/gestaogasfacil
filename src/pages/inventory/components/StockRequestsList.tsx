@@ -3,13 +3,13 @@ import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { StockRequest } from "@/types/supabaseTypes";
 import { Loader2 } from "lucide-react";
+import { customTables } from "@/integrations/supabase/customClient";
 
 export function StockRequestsList() {
   const { user } = useAuth();
@@ -20,20 +20,12 @@ export function StockRequestsList() {
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      // Use direct query with explicit casting for the join operation
-      const { data, error } = await supabase
-        .from('requisicoes_estoque')
-        .select(`
-          *,
-          solicitante:solicitante_id(name),
-          processador:processado_por(name)
-        `)
-        .order('data_solicitacao', { ascending: false });
+      const { data, error } = await customTables.stockRequests.select();
         
       if (error) throw error;
       
       if (data) {
-        setRequests(data as unknown as StockRequest[]);
+        setRequests(data);
       }
     } catch (error: any) {
       console.error("Erro ao buscar requisições:", error);
@@ -54,15 +46,12 @@ export function StockRequestsList() {
   
   const handleProcessRequest = async (id: string, newStatus: 'aprovada' | 'recusada') => {
     try {
-      // Use type assertion to tell TypeScript this query is valid
-      const { error } = await (supabase
-        .from('requisicoes_estoque')
-        .update({
-          status: newStatus,
-          processado_por: user?.id,
-          data_processamento: new Date().toISOString()
-        })
-        .eq('id', id) as any);
+      const { error } = await customTables.stockRequests.update({
+        id,
+        status: newStatus,
+        processado_por: user?.id,
+        data_processamento: new Date().toISOString()
+      });
         
       if (error) throw error;
       
@@ -147,7 +136,7 @@ export function StockRequestsList() {
                 {requests.map((req) => (
                   <TableRow key={req.id}>
                     <TableCell>{formatDate(req.data_solicitacao)}</TableCell>
-                    <TableCell>{(req as any).solicitante?.name || 'Desconhecido'}</TableCell>
+                    <TableCell>{(req.solicitante as any)?.name || 'Desconhecido'}</TableCell>
                     <TableCell className="capitalize">{req.origem}</TableCell>
                     <TableCell className="capitalize">{req.destino}</TableCell>
                     <TableCell>
