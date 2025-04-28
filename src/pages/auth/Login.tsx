@@ -43,22 +43,6 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google'
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      toast({
-        title: "Erro ao fazer login com Google",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  };
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <Card className="w-full max-w-md">
@@ -85,27 +69,6 @@ export default function Login() {
             />
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}
-            </Button>
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Ou continue com
-                </span>
-              </div>
-            </div>
-
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full"
-              onClick={handleGoogleLogin}
-              disabled={loading}
-            >
-              Google
             </Button>
           </form>
         </CardContent>
