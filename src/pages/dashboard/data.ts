@@ -37,12 +37,11 @@ export const getCurrentStock = async () => {
     }
     
     if (data && data.stock_data) {
-      // Garantir que stock_data é tratado como um objeto com as propriedades esperadas
-      const stockData = data.stock_data as { 
-        p13?: number; 
-        p20?: number; 
-        p45?: number; 
-        water?: number 
+      const stockData = data.stock_data as {
+        p13?: number;
+        p20?: number;
+        p45?: number;
+        water?: number;
       };
       
       return {
@@ -75,8 +74,7 @@ export const getCurrentStock = async () => {
 export const syncStockWithDashboard = async (stock: { p13: number; p20: number; p45: number; water: number }) => {
   try {
     // Pegar o usuário atual
-    const { auth } = supabase;
-    const user = auth.session()?.user;
+    const { data: { user } } = await supabase.auth.getUser();
     
     if (!user || !user.id) {
       console.error("Usuário não autenticado");

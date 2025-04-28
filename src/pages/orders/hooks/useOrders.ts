@@ -29,17 +29,22 @@ export function useOrders() {
 
       const formattedOrders: Order[] = data.map(order => {
         // Certifique-se de que o formato do endereço seja compatível
-        const address = typeof order.address === 'object' && order.address ? {
-          street: String(order.address.street || ''),
-          number: String(order.address.number || ''),
-          complement: order.address.complement ? String(order.address.complement) : undefined,
-          neighborhood: order.address.neighborhood ? String(order.address.neighborhood) : undefined,
-        } : {
+        let address = {
           street: '',
           number: '',
           complement: '',
           neighborhood: '',
         };
+
+        if (typeof order.address === 'object' && order.address) {
+          const addr = order.address as Record<string, any>;
+          address = {
+            street: String(addr.street || ''),
+            number: String(addr.number || ''),
+            complement: addr.complement ? String(addr.complement) : '',
+            neighborhood: addr.neighborhood ? String(addr.neighborhood) : '',
+          };
+        }
 
         return {
           id: order.id,
@@ -103,17 +108,22 @@ export function useOrders() {
       if (error) throw error;
 
       // Formatar o endereço corretamente para o objeto Order
-      const address = typeof data.address === 'object' && data.address ? {
-        street: String(data.address.street || ''),
-        number: String(data.address.number || ''),
-        complement: data.address.complement ? String(data.address.complement) : undefined,
-        neighborhood: data.address.neighborhood ? String(data.address.neighborhood) : undefined,
-      } : {
+      let address = {
         street: '',
         number: '',
         complement: '',
         neighborhood: '',
       };
+
+      if (typeof data.address === 'object' && data.address) {
+        const addr = data.address as Record<string, any>;
+        address = {
+          street: String(addr.street || ''),
+          number: String(addr.number || ''),
+          complement: addr.complement ? String(addr.complement) : '',
+          neighborhood: addr.neighborhood ? String(addr.neighborhood) : '',
+        };
+      }
 
       const newOrder: Order = {
         id: data.id,

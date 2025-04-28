@@ -128,7 +128,6 @@ export function usePromissoryNotes() {
   };
 
   return {
-    // Propriedades básicas
     promissoryNotes,
     loading,
     addPromissoryNote,
@@ -140,7 +139,6 @@ export function usePromissoryNotes() {
       setSelectedNoteId(id);
       handlePayment(0, "");
     },
-    // Propriedades adicionais para Promissory.tsx
     notes: promissoryNotes,
     filteredNotes,
     pendingNotes,
