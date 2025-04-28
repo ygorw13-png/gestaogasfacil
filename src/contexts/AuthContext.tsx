@@ -28,9 +28,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const { data: { user: authUser } } = await supabase.auth.getUser();
         
         if (authUser) {
-          // Buscar perfil do usuário usando RPC para evitar problemas com o types.ts
-          const { data, error } = await supabase
-            .rpc('get_user_profile', { user_id: authUser.id });
+          // Buscar perfil do usuário usando a função RPC
+          const { data, error } = await supabase.functions.invoke('get_user_profile', {
+            body: { user_id: authUser.id }
+          });
 
           if (error) {
             console.error('Erro ao buscar perfil:', error);
@@ -54,9 +55,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Escutar mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        // Buscar perfil do usuário usando RPC para evitar problemas com o types.ts
-        const { data, error } = await supabase
-          .rpc('get_user_profile', { user_id: session.user.id });
+        // Buscar perfil do usuário usando a função RPC
+        const { data, error } = await supabase.functions.invoke('get_user_profile', {
+          body: { user_id: session.user.id }
+        });
         
         if (error) {
           console.error('Erro ao buscar perfil:', error);

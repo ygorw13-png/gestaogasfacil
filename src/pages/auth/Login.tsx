@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -30,9 +29,10 @@ export default function Login() {
       if (error) throw error;
       
       if (user) {
-        // Buscar o perfil do usuário com a role usando RPC para evitar problemas com o types.ts
-        const { data, error: profileError } = await supabase
-          .rpc('get_user_profile', { user_id: user.id });
+        // Buscar o perfil do usuário com a role usando a função RPC
+        const { data, error: profileError } = await supabase.functions.invoke('get_user_profile', {
+          body: { user_id: user.id }
+        });
 
         if (profileError) {
           throw profileError;

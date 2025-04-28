@@ -75,7 +75,7 @@ export function SaleFormContent({ onSubmit, onOpenChange }: SaleFormContentProps
           selectedReseller={selectedReseller}
           onSelectReseller={setSelectedReseller}
           resellers={mockResellers}
-          showPrices={user?.role === 'admin' || user?.role === 'manager'}
+          showPrices={user?.role === 'admin' || user?.role === 'gerente'}
         />
       )}
       
