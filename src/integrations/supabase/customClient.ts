@@ -1,18 +1,34 @@
 
 import { supabase } from "./client";
 import { CylinderLoan, StockConfig, StockRequest } from "@/types/supabaseTypes";
-import { PostgrestFilterBuilder } from "@supabase/supabase-js";
 
 // Creating a custom client that can query tables not in the generated types
 const createCustomQuery = <T>(tableName: string) => {
   return {
-    select: () => supabase.from(tableName) as unknown as PostgrestFilterBuilder<any, any, T[]>,
-    insert: (data: Partial<T> | Partial<T>[]) => 
-      supabase.from(tableName).insert(data) as unknown as PostgrestFilterBuilder<any, any, T[]>,
-    update: (data: Partial<T>) => 
-      supabase.from(tableName).update(data) as unknown as PostgrestFilterBuilder<any, any, T[]>,
-    delete: () => 
-      supabase.from(tableName).delete() as unknown as PostgrestFilterBuilder<any, any, T[]>,
+    select: () => {
+      return supabase.from(tableName).select() as unknown as Promise<{
+        data: T[] | null;
+        error: any;
+      }>;
+    },
+    insert: (data: Partial<T> | Partial<T>[]) => {
+      return supabase.from(tableName).insert(data) as unknown as Promise<{
+        data: T[] | null;
+        error: any;
+      }>;
+    },
+    update: (data: Partial<T>) => {
+      return supabase.from(tableName).update(data) as unknown as Promise<{
+        data: T[] | null;
+        error: any;
+      }>;
+    },
+    delete: () => {
+      return supabase.from(tableName).delete() as unknown as Promise<{
+        data: T[] | null;
+        error: any;
+      }>;
+    },
   };
 };
 

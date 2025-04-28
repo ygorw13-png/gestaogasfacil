@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,20 +20,20 @@ export function StockRequestsList() {
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      // Use type assertion to tell TypeScript this query is valid
-      const { data, error } = await (supabase
+      // Use direct query with explicit casting for the join operation
+      const { data, error } = await supabase
         .from('requisicoes_estoque')
         .select(`
           *,
           solicitante:solicitante_id(name),
           processador:processado_por(name)
         `)
-        .order('data_solicitacao', { ascending: false }) as any);
+        .order('data_solicitacao', { ascending: false });
         
       if (error) throw error;
       
       if (data) {
-        setRequests(data);
+        setRequests(data as unknown as StockRequest[]);
       }
     } catch (error: any) {
       console.error("Erro ao buscar requisições:", error);

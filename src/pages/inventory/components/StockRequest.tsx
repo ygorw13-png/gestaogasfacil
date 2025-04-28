@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,12 +13,14 @@ interface StockRequestProps {
   onRequestCreated: () => void;
 }
 
+type LocationType = "portaria" | "rota" | "estoque";
+
 export function StockRequest({ onRequestCreated }: StockRequestProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [origem, setOrigem] = useState<string>("portaria");
-  const [destino, setDestino] = useState<string>("estoque");
+  const [origem, setOrigem] = useState<LocationType>("portaria");
+  const [destino, setDestino] = useState<LocationType>("estoque");
   const [observacoes, setObservacoes] = useState<string>("");
   const [itens, setItens] = useState<Array<{ produto: string; quantidade: number }>>([
     { produto: "P13", quantidade: 0 }
@@ -108,7 +109,6 @@ export function StockRequest({ onRequestCreated }: StockRequestProps) {
     
     setIsLoading(true);
     try {
-      // Use our custom client for inserting stock requests
       const { data, error } = await customTables.stockRequests.insert({
         solicitante_id: user?.id,
         status: 'pendente',
@@ -150,7 +150,7 @@ export function StockRequest({ onRequestCreated }: StockRequestProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Origem</label>
-            <Select value={origem} onValueChange={setOrigem}>
+            <Select value={origem} onValueChange={(value: LocationType) => setOrigem(value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione a origem" />
               </SelectTrigger>
@@ -164,7 +164,7 @@ export function StockRequest({ onRequestCreated }: StockRequestProps) {
           
           <div className="space-y-2">
             <label className="text-sm font-medium">Destino</label>
-            <Select value={destino} onValueChange={setDestino}>
+            <Select value={destino} onValueChange={(value: LocationType) => setDestino(value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o destino" />
               </SelectTrigger>

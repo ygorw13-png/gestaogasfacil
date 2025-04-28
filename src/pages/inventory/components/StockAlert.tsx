@@ -28,7 +28,7 @@ export function StockAlert({ currentStock }: StockAlertProps) {
         if (error) throw error;
         
         if (data) {
-          setStockConfigs(data as StockConfig[]);
+          setStockConfigs(data);
         }
       } catch (error) {
         console.error("Erro ao buscar configurações de estoque:", error);

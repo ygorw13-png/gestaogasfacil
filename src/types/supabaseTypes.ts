@@ -23,6 +23,8 @@ export interface StockRequest {
   observacoes?: string;
   origem: 'portaria' | 'rota' | 'estoque';
   destino: 'portaria' | 'rota' | 'estoque';
+  solicitante?: { name: string };
+  processador?: { name: string };
 }
 
 export interface CylinderLoan {
