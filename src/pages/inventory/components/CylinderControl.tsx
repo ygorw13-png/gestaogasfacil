@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { CylinderLoan } from "@/types/supabaseTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
+import { CylinderLoan } from "@/types/supabaseTypes";
+import { customTables } from "@/integrations/supabase/customClient";
 
 export function CylinderControl() {
   const { user } = useAuth();
@@ -49,16 +49,13 @@ export function CylinderControl() {
   const fetchLoans = async () => {
     setLoadingLoans(true);
     try {
-      // Use type assertion to tell TypeScript this query is valid
-      const { data, error } = await (supabase
-        .from('cascos_emprestados')
-        .select('*, registrado_por(name)')
-        .order('data_emprestimo', { ascending: false }) as any);
+      const { data, error } = await customTables.cylinderLoans.select()
+        .select('*, registrado_por(name)');
         
       if (error) throw error;
       
       if (data) {
-        setLoans(data);
+        setLoans(data as CylinderLoan[]);
       }
     } catch (error) {
       console.error("Erro ao buscar empréstimos:", error);
@@ -79,17 +76,14 @@ export function CylinderControl() {
 
     setLoading(true);
     try {
-      // Use type assertion to tell TypeScript this query is valid
-      const { error } = await (supabase
-        .from('cascos_emprestados')
-        .insert({
-          cliente_id: clientId,
-          tipo_cliente: tipoCliente,
-          tipo_vasilhame: tipoVasilhame,
-          quantidade,
-          status: 'emprestado',
-          registrado_por: user?.id
-        }) as any);
+      const { error } = await customTables.cylinderLoans.insert({
+        cliente_id: clientId,
+        tipo_cliente: tipoCliente,
+        tipo_vasilhame: tipoVasilhame,
+        quantidade,
+        status: 'emprestado',
+        registrado_por: user?.id || ""
+      });
         
       if (error) throw error;
       
@@ -130,24 +124,20 @@ export function CylinderControl() {
     try {
       if (returnQty === currentQty) {
         // Se a quantidade for igual, marcar como devolvido totalmente
-        const { error } = await (supabase
-          .from('cascos_emprestados')
-          .update({
-            status: 'devolvido',
-            data_devolucao: new Date().toISOString()
-          })
-          .eq('id', loanId) as any);
+        const { error } = await customTables.cylinderLoans.update({
+          id: loanId,
+          status: 'devolvido',
+          data_devolucao: new Date().toISOString()
+        });
           
         if (error) throw error;
       } else {
         // Se for devolução parcial, diminuir a quantidade e mudar o status
-        const { error } = await (supabase
-          .from('cascos_emprestados')
-          .update({
-            quantidade: currentQty - returnQty,
-            status: 'parcial'
-          })
-          .eq('id', loanId) as any);
+        const { error } = await customTables.cylinderLoans.update({
+          id: loanId,
+          quantidade: currentQty - returnQty,
+          status: 'parcial'
+        });
           
         if (error) throw error;
       }

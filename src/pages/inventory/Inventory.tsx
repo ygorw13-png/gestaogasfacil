@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import InventoryTable from "./InventoryTable";
+import InventoryTable, { InventoryItem } from "./InventoryTable";
 import { StockAlert } from "./components/StockAlert";
 import { StockRequest } from "./components/StockRequest";
 import { StockRequestsList } from "./components/StockRequestsList";
@@ -42,7 +42,7 @@ export default function Inventory() {
   };
 
   // Prepare inventory table props
-  const inventoryData = [
+  const inventoryData: InventoryItem[] = [
     { id: 1, product: "GLP P13", stock: currentStock.p13, category: "GLP", min_stock: 20 },
     { id: 2, product: "GLP P20", stock: currentStock.p20, category: "GLP", min_stock: 5 },
     { id: 3, product: "GLP P45", stock: currentStock.p45, category: "GLP", min_stock: 5 },

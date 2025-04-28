@@ -20,13 +20,17 @@ import { MoreHorizontal, ArrowUp, ArrowDown, X, Edit } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
-interface InventoryItem {
+export interface InventoryItem {
   id: number;
-  type: string;
-  status: string;
-  location: string;
-  quantity: number;
-  lastUpdate: string;
+  product: string;
+  stock: number;
+  category: string;
+  min_stock: number;
+  type?: string; // Make optional since we're not using it now
+  status?: string; // Make optional since we're not using it now
+  location?: string; // Make optional since we're not using it now
+  quantity?: number; // Make optional since we're not using it now (we use stock instead)
+  lastUpdate?: string; // Make optional since we're not using it now
 }
 
 interface InventoryTableProps {
@@ -42,9 +46,10 @@ export default function InventoryTable({ data, filterText }: InventoryTableProps
     const searchTermLower = filterText.toLowerCase();
     
     return (
-      item.type.toLowerCase().includes(searchTermLower) ||
-      item.status.toLowerCase().includes(searchTermLower) ||
-      item.location.toLowerCase().includes(searchTermLower)
+      item.product.toLowerCase().includes(searchTermLower) ||
+      (item.status && item.status.toLowerCase().includes(searchTermLower)) ||
+      (item.location && item.location.toLowerCase().includes(searchTermLower)) ||
+      item.category.toLowerCase().includes(searchTermLower)
     );
   });
 
@@ -53,19 +58,19 @@ export default function InventoryTable({ data, filterText }: InventoryTableProps
       case "edit":
         toast({
           title: "Editar item",
-          description: `Editando ${item.type} ${item.status} em ${item.location}`,
+          description: `Editando ${item.product} em ${item.location || 'estoque'}`,
         });
         break;
       case "transfer":
         toast({
           title: "Transferir item",
-          description: `Preparando para transferir ${item.type} ${item.status}`,
+          description: `Preparando para transferir ${item.product}`,
         });
         break;
       case "remove":
         toast({
           title: "Remover item",
-          description: `Item removido: ${item.type} ${item.status}`,
+          description: `Item removido: ${item.product}`,
           variant: "destructive",
         });
         break;
@@ -74,7 +79,8 @@ export default function InventoryTable({ data, filterText }: InventoryTableProps
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "-";
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
@@ -85,7 +91,9 @@ export default function InventoryTable({ data, filterText }: InventoryTableProps
     }).format(date);
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status?: string) => {
+    if (!status) return "bg-gray-100 text-gray-800";
+    
     switch (status.toLowerCase()) {
       case "cheio":
         return "bg-green-100 text-green-800";
@@ -98,7 +106,8 @@ export default function InventoryTable({ data, filterText }: InventoryTableProps
     }
   };
 
-  const getLocationIcon = (location: string) => {
+  const getLocationIcon = (location?: string) => {
+    if (!location) return null;
     if (location.toLowerCase() === "pátio") {
       return <ArrowUp size={14} />;
     } else {
@@ -128,21 +137,27 @@ export default function InventoryTable({ data, filterText }: InventoryTableProps
         ) : (
           filteredData.map((item) => (
             <TableRow key={item.id}>
-              <TableCell className="font-medium">{item.type}</TableCell>
+              <TableCell className="font-medium">{item.product}</TableCell>
               <TableCell>
-                <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(item.status)}`}>
-                  {item.status}
-                </span>
+                {item.status ? (
+                  <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(item.status)}`}>
+                    {item.status}
+                  </span>
+                ) : (
+                  <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                    Disponível
+                  </span>
+                )}
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   {getLocationIcon(item.location)}
-                  <span>{item.location}</span>
+                  <span>{item.location || "Estoque"}</span>
                 </div>
               </TableCell>
-              <TableCell className="text-right">{item.quantity}</TableCell>
+              <TableCell className="text-right">{item.stock}</TableCell>
               <TableCell className="text-sm text-muted-foreground">
-                {formatDate(item.lastUpdate)}
+                {formatDate(item.lastUpdate) || "N/A"}
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>

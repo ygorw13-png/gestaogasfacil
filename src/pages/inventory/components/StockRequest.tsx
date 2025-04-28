@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Trash } from "lucide-react";
+import { customTables } from "@/integrations/supabase/customClient";
 
 interface StockRequestProps {
   onRequestCreated: () => void;
@@ -62,7 +61,6 @@ export function StockRequest({ onRequestCreated }: StockRequestProps) {
       return false;
     }
     
-    // Verificar se origem e destino são diferentes
     if (origem === destino) {
       toast({
         title: "Erro",
@@ -72,7 +70,6 @@ export function StockRequest({ onRequestCreated }: StockRequestProps) {
       return false;
     }
     
-    // Verificar se há itens e se as quantidades são válidas
     if (itens.length === 0) {
       toast({
         title: "Erro",
@@ -110,17 +107,14 @@ export function StockRequest({ onRequestCreated }: StockRequestProps) {
     
     setIsLoading(true);
     try {
-      // Use type casting to tell TypeScript this query is valid
-      const { data, error } = await (supabase
-        .from('requisicoes_estoque')
-        .insert({
-          solicitante_id: user?.id,
-          status: 'pendente',
-          itens,
-          observacoes,
-          origem,
-          destino
-        }) as any);
+      const { data, error } = await customTables.stockRequests.insert({
+        solicitante_id: user?.id,
+        status: 'pendente',
+        itens,
+        observacoes,
+        origem,
+        destino
+      });
         
       if (error) throw error;
       

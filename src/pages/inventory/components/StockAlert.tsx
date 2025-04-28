@@ -1,10 +1,9 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { StockConfig } from "@/types/supabaseTypes";
+import { customTables } from "@/integrations/supabase/customClient";
 
 interface StockAlertProps {
   currentStock: {
@@ -22,15 +21,12 @@ export function StockAlert({ currentStock }: StockAlertProps) {
   useEffect(() => {
     const fetchStockConfigs = async () => {
       try {
-        // Use the type cast to tell TypeScript this query is valid
-        const { data, error } = await supabase
-          .from('configuracoes_estoque')
-          .select('*') as { data: StockConfig[] | null, error: any };
+        const { data, error } = await customTables.stockConfig.select();
         
         if (error) throw error;
         
         if (data) {
-          setStockConfigs(data);
+          setStockConfigs(data as StockConfig[]);
         }
       } catch (error) {
         console.error("Erro ao buscar configurações de estoque:", error);
