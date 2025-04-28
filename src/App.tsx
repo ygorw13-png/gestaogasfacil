@@ -17,6 +17,8 @@ import Expenses from "./pages/finance/Expenses";
 import Settings from "./pages/settings/Settings";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import ResetPassword from "./pages/auth/ResetPassword";
 import RoutesPage from "./pages/routes/RoutesPage";
 import Fleet from "./pages/fleet/Fleet";
 
@@ -45,6 +47,8 @@ const App = () => (
         <BrowserRouter>
           <RouterRoutes>
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/" element={<AppLayout />}>
               <Route 
                 index 
