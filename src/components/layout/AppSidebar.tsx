@@ -1,3 +1,4 @@
+
 import { useLocation, Link } from "react-router-dom";
 import { 
   Home, 
@@ -43,7 +44,7 @@ export function AppSidebar() {
     { title: "Frota", path: "/fleet", icon: Car },
   ];
 
-  // Itens do menu apenas para admin e manager
+  // Itens do menu apenas para admin e gerente
   const adminMenuItems = [
     { title: "Estoque", path: "/inventory", icon: Box },
     { title: "Rotas", path: "/routes", icon: MapPin },
@@ -53,7 +54,7 @@ export function AppSidebar() {
   // Combina os menus baseado no papel do usuário
   const menuItems = [
     ...baseMenuItems,
-    ...(user?.role === 'admin' || user?.role === 'manager' ? adminMenuItems : [])
+    ...(user?.role === 'admin' || user?.role === 'gerente' ? adminMenuItems : [])
   ];
 
   return (

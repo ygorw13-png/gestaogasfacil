@@ -7,8 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-
-export type UserRole = 'admin' | 'gerente' | 'portaria' | 'estoque' | 'vendedor' | 'entregador';
+import { UserRole } from '@/types/userTypes';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -31,32 +30,29 @@ export default function Login() {
       if (error) throw error;
       
       if (user) {
-        // Buscar o perfil do usuário com a role
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('name, role')
-          .eq('id', user.id)
-          .single();
+        // Buscar o perfil do usuário com a role usando RPC para evitar problemas com o types.ts
+        const { data, error: profileError } = await supabase
+          .rpc('get_user_profile', { user_id: user.id });
 
         if (profileError) {
           throw profileError;
         }
 
-        if (profile) {
+        if (data) {
           // Atualizar o contexto de autenticação com os dados do usuário
           updateUserData({
             id: user.id,
-            name: profile.name,
-            role: profile.role as UserRole
+            name: data.name,
+            role: data.role as UserRole
           });
 
           toast({
             title: "Login realizado com sucesso!",
-            description: `Bem-vindo(a) ${profile.name}!`
+            description: `Bem-vindo(a) ${data.name}!`
           });
           
           // Redirecionar baseado na role
-          switch (profile.role) {
+          switch (data.role) {
             case 'portaria':
               navigate('/entrance');
               break;

@@ -12,8 +12,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 export default function RoutesPage() {
   const { user } = useAuth();
   
-  // Verificamos se o usuário tem permissão (apenas admin ou manager)
-  if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+  // Verificamos se o usuário tem permissão (apenas admin ou gerente)
+  if (!user || (user.role !== 'admin' && user.role !== 'gerente')) {
     return <Navigate to="/" replace />;
   }
 

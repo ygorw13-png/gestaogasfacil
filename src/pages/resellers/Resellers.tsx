@@ -25,7 +25,7 @@ export default function Resellers() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { user } = useAuth();
   
-  const canManageResellers = user?.role === 'admin' || user?.role === 'manager';
+  const canManageResellers = user?.role === 'admin' || user?.role === 'gerente';
   
   const handleAddReseller = (reseller: any) => {
     const newReseller = {

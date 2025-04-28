@@ -4,13 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { UserRole, roleLabels } from "@/types/userTypes";
 
 export default function Settings() {
-  const { user, updateUserPermissions } = useAuth();
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'manager' | 'operator'>(user?.role || 'operator');
+  const { user } = useAuth();
+  const [selectedRole, setSelectedRole] = useState<UserRole>(user?.role || 'vendedor');
 
   const handleUpdateRole = () => {
-    updateUserPermissions(selectedRole);
+    // Esta funcionalidade será implementada futuramente
+    alert(`Função de atualização de permissão para ${roleLabels[selectedRole]} será implementada em breve.`);
   };
 
   return (
@@ -32,21 +34,24 @@ export default function Settings() {
             <div className="flex items-center space-x-4">
               <Select 
                 value={selectedRole} 
-                onValueChange={(value: 'admin' | 'manager' | 'operator') => setSelectedRole(value)}
+                onValueChange={(value: UserRole) => setSelectedRole(value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um nível de acesso" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="manager">Gerente</SelectItem>
-                  <SelectItem value="operator">Operador</SelectItem>
+                  <SelectItem value="gerente">Gerente</SelectItem>
+                  <SelectItem value="vendedor">Vendedor</SelectItem>
+                  <SelectItem value="portaria">Portaria</SelectItem>
+                  <SelectItem value="estoque">Estoque</SelectItem>
+                  <SelectItem value="entregador">Entregador</SelectItem>
                 </SelectContent>
               </Select>
               <Button onClick={handleUpdateRole}>Atualizar Permissão</Button>
             </div>
             <p className="text-sm text-muted-foreground mt-2">
-              Nível de acesso atual: {user?.role}
+              Nível de acesso atual: {user?.role ? roleLabels[user.role] : ''}
             </p>
           </div>
           

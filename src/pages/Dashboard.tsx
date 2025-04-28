@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,7 +20,7 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState(overviewData);
   const [loading, setLoading] = useState(true);
 
-  const hasFullAccess = user?.role === 'admin' || user?.role === 'manager';
+  const hasFullAccess = user?.role === 'admin' || user?.role === 'gerente';
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -93,14 +92,12 @@ export default function Dashboard() {
 
       {loading ? (
         <div className="space-y-4">
-          {/* Skeleton para os cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {Array(4).fill(0).map((_, i) => (
               <Skeleton key={i} className="h-32" />
             ))}
           </div>
           
-          {/* Skeleton para os gráficos */}
           <div className="grid gap-4 md:grid-cols-2">
             <Skeleton className="h-80" />
             <Skeleton className="h-80" />

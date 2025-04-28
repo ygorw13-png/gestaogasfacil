@@ -1,13 +1,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { UserRole } from '@/pages/auth/Login';
-
-interface User {
-  id: string;
-  name: string;
-  role: UserRole;
-}
+import { User, UserRole } from '@/types/userTypes';
 
 interface AuthContextType {
   user: User | null;
@@ -34,18 +28,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const { data: { user: authUser } } = await supabase.auth.getUser();
         
         if (authUser) {
-          // Buscar perfil do usuário
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('name, role')
-            .eq('id', authUser.id)
-            .single();
+          // Buscar perfil do usuário usando RPC para evitar problemas com o types.ts
+          const { data, error } = await supabase
+            .rpc('get_user_profile', { user_id: authUser.id });
 
-          if (profile) {
+          if (error) {
+            console.error('Erro ao buscar perfil:', error);
+          } else if (data) {
             setUser({
               id: authUser.id,
-              name: profile.name,
-              role: profile.role as UserRole
+              name: data.name,
+              role: data.role as UserRole
             });
           }
         }
@@ -61,17 +54,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Escutar mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('name, role')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profile) {
+        // Buscar perfil do usuário usando RPC para evitar problemas com o types.ts
+        const { data, error } = await supabase
+          .rpc('get_user_profile', { user_id: session.user.id });
+        
+        if (error) {
+          console.error('Erro ao buscar perfil:', error);
+        } else if (data) {
           setUser({
             id: session.user.id,
-            name: profile.name,
-            role: profile.role as UserRole
+            name: data.name,
+            role: data.role as UserRole
           });
         }
       } else if (event === 'SIGNED_OUT') {

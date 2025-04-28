@@ -1,5 +1,5 @@
 
-import { Bell, User, Menu, LogOut } from "lucide-react";
+import { Bell, Menu, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,28 +14,15 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
+import { roleColors, roleLabels } from "@/types/userTypes";
 
 export function TopBar() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   
   const handleLogout = () => {
-    logout();
+    signOut();
     navigate('/login');
-  };
-
-  // Mapeamento de roles para exibição em português
-  const roleLabels = {
-    admin: 'Administrador',
-    manager: 'Gerente',
-    operator: 'Operador'
-  };
-
-  // Mapeamento de roles para cores
-  const roleColors = {
-    admin: 'bg-red-100 text-red-800 hover:bg-red-200',
-    manager: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
-    operator: 'bg-green-100 text-green-800 hover:bg-green-200'
   };
 
   return (
