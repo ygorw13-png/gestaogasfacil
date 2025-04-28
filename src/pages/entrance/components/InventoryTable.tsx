@@ -4,7 +4,7 @@ import { CheckCircle, XCircle } from "lucide-react";
 import { InventoryTableProps, InventoryMovement } from "../types/cashierTypes";
 import { useState, useEffect } from "react";
 
-export const InventoryTable = ({ data }: InventoryTableProps) => {
+export const InventoryTable = ({ data, inventoryMovements }: InventoryTableProps) => {
   const [loans, setLoans] = useState<{ [key: string]: number }>({});
   const [returns, setReturns] = useState<{ [key: string]: number }>({});
 
@@ -17,15 +17,14 @@ export const InventoryTable = ({ data }: InventoryTableProps) => {
 
   useEffect(() => {
     // Calculate loans and returns from inventory movements
-    const movements = 'inventoryMovements' in data ? data.inventoryMovements : [];
-    if (movements && movements.length > 0) {
+    if (inventoryMovements && inventoryMovements.length > 0) {
       const newLoans: { [key: string]: number } = {};
       const newReturns: { [key: string]: number } = {};
 
-      movements.forEach((movement: InventoryMovement) => {
+      inventoryMovements.forEach((movement: InventoryMovement) => {
         if (movement.type === 'loan') {
           newLoans[movement.product] = (newLoans[movement.product] || 0) + movement.quantity;
-        } else {
+        } else if (movement.type === 'return') {
           newReturns[movement.product] = (newReturns[movement.product] || 0) + movement.quantity;
         }
       });
@@ -33,7 +32,7 @@ export const InventoryTable = ({ data }: InventoryTableProps) => {
       setLoans(newLoans);
       setReturns(newReturns);
     }
-  }, [data]);
+  }, [inventoryMovements]);
 
   return (
     <div className="space-y-4">
