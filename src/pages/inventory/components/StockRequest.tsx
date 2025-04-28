@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,106 +8,127 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Label } from "@/components/ui/label";
-import { Plus, Minus } from "lucide-react";
+import { Trash } from "lucide-react";
 
 interface StockRequestProps {
   onRequestCreated: () => void;
 }
 
-interface RequestItem {
-  id: string;
-  product: string;
-  quantity: number;
-}
-
 export function StockRequest({ onRequestCreated }: StockRequestProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [origem, setOrigem] = useState<string>("estoque");
-  const [destino, setDestino] = useState<string>("portaria");
+  
+  const [origem, setOrigem] = useState<string>("portaria");
+  const [destino, setDestino] = useState<string>("estoque");
   const [observacoes, setObservacoes] = useState<string>("");
-  const [items, setItems] = useState<RequestItem[]>([
-    { id: "1", product: "P13", quantity: 1 }
+  const [itens, setItens] = useState<Array<{ produto: string; quantidade: number }>>([
+    { produto: "P13", quantidade: 0 }
   ]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleAddItem = () => {
-    const newId = String(items.length + 1);
-    setItems([...items, { id: newId, product: "P13", quantity: 1 }]);
+    setItens([...itens, { produto: "P13", quantidade: 0 }]);
   };
 
-  const handleRemoveItem = (id: string) => {
-    if (items.length > 1) {
-      setItems(items.filter(item => item.id !== id));
-    }
+  const handleRemoveItem = (index: number) => {
+    setItens(itens.filter((_, i) => i !== index));
   };
 
-  const handleItemChange = (id: string, field: 'product' | 'quantity', value: string | number) => {
-    setItems(items.map(item => 
-      item.id === id ? { ...item, [field]: value } : item
-    ));
+  const handleItemChange = (index: number, field: 'produto' | 'quantidade', value: string | number) => {
+    const newItens = [...itens];
+    newItens[index] = {
+      ...newItens[index],
+      [field]: field === 'quantidade' ? Number(value) : value
+    };
+    setItens(newItens);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!user) {
+  const validateForm = () => {
+    if (!origem) {
       toast({
-        title: "Erro",
-        description: "Usuário não autenticado",
+        title: "Campo obrigatório",
+        description: "Selecione a origem",
         variant: "destructive"
       });
-      return;
+      return false;
     }
     
+    if (!destino) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Selecione o destino",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    // Verificar se origem e destino são diferentes
     if (origem === destino) {
       toast({
         title: "Erro",
-        description: "Origem e destino não podem ser os mesmos",
+        description: "Origem e destino devem ser diferentes",
         variant: "destructive"
       });
-      return;
+      return false;
     }
     
-    if (items.some(item => item.quantity <= 0)) {
+    // Verificar se há itens e se as quantidades são válidas
+    if (itens.length === 0) {
       toast({
         title: "Erro",
-        description: "Quantidade deve ser maior que zero",
+        description: "Adicione pelo menos um item",
         variant: "destructive"
       });
-      return;
+      return false;
     }
     
-    setLoading(true);
+    for (let i = 0; i < itens.length; i++) {
+      if (!itens[i].produto) {
+        toast({
+          title: "Campo obrigatório",
+          description: `Selecione o produto no item ${i + 1}`,
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      if (!itens[i].quantidade || itens[i].quantidade <= 0) {
+        toast({
+          title: "Quantidade inválida",
+          description: `A quantidade deve ser maior que 0 no item ${i + 1}`,
+          variant: "destructive"
+        });
+        return false;
+      }
+    }
     
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+    
+    setIsLoading(true);
     try {
-      const { error } = await supabase
+      // Use type casting to tell TypeScript this query is valid
+      const { data, error } = await (supabase
         .from('requisicoes_estoque')
         .insert({
-          solicitante_id: user.id,
+          solicitante_id: user?.id,
           status: 'pendente',
-          itens: items.map(item => ({ 
-            produto: item.product, 
-            quantidade: item.quantity 
-          })),
+          itens,
           observacoes,
           origem,
           destino
-        });
-      
+        }) as any);
+        
       if (error) throw error;
       
       toast({
-        title: "Requisição enviada",
-        description: "Sua requisição foi enviada com sucesso"
+        title: "Requisição criada",
+        description: "Sua requisição de estoque foi enviada com sucesso"
       });
       
-      // Reset form
-      setObservacoes("");
-      setItems([{ id: "1", product: "P13", quantity: 1 }]);
-      
-      // Callback
       onRequestCreated();
       
     } catch (error: any) {
@@ -117,122 +138,113 @@ export function StockRequest({ onRequestCreated }: StockRequestProps) {
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <Card className="border-green-100">
+    <Card>
       <CardHeader>
         <CardTitle>Nova Requisição de Estoque</CardTitle>
+        <CardDescription>
+          Solicite transferência de produtos entre setores
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Origem</Label>
-              <Select 
-                value={origem} 
-                onValueChange={setOrigem}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a origem" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="estoque">Estoque Central</SelectItem>
-                  <SelectItem value="portaria">Portaria</SelectItem>
-                  <SelectItem value="rota">Rota</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Destino</Label>
-              <Select 
-                value={destino} 
-                onValueChange={setDestino}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o destino" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="estoque">Estoque Central</SelectItem>
-                  <SelectItem value="portaria">Portaria</SelectItem>
-                  <SelectItem value="rota">Rota</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Origem</label>
+            <Select value={origem} onValueChange={setOrigem}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a origem" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="portaria">Portaria</SelectItem>
+                <SelectItem value="rota">Rota</SelectItem>
+                <SelectItem value="estoque">Estoque</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="space-y-2">
-            <Label>Itens</Label>
-            {items.map((item) => (
-              <div key={item.id} className="flex items-center space-x-2 my-2">
-                <Select
-                  value={item.product}
-                  onValueChange={(value) => handleItemChange(item.id, 'product', value)}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Selecione o produto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="P13">GLP P13</SelectItem>
-                    <SelectItem value="P20">GLP P20</SelectItem>
-                    <SelectItem value="P45">GLP P45</SelectItem>
-                    <SelectItem value="agua">Água 20L</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <Input
-                  type="number"
-                  min="1"
-                  value={item.quantity}
-                  onChange={(e) => handleItemChange(item.id, 'quantity', parseInt(e.target.value) || 0)}
-                  className="w-24"
-                />
-                
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleRemoveItem(item.id)}
-                  disabled={items.length <= 1}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-            
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm"
-              className="mt-2"
-              onClick={handleAddItem}
-            >
-              <Plus className="h-4 w-4 mr-1" /> Adicionar Item
+            <label className="text-sm font-medium">Destino</label>
+            <Select value={destino} onValueChange={setDestino}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o destino" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="portaria">Portaria</SelectItem>
+                <SelectItem value="rota">Rota</SelectItem>
+                <SelectItem value="estoque">Estoque</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium">Itens</label>
+            <Button type="button" variant="outline" onClick={handleAddItem} size="sm">
+              Adicionar Item
             </Button>
           </div>
           
-          <div className="space-y-2">
-            <Label>Observações</Label>
-            <Textarea 
-              value={observacoes}
-              onChange={(e) => setObservacoes(e.target.value)}
-              placeholder="Observações sobre esta requisição"
-              className="resize-none"
-              rows={3}
-            />
-          </div>
-          
-          <Button 
-            type="submit" 
-            className="w-full bg-green-600 hover:bg-green-700 text-white" 
-            disabled={loading}
-          >
-            {loading ? "Enviando..." : "Enviar Requisição"}
-          </Button>
-        </form>
+          {itens.map((item, index) => (
+            <div key={index} className="flex gap-2 items-center">
+              <Select 
+                value={item.produto} 
+                onValueChange={(value) => handleItemChange(index, 'produto', value)}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Produto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="P13">GLP P13</SelectItem>
+                  <SelectItem value="P20">GLP P20</SelectItem>
+                  <SelectItem value="P45">GLP P45</SelectItem>
+                  <SelectItem value="agua">Água 20L</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Input 
+                type="number"
+                value={item.quantidade}
+                onChange={(e) => handleItemChange(index, 'quantidade', e.target.value)}
+                placeholder="Quantidade" 
+                min="1"
+                className="w-24"
+              />
+              
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => handleRemoveItem(index)}
+                disabled={itens.length === 1}
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+        
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Observações</label>
+          <Textarea 
+            placeholder="Informações adicionais sobre a requisição..."
+            value={observacoes}
+            onChange={(e) => setObservacoes(e.target.value)}
+          />
+        </div>
+        
+        <Button 
+          type="button" 
+          className="w-full bg-green-600 hover:bg-green-700 text-white"
+          onClick={handleSubmit}
+          disabled={isLoading}
+        >
+          {isLoading ? "Enviando..." : "Enviar Requisição"}
+        </Button>
       </CardContent>
     </Card>
   );

@@ -35,14 +35,14 @@ export default function Register() {
       if (authError) throw authError;
       
       if (authData?.user) {
-        // 2. Criar o perfil do usuário
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
+        // 2. Criar o perfil do usuário usando a RPC function
+        const { error: profileError } = await supabase.functions.invoke('create_profile', {
+          body: {
+            user_id: authData.user.id,
             name,
             role: 'vendedor' // Role padrão para novos usuários
-          });
+          }
+        });
 
         if (profileError) throw profileError;
 

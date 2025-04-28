@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { StockConfig } from "@/types/supabaseTypes";
 
 interface StockAlertProps {
   currentStock: {
@@ -14,12 +15,6 @@ interface StockAlertProps {
   };
 }
 
-interface StockConfig {
-  produto: string;
-  estoque_minimo: number;
-  alerta_ativo: boolean;
-}
-
 export function StockAlert({ currentStock }: StockAlertProps) {
   const [stockConfigs, setStockConfigs] = useState<StockConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,9 +22,10 @@ export function StockAlert({ currentStock }: StockAlertProps) {
   useEffect(() => {
     const fetchStockConfigs = async () => {
       try {
+        // Use the type cast to tell TypeScript this query is valid
         const { data, error } = await supabase
           .from('configuracoes_estoque')
-          .select('*');
+          .select('*') as { data: StockConfig[] | null, error: any };
         
         if (error) throw error;
         

@@ -7,6 +7,7 @@ import InventoryTable from "./InventoryTable";
 import { StockAlert } from "./components/StockAlert";
 import { StockRequest } from "./components/StockRequest";
 import { StockRequestsList } from "./components/StockRequestsList";
+import { CylinderControl } from "./components/CylinderControl";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Inventory() {
@@ -40,6 +41,14 @@ export default function Inventory() {
     setActiveTab("requests");
   };
 
+  // Prepare inventory table props
+  const inventoryData = [
+    { id: 1, product: "GLP P13", stock: currentStock.p13, category: "GLP", min_stock: 20 },
+    { id: 2, product: "GLP P20", stock: currentStock.p20, category: "GLP", min_stock: 5 },
+    { id: 3, product: "GLP P45", stock: currentStock.p45, category: "GLP", min_stock: 5 },
+    { id: 4, product: "Água 20L", stock: currentStock.water, category: "Água", min_stock: 20 }
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
@@ -60,15 +69,19 @@ export default function Inventory() {
       <StockAlert currentStock={currentStock} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="inventory">Inventário</TabsTrigger>
           <TabsTrigger value="requests">Requisições</TabsTrigger>
           <TabsTrigger value="newRequest">Nova Requisição</TabsTrigger>
+          <TabsTrigger value="cylinders">Vasilhames</TabsTrigger>
         </TabsList>
         
         <TabsContent value="inventory" className="space-y-4">
           <div className="space-y-4 mt-4">
-            <InventoryTable />
+            <InventoryTable 
+              data={inventoryData} 
+              filterText="" 
+            />
           </div>
         </TabsContent>
         
@@ -78,6 +91,10 @@ export default function Inventory() {
         
         <TabsContent value="newRequest" className="space-y-4">
           <StockRequest onRequestCreated={handleRequestCreated} />
+        </TabsContent>
+
+        <TabsContent value="cylinders" className="space-y-4">
+          <CylinderControl />
         </TabsContent>
       </Tabs>
     </div>
