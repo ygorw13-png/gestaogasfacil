@@ -16,21 +16,19 @@ export const customTables = {
   // Cylinder loans
   cylinderLoans: {
     select: async (): Promise<PostgrestResponse<CylinderLoan[]>> => {
-      // Use 'as any' to bypass the type checking for the table name
       const response = await supabase
-        .from('cascos_emprestados' as any)
+        .from('cascos_emprestados')
         .select('*');
       
-      return response;
+      return response as PostgrestResponse<CylinderLoan[]>;
     },
     
     insert: async (data: Partial<CylinderLoan> | Partial<CylinderLoan>[]): Promise<PostgrestResponse<CylinderLoan[]>> => {
-      // Use 'as any' to bypass the type checking for the table name and data
       const response = await supabase
-        .from('cascos_emprestados' as any)
-        .insert(data as any);
+        .from('cascos_emprestados')
+        .insert(data);
       
-      return response;
+      return response as PostgrestResponse<CylinderLoan[]>;
     },
     
     update: async (data: Partial<CylinderLoan>): Promise<PostgrestResponse<CylinderLoan[]>> => {
@@ -38,44 +36,40 @@ export const customTables = {
         throw new Error("ID is required for update operations");
       }
       
-      // Use 'as any' to bypass the type checking for the table name and data
       const response = await supabase
-        .from('cascos_emprestados' as any)
-        .update(data as any)
+        .from('cascos_emprestados')
+        .update(data)
         .eq('id', data.id);
       
-      return response;
+      return response as PostgrestResponse<CylinderLoan[]>;
     },
     
     delete: async (id: string): Promise<PostgrestResponse<CylinderLoan[]>> => {
-      // Use 'as any' to bypass the type checking for the table name
       const response = await supabase
-        .from('cascos_emprestados' as any)
+        .from('cascos_emprestados')
         .delete()
         .eq('id', id);
       
-      return response;
+      return response as PostgrestResponse<CylinderLoan[]>;
     },
   },
   
   // Stock configuration
   stockConfig: {
     select: async (): Promise<PostgrestResponse<StockConfig[]>> => {
-      // Use 'as any' to bypass the type checking for the table name
       const response = await supabase
-        .from('configuracoes_estoque' as any)
+        .from('configuracoes_estoque')
         .select('*');
       
-      return response;
+      return response as PostgrestResponse<StockConfig[]>;
     },
     
     insert: async (data: Partial<StockConfig> | Partial<StockConfig>[]): Promise<PostgrestResponse<StockConfig[]>> => {
-      // Use 'as any' to bypass the type checking for the table name and data
       const response = await supabase
-        .from('configuracoes_estoque' as any)
-        .insert(data as any);
+        .from('configuracoes_estoque')
+        .insert(data);
       
-      return response;
+      return response as PostgrestResponse<StockConfig[]>;
     },
     
     update: async (data: Partial<StockConfig>): Promise<PostgrestResponse<StockConfig[]>> => {
@@ -83,44 +77,40 @@ export const customTables = {
         throw new Error("ID is required for update operations");
       }
       
-      // Use 'as any' to bypass the type checking for the table name and data
       const response = await supabase
-        .from('configuracoes_estoque' as any)
-        .update(data as any)
+        .from('configuracoes_estoque')
+        .update(data)
         .eq('id', data.id);
       
-      return response;
+      return response as PostgrestResponse<StockConfig[]>;
     },
     
     delete: async (id: string): Promise<PostgrestResponse<StockConfig[]>> => {
-      // Use 'as any' to bypass the type checking for the table name
       const response = await supabase
-        .from('configuracoes_estoque' as any)
+        .from('configuracoes_estoque')
         .delete()
         .eq('id', id);
       
-      return response;
+      return response as PostgrestResponse<StockConfig[]>;
     },
   },
   
   // Stock requests
   stockRequests: {
     select: async (): Promise<PostgrestResponse<StockRequest[]>> => {
-      // Use 'as any' to bypass the type checking for the table name
       const response = await supabase
-        .from('requisicoes_estoque' as any)
+        .from('requisicoes_estoque')
         .select('*');
       
-      return response;
+      return response as PostgrestResponse<StockRequest[]>;
     },
     
     insert: async (data: Partial<StockRequest> | Partial<StockRequest>[]): Promise<PostgrestResponse<StockRequest[]>> => {
-      // Use 'as any' to bypass the type checking for the table name and data
       const response = await supabase
-        .from('requisicoes_estoque' as any)
-        .insert(data as any);
+        .from('requisicoes_estoque')
+        .insert(data);
       
-      return response;
+      return response as PostgrestResponse<StockRequest[]>;
     },
     
     update: async (data: Partial<StockRequest>): Promise<PostgrestResponse<StockRequest[]>> => {
@@ -128,30 +118,27 @@ export const customTables = {
         throw new Error("ID is required for update operations");
       }
       
-      // Use 'as any' to bypass the type checking for the table name and data
       const response = await supabase
-        .from('requisicoes_estoque' as any)
-        .update(data as any)
+        .from('requisicoes_estoque')
+        .update(data)
         .eq('id', data.id);
       
-      return response;
+      return response as PostgrestResponse<StockRequest[]>;
     },
     
     delete: async (id: string): Promise<PostgrestResponse<StockRequest[]>> => {
-      // Use 'as any' to bypass the type checking for the table name
       const response = await supabase
-        .from('requisicoes_estoque' as any)
+        .from('requisicoes_estoque')
         .delete()
         .eq('id', id);
       
-      return response;
+      return response as PostgrestResponse<StockRequest[]>;
     },
   },
 
   // Profiles (user profiles)
   profiles: {
     select: async (): Promise<PostgrestResponse<Profile[]>> => {
-      // Use direct supabase query since this is a standard table
       const response = await supabase
         .from('profiles')
         .select('id, name, role');

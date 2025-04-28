@@ -47,7 +47,7 @@ export function CylinderControl() {
       if (error) throw error;
       
       if (data) {
-        setLoans(data);
+        setLoans(data || []);
       }
     } catch (error) {
       console.error("Erro ao buscar empréstimos:", error);

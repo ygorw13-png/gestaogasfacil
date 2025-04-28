@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -22,13 +21,12 @@ export function StockAlert({ currentStock }: StockAlertProps) {
   useEffect(() => {
     const fetchStockConfigs = async () => {
       try {
-        // Use our custom client to query stock configurations
         const { data, error } = await customTables.stockConfig.select();
         
         if (error) throw error;
         
         if (data) {
-          setStockConfigs(data);
+          setStockConfigs(data || []);
         }
       } catch (error) {
         console.error("Erro ao buscar configurações de estoque:", error);
@@ -45,7 +43,6 @@ export function StockAlert({ currentStock }: StockAlertProps) {
     
     const alerts = [];
     
-    // Verificar P13
     const p13Config = stockConfigs.find(config => config.produto === 'P13');
     if (p13Config && p13Config.alerta_ativo && currentStock.p13 < p13Config.estoque_minimo) {
       alerts.push({
@@ -55,7 +52,6 @@ export function StockAlert({ currentStock }: StockAlertProps) {
       });
     }
     
-    // Verificar P20
     const p20Config = stockConfigs.find(config => config.produto === 'P20');
     if (p20Config && p20Config.alerta_ativo && currentStock.p20 < p20Config.estoque_minimo) {
       alerts.push({
@@ -65,7 +61,6 @@ export function StockAlert({ currentStock }: StockAlertProps) {
       });
     }
     
-    // Verificar P45
     const p45Config = stockConfigs.find(config => config.produto === 'P45');
     if (p45Config && p45Config.alerta_ativo && currentStock.p45 < p45Config.estoque_minimo) {
       alerts.push({
@@ -75,7 +70,6 @@ export function StockAlert({ currentStock }: StockAlertProps) {
       });
     }
     
-    // Verificar Água
     const aguaConfig = stockConfigs.find(config => config.produto === 'agua');
     if (aguaConfig && aguaConfig.alerta_ativo && currentStock.water < aguaConfig.estoque_minimo) {
       alerts.push({

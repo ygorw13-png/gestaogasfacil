@@ -26,7 +26,7 @@ export function StockRequestsList() {
       if (error) throw error;
       
       if (data) {
-        setRequests(data);
+        setRequests(data || []);
       }
     } catch (error: any) {
       console.error("Erro ao buscar requisições:", error);
