@@ -3,8 +3,15 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserRole } from '@/types/userTypes';
 
+interface Organization {
+  id: string;
+  name: string;
+  owner_id: string;
+}
+
 interface AuthContextType {
   user: User | null;
+  organization: Organization | null;
   loading: boolean;
   updateUserData: (userData: User) => void;
   signOut: () => Promise<void>;
@@ -12,6 +19,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  organization: null,
   loading: true,
   updateUserData: () => {},
   signOut: async () => {},
@@ -19,6 +27,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,6 +50,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               name: data.name || authUser.user_metadata?.name || 'Usuário',
               role: data.role as UserRole
             });
+
+            if (data.organizations) {
+              setOrganization(data.organizations);
+            }
           }
         }
       } catch (error) {
@@ -68,9 +81,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             name: data.name || session.user.user_metadata?.name || 'Usuário',
             role: data.role as UserRole
           });
+
+          if (data.organizations) {
+            setOrganization(data.organizations);
+          }
         }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setOrganization(null);
       }
     });
 
@@ -86,10 +104,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setOrganization(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, updateUserData, signOut }}>
+    <AuthContext.Provider value={{ user, organization, loading, updateUserData, signOut }}>
       {children}
     </AuthContext.Provider>
   );

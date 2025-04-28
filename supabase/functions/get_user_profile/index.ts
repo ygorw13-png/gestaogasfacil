@@ -38,10 +38,17 @@ serve(async (req) => {
       )
     }
 
-    // Get the user profile
+    // Buscar o perfil do usuário com as informações da organização
     const { data, error } = await supabaseClient
       .from('profiles')
-      .select('*')
+      .select(`
+        *,
+        organizations:organization_id (
+          id,
+          name,
+          owner_id
+        )
+      `)
       .eq('id', user_id)
       .single()
 

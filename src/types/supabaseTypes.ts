@@ -1,4 +1,3 @@
-
 import { Json } from "@/integrations/supabase/types";
 
 export interface StockConfig {
@@ -82,4 +81,12 @@ export interface DbProfile {
   id: string;
   name: string;
   role: string;
+  organization_id?: string; // ID da organização à qual o usuário pertence
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  owner_id: string;
+  created_at: string;
 }

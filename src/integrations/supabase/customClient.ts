@@ -123,6 +123,15 @@ export const customTables = {
       return response;
     },
     
+    // Novo método para selecionar usuários por organização
+    selectByOrganization: async (organizationId: string) => {
+      const response = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('organization_id', organizationId);
+      return response;
+    },
+    
     update: async (data: Partial<DbProfile> & { id: string }) => {
       const { id, ...updateData } = data;
       
@@ -132,6 +141,25 @@ export const customTables = {
         .eq('id', id);
       return response;
     },
+  },
+
+  // Organizations
+  organizations: {
+    select: async () => {
+      const response = await supabase
+        .from('organizations')
+        .select('*');
+      return response;
+    },
+    
+    getById: async (id: string) => {
+      const response = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', id)
+        .single();
+      return response;
+    }
   },
 
   // Utility function to clear test data

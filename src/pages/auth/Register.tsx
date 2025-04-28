@@ -21,7 +21,19 @@ export default function Register() {
     setLoading(true);
 
     try {
-      // 1. Registrar o usuário
+      // 1. Verificar se o email já está registrado
+      const { data: existingUsers, error: checkError } = await supabase.auth.admin.listUsers({
+        email: email
+      });
+
+      if (checkError) {
+        console.warn("Não foi possível verificar se o email já existe:", checkError);
+        // Continuamos mesmo com erro, a verificação será feita no signup
+      } else if (existingUsers && existingUsers.length > 0) {
+        throw new Error("Este email já está registrado. Por favor, faça login ou use outro email.");
+      }
+
+      // 2. Registrar o usuário
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -35,12 +47,13 @@ export default function Register() {
       if (authError) throw authError;
       
       if (authData?.user) {
-        // 2. Criar o perfil do usuário usando a RPC function
+        // 3. Criar o perfil do usuário e organização usando a RPC function
+        // Não passamos created_by_admin ou organization_id, então a função
+        // criará uma nova organização e configurará o usuário como admin
         const { error: profileError } = await supabase.functions.invoke('create_profile', {
           body: {
             user_id: authData.user.id,
-            name,
-            role: 'vendedor' // Role padrão para novos usuários
+            name
           }
         });
 

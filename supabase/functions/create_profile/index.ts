@@ -24,12 +24,12 @@ serve(async (req) => {
       }
     )
 
-    const { user_id, name, role } = await req.json()
+    const { user_id, name, role, created_by_admin, organization_id } = await req.json()
 
-    if (!user_id || !name || !role) {
+    if (!user_id || !name) {
       return new Response(
         JSON.stringify({
-          error: "Missing required fields: user_id, name, and role are required."
+          error: "Missing required fields: user_id and name are required."
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -38,19 +38,48 @@ serve(async (req) => {
       )
     }
 
+    // Se o usuário for criado por um admin, usamos o organization_id fornecido,
+    // caso contrário, criamos uma nova organização para este usuário
+    let userOrganizationId = organization_id;
+    
+    if (!created_by_admin) {
+      // Criar uma nova organização para este usuário, que será o administrador
+      const organizationName = `${name}'s Organization`;
+      
+      const { data: org, error: orgError } = await supabaseClient
+        .from('organizations')
+        .insert({
+          name: organizationName,
+          owner_id: user_id
+        })
+        .select('id')
+        .single();
+
+      if (orgError) throw orgError;
+      userOrganizationId = org.id;
+    }
+
+    // Determinar a role do usuário
+    // Se for criado por um admin, usamos a role fornecida, se não, é 'admin'
+    const userRole = created_by_admin ? role : 'admin';
+
     // Insert the new profile
     const { error } = await supabaseClient
       .from('profiles')
       .insert({
         id: user_id,
         name,
-        role
+        role: userRole,
+        organization_id: userOrganizationId
       })
 
     if (error) throw error
 
     return new Response(
-      JSON.stringify({ message: "Profile created successfully" }),
+      JSON.stringify({ 
+        message: "Profile created successfully",
+        organization_id: userOrganizationId
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
