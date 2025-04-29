@@ -22,10 +22,14 @@ export default function Register() {
 
     try {
       // 1. Verificar se o email já está registrado
-      const { data: existingUsers } = await supabase.auth.admin.listUsers();
+      const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers();
 
-      if (existingUsers?.users && existingUsers.users.some(user => 
-        user.email === email || user.user_metadata?.email === email
+      if (listError) {
+        console.error("Erro ao verificar usuários:", listError);
+      } else if (existingUsers?.users && existingUsers.users.some(user => 
+        // Verifica no email diretamente e nos metadados
+        user.email === email || 
+        (user.user_metadata && typeof user.user_metadata === 'object' && 'email' in user.user_metadata && user.user_metadata.email === email)
       )) {
         throw new Error("Este email já está registrado. Por favor, faça login ou use outro email.");
       }

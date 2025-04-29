@@ -9,13 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ColaboradorSelect } from "@/components/inputs/ColaboradorSelect";
 
 interface AssignOrderDialogProps {
   isOpen: boolean;
@@ -23,7 +17,6 @@ interface AssignOrderDialogProps {
   selectedDeliveryPerson: string;
   onDeliveryPersonChange: (value: string) => void;
   onSubmit: () => void;
-  deliveryStaff: Array<{ id: string; name: string; }>;
 }
 
 export function AssignOrderDialog({
@@ -32,7 +25,6 @@ export function AssignOrderDialog({
   selectedDeliveryPerson,
   onDeliveryPersonChange,
   onSubmit,
-  deliveryStaff,
 }: AssignOrderDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -46,21 +38,12 @@ export function AssignOrderDialog({
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="deliveryPerson">Entregador</Label>
-            <Select 
+            <ColaboradorSelect 
               value={selectedDeliveryPerson} 
               onValueChange={onDeliveryPersonChange}
-            >
-              <SelectTrigger id="deliveryPerson">
-                <SelectValue placeholder="Selecione o entregador" />
-              </SelectTrigger>
-              <SelectContent>
-                {deliveryStaff.map((staff) => (
-                  <SelectItem key={staff.id} value={staff.name}>
-                    {staff.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              cargo="Entregador"
+              placeholder="Selecione o entregador"
+            />
           </div>
         </div>
         <DialogFooter>

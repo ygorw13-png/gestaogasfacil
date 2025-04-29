@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +11,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { mockVehicles, mockEmployees, mockAssignments } from "../../data";
+import { mockVehicles, mockAssignments } from "../../data";
+import { ColaboradorSelect } from "@/components/inputs/ColaboradorSelect";
+import { customTables } from "@/integrations/supabase/customClient";
+import { Colaborador } from "@/types/supabaseTypes";
 
 const assignmentSchema = z.object({
   vehicleId: z.string().min(1, "Veículo é obrigatório"),
@@ -51,44 +55,50 @@ export default function NewAssignmentForm({ onSuccess, assignment, isEditing = f
     },
   });
 
-  const onSubmit = (data: z.infer<typeof assignmentSchema>) => {
-    if (isEditing && assignment) {
-      const assignmentIndex = mockAssignments.findIndex(a => a.id === assignment.id);
+  const onSubmit = async (data: z.infer<typeof assignmentSchema>) => {
+    try {
+      // Obter nome do funcionário (Colaborador) pelo ID
+      const { data: colaboradorData } = await customTables.colaboradores.getById(data.employeeId);
+      const colaborador = colaboradorData as Colaborador | null;
       
-      if (assignmentIndex !== -1) {
-        const vehicle = mockVehicles.find(v => v.id === data.vehicleId);
-        const employee = mockEmployees.find(e => e.id === data.employeeId);
+      if (isEditing && assignment) {
+        const assignmentIndex = mockAssignments.findIndex(a => a.id === assignment.id);
         
-        mockAssignments[assignmentIndex] = {
-          ...mockAssignments[assignmentIndex],
+        if (assignmentIndex !== -1) {
+          const vehicle = mockVehicles.find(v => v.id === data.vehicleId);
+          
+          mockAssignments[assignmentIndex] = {
+            ...mockAssignments[assignmentIndex],
+            vehicleId: data.vehicleId,
+            vehiclePlate: vehicle?.plate || 'Desconhecido',
+            employeeId: data.employeeId,
+            employeeName: colaborador?.nome || 'Desconhecido',
+            startDate: data.startDate,
+            endDate: data.endDate,
+            isActive: data.endDate ? new Date() < data.endDate : true
+          };
+        }
+      } else {
+        const vehicle = mockVehicles.find(v => v.id === data.vehicleId);
+        
+        const newAssignment = {
+          id: `assignment-${Date.now()}`,
           vehicleId: data.vehicleId,
           vehiclePlate: vehicle?.plate || 'Desconhecido',
           employeeId: data.employeeId,
-          employeeName: employee?.name || 'Desconhecido',
+          employeeName: colaborador?.nome || 'Desconhecido',
           startDate: data.startDate,
           endDate: data.endDate,
           isActive: data.endDate ? new Date() < data.endDate : true
         };
+        
+        mockAssignments.push(newAssignment);
       }
-    } else {
-      const vehicle = mockVehicles.find(v => v.id === data.vehicleId);
-      const employee = mockEmployees.find(e => e.id === data.employeeId);
       
-      const newAssignment = {
-        id: `assignment-${Date.now()}`,
-        vehicleId: data.vehicleId,
-        vehiclePlate: vehicle?.plate || 'Desconhecido',
-        employeeId: data.employeeId,
-        employeeName: employee?.name || 'Desconhecido',
-        startDate: data.startDate,
-        endDate: data.endDate,
-        isActive: data.endDate ? new Date() < data.endDate : true
-      };
-      
-      mockAssignments.push(newAssignment);
+      onSuccess();
+    } catch (error) {
+      console.error("Erro ao processar designação:", error);
     }
-    
-    onSuccess();
   };
 
   return (
@@ -125,20 +135,13 @@ export default function NewAssignmentForm({ onSuccess, assignment, isEditing = f
           render={({ field }) => (
             <FormItem>
               <FormLabel>Funcionário</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o funcionário" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {mockEmployees.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.id}>
-                      {employee.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <ColaboradorSelect 
+                  value={field.value} 
+                  onValueChange={field.onChange}
+                  placeholder="Selecione o funcionário"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

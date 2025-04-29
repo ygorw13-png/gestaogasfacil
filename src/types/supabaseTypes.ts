@@ -91,3 +91,17 @@ export interface Organization {
   owner_id: string;
   created_at: string;
 }
+
+export interface Colaborador {
+  id: string;
+  nome: string;
+  cargo: string;
+  telefone?: string;
+  cpf?: string;
+  data_admissao: string;
+  situacao: 'ativo' | 'inativo';
+  observacoes?: string;
+  organization_id: string;
+  criado_em: string;
+  atualizado_em: string;
+}

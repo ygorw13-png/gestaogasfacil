@@ -1,108 +1,158 @@
 
-import { useLocation, Link } from "react-router-dom";
-import { 
-  Home, 
-  Box, 
-  Store, 
-  Users, 
-  FileText, 
-  DollarSign, 
-  Settings,
-  Truck,
-  MapPin,
-  Tags,
-  Car
-} from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-} from "@/components/ui/sidebar";
+import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  BarChart3,
+  ShoppingCart,
+  CalendarCheck,
+  Users,
+  FileBarChart,
+  ReceiptText,
+  Truck,
+  Settings,
+  LucideIcon,
+  Package,
+  DollarSign,
+  Briefcase,
+} from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-export function AppSidebar() {
-  const location = useLocation();
+interface SidebarLinkProps {
+  to: string;
+  icon: LucideIcon;
+  label: string;
+  className?: string;
+}
+
+const SidebarLink = ({ to, icon: Icon, label, className }: SidebarLinkProps) => {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) => 
+        cn(
+          "flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-muted-foreground hover:text-foreground",
+          isActive ? "text-foreground bg-accent" : "hover:bg-muted",
+          className
+        )
+      }
+    >
+      <Icon className="h-4 w-4" />
+      <span>{label}</span>
+    </NavLink>
+  );
+};
+
+export default function AppSidebar() {
   const { user } = useAuth();
   
-  // Itens do menu baseados na permissão
-  const baseMenuItems = [
-    { title: "Dashboard", path: "/", icon: Home },
-    { title: "Portaria", path: "/entrance", icon: Store },
-    { title: "Pedidos", path: "/orders", icon: Truck },
-    { title: "Clientes", path: "/clients", icon: Users },
-    { title: "Agregados", path: "/resellers", icon: Tags },
-    { title: "Promissórias", path: "/promissory", icon: FileText },
-    { title: "Despesas", path: "/expenses", icon: DollarSign },
-    { title: "Frota", path: "/fleet", icon: Car },
-  ];
-
-  // Itens do menu apenas para admin e gerente
-  const adminMenuItems = [
-    { title: "Estoque", path: "/inventory", icon: Box },
-    { title: "Rotas", path: "/routes", icon: MapPin },
-    { title: "Configurações", path: "/settings", icon: Settings },
-  ];
-
-  // Combina os menus baseado no papel do usuário
-  const menuItems = [
-    ...baseMenuItems,
-    ...(user?.role === 'admin' || user?.role === 'gerente' ? adminMenuItems : [])
-  ];
+  if (!user) return null;
 
   return (
-    <Sidebar>
-      <SidebarHeader className="flex items-center justify-center p-2">
-        <div className="flex items-center gap-2 pl-2">
-          <div className="bg-gasflow-600 text-white p-1.5 rounded-md">
-            <Box size={20} className="text-white" />
-          </div>
-          <span className="font-bold text-lg text-gasflow-700">
-            GasFlow Aqua
-          </span>
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => {
-                const isActive = location.pathname === item.path;
-                return (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton asChild>
-                      <Link
-                        to={item.path}
-                        className={cn(
-                          "flex items-center gap-3",
-                          isActive && "font-medium"
-                        )}
-                      >
-                        <item.icon size={20} />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter className="py-4 px-3 text-xs text-muted-foreground">
-        <div className="text-center">
-          <p>GasFlow Aqua Manager v1.0</p>
-          <p>© 2025 Todos os direitos reservados</p>
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+    <aside className="hidden md:flex flex-col w-64 border-r h-screen fixed">
+      <div className="p-4">
+        <h2 className="text-xl font-bold tracking-tight">GasFlow Aqua</h2>
+        <p className="text-sm text-muted-foreground">Gestão Completa para seu negócio</p>
+      </div>
+      <Separator />
+      <nav className="flex-1 overflow-auto p-4 space-y-2">
+        <SidebarLink to="/dashboard" icon={BarChart3} label="Dashboard" />
+        <SidebarLink to="/clients" icon={Users} label="Clientes" />
+        <SidebarLink to="/colaboradores" icon={Briefcase} label="Colaboradores" />
+        
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="orders" className="border-none">
+            <AccordionTrigger className="py-2 hover:bg-muted rounded-lg px-3 hover:no-underline">
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <ShoppingCart className="h-4 w-4" />
+                <span>Pedidos</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pl-9 space-y-2">
+              <NavLink
+                to="/orders"
+                className={({ isActive }) => 
+                  cn(
+                    "block rounded-lg px-3 py-2 transition-all text-muted-foreground hover:text-foreground",
+                    isActive ? "text-foreground bg-accent" : "hover:bg-muted"
+                  )
+                }
+              >
+                Lista de Pedidos
+              </NavLink>
+              <NavLink
+                to="/orders/map"
+                className={({ isActive }) => 
+                  cn(
+                    "block rounded-lg px-3 py-2 transition-all text-muted-foreground hover:text-foreground",
+                    isActive ? "text-foreground bg-accent" : "hover:bg-muted"
+                  )
+                }
+              >
+                Mapa de Entregas
+              </NavLink>
+            </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="entrance" className="border-none">
+            <AccordionTrigger className="py-2 hover:bg-muted rounded-lg px-3 hover:no-underline">
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <DollarSign className="h-4 w-4" />
+                <span>Portaria</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pl-9 space-y-2">
+              <NavLink
+                to="/entrance"
+                className={({ isActive }) => 
+                  cn(
+                    "block rounded-lg px-3 py-2 transition-all text-muted-foreground hover:text-foreground",
+                    isActive ? "text-foreground bg-accent" : "hover:bg-muted"
+                  )
+                }
+                end
+              >
+                Vendas
+              </NavLink>
+              <NavLink
+                to="/entrance/history"
+                className={({ isActive }) => 
+                  cn(
+                    "block rounded-lg px-3 py-2 transition-all text-muted-foreground hover:text-foreground",
+                    isActive ? "text-foreground bg-accent" : "hover:bg-muted"
+                  )
+                }
+              >
+                Histórico
+              </NavLink>
+              <NavLink
+                to="/entrance/cashier"
+                className={({ isActive }) => 
+                  cn(
+                    "block rounded-lg px-3 py-2 transition-all text-muted-foreground hover:text-foreground",
+                    isActive ? "text-foreground bg-accent" : "hover:bg-muted"
+                  )
+                }
+              >
+                Fechamento
+              </NavLink>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+        
+        <SidebarLink to="/inventory" icon={Package} label="Estoque" />
+        <SidebarLink to="/promissory" icon={ReceiptText} label="Promissórias" />
+        <SidebarLink to="/routes" icon={Truck} label="Rotas" />
+        <SidebarLink to="/resellers" icon={CalendarCheck} label="Revendedores" />
+        <SidebarLink to="/fleet" icon={Truck} label="Frota" />
+        <SidebarLink to="/finance/expenses" icon={FileBarChart} label="Finanças" />
+      </nav>
+      <div className="p-4">
+        <Separator className="my-2" />
+        <SidebarLink to="/settings" icon={Settings} label="Configurações" className="mt-2" />
+      </div>
+    </aside>
   );
 }

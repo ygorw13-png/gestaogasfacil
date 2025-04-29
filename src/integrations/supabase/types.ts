@@ -87,6 +87,56 @@ export type Database = {
         }
         Relationships: []
       }
+      colaboradores: {
+        Row: {
+          atualizado_em: string
+          cargo: string
+          cpf: string | null
+          criado_em: string
+          data_admissao: string
+          id: string
+          nome: string
+          observacoes: string | null
+          organization_id: string
+          situacao: string
+          telefone: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          cargo: string
+          cpf?: string | null
+          criado_em?: string
+          data_admissao: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          organization_id: string
+          situacao?: string
+          telefone?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          cargo?: string
+          cpf?: string | null
+          criado_em?: string
+          data_admissao?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          organization_id?: string
+          situacao?: string
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "colaboradores_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       configuracoes_estoque: {
         Row: {
           alerta_ativo: boolean

@@ -1,6 +1,6 @@
 
 import { supabase } from "./client";
-import { CylinderLoan, DbProfile, StockConfig, StockRequest } from "@/types/supabaseTypes";
+import { CylinderLoan, DbProfile, StockConfig, StockRequest, Colaborador } from "@/types/supabaseTypes";
 
 // A more type-safe approach for custom tables
 export const customTables = {
@@ -13,7 +13,7 @@ export const customTables = {
       return response;
     },
     
-    insert: async (data: Omit<CylinderLoan, 'id'> | Omit<CylinderLoan, 'id'>[]) => {
+    insert: async (data: Omit<CylinderLoan, 'id'>) => {
       const response = await supabase
         .from('cascos_emprestados')
         .insert(data);
@@ -48,7 +48,7 @@ export const customTables = {
       return response;
     },
     
-    insert: async (data: Omit<StockConfig, 'id'> | Omit<StockConfig, 'id'>[]) => {
+    insert: async (data: Omit<StockConfig, 'id'>) => {
       const response = await supabase
         .from('configuracoes_estoque')
         .insert(data);
@@ -83,7 +83,7 @@ export const customTables = {
       return response;
     },
     
-    insert: async (data: Omit<StockRequest, 'id'> | Omit<StockRequest, 'id'>[]) => {
+    insert: async (data: Omit<StockRequest, 'id'>) => {
       const response = await supabase
         .from('requisicoes_estoque')
         .insert(data);
@@ -103,6 +103,58 @@ export const customTables = {
     delete: async (id: string) => {
       const response = await supabase
         .from('requisicoes_estoque')
+        .delete()
+        .eq('id', id);
+      return response;
+    },
+  },
+  
+  // Colaboradores
+  colaboradores: {
+    select: async () => {
+      const response = await supabase
+        .from('colaboradores')
+        .select('*');
+      return response;
+    },
+    
+    selectAtivos: async () => {
+      const response = await supabase
+        .from('colaboradores')
+        .select('*')
+        .eq('situacao', 'ativo');
+      return response;
+    },
+    
+    getById: async (id: string) => {
+      const response = await supabase
+        .from('colaboradores')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      return response;
+    },
+    
+    insert: async (data: Omit<Colaborador, 'id' | 'criado_em' | 'atualizado_em'>) => {
+      const response = await supabase
+        .from('colaboradores')
+        .insert(data);
+      return response;
+    },
+    
+    update: async (data: Partial<Colaborador> & { id: string }) => {
+      const { id, ...updateData } = data;
+      
+      const response = await supabase
+        .from('colaboradores')
+        .update(updateData)
+        .eq('id', id);
+      return response;
+    },
+    
+    delete: async (id: string) => {
+      const response = await supabase
+        .from('colaboradores')
         .delete()
         .eq('id', id);
       return response;

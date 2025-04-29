@@ -1,208 +1,90 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes as RouterRoutes, Route, Navigate, useLocation } from "react-router-dom";
-import { AppLayout } from "./components/layout/AppLayout";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import Dashboard from "./pages/Dashboard";
-import Inventory from "./pages/inventory/Inventory";
-import EntranceSales from "./pages/entrance/EntranceSales";
-import SalesHistory from "./pages/entrance/SalesHistory";
-import Orders from "./pages/orders/Orders";
-import Clients from "./pages/clients/Clients";
-import Resellers from "./pages/resellers/Resellers";
-import Promissory from "./pages/promissory/Promissory";
-import Expenses from "./pages/finance/Expenses";
-import Settings from "./pages/settings/Settings";
-import NotFound from "./pages/NotFound";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import AppLayout from "./components/layout/AppLayout";
+
+// Pages
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ResetPassword from "./pages/auth/ResetPassword";
+import NotFound from "./pages/NotFound";
+import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
+import Clients from "./pages/clients/Clients";
+import Orders from "./pages/orders/Orders";
+import OrderDetails from "./pages/orders/OrderDetails";
+import NewOrderForm from "./pages/orders/NewOrderForm";
+import OrdersMap from "./pages/orders/OrdersMap";
+import EntranceSales from "./pages/entrance/EntranceSales";
+import NewSaleForm from "./pages/entrance/NewSaleForm";
+import SalesHistory from "./pages/entrance/SalesHistory";
+import CashierClosing from "./pages/entrance/CashierClosing";
+import Inventory from "./pages/inventory/Inventory";
+import Promissory from "./pages/promissory/Promissory";
 import RoutesPage from "./pages/routes/RoutesPage";
+import Resellers from "./pages/resellers/Resellers";
 import Fleet from "./pages/fleet/Fleet";
-import { useEffect } from "react";
+import Settings from "./pages/settings/Settings";
+import Expenses from "./pages/finance/Expenses";
+import Colaboradores from "./pages/colaboradores/Colaboradores";
 
-const queryClient = new QueryClient();
+import { Toaster } from "@/components/ui/sonner";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const PrivateRoute = ({ children, requiredRole }: { children: React.ReactNode, requiredRole?: 'admin' | 'manager' }) => {
-  const { user, loading } = useAuth();
-  const location = useLocation();
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-  // Se ainda estiver carregando, poderia mostrar um spinner ou tela de loading
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
-  }
+function App() {
+  const navigate = useNavigate();
 
-  // Se não estiver logado, redireciona para a página de login
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
+  const goToPage = (path: string) => {
+    navigate(path);
+  };
 
-  // Se precisar de uma role específica e o usuário não tiver, redireciona
-  if (requiredRole && user.role !== requiredRole) {
-    return <Navigate to="/" replace />;
-  }
-
-  // Se estiver tudo ok, renderiza o componente filho
-  return <>{children}</>;
-};
-
-// Componente para redirecionar usuários já logados para a página inicial
-const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-  
-  // Se ainda estiver carregando, pode mostrar um spinner
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
-  }
-
-  // Se já estiver logado, redireciona para a página inicial
-  if (user) {
-    return <Navigate to="/" replace />;
-  }
-
-  // Se não estiver logado, renderiza o componente filho (página de login, registro, etc)
-  return <>{children}</>;
-};
-
-const App = () => (
-  <AuthProvider>
+  return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <RouterRoutes>
-            <Route 
-              path="/login" 
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              } 
-            />
-            <Route 
-              path="/register" 
-              element={
-                <PublicRoute>
-                  <Register />
-                </PublicRoute>
-              } 
-            />
-            <Route 
-              path="/reset-password" 
-              element={
-                <PublicRoute>
-                  <ResetPassword />
-                </PublicRoute>
-              } 
-            />
-            <Route path="/" element={<AppLayout />}>
-              <Route 
-                index 
-                element={
-                  <PrivateRoute>
-                    <Dashboard />
-                  </PrivateRoute>
-                } 
-              />
-              <Route 
-                path="inventory" 
-                element={
-                  <PrivateRoute requiredRole="admin">
-                    <Inventory />
-                  </PrivateRoute>
-                } 
-              />
-              <Route 
-                path="entrance" 
-                element={
-                  <PrivateRoute>
-                    <EntranceSales />
-                  </PrivateRoute>
-                } 
-              />
-              <Route 
-                path="entrance/sales" 
-                element={
-                  <PrivateRoute>
-                    <SalesHistory />
-                  </PrivateRoute>
-                } 
-              />
-              <Route 
-                path="orders" 
-                element={
-                  <PrivateRoute>
-                    <Orders />
-                  </PrivateRoute>
-                } 
-              />
-              <Route 
-                path="clients" 
-                element={
-                  <PrivateRoute>
-                    <Clients />
-                  </PrivateRoute>
-                } 
-              />
-              <Route 
-                path="resellers" 
-                element={
-                  <PrivateRoute>
-                    <Resellers />
-                  </PrivateRoute>
-                } 
-              />
-              <Route 
-                path="promissory" 
-                element={
-                  <PrivateRoute>
-                    <Promissory />
-                  </PrivateRoute>
-                } 
-              />
-              <Route 
-                path="expenses" 
-                element={
-                  <PrivateRoute>
-                    <Expenses />
-                  </PrivateRoute>
-                } 
-              />
-              <Route 
-                path="fleet" 
-                element={
-                  <PrivateRoute>
-                    <Fleet />
-                  </PrivateRoute>
-                } 
-              />
-              <Route 
-                path="routes" 
-                element={
-                  <PrivateRoute requiredRole="admin">
-                    <RoutesPage />
-                  </PrivateRoute>
-                } 
-              />
-              <Route 
-                path="settings" 
-                element={
-                  <PrivateRoute requiredRole="admin">
-                    <Settings />
-                  </PrivateRoute>
-                } 
-              />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </RouterRoutes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          
+          <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/clients" element={<Clients />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/orders/map" element={<OrdersMap />} />
+            <Route path="/orders/new" element={<NewOrderForm />} />
+            <Route path="/orders/:id" element={<OrderDetails />} />
+            <Route path="/entrance" element={<EntranceSales />} />
+            <Route path="/entrance/new-sale" element={<NewSaleForm />} />
+            <Route path="/entrance/history" element={<SalesHistory />} />
+            <Route path="/entrance/cashier" element={<CashierClosing />} />
+            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/promissory" element={<Promissory />} />
+            <Route path="/routes" element={<RoutesPage />} />
+            <Route path="/resellers" element={<Resellers />} />
+            <Route path="/fleet" element={<Fleet />} />
+            <Route path="/finance/expenses" element={<Expenses />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/colaboradores" element={<Colaboradores />} />
+          </Route>
+          
+          <Route path="/404" element={<NotFound />} />
+          <Route path="*" element={<Navigate to="/404" replace />} />
+        </Routes>
+        <Toaster richColors closeButton position="top-right" />
+      </AuthProvider>
     </QueryClientProvider>
-  </AuthProvider>
-);
+  );
+}
 
 export default App;
