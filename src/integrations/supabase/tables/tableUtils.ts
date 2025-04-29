@@ -14,3 +14,4 @@ export interface CustomTable<T, InsertType = Omit<T, 'id'>, UpdateType = Partial
 export const clearTestData = async (): Promise<void> => {
   await supabase.rpc('clear_test_data');
 };
+

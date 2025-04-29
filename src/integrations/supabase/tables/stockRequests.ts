@@ -6,6 +6,7 @@ import { CustomTable } from "./tableUtils";
 // Stock requests table operations
 export const stockRequestsTable: CustomTable<StockRequest> = {
   select: async () => {
+    // Changed from single() to just the basic query to return PostgrestResponse<T[]>
     const response = await supabase
       .from('requisicoes_estoque')
       .select('*');

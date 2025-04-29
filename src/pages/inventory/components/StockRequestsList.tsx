@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -25,13 +24,9 @@ export function StockRequestsList() {
         
       if (error) throw error;
       
+      // Fixed the type casting to correctly handle the Supabase response
       if (data) {
-        // Fix the type issue by properly handling the data
-        if (Array.isArray(data)) {
-          setRequests(data as StockRequest[]);
-        } else {
-          setRequests([]);
-        }
+        setRequests(data);
       }
     } catch (error: any) {
       console.error("Erro ao buscar requisições:", error);
