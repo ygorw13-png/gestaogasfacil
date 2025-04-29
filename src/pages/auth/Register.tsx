@@ -6,6 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
+import { User } from '@supabase/supabase-js';
+
+// Define a type for user metadata
+interface UserWithMetadata {
+  email?: string;
+  user_metadata?: {
+    email?: string;
+    name?: string;
+  };
+}
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -25,21 +35,25 @@ export default function Register() {
 
       if (listError) {
         console.error("Erro ao verificar usuários:", listError);
-      } else if (existingUsers?.users && existingUsers.users.some(user => {
-        // Verificação segura se o user existe e tem email
-        if (user && 'email' in user) {
-          return user.email === email;
+      } else if (existingUsers?.users && Array.isArray(existingUsers.users)) {
+        // Check for existing user with this email
+        const userExists = existingUsers.users.some((user: UserWithMetadata) => {
+          // Safe check if user has email
+          if (user && user.email) {
+            return user.email === email;
+          }
+          
+          // Safe check for user metadata
+          if (user && user.user_metadata && typeof user.user_metadata === 'object') {
+            return user.user_metadata.email === email;
+          }
+          
+          return false;
+        });
+        
+        if (userExists) {
+          throw new Error("Este email já está registrado. Por favor, faça login ou use outro email.");
         }
-        // Verificação segura para metadados do usuário
-        if (user && 'user_metadata' in user && 
-            typeof user.user_metadata === 'object' && 
-            user.user_metadata && 
-            'email' in user.user_metadata) {
-          return user.user_metadata.email === email;
-        }
-        return false;
-      })) {
-        throw new Error("Este email já está registrado. Por favor, faça login ou use outro email.");
       }
 
       // 2. Registrar o usuário

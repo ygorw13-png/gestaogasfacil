@@ -12,6 +12,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define a type for user metadata
+interface UserWithMetadata {
+  email?: string;
+  user_metadata?: {
+    email?: string;
+    name?: string;
+  };
+}
+
 export function UserManagement() {
   const { toast } = useToast();
   const { user, organization } = useAuth();
@@ -123,21 +132,25 @@ export function UserManagement() {
       
       if (listError) {
         console.error("Erro ao verificar usuários:", listError);
-      } else if (existingUsers?.users && existingUsers.users.some(user => {
-        // Verificação segura se o user existe e tem email
-        if (user && 'email' in user) {
-          return user.email === newUserEmail;
+      } else if (existingUsers?.users && Array.isArray(existingUsers.users)) {
+        // Check for existing user with this email
+        const userExists = existingUsers.users.some((user: UserWithMetadata) => {
+          // Safe check if user has email
+          if (user && user.email) {
+            return user.email === newUserEmail;
+          }
+          
+          // Safe check for user metadata
+          if (user && user.user_metadata && typeof user.user_metadata === 'object') {
+            return user.user_metadata.email === newUserEmail;
+          }
+          
+          return false;
+        });
+        
+        if (userExists) {
+          throw new Error("Este e-mail já está em uso");
         }
-        // Verificação segura para metadados do usuário
-        if (user && 'user_metadata' in user && 
-            typeof user.user_metadata === 'object' && 
-            user.user_metadata && 
-            'email' in user.user_metadata) {
-          return user.user_metadata.email === newUserEmail;
-        }
-        return false;
-      })) {
-        throw new Error("Este e-mail já está em uso");
       }
 
       // 2. Registrar o usuário no Auth

@@ -47,7 +47,7 @@ export const customTables = {
       return response;
     },
     
-    insert: async (data: Omit<StockConfig, 'id'> & { id: string }) => {
+    insert: async (data: StockConfig) => {
       const response = await supabase
         .from('configuracoes_estoque')
         .insert(data);

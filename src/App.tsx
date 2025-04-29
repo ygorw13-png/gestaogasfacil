@@ -30,6 +30,7 @@ import Colaboradores from "./pages/colaboradores/Colaboradores";
 
 import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { CashierData } from "./pages/entrance/types/cashierTypes";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -40,6 +41,26 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Initial empty cashier data with all required properties
+const initialCashierData: CashierData = {
+  cash: 0,
+  credit: 0,
+  debit: 0,
+  pix: 0,
+  promissory: 0,
+  gasVoucher: 0,
+  totalSales: 0,
+  quantities: {
+    cash: { p13: 0, p20: 0, p45: 0, water: 0 },
+    credit: { p13: 0, p20: 0, p45: 0, water: 0 },
+    debit: { p13: 0, p20: 0, p45: 0, water: 0 },
+    pix: { p13: 0, p20: 0, p45: 0, water: 0 },
+    promissory: { p13: 0, p20: 0, p45: 0, water: 0 },
+    gasVoucher: { p13: 0, p20: 0, p45: 0, water: 0 }
+  },
+  inventoryMovements: []
+};
 
 function App() {
   const navigate = useNavigate();
@@ -63,7 +84,7 @@ function App() {
             <Route path="/entrance" element={<EntranceSales />} />
             <Route path="/entrance/new-sale" element={<NewSaleForm isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} />} />
             <Route path="/entrance/history" element={<SalesHistory />} />
-            <Route path="/entrance/cashier" element={<CashierClosing isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} cashierData={{}} />} />
+            <Route path="/entrance/cashier" element={<CashierClosing isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} cashierData={initialCashierData} />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/promissory" element={<Promissory />} />
             <Route path="/routes" element={<RoutesPage />} />
