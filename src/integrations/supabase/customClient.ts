@@ -1,4 +1,3 @@
-
 import { supabase } from "./client";
 import { CylinderLoan, DbProfile, StockConfig, StockRequest, Colaborador } from "@/types/supabaseTypes";
 
@@ -48,7 +47,7 @@ export const customTables = {
       return response;
     },
     
-    insert: async (data: Omit<StockConfig, 'id'>) => {
+    insert: async (data: Omit<StockConfig, 'id'> & { id: string }) => {
       const response = await supabase
         .from('configuracoes_estoque')
         .insert(data);

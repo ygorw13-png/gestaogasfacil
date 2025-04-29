@@ -57,13 +57,13 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/clients" element={<Clients />} />
             <Route path="/orders" element={<Orders />} />
-            <Route path="/orders/map" element={<OrdersMap />} />
-            <Route path="/orders/new" element={<NewOrderForm />} />
-            <Route path="/orders/:id" element={<OrderDetails />} />
+            <Route path="/orders/map" element={<OrdersMap orders={[]} />} />
+            <Route path="/orders/new" element={<NewOrderForm onSubmit={() => {}} />} />
+            <Route path="/orders/:id" element={<OrderDetails orderId="" orders={[]} isOpen={false} onOpenChange={() => {}} />} />
             <Route path="/entrance" element={<EntranceSales />} />
-            <Route path="/entrance/new-sale" element={<NewSaleForm />} />
+            <Route path="/entrance/new-sale" element={<NewSaleForm isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} />} />
             <Route path="/entrance/history" element={<SalesHistory />} />
-            <Route path="/entrance/cashier" element={<CashierClosing />} />
+            <Route path="/entrance/cashier" element={<CashierClosing isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} cashierData={{}} />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/promissory" element={<Promissory />} />
             <Route path="/routes" element={<RoutesPage />} />

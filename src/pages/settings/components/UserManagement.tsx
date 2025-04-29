@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -124,11 +123,20 @@ export function UserManagement() {
       
       if (listError) {
         console.error("Erro ao verificar usuários:", listError);
-      } else if (existingUsers?.users && existingUsers.users.some(user => 
-        // Verificar no email diretamente e nos metadados
-        user.email === newUserEmail || 
-        (user.user_metadata && typeof user.user_metadata === 'object' && 'email' in user.user_metadata && user.user_metadata.email === newUserEmail)
-      )) {
+      } else if (existingUsers?.users && existingUsers.users.some(user => {
+        // Verificação segura se o user existe e tem email
+        if (user && 'email' in user) {
+          return user.email === newUserEmail;
+        }
+        // Verificação segura para metadados do usuário
+        if (user && 'user_metadata' in user && 
+            typeof user.user_metadata === 'object' && 
+            user.user_metadata && 
+            'email' in user.user_metadata) {
+          return user.user_metadata.email === newUserEmail;
+        }
+        return false;
+      })) {
         throw new Error("Este e-mail já está em uso");
       }
 

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -26,11 +25,20 @@ export default function Register() {
 
       if (listError) {
         console.error("Erro ao verificar usuários:", listError);
-      } else if (existingUsers?.users && existingUsers.users.some(user => 
-        // Verifica no email diretamente e nos metadados
-        user.email === email || 
-        (user.user_metadata && typeof user.user_metadata === 'object' && 'email' in user.user_metadata && user.user_metadata.email === email)
-      )) {
+      } else if (existingUsers?.users && existingUsers.users.some(user => {
+        // Verificação segura se o user existe e tem email
+        if (user && 'email' in user) {
+          return user.email === email;
+        }
+        // Verificação segura para metadados do usuário
+        if (user && 'user_metadata' in user && 
+            typeof user.user_metadata === 'object' && 
+            user.user_metadata && 
+            'email' in user.user_metadata) {
+          return user.user_metadata.email === email;
+        }
+        return false;
+      })) {
         throw new Error("Este email já está registrado. Por favor, faça login ou use outro email.");
       }
 
@@ -49,8 +57,6 @@ export default function Register() {
       
       if (authData?.user) {
         // 3. Criar o perfil do usuário e organização usando a RPC function
-        // Não passamos created_by_admin ou organization_id, então a função
-        // criará uma nova organização e configurará o usuário como admin
         const { error: profileError } = await supabase.functions.invoke('create_profile', {
           body: {
             user_id: authData.user.id,

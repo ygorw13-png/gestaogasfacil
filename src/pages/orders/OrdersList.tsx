@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,12 +16,6 @@ interface OrdersListProps {
   onCompleteOrder: (orderId: string, paymentMethod: string) => void;
   onCancelOrder: (orderId: string) => void;
 }
-
-const deliveryStaff = [
-  { id: "1", name: "João Silva" },
-  { id: "2", name: "Maria Santos" },
-  { id: "3", name: "Pedro Oliveira" },
-];
 
 export function OrdersList({ 
   orders, 
@@ -142,7 +135,6 @@ export function OrdersList({
         selectedDeliveryPerson={selectedDeliveryPerson}
         onDeliveryPersonChange={handleDeliveryPersonChange}
         onSubmit={handleAssignSubmit}
-        deliveryStaff={deliveryStaff}
       />
       
       <CompleteOrderDialog
