@@ -45,7 +45,7 @@ const SidebarLink = ({ to, icon: Icon, label, className }: SidebarLinkProps) => 
   );
 };
 
-export default function AppSidebar() {
+export function AppSidebar() {
   const { user } = useAuth();
   
   if (!user) return null;

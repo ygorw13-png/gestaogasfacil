@@ -1,7 +1,7 @@
 
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
-import AppLayout from "./components/layout/AppLayout";
+import { AppLayout } from "./components/layout/AppLayout";
 
 // Pages
 import Login from "./pages/auth/Login";
@@ -43,10 +43,6 @@ const queryClient = new QueryClient({
 
 function App() {
   const navigate = useNavigate();
-
-  const goToPage = (path: string) => {
-    navigate(path);
-  };
 
   return (
     <QueryClientProvider client={queryClient}>
