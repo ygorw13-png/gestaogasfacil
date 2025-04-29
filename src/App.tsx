@@ -63,8 +63,8 @@ const initialCashierData: CashierData = {
 };
 
 function App() {
-  const navigate = useNavigate();
-
+  // We don't need to use navigate here, since it's not used in this component
+  // Remove the useNavigate hook from here
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
