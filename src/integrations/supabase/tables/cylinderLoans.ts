@@ -8,14 +8,16 @@ export const cylinderLoansTable: CustomTable<CylinderLoan> = {
   select: async () => {
     const response = await supabase
       .from('cascos_emprestados')
-      .select('*');
+      .select('*')
+      .returns<CylinderLoan[]>();
     return response;
   },
   
   insert: async (data: Omit<CylinderLoan, 'id'>) => {
     const response = await supabase
       .from('cascos_emprestados')
-      .insert(data);
+      .insert(data)
+      .returns<CylinderLoan[]>();
     return response;
   },
   
@@ -25,7 +27,8 @@ export const cylinderLoansTable: CustomTable<CylinderLoan> = {
     const response = await supabase
       .from('cascos_emprestados')
       .update(updateData)
-      .eq('id', id);
+      .eq('id', id)
+      .returns<CylinderLoan[]>();
     return response;
   },
   
@@ -33,7 +36,8 @@ export const cylinderLoansTable: CustomTable<CylinderLoan> = {
     const response = await supabase
       .from('cascos_emprestados')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .returns<CylinderLoan[]>();
     return response;
   },
 };

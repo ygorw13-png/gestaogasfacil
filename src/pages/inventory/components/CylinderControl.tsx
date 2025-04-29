@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,6 +47,7 @@ export function CylinderControl() {
       if (error) throw error;
       
       if (data) {
+        // Ensure data is treated as CylinderLoan[]
         setLoans(data);
       }
     } catch (error) {

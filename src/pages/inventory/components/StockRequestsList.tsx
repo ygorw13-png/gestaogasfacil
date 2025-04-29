@@ -25,6 +25,7 @@ export function StockRequestsList() {
       if (error) throw error;
       
       if (data) {
+        // Ensure data is treated as StockRequest[]
         setRequests(data);
       }
     } catch (error: any) {

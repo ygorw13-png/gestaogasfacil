@@ -8,14 +8,16 @@ export const stockRequestsTable: CustomTable<StockRequest> = {
   select: async () => {
     const response = await supabase
       .from('requisicoes_estoque')
-      .select('*');
+      .select('*')
+      .returns<StockRequest[]>();
     return response;
   },
   
   insert: async (data: Omit<StockRequest, 'id'>) => {
     const response = await supabase
       .from('requisicoes_estoque')
-      .insert(data);
+      .insert(data)
+      .returns<StockRequest[]>();
     return response;
   },
   
@@ -25,7 +27,8 @@ export const stockRequestsTable: CustomTable<StockRequest> = {
     const response = await supabase
       .from('requisicoes_estoque')
       .update(updateData)
-      .eq('id', id);
+      .eq('id', id)
+      .returns<StockRequest[]>();
     return response;
   },
   
@@ -33,7 +36,8 @@ export const stockRequestsTable: CustomTable<StockRequest> = {
     const response = await supabase
       .from('requisicoes_estoque')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .returns<StockRequest[]>();
     return response;
   },
 };
