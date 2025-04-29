@@ -24,7 +24,6 @@ export function StockRequestsList() {
         
       if (error) throw error;
       
-      // Fixed the type casting to correctly handle the Supabase response
       if (data) {
         setRequests(data);
       }
@@ -61,7 +60,6 @@ export function StockRequestsList() {
         description: `Requisição ${newStatus === 'aprovada' ? 'aprovada' : 'recusada'} com sucesso`
       });
       
-      // Atualizar a lista de requisições
       fetchRequests();
       
     } catch (error: any) {

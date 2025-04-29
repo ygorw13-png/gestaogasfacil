@@ -6,7 +6,6 @@ import { CustomTable } from "./tableUtils";
 // Cylinder loans table operations
 export const cylinderLoansTable: CustomTable<CylinderLoan> = {
   select: async () => {
-    // Changed from single() to just the basic query to return PostgrestResponse<T[]>
     const response = await supabase
       .from('cascos_emprestados')
       .select('*');
