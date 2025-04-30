@@ -1,22 +1,19 @@
 
-import { Users, Settings } from "lucide-react";
 import { SidebarLink } from "../SidebarLink";
+import { adminNavItems } from "../navigation-config";
 
 export const AdminNavigation = () => {
   return (
     <>
-      <SidebarLink
-        to="/colaboradores"
-        icon={Users}
-        label="Colaboradores"
-        aria-label="Gerenciar colaboradores"
-      />
-      <SidebarLink
-        to="/settings"
-        icon={Settings}
-        label="Configurações"
-        aria-label="Configurações do sistema"
-      />
+      {adminNavItems.map((item) => (
+        <SidebarLink 
+          key={item.to}
+          to={item.to} 
+          icon={item.icon} 
+          label={item.label} 
+          aria-label={item.ariaLabel}
+        />
+      ))}
     </>
   );
 };

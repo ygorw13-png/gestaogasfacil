@@ -20,8 +20,8 @@ export function useUserCreation({
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
-  // Usando tipo primitivo para evitar referências circulares
-  const [newUserRole, setNewUserRole] = useState<"admin" | "gerente" | "vendedor" | "entregador">('admin');
+  // Usando string literal type ao invés de UserRole para evitar referências circulares
+  const [newUserRole, setNewUserRole] = useState<string>('admin');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [creatingUser, setCreatingUser] = useState(false);
 
@@ -94,16 +94,19 @@ export function useUserCreation({
 
         if (profileError) throw profileError;
         
+        // Usar type assertion apenas quando necessário para interagir com componentes que esperam UserRole
+        const userRole = newUserRole as UserRole;
+        
         toast({
           title: "Usuário criado com sucesso!",
-          description: `${newUserName} foi adicionado como ${roleLabels[newUserRole as UserRole]}`
+          description: `${newUserName} foi adicionado como ${roleLabels[userRole]}`
         });
         
         // Notificar o componente pai sobre o novo usuário
         onUserCreated({
           id: authData.user.id,
           name: newUserName,
-          role: newUserRole as UserRole
+          role: userRole
         });
         
         // Limpar os campos do formulário
