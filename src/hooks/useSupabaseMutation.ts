@@ -40,9 +40,10 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
         });
       }
       
-      // The data is already correctly typed as TData[]
-      onSuccess?.(data);
-      return { data, error: null };
+      // Ensure we're dealing with TData[] type
+      const typedData = data as TData[];
+      onSuccess?.(typedData);
+      return { data: typedData, error: null };
       
     } catch (err: any) {
       console.error("Erro na mutação:", err);

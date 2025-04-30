@@ -24,35 +24,35 @@ export function createTableOperations<T extends Record<string, any>>(
 ): CustomTable<T> {
   return {
     select: async () => {
-      return await supabase
+      const response = await supabase
         .from(tableName)
-        .select('*')
-        .returns<T[]>();
+        .select('*');
+      return response as PostgrestResponse<T[]>;
     },
     
     insert: async (data: Omit<T, 'id'>) => {
-      return await supabase
+      const response = await supabase
         .from(tableName)
-        .insert(data)
-        .returns<T[]>();
+        .insert(data as any);
+      return response as PostgrestResponse<T[]>;
     },
     
     update: async (data: Partial<T> & { id: string }) => {
       const { id, ...updateData } = data;
       
-      return await supabase
+      const response = await supabase
         .from(tableName)
-        .update(updateData)
-        .eq('id', id)
-        .returns<T[]>();
+        .update(updateData as any)
+        .eq('id', id);
+      return response as PostgrestResponse<T[]>;
     },
     
     delete: async (id: string) => {
-      return await supabase
+      const response = await supabase
         .from(tableName)
         .delete()
-        .eq('id', id)
-        .returns<T[]>();
+        .eq('id', id);
+      return response as PostgrestResponse<T[]>;
     },
   };
 }
