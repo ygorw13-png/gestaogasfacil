@@ -13,14 +13,17 @@ export function AppLayout() {
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    // Simulate application data loading
-    const timer = setTimeout(() => {
+    // Only simulate loading if we have an authenticated user
+    if (user && !loading) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 400);
+      return () => clearTimeout(timer);
+    } else {
       setIsLoading(false);
-    }, 400);
-
+    }
+    
     console.log("AppLayout - Auth state:", loading ? "loading" : (user ? "authenticated" : "not authenticated"));
-
-    return () => clearTimeout(timer);
   }, [user, loading]);
 
   // If loading authentication data, show spinner

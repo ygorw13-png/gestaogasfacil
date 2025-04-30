@@ -2,7 +2,6 @@
 import { NavCategory } from "./NavCategory";
 import { MainNavigation } from "./categories/MainNavigation";
 import { OrdersNavigation } from "./categories/OrdersNavigation";
-import { EntranceNavigation } from "./categories/EntranceNavigation";
 import { InventoryNavigation } from "./categories/InventoryNavigation"; 
 import { FinanceNavigation } from "./categories/FinanceNavigation";
 
@@ -15,10 +14,6 @@ export const SidebarNav = () => {
       
       <NavCategory>
         <OrdersNavigation />
-      </NavCategory>
-      
-      <NavCategory>
-        <EntranceNavigation />
       </NavCategory>
       
       <NavCategory>

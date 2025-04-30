@@ -19,11 +19,10 @@ export default function Login() {
   const { toast } = useToast();
   const { user, signIn } = useAuth();
   
-  // Verificar se o usuário já está autenticado
+  // Check if user is already authenticated
   useEffect(() => {
-    console.log("Login page - User state:", user ? "Autenticado" : "Não autenticado");
     if (user) {
-      console.log("Usuário já autenticado, redirecionando para dashboard");
+      console.log("Login page - User already authenticated, redirecting to dashboard");
       navigate('/dashboard', { replace: true });
     }
   }, [user, navigate]);
@@ -33,21 +32,21 @@ export default function Login() {
     setLoading(true);
     setError(null);
     
-    console.log("Tentando fazer login com:", email);
+    console.log("Attempting login with:", email);
 
     try {
       const { success, error } = await signIn(email, password);
       
       if (success) {
-        console.log("Login realizado com sucesso via formulário");
+        console.log("Login successful via form");
         toast({
           title: "Login realizado com sucesso!",
           description: "Bem-vindo(a) de volta!"
         });
-        // Navegação será feita pelo contexto de autenticação (useEffect)
+        // Navigation will be handled by the useEffect
       } else {
-        console.error("Falha no login:", error);
-        setError(error || "Falha no login. Verifique suas credenciais.");
+        console.error("Login failed:", error);
+        setError(error || "Failed login. Check your credentials.");
         toast({
           title: "Erro ao fazer login",
           description: error || "Verifique suas credenciais e tente novamente",
@@ -55,7 +54,7 @@ export default function Login() {
         });
       }
     } catch (error: any) {
-      console.error("Exceção no login:", error);
+      console.error("Login exception:", error);
       setError(error.message || "Verifique suas credenciais e tente novamente");
       toast({
         title: "Erro ao fazer login",
@@ -67,11 +66,8 @@ export default function Login() {
     }
   };
 
-  // Se o usuário já estiver logado, não renderizar o formulário
-  if (user) {
-    console.log("Login page - User already logged in, not rendering form");
-    return null;
-  }
+  // If user is already logged in, don't render the form
+  if (user) return null;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-green-50 to-white">

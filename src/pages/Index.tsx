@@ -19,8 +19,7 @@ const Index = () => {
     );
   }
   
-  // Se o usuário estiver autenticado, redireciona para o dashboard
-  // Caso contrário, redireciona para a página de login
+  // Redirect to dashboard if authenticated, otherwise to login page
   return user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
 };
 

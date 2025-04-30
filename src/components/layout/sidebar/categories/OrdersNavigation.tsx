@@ -1,7 +1,8 @@
 
-import { ShoppingCart, DollarSign } from "lucide-react";
+import { ShoppingCart, Store, Receipt, CreditCard } from "lucide-react";
 import { AccordionMenu, AccordionMenuItem } from "../AccordionMenu";
 import { useState } from "react";
+import { SidebarLink } from "../SidebarLink";
 
 export const OrdersNavigation = () => {
   const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
@@ -19,8 +20,9 @@ export const OrdersNavigation = () => {
         <AccordionMenuItem to="/orders/map" label="Mapa de Entregas" />
       </AccordionMenu>
       
+      {/* Entrance section (former EntranceNavigation) */}
       <AccordionMenu 
-        icon={DollarSign} 
+        icon={Store} 
         label="Portaria" 
         value="entrance"
         accordionValue={accordionValue} 
