@@ -20,17 +20,23 @@ export function AppLayout() {
     return () => clearTimeout(timer);
   }, []);
 
+  console.log("AppLayout - Auth state:", loading ? "loading" : (user ? "authenticated" : "not authenticated"));
+
   // Se estiver carregando dados de autenticação, exibir spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
-        <div className="w-16 h-16 border-4 border-gasflow-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 border-4 border-gasflow-500 border-t-transparent rounded-full animate-spin"></div>
+          <h2 className="text-xl font-semibold text-gasflow-500">Carregando...</h2>
+        </div>
       </div>
     );
   }
 
   // Se não estiver autenticado, redirecionar para o login
   if (!user) {
+    console.log("AppLayout - User not authenticated, redirecting to login");
     return <Navigate to="/login" replace />;
   }
 

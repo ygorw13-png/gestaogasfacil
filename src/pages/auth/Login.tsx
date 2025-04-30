@@ -4,10 +4,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRole } from '@/types/userTypes';
 import { Label } from '@/components/ui/label';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -19,11 +17,13 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, signIn } = useAuth();
   
   // Verificar se o usuário já está autenticado
   useEffect(() => {
+    console.log("Login page - User state:", user ? "Autenticado" : "Não autenticado");
     if (user) {
+      console.log("Usuário já autenticado, redirecionando para dashboard");
       navigate('/dashboard', { replace: true });
     }
   }, [user, navigate]);
@@ -32,25 +32,30 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    
+    console.log("Tentando fazer login com:", email);
 
     try {
-      console.log("Tentando login com:", email);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) throw error;
+      const { success, error } = await signIn(email, password);
       
-      if (data.user) {
+      if (success) {
+        console.log("Login realizado com sucesso via formulário");
         toast({
           title: "Login realizado com sucesso!",
-          description: `Bem-vindo(a) ${data.user.user_metadata?.name || data.user.email || 'Usuário'}!`
+          description: "Bem-vindo(a) de volta!"
         });
-        // Navegação será feita pelo contexto de autenticação
+        // Navegação será feita pelo contexto de autenticação (useEffect)
+      } else {
+        console.error("Falha no login:", error);
+        setError(error || "Falha no login. Verifique suas credenciais.");
+        toast({
+          title: "Erro ao fazer login",
+          description: error || "Verifique suas credenciais e tente novamente",
+          variant: "destructive"
+        });
       }
     } catch (error: any) {
-      console.error("Erro de login:", error);
+      console.error("Exceção no login:", error);
       setError(error.message || "Verifique suas credenciais e tente novamente");
       toast({
         title: "Erro ao fazer login",
@@ -64,6 +69,7 @@ export default function Login() {
 
   // Se o usuário já estiver logado, não renderizar o formulário
   if (user) {
+    console.log("Login page - User already logged in, not rendering form");
     return null;
   }
 

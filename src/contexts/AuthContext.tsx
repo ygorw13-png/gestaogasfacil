@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserRole } from '@/types/userTypes';
 import { Organization } from '@/types/supabaseTypes';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -10,6 +11,7 @@ interface AuthContextType {
   loading: boolean;
   updateUserData: (userData: User) => void;
   signOut: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{success: boolean; error?: string}>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -18,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   updateUserData: () => {},
   signOut: async () => {},
+  signIn: async () => ({success: false})
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -39,11 +42,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           if (error) {
             console.error('Erro ao buscar perfil:', error);
+            toast({
+              title: 'Erro!',
+              description: `Não foi possível carregar seu perfil: ${error.message}`,
+              variant: 'destructive'
+            });
             setLoading(false);
             return;
           }
           
           if (data) {
+            console.log("Perfil de usuário carregado:", data);
             setUser({
               id: session.user.id,
               name: data.name || session.user.user_metadata?.name || 'Usuário',
@@ -56,6 +65,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
         } catch (error) {
           console.error('Erro ao processar autenticação:', error);
+          toast({
+            title: 'Erro de autenticação',
+            description: 'Ocorreu um erro ao processar sua autenticação.',
+            variant: 'destructive'
+          });
         } finally {
           setLoading(false);
         }
@@ -88,6 +102,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
           
           if (data) {
+            console.log("Perfil de usuário existente carregado:", data);
             setUser({
               id: session.user.id,
               name: data.name || session.user.user_metadata?.name || 'Usuário',
@@ -120,16 +135,69 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
+      console.log("Iniciando logout...");
       await supabase.auth.signOut();
       setUser(null);
       setOrganization(null);
+      toast({
+        title: "Logout realizado",
+        description: "Você saiu da sua conta com sucesso."
+      });
+      console.log("Logout concluído");
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
+      toast({
+        title: "Erro ao fazer logout",
+        description: "Ocorreu um erro ao tentar sair da sua conta.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const signIn = async (email: string, password: string) => {
+    try {
+      console.log("Tentando login com:", email);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        console.error("Erro durante login:", error);
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+      
+      if (data && data.user) {
+        console.log("Login bem-sucedido para:", data.user.id);
+        return { success: true };
+      }
+      
+      return {
+        success: false,
+        error: "Não foi possível realizar o login. Tente novamente."
+      };
+    } catch (error: any) {
+      console.error("Exceção durante login:", error);
+      return {
+        success: false,
+        error: error.message || "Ocorreu um erro durante o login."
+      };
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, organization, loading, updateUserData, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      organization, 
+      loading, 
+      updateUserData, 
+      signOut,
+      signIn 
+    }}>
       {children}
     </AuthContext.Provider>
   );
