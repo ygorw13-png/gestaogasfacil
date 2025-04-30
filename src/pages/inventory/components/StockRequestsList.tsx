@@ -11,32 +11,53 @@ import { Loader2 } from "lucide-react";
 import { customTables } from "@/integrations/supabase/customClient";
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
 import { useSupabaseMutation } from "@/hooks/useSupabaseMutation";
+import { useState, useEffect } from "react";
 
 export function StockRequestsList() {
   const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [requests, setRequests] = useState<StockRequest[]>([]);
   
-  const { 
-    data: requests, 
-    loading, 
-    refetch: fetchRequests 
-  } = useSupabaseQuery<StockRequest>({
-    queryFn: () => customTables.stockRequests.select(),
-    errorMessage: "Falha ao carregar as requisições de estoque"
-  });
+  const fetchRequests = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await customTables.stockRequests.select();
+      
+      if (error) {
+        throw error;
+      }
+      
+      setRequests(data || []);
+    } catch (error) {
+      console.error("Erro ao carregar requisições:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchRequests();
+  }, []);
 
-  const processRequest = useSupabaseMutation<StockRequest, Partial<StockRequest> & { id: string }>({
-    mutationFn: (data) => customTables.stockRequests.update(data),
-    onSuccess: () => fetchRequests(),
-    successMessage: "Requisição processada com sucesso"
-  });
-  
   const handleProcessRequest = async (id: string, newStatus: 'aprovada' | 'recusada') => {
-    await processRequest.mutate({
-      id,
-      status: newStatus,
-      processado_por: user?.id,
-      data_processamento: new Date().toISOString()
-    });
+    setIsLoading(true);
+    try {
+      const { error } = await customTables.stockRequests.update({
+        id,
+        status: newStatus,
+        processado_por: user?.id,
+        data_processamento: new Date().toISOString()
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Re-fetch the requests to update the list
+      fetchRequests();
+    } catch (error) {
+      console.error("Erro ao processar requisição:", error);
+    }
   };
   
   const getStatusBadge = (status: string) => {
@@ -71,14 +92,14 @@ export function StockRequestsList() {
           <h3 className="text-lg font-medium">Requisições de Estoque</h3>
           <Button 
             variant="outline" 
-            onClick={() => fetchRequests()}
-            disabled={loading}
+            onClick={fetchRequests}
+            disabled={isLoading}
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Atualizar"}
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Atualizar"}
           </Button>
         </div>
         
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-green-600" />
           </div>
@@ -125,7 +146,7 @@ export function StockRequestsList() {
                             variant="outline"
                             className="bg-green-50 text-green-700 border-green-300 hover:bg-green-100"
                             onClick={() => handleProcessRequest(req.id, 'aprovada')}
-                            disabled={processRequest.loading}
+                            disabled={isLoading}
                           >
                             Aprovar
                           </Button>
@@ -134,7 +155,7 @@ export function StockRequestsList() {
                             variant="outline"
                             className="bg-red-50 text-red-700 border-red-300 hover:bg-red-100"
                             onClick={() => handleProcessRequest(req.id, 'recusada')}
-                            disabled={processRequest.loading}
+                            disabled={isLoading}
                           >
                             Recusar
                           </Button>

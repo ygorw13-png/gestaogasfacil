@@ -8,10 +8,15 @@ import { StockAlert } from "./components/StockAlert";
 import { StockRequest } from "./components/StockRequest";
 import { StockRequestsList } from "./components/StockRequestsList";
 import { CylinderControl } from "./components/CylinderControl";
+import { StockUpdateForm } from "./components/StockUpdateForm";
+import { StockOverview } from "./components/StockOverview";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { syncStockWithDashboard } from "@/pages/dashboard/data";
 
 export default function Inventory() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("inventory");
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [currentStock, setCurrentStock] = useState({
@@ -34,11 +39,36 @@ export default function Inventory() {
 
   useEffect(() => {
     fetchCurrentStock();
-  }, []);
+  }, [refreshCounter]);
 
   const handleRequestCreated = () => {
     setRefreshCounter(prev => prev + 1);
     setActiveTab("requests");
+  };
+  
+  const handleStockUpdate = async (newStock: typeof currentStock) => {
+    try {
+      // Atualizar estoque local
+      setCurrentStock(newStock);
+      
+      // Sincronizar com o dashboard
+      await syncStockWithDashboard(newStock);
+      
+      toast({
+        title: "Estoque atualizado",
+        description: "Os níveis de estoque foram atualizados com sucesso"
+      });
+      
+      // Atualizar o contador para recarregar os dados
+      setRefreshCounter(prev => prev + 1);
+    } catch (error) {
+      console.error("Erro ao atualizar estoque:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o estoque",
+        variant: "destructive"
+      });
+    }
   };
 
   // Prepare inventory table props with complete properties matching the interface
@@ -110,14 +140,18 @@ export default function Inventory() {
         )}
       </div>
 
+      {/* Stock overview boxes */}
+      <StockOverview currentStock={currentStock} />
+
       <StockAlert currentStock={currentStock} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="inventory">Inventário</TabsTrigger>
           <TabsTrigger value="requests">Requisições</TabsTrigger>
           <TabsTrigger value="newRequest">Nova Requisição</TabsTrigger>
           <TabsTrigger value="cylinders">Vasilhames</TabsTrigger>
+          <TabsTrigger value="update">Atualizar Estoque</TabsTrigger>
         </TabsList>
         
         <TabsContent value="inventory" className="space-y-4">
@@ -139,6 +173,13 @@ export default function Inventory() {
 
         <TabsContent value="cylinders" className="space-y-4">
           <CylinderControl />
+        </TabsContent>
+        
+        <TabsContent value="update" className="space-y-4">
+          <StockUpdateForm 
+            currentStock={currentStock}
+            onUpdateStock={handleStockUpdate}
+          />
         </TabsContent>
       </Tabs>
     </div>

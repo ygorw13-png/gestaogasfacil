@@ -90,3 +90,12 @@ export interface ClosingExportData {
   };
   observations?: string;
 }
+
+// Fix for the useUserCreation hook types (related to NewUserDialog errors)
+export interface UserFormData {
+  name: string;
+  email: string;
+  role: string;
+  password: string;
+  confirmPassword: string;
+}
