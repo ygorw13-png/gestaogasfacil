@@ -173,6 +173,7 @@ function App() {
                     </RoleGuard>
                   </Suspense>
                 } />
+                {/* Corrigimos a rota de colaboradores para estar dentro do AuthGuard e AppLayout */}
                 <Route path="/colaboradores" element={
                   <Suspense fallback={<LoadingComponent />}>
                     <RoleGuard allowedRoles={['admin', 'gerente']}>

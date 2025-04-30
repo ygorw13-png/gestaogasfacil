@@ -1,6 +1,6 @@
 
 import { useState, useEffect, memo } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { TopBar } from "./TopBar";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -15,6 +15,16 @@ const MainContent = memo(() => {
   const sidebar = useSidebar();
   const isOpen = sidebar.state === "expanded";
   const isMobile = useIsMobile();
+  const location = useLocation();
+
+  // Log para ajudar a debugar o layout
+  useEffect(() => {
+    console.log("MainContent - Renderizado:", {
+      path: location.pathname,
+      sidebarState: sidebar.state,
+      isMobile
+    });
+  }, [location.pathname, sidebar.state, isMobile]);
 
   return (
     <div className={cn(
@@ -41,18 +51,33 @@ export function AppLayout() {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Log para ajudar a debugar o layout
+  useEffect(() => {
+    console.log("AppLayout - Montado:", { 
+      path: location.pathname,
+      hasUser: !!user,
+      isMobile
+    });
+  }, [location.pathname, user, isMobile]);
 
   useEffect(() => {
-    // Simular carregamento apenas se tivermos um usuário autenticado
-    if (user) {
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 400);
-      return () => clearTimeout(timer);
-    } else {
-      setIsLoading(false);
+    // Verificar se o usuário está autenticado
+    if (!user) {
+      console.log("AppLayout - Usuário não autenticado, redirecionando para login");
+      navigate("/login", { replace: true });
+      return;
     }
-  }, [user]);
+
+    // Simular carregamento apenas se tivermos um usuário autenticado
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 400);
+    
+    return () => clearTimeout(timer);
+  }, [user, navigate]);
 
   // Adicionar foco ao conteúdo principal quando carregado
   useEffect(() => {

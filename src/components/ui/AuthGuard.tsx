@@ -21,6 +21,16 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   const location = useLocation();
   const { refreshCsrfToken } = useCsrfProtection();
 
+  // Melhor log para depuração
+  useEffect(() => {
+    console.log("AuthGuard - Estado de autenticação:", { 
+      path: location.pathname,
+      isLoading: loading, 
+      hasUser: !!user,
+      errorMsg: error?.message
+    });
+  }, [loading, user, error, location.pathname]);
+
   // Atualizar o token CSRF apenas uma vez quando o componente montar
   useEffect(() => {
     if (!user) return; // Não atualizar o token se não houver usuário
@@ -44,15 +54,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
       }
     }
   });
-
-  // Adicionar log para depuração
-  useEffect(() => {
-    console.log("AuthGuard - Estado de autenticação:", { 
-      isLoading: loading, 
-      hasUser: !!user,
-      path: location.pathname 
-    });
-  }, [loading, user, location]);
 
   if (loading) {
     return (
@@ -79,7 +80,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   }
 
   if (!user) {
-    console.log("AuthGuard - Usuário não autenticado, redirecionando para login");
+    console.log("AuthGuard - Usuário não autenticado, redirecionando para login de:", location.pathname);
     // Salvar a localização atual para redirecionar de volta após o login
     return <Navigate to={redirectTo} replace state={{ from: location }} />;
   }

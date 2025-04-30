@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from './LoadingSpinner';
 
 interface RoleGuardProps {
   children: React.ReactNode;
@@ -24,6 +25,17 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Log para depuração
+  useEffect(() => {
+    console.log("RoleGuard - Estado:", {
+      path: location.pathname, 
+      isLoading: loading, 
+      hasUser: !!user,
+      userRole: user?.role,
+      allowedRoles
+    });
+  }, [user, loading, allowedRoles, location.pathname]);
+
   // Registrar tentativas de acesso não autorizado
   useEffect(() => {
     if (!loading && user && !allowedRoles.some(role => hasRole(role))) {
@@ -37,11 +49,23 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
     }
   }, [user, loading, hasRole, allowedRoles, location.pathname, toast]);
 
-  // Se ainda estiver carregando, não faça nada
-  if (loading) return null;
+  // Se ainda estiver carregando, mostra o spinner
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <LoadingSpinner size="md" message="Verificando permissões..." />
+      </div>
+    );
+  }
+
+  // Se não tiver usuário, redireciona para login
+  if (!user) {
+    console.log("RoleGuard - Usuário não autenticado, redirecionando para login");
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
 
   // Verificar se o usuário tem um papel e se está na lista de papéis permitidos
-  if (!user || !allowedRoles.some(role => hasRole(role))) {
+  if (!allowedRoles.some(role => hasRole(role))) {
     return (
       <div className="p-4 flex flex-col space-y-4">
         <Alert variant="destructive">
@@ -60,8 +84,6 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
         >
           Voltar para o Dashboard
         </Button>
-        
-        {redirectTo && <Navigate to={redirectTo} replace state={{ from: location }} />}
       </div>
     );
   }

@@ -1,13 +1,29 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ColaboradoresList from "./components/ColaboradoresList";
 import NovoColaborador from "./components/NovoColaborador";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/auth";
+import { useNavigate } from "react-router-dom";
 
 export default function Colaboradores() {
   const [activeTab, setActiveTab] = useState("lista");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  // Verificar autenticação
+  useEffect(() => {
+    console.log("Colaboradores - Verificando autenticação:", { 
+      hasUser: !!user,
+    });
+
+    if (!user) {
+      console.log("Colaboradores - Usuário não autenticado, redirecionando para login");
+      navigate("/login", { replace: true });
+    }
+  }, [user, navigate]);
   
   // Função para forçar atualização da lista
   const refreshList = () => {

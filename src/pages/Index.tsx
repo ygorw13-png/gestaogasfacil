@@ -1,5 +1,5 @@
 
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -8,6 +8,15 @@ import { AlertTriangle } from "lucide-react";
 
 const Index = () => {
   const { user, loading, error } = useAuth();
+
+  // Log para debugging
+  useEffect(() => {
+    console.log("Index - Estado de autenticação:", { 
+      isLoading: loading, 
+      hasUser: !!user,
+      errorMsg: error?.message
+    });
+  }, [user, loading, error]);
 
   const renderContent = useCallback(() => {
     if (loading) {

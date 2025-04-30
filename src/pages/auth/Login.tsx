@@ -24,13 +24,20 @@ export default function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen w-full bg-gradient-to-b from-green-50 to-white p-4 md:p-0">
-      <div className="w-full max-w-md">
-        <LoginForm 
-          onSubmit={handleFormSubmit}
-          loading={loading}
-          error={error?.message || null}
-        />
+    <div className="flex min-h-screen w-full bg-gradient-to-b from-green-50 to-white">
+      <div className="m-auto w-full max-w-md px-4 py-8 sm:px-0">
+        <div className="flex flex-col items-center justify-center">
+          <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
+            GasFlow Aqua Manager
+          </h1>
+          <div className="w-full bg-white shadow-md rounded-lg p-6 border border-gray-100">
+            <LoginForm 
+              onSubmit={handleFormSubmit}
+              loading={loading}
+              error={error?.message || null}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
