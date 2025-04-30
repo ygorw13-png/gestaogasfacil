@@ -20,8 +20,8 @@ export function useUserCreation({
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
-  // Store role as a primitive string type to avoid recursive type references
-  const [newUserRole, setNewUserRole] = useState('admin');
+  // Usando tipo primitivo para evitar referências circulares
+  const [newUserRole, setNewUserRole] = useState<"admin" | "gerente" | "vendedor" | "entregador">('admin');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [creatingUser, setCreatingUser] = useState(false);
 
@@ -80,12 +80,12 @@ export function useUserCreation({
       if (authError) throw authError;
       
       if (authData?.user) {
-        // Pass role as a plain string to the edge function
+        // Enviar role como string para a função
         const { error: profileError } = await supabase.functions.invoke('create_profile', {
           body: JSON.stringify({
             user_id: authData.user.id,
             name: newUserName,
-            role: newUserRole, // Using string directly
+            role: newUserRole,
             email: newUserEmail,
             created_by_admin: true,
             organization_id: organizationId
@@ -93,20 +93,17 @@ export function useUserCreation({
         });
 
         if (profileError) throw profileError;
-
-        // Use type assertion only when interfacing with components that expect UserRole
-        const roleForCallback = newUserRole as UserRole;
         
         toast({
           title: "Usuário criado com sucesso!",
-          description: `${newUserName} foi adicionado como ${roleLabels[roleForCallback]}`
+          description: `${newUserName} foi adicionado como ${roleLabels[newUserRole as UserRole]}`
         });
         
         // Notificar o componente pai sobre o novo usuário
         onUserCreated({
           id: authData.user.id,
           name: newUserName,
-          role: roleForCallback
+          role: newUserRole as UserRole
         });
         
         // Limpar os campos do formulário
