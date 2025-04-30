@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchUserProfile } from './authService';
+import { logger } from '@/utils/logger';
 
 export function useAuthState() {
   const [user, setUser] = useState<User | null>(null);
@@ -21,6 +22,13 @@ export function useAuthState() {
     setUser(session?.user || null);
     setLoading(false);
     
+    // Log de alteração de estado de autenticação
+    if (session?.user) {
+      logger.debug("Estado de autenticação alterado", { module: 'auth', user: session.user.id });
+    } else {
+      logger.debug("Estado de autenticação alterado para deslogado", { module: 'auth' });
+    }
+    
     // If there's a user, fetch their profile
     if (session?.user) {
       // Use setTimeout to avoid deadlock with Supabase
@@ -30,7 +38,7 @@ export function useAuthState() {
             if (organizations) setOrganization(organizations);
           })
           .catch(err => {
-            console.error('Error fetching profile:', err);
+            logger.error('Erro ao buscar perfil de usuário', { module: 'auth', user: session.user.id }, err);
             setError(err instanceof Error ? err : new Error('Error fetching user profile'));
           });
       }, 0);
@@ -39,27 +47,33 @@ export function useAuthState() {
 
   // Reset authentication state
   const resetAuthState = () => {
+    const currentUserId = user?.id;
+    
     setUser(null);
     setSession(null);
     setOrganization(null);
     setError(null);
+    
+    if (currentUserId) {
+      logger.debug("Estado de autenticação resetado", { module: 'auth', user: currentUserId });
+    }
   };
 
   // Initialize authentication and setup listener
   useEffect(() => {
-    console.log("Checking current session...");
+    logger.info("Verificando sessão atual...", { module: 'auth' });
     setLoading(true);
     
     // Set up listener for authentication state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Authentication state changed:", event, session?.user?.id);
+      logger.debug("Estado de autenticação alterado:", { module: 'auth' }, { event, userId: session?.user?.id });
       handleAuthStateChange(session);
     });
 
     // Check if a session already exists
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        console.error("Error getting session:", error);
+        logger.error("Erro ao obter sessão:", { module: 'auth' }, error);
         setError(error);
         setLoading(false);
         return;
@@ -84,7 +98,7 @@ export function useAuthState() {
       
       // Logout after 30 minutes of inactivity
       inactivityTimer = window.setTimeout(() => {
-        console.log("Session expired due to inactivity");
+        logger.auth.sessionExpired(session.user.id);
         resetAuthState();
       }, 30 * 60 * 1000); // 30 minutes
     };
