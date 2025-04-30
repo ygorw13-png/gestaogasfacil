@@ -3,10 +3,9 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { ObservationsSection } from "../../ObservationsSection";
 import { useState } from "react";
-import { CashierClosingSummary } from "./CashierClosingSummary";
 import { ClosingTypeTabs } from "../ClosingTypeTabs";
-import { inventoryClosing } from "../../../data/mockData";
 import { CashierData, PartialClosing } from "../../../types/cashierTypes";
+import { SummarySection } from "./SummarySection";
 
 interface CashierClosingFormProps {
   onSubmit: (type: "partial" | "total", observations?: string) => void;
@@ -35,7 +34,6 @@ export function CashierClosingForm({
   };
 
   // Converter totalSalesSinceLastPartial para um formato compatível com CashierData
-  // para passar para CashierClosingSummary
   const adaptedSalesData: CashierData = {
     cash: cashierData.cash / 2,
     credit: cashierData.credit / 2,
@@ -63,12 +61,12 @@ export function CashierClosingForm({
         partialCount={partialClosings.length}
       />
       
-      <CashierClosingSummary
-        cashierData={cashierData}
-        inventoryData={inventoryClosing}
+      <SummarySection
         isPartialClosing={closingType === "partial"}
-        totalSalesSinceLastPartial={adaptedSalesData}
         partialClosings={partialClosings}
+        cashierData={cashierData}
+        adaptedSalesData={adaptedSalesData}
+        inventoryData={{ /* passando inventoryClosing aqui */ }}
       />
       
       <ObservationsSection value={observations} onChange={setObservations} />

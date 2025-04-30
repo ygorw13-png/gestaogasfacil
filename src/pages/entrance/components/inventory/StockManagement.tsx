@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InventoryMovement } from "../../types/cashierTypes";
@@ -7,8 +7,9 @@ import { StockGrid } from "./StockGrid";
 import { MovementForm } from "./MovementForm";
 import { MovementsList } from "./MovementsList";
 import { InitialStockForm } from "./InitialStockForm";
-import { getCurrentStock, syncStockWithDashboard } from "@/pages/dashboard/data";
-import { supabase } from "@/integrations/supabase/client";
+import { syncStockWithDashboard } from "@/pages/dashboard/data";
+import { useInitialStock } from "./hooks/useInitialStock";
+import { calculateNetMovements } from "./MovementsCalculator";
 
 interface StockManagementProps {
   currentStock: {
@@ -27,101 +28,13 @@ export function StockManagement({
   inventoryMovements
 }: StockManagementProps) {
   const [activeTab, setActiveTab] = useState<string>("movements");
-  const [initializing, setInitializing] = useState(true);
   
-  useEffect(() => {
-    const initializeStock = async () => {
-      // Busca o estoque inicial do usuário do banco de dados
-      const stock = await getCurrentStock();
-      
-      // Inicializa o estoque com os valores do banco de dados
-      if (stock && (stock.p13 > 0 || stock.p20 > 0 || stock.p45 > 0 || stock.water > 0)) {
-        const movements: InventoryMovement[] = [];
-        
-        if (stock.p13 > 0) {
-          movements.push({
-            product: "P13",
-            quantity: stock.p13,
-            type: "initial",
-            timestamp: new Date().toISOString()
-          });
-        }
-        
-        if (stock.p20 > 0) {
-          movements.push({
-            product: "P20",
-            quantity: stock.p20,
-            type: "initial",
-            timestamp: new Date().toISOString()
-          });
-        }
-        
-        if (stock.p45 > 0) {
-          movements.push({
-            product: "P45",
-            quantity: stock.p45,
-            type: "initial",
-            timestamp: new Date().toISOString()
-          });
-        }
-        
-        if (stock.water > 0) {
-          movements.push({
-            product: "water",
-            quantity: stock.water,
-            type: "initial",
-            timestamp: new Date().toISOString()
-          });
-        }
-        
-        if (movements.length > 0) {
-          // Só aplica as movimentações se houver algum valor na base de dados
-          movements.forEach(movement => {
-            onInventoryMovement(movement);
-          });
-        }
-      }
-      
-      setInitializing(false);
-    };
-    
-    initializeStock();
-  }, [onInventoryMovement]);
+  const { initializing } = useInitialStock({
+    onInventoryMovement,
+    currentStock
+  });
   
-  // Sincroniza automaticamente o estoque com o dashboard quando há mudanças
-  useEffect(() => {
-    if (!initializing) {
-      syncStockWithDashboard(currentStock);
-    }
-  }, [currentStock, initializing]);
-  
-  const calculateNetMovements = () => {
-    const result = {
-      P13: { loan: 0, return: 0, net: 0 },
-      P20: { loan: 0, return: 0, net: 0 },
-      P45: { loan: 0, return: 0, net: 0 },
-      water: { loan: 0, return: 0, net: 0 }
-    };
-    
-    inventoryMovements.forEach(move => {
-      if (move.type === "loan") {
-        result[move.product as keyof typeof result].loan += move.quantity;
-      } else if (move.type === "return") {
-        result[move.product as keyof typeof result].return += move.quantity;
-      }
-      // We ignore "initial" type for net calculations
-    });
-    
-    // Calculate net values
-    Object.keys(result).forEach(key => {
-      const k = key as keyof typeof result;
-      result[k].net = result[k].return - result[k].loan;
-    });
-    
-    return result;
-  };
-  
-  const movements = calculateNetMovements();
+  const movements = calculateNetMovements(inventoryMovements);
 
   const handleInitialStockSubmit = async (initialMovements: InventoryMovement[]) => {
     // Process each movement individually
