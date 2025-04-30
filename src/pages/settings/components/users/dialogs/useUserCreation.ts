@@ -20,8 +20,8 @@ export function useUserCreation({
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
-  // Using string type for newUserRole to avoid TypeScript recursion issues
-  const [newUserRole, setNewUserRole] = useState<string>('admin');
+  // Store role as plain string to avoid TypeScript recursion
+  const [newUserRole, setNewUserRole] = useState('admin');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [creatingUser, setCreatingUser] = useState(false);
 
@@ -80,7 +80,7 @@ export function useUserCreation({
       if (authError) throw authError;
       
       if (authData?.user) {
-        // Fix: Use proper JSON.stringify for the body
+        // Use JSON.stringify for the body and pass the string role directly
         const { error: profileError } = await supabase.functions.invoke('create_profile', {
           body: JSON.stringify({
             user_id: authData.user.id,
@@ -94,19 +94,19 @@ export function useUserCreation({
 
         if (profileError) throw profileError;
 
-        // Explicitly casting newUserRole to UserRole to avoid type recursion
-        const userRole = newUserRole as UserRole;
+        // Type casting here without recursive type references
+        const roleValue = newUserRole as UserRole;
         
         toast({
           title: "Usuário criado com sucesso!",
-          description: `${newUserName} foi adicionado como ${roleLabels[userRole]}`
+          description: `${newUserName} foi adicionado como ${roleLabels[roleValue]}`
         });
         
         // Notificar o componente pai sobre o novo usuário
         onUserCreated({
           id: authData.user.id,
           name: newUserName,
-          role: userRole
+          role: roleValue
         });
         
         // Limpar os campos do formulário
