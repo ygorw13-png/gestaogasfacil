@@ -150,3 +150,28 @@ export const generateSecurePassword = (length: number = 12): string => {
   return password.split('').sort(() => 0.5 - Math.random()).join('');
 };
 
+/**
+ * Verifica se a rota atual é segura (HTTPS)
+ * @returns True se a rota for segura
+ */
+export const isSecureRoute = (): boolean => {
+  return typeof window !== 'undefined' && 
+    (window.location.protocol === 'https:' || window.location.hostname === 'localhost');
+};
+
+/**
+ * Verifica se a aplicação está em ambiente de produção
+ * @returns True se em produção
+ */
+export const isProduction = (): boolean => {
+  return process.env.NODE_ENV === 'production';
+};
+
+/**
+ * Gera um ID único com prefixo para identificação de elementos
+ * @param prefix Prefixo para o ID
+ * @returns ID único
+ */
+export const generateSecureId = (prefix: string = 'sec'): string => {
+  return `${prefix}-${Math.random().toString(36).substring(2, 11)}`;
+};
