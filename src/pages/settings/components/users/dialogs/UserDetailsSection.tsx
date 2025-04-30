@@ -2,7 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { roleLabels } from "@/types/userTypes";
+import { roleLabels, UserRole } from "@/types/userTypes";
 
 interface UserDetailsSectionProps {
   name: string;
@@ -60,10 +60,9 @@ export function UserDetailsSection({
             <SelectValue placeholder="Selecione uma função" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="admin">Administrador</SelectItem>
-            <SelectItem value="gerente">Gerente</SelectItem>
-            <SelectItem value="vendedor">Vendedor</SelectItem>
-            <SelectItem value="portaria">Portaria</SelectItem>
+            {Object.entries(roleLabels).map(([value, label]) => (
+              <SelectItem key={value} value={value}>{label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

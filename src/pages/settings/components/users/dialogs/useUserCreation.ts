@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { UserRole } from "@/types/userTypes";
+import { UserRole, roleLabels } from "@/types/userTypes";
 import { validatePasswordStrength } from "@/utils/securityUtils";
 
 interface UserCreationProps {
@@ -79,7 +79,7 @@ export function useUserCreation({
       if (authError) throw authError;
       
       if (authData?.user) {
-        // Criar o perfil do usuário usando a função RPC, vinculando à organização atual
+        // Fix: Use proper JSON.stringify for the body
         const { error: profileError } = await supabase.functions.invoke('create_profile', {
           body: JSON.stringify({
             user_id: authData.user.id,
@@ -93,6 +93,7 @@ export function useUserCreation({
 
         if (profileError) throw profileError;
 
+        // Explicit cast to UserRole to prevent infinite type recursion
         const userRole = newUserRole as UserRole;
         
         toast({
