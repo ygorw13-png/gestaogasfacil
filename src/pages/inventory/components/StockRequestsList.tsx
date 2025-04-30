@@ -1,75 +1,42 @@
-import { useEffect, useState } from "react";
+
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { StockRequest } from "@/types/supabaseTypes";
 import { Loader2 } from "lucide-react";
 import { customTables } from "@/integrations/supabase/customClient";
+import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
+import { useSupabaseMutation } from "@/hooks/useSupabaseMutation";
 
 export function StockRequestsList() {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [requests, setRequests] = useState<StockRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchRequests = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await customTables.stockRequests.select();
-        
-      if (error) throw error;
-      
-      if (data) {
-        // Ensure data is treated as StockRequest[]
-        setRequests(data);
-      }
-    } catch (error: any) {
-      console.error("Erro ao buscar requisições:", error);
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar as requisições de estoque",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
   
-  useEffect(() => {
-    fetchRequests();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { 
+    data: requests, 
+    loading, 
+    refetch: fetchRequests 
+  } = useSupabaseQuery<StockRequest>({
+    queryFn: () => customTables.stockRequests.select(),
+    errorMessage: "Falha ao carregar as requisições de estoque"
+  });
+
+  const processRequest = useSupabaseMutation<StockRequest, Partial<StockRequest> & { id: string }>({
+    mutationFn: (data) => customTables.stockRequests.update(data),
+    onSuccess: () => fetchRequests(),
+    successMessage: "Requisição processada com sucesso"
+  });
   
   const handleProcessRequest = async (id: string, newStatus: 'aprovada' | 'recusada') => {
-    try {
-      const { error } = await customTables.stockRequests.update({
-        id,
-        status: newStatus,
-        processado_por: user?.id,
-        data_processamento: new Date().toISOString()
-      });
-        
-      if (error) throw error;
-      
-      toast({
-        title: "Sucesso",
-        description: `Requisição ${newStatus === 'aprovada' ? 'aprovada' : 'recusada'} com sucesso`
-      });
-      
-      fetchRequests();
-      
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
+    await processRequest.mutate({
+      id,
+      status: newStatus,
+      processado_por: user?.id,
+      data_processamento: new Date().toISOString()
+    });
   };
   
   const getStatusBadge = (status: string) => {
@@ -104,7 +71,7 @@ export function StockRequestsList() {
           <h3 className="text-lg font-medium">Requisições de Estoque</h3>
           <Button 
             variant="outline" 
-            onClick={fetchRequests}
+            onClick={() => fetchRequests()}
             disabled={loading}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Atualizar"}
@@ -158,6 +125,7 @@ export function StockRequestsList() {
                             variant="outline"
                             className="bg-green-50 text-green-700 border-green-300 hover:bg-green-100"
                             onClick={() => handleProcessRequest(req.id, 'aprovada')}
+                            disabled={processRequest.loading}
                           >
                             Aprovar
                           </Button>
@@ -166,6 +134,7 @@ export function StockRequestsList() {
                             variant="outline"
                             className="bg-red-50 text-red-700 border-red-300 hover:bg-red-100"
                             onClick={() => handleProcessRequest(req.id, 'recusada')}
+                            disabled={processRequest.loading}
                           >
                             Recusar
                           </Button>

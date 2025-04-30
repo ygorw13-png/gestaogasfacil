@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,58 +9,46 @@ import { CylinderLoanForm } from "./cylinder-control/CylinderLoanForm";
 import { ActiveLoansTable } from "./cylinder-control/ActiveLoansTable";
 import { ReturnHistoryTable } from "./cylinder-control/ReturnHistoryTable";
 import { Client, CylinderLoanFormData } from "./cylinder-control/types";
+import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
+import { useSupabaseMutation } from "@/hooks/useSupabaseMutation";
 
 export function CylinderControl() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [clients, setClients] = useState<Client[]>([]);
-  const [loans, setLoans] = useState<CylinderLoan[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loadingLoans, setLoadingLoans] = useState(false);
 
-  useEffect(() => {
-    fetchClients();
-    fetchLoans();
-  }, []);
+  // Usar o hook personalizado para carregar empréstimos
+  const { 
+    data: loans, 
+    loading: loadingLoans,
+    refetch: fetchLoans
+  } = useSupabaseQuery<CylinderLoan>({
+    queryFn: () => customTables.cylinderLoans.select(),
+    errorMessage: "Erro ao buscar empréstimos"
+  });
 
-  const fetchClients = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('id, name');
+  // Buscar clientes quando o componente montar
+  useSupabaseQuery<Client>({
+    queryFn: async () => {
+      return await supabase.from('clients').select('id, name');
+    },
+    onSuccess: (data) => setClients(data),
+    errorMessage: "Erro ao buscar clientes"
+  });
 
-      if (error) throw error;
-      
-      if (data) {
-        setClients(data);
-      }
-    } catch (error) {
-      console.error("Erro ao buscar clientes:", error);
-    }
-  };
-
-  const fetchLoans = async () => {
-    setLoadingLoans(true);
-    try {
-      const { data, error } = await customTables.cylinderLoans.select();
-      
-      if (error) throw error;
-      
-      if (data) {
-        // Ensure data is treated as CylinderLoan[]
-        setLoans(data);
-      }
-    } catch (error) {
-      console.error("Erro ao buscar empréstimos:", error);
-    } finally {
-      setLoadingLoans(false);
-    }
-  };
+  // Hook para registro de novos empréstimos
+  const loanMutation = useSupabaseMutation<CylinderLoan, Omit<CylinderLoan, 'id'>>({
+    mutationFn: (data) => customTables.cylinderLoans.insert(data),
+    onSuccess: () => fetchLoans(),
+    successMessage: "Empréstimo registrado com sucesso",
+    errorMessage: "Erro ao registrar empréstimo"
+  });
 
   const handleRegisterLoan = async (data: CylinderLoanFormData) => {
     setLoading(true);
     try {
-      const { error } = await customTables.cylinderLoans.insert({
+      await loanMutation.mutate({
         cliente_id: data.clientId,
         tipo_cliente: data.tipoCliente,
         tipo_vasilhame: data.tipoVasilhame,
@@ -69,22 +57,14 @@ export function CylinderControl() {
         registrado_por: user?.id || "",
         data_emprestimo: new Date().toISOString()
       });
-
-      if (error) throw error;
       
       toast({
         title: "Empréstimo registrado",
         description: `${data.quantidade} vasilhame(s) de ${data.tipoVasilhame === 'agua' ? 'Água 20L' : `GLP ${data.tipoVasilhame}`} emprestado(s) com sucesso`
       });
       
-      fetchLoans();
-      
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive"
-      });
+      // Erro já tratado pelo hook useSupabaseMutation
     } finally {
       setLoading(false);
     }
