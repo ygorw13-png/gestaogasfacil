@@ -4,6 +4,7 @@ import { MainNavigation } from "./categories/MainNavigation";
 import { OrdersNavigation } from "./categories/OrdersNavigation";
 import { InventoryNavigation } from "./categories/InventoryNavigation"; 
 import { FinanceNavigation } from "./categories/FinanceNavigation";
+import { AdminNavigation } from "./categories/AdminNavigation";
 
 export const SidebarNav = () => {
   return (
@@ -20,8 +21,12 @@ export const SidebarNav = () => {
         <InventoryNavigation />
       </NavCategory>
       
-      <NavCategory showSeparator>
+      <NavCategory>
         <FinanceNavigation />
+      </NavCategory>
+      
+      <NavCategory showSeparator>
+        <AdminNavigation />
       </NavCategory>
     </nav>
   );

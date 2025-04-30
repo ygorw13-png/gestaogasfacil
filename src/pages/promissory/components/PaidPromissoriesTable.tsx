@@ -9,6 +9,14 @@ interface PaidPromissoriesTableProps {
 }
 
 function PaidPromissoriesTableComponent({ promissories }: PaidPromissoriesTableProps) {
+  if (promissories.length === 0) {
+    return (
+      <div className="text-center p-4 text-muted-foreground">
+        Não há notas promissórias pagas para exibir.
+      </div>
+    );
+  }
+
   return (
     <Table>
       <TableHeader>

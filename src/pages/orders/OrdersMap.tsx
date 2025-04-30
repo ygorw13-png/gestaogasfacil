@@ -1,3 +1,4 @@
+
 import React, { memo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Order } from "./types";
@@ -8,12 +9,17 @@ interface OrdersMapProps {
 }
 
 function OrdersMapComponent({ orders }: OrdersMapProps) {
+  // Futuramente, aqui será implementada a lógica do mapa
+  const hasOrders = orders && orders.length > 0;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Mapa de Entregas</CardTitle>
         <CardDescription>
-          Visualização das entregas no mapa (implementação futura)
+          {hasOrders 
+            ? `Visualização de ${orders.length} pedidos no mapa`
+            : "Visualização das entregas no mapa (implementação futura)"}
         </CardDescription>
       </CardHeader>
       <CardContent>
