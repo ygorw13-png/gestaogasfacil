@@ -25,6 +25,27 @@ export function TopBar() {
     navigate('/login');
   };
 
+  // Função para obter as iniciais do nome do usuário ou um valor padrão
+  const getUserInitials = () => {
+    // Verificar se temos dados de usuário e email
+    if (user?.email) {
+      // Usar a primeira parte do email (antes do @) como fallback
+      const emailName = user.email.split('@')[0];
+      return emailName.substring(0, 2).toUpperCase();
+    }
+    return 'AU'; // Avatar do Usuário - valor padrão
+  };
+
+  // Função para obter o nome de exibição do usuário
+  const getDisplayName = () => {
+    // Se tivermos metadados de usuário, tente obter o nome de lá
+    if (user?.user_metadata && user.user_metadata.name) {
+      return user.user_metadata.name;
+    }
+    // Caso contrário, use o email ou um valor padrão
+    return user?.email ? user.email.split('@')[0] : 'Usuário';
+  };
+
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center px-4 gap-4">
@@ -51,7 +72,7 @@ export function TopBar() {
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="bg-gasflow-100 text-gasflow-700">
-                    {user?.name ? user.name.substring(0, 2).toUpperCase() : 'AU'}
+                    {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -59,7 +80,7 @@ export function TopBar() {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>
                 <div>
-                  {user?.name || 'Usuário'}
+                  {getDisplayName()}
                   {user?.role && (
                     <p className="text-xs font-normal text-muted-foreground mt-1">
                       {roleLabels[user.role]}
