@@ -1,6 +1,6 @@
 
 import { useMemo } from "react";
-import { PartialClosing } from "../components/cashier/CashierClosingDialog";
+import { PartialClosing } from "../types/cashierTypes";
 
 export interface FormattedClosing extends PartialClosing {
   formattedDate: string;

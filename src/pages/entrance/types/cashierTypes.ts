@@ -27,10 +27,15 @@ export interface InventoryMovement {
 
 export interface PartialClosing {
   id: string;
-  date: string;
-  amount: number;
+  timestamp: string;
+  totalSales: number;
+  quantities: {
+    p13: number;
+    p20: number;
+    p45: number;
+    water: number;
+  };
   observations?: string;
-  hasReport: boolean;
 }
 
 // Add missing InventoryTableProps interface

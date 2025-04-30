@@ -1,5 +1,5 @@
 
-import { PartialClosing } from "../components/cashier/CashierClosingDialog";
+import { PartialClosing } from "../types/cashierTypes";
 
 /**
  * Calculate total sales from partial closings

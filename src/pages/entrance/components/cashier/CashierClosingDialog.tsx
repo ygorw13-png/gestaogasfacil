@@ -91,4 +91,3 @@ const calculateSalesAmountSinceLastPartial = (cashierData: CashierData, partialC
   
   return cashierData.totalSales - totalPartialSales;
 };
-

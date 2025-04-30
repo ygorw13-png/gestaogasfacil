@@ -1,7 +1,7 @@
 
 import { useState } from "react";
-import { CashierClosingDialog, PartialClosing } from "./components/cashier/CashierClosingDialog";
-import { CashierData } from "./types/cashierTypes";
+import { CashierClosingDialog } from "./components/cashier/CashierClosingDialog";
+import { CashierData, PartialClosing } from "./types/cashierTypes";
 import { useToast } from "@/hooks/use-toast";
 import { resetInventory } from "./data/mockData";
 

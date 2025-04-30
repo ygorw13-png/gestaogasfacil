@@ -1,12 +1,10 @@
 
 import { TableCell, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/formatUtils";
-import { PartialClosing } from "../CashierClosingDialog";
+import { FormattedClosing } from "../../../hooks/useClosingHistory";
 
 interface ClosingEntryRowProps {
-  closing: PartialClosing & {
-    formattedDateTime: string;
-  };
+  closing: FormattedClosing;
 }
 
 export function ClosingEntryRow({ closing }: ClosingEntryRowProps) {
