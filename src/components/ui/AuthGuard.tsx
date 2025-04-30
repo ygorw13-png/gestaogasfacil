@@ -1,10 +1,12 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from './LoadingSpinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
+import { useCsrfProtection } from '@/utils/csrfProtection';
+import { useSecurityTimeout } from '@/hooks/useSecurityTimeout';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -15,8 +17,23 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   children,
   redirectTo = '/login'
 }) => {
-  const { user, loading, error } = useAuth();
+  const { user, loading, error, signOut } = useAuth();
   const location = useLocation();
+  const { refreshCsrfToken } = useCsrfProtection();
+
+  // Atualizar o token CSRF sempre que o componente for montado
+  useEffect(() => {
+    refreshCsrfToken();
+  }, [refreshCsrfToken]);
+  
+  // Configurar logout automático após 30 minutos de inatividade
+  useSecurityTimeout({
+    timeoutMinutes: 30,
+    onTimeout: () => {
+      console.log("Sessão expirada por inatividade");
+      signOut();
+    }
+  });
 
   if (loading) {
     return (

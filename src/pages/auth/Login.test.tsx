@@ -16,6 +16,14 @@ vi.mock('@/hooks/useErrorHandler', () => ({
     clearError: vi.fn()
   })
 }));
+vi.mock('@/utils/csrfProtection', () => ({
+  useCsrfProtection: () => ({
+    csrfToken: 'test-csrf-token',
+    validateCsrfToken: vi.fn().mockReturnValue(true),
+    refreshCsrfToken: vi.fn(),
+    addCsrfHeader: vi.fn()
+  })
+}));
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {

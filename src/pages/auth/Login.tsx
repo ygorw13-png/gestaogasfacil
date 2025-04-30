@@ -5,6 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import LoginForm from '@/components/auth/LoginForm';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { sanitizeHtml } from '@/utils/securityUtils';
+import { useCsrfProtection } from '@/utils/csrfProtection';
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -13,6 +15,7 @@ export default function Login() {
   const location = useLocation();
   const { toast } = useToast();
   const { user, signIn } = useAuth();
+  const { csrfToken } = useCsrfProtection();
   
   // Verificar se o usuário já está autenticado
   useEffect(() => {
@@ -35,10 +38,14 @@ export default function Login() {
     setLoading(true);
     clearError();
     
-    console.log("Tentativa de login com:", email);
+    // Sanitizar entradas para prevenir XSS
+    const sanitizedEmail = sanitizeHtml(email.trim().toLowerCase());
+    
+    console.log("Tentativa de login com:", sanitizedEmail);
 
     try {
-      const { success, error } = await signIn(email, password);
+      // Adicionar token CSRF na requisição de login
+      const { success, error } = await signIn(sanitizedEmail, password, { csrfToken });
       
       if (success) {
         console.log("Login realizado com sucesso via formulário");
@@ -78,6 +85,7 @@ export default function Login() {
         onSubmit={handleSubmit}
         loading={loading}
         error={error?.message || null}
+        csrfToken={csrfToken}
       />
     </div>
   );
