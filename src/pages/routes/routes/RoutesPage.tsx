@@ -1,30 +1,13 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RoutesList } from "../components/RoutesList";
 import { NewRouteForm } from "../components/NewRouteForm";
 import { RouteReports } from "../components/RouteReports";
-import { useAuth } from "@/contexts/auth";
-import { useNavigate } from "react-router-dom";
 
 export default function RoutesPage() {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Redirecionar para login se não estiver autenticado
-    if (!loading && !user) {
-      navigate('/login', { replace: true });
-    }
-  }, [user, loading, navigate]);
-
-  // Não renderizar o conteúdo até verificar a autenticação
-  if (loading || !user) {
-    return null;
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

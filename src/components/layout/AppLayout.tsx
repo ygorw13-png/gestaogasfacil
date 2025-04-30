@@ -4,11 +4,11 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { TopBar } from "./TopBar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
-import { AuthGuard } from "@/components/ui/AuthGuard";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { cn } from "@/lib/utils";
 
 // Componente de conteúdo para gerenciar o layout com base no estado da sidebar
 const MainContent = memo(() => {
@@ -37,41 +37,10 @@ const MainContent = memo(() => {
 
 MainContent.displayName = 'MainContent';
 
-const AppLayoutContent = memo(({ user, isLoading }: { user: any, isLoading: boolean }) => {
-  const isMobile = useIsMobile();
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // Verificação adicional de segurança
-    if (!user) {
-      navigate('/login', { replace: true });
-      return;
-    }
-  }, [user, navigate]);
-  
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-background" role="status" aria-live="polite">
-        <LoadingSpinner size="lg" message="GasFlow Aqua Manager" />
-      </div>
-    );
-  }
-
-  return (
-    <SidebarProvider defaultOpen={!isMobile}>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        <MainContent />
-      </div>
-    </SidebarProvider>
-  );
-});
-
-AppLayoutContent.displayName = 'AppLayoutContent';
-
 export function AppLayout() {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Simular carregamento apenas se tivermos um usuário autenticado
@@ -98,12 +67,20 @@ export function AppLayout() {
     }
   }, [isLoading]);
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background" role="status" aria-live="polite">
+        <LoadingSpinner size="lg" message="GasFlow Aqua Manager" />
+      </div>
+    );
+  }
+
   return (
-    <AuthGuard>
-      <AppLayoutContent user={user} isLoading={isLoading} />
-    </AuthGuard>
+    <SidebarProvider defaultOpen={!isMobile}>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
+        <MainContent />
+      </div>
+    </SidebarProvider>
   );
 }
-
-// Esqueci de importar cn, vamos incluí-lo:
-import { cn } from "@/lib/utils";

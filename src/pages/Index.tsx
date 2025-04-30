@@ -33,6 +33,7 @@ const Index = () => {
     }
     
     // Redirecionar para o login se não estiver autenticado
+    // Só vai para o dashboard quando já estiver autenticado
     return user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
   }, [user, loading, error]);
 

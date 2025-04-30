@@ -23,21 +23,25 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 
   // Atualizar o token CSRF apenas uma vez quando o componente montar
   useEffect(() => {
+    if (!user) return; // Não atualizar o token se não houver usuário
+    
     const handleRefreshToken = () => {
       refreshCsrfToken();
     };
     
-    // Executar apenas uma vez na montagem do componente
+    // Executar apenas uma vez na montagem do componente quando usuário estiver autenticado
     handleRefreshToken();
     // Importante: Não incluir refreshCsrfToken na lista de dependências para evitar loop infinito
-  }, []);
+  }, [user]);
   
   // Configurar logout automático após 30 minutos de inatividade
   useSecurityTimeout({
     timeoutMinutes: 30,
     onTimeout: () => {
-      console.log("Sessão expirada por inatividade");
-      signOut();
+      if (user) {
+        console.log("Sessão expirada por inatividade");
+        signOut();
+      }
     }
   });
 
