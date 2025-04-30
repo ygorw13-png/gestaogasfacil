@@ -1,76 +1,49 @@
 
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-import { validatePasswordStrength, generateSecurePassword } from "@/utils/securityUtils";
 
-interface PasswordSectionProps {
+export interface PasswordSectionProps {
   password: string;
   setPassword: (password: string) => void;
-  passwordError: string | null;
-  setPasswordError: (error: string | null) => void;
+  confirmPassword: string;
+  setConfirmPassword: (confirmPassword: string) => void;
+  error: string | null;
 }
 
 export function PasswordSection({ 
   password, 
   setPassword, 
-  passwordError, 
-  setPasswordError 
+  confirmPassword, 
+  setConfirmPassword,
+  error 
 }: PasswordSectionProps) {
-  
-  const handleGeneratePassword = () => {
-    const securePassword = generateSecurePassword();
-    setPassword(securePassword);
-    setPasswordError(null);
-  };
-
-  const validatePassword = (password: string) => {
-    if (password) {
-      const validation = validatePasswordStrength(password);
-      setPasswordError(validation.valid ? null : validation.message);
-    }
-  };
-
   return (
-    <div className="grid grid-cols-4 items-center gap-4">
-      <Label htmlFor="password" className="text-right">
-        Senha
-      </Label>
-      <div className="col-span-3 space-y-2">
-        <div className="flex gap-2">
+    <div className="space-y-4">
+      <div className="font-medium">Senha</div>
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="password">Senha</Label>
           <Input
             id="password"
-            type="text" // Mostrar a senha para facilitar compartilhamento
+            type="password"
             value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              if (e.target.value) validatePassword(e.target.value);
-            }}
-            className="flex-1"
+            onChange={(e) => setPassword(e.target.value)}
+            className="mt-1"
+            placeholder="Digite a senha"
           />
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={handleGeneratePassword}
-            className="whitespace-nowrap"
-          >
-            Gerar Senha
-          </Button>
         </div>
-        
-        {passwordError && (
-          <Alert variant="destructive" className="py-2">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-xs">{passwordError}</AlertDescription>
-          </Alert>
-        )}
-        
-        <p className="text-xs text-gray-500">
-          A senha deve conter pelo menos 8 caracteres, uma letra maiúscula, um número e um caractere especial.
-        </p>
+        <div>
+          <Label htmlFor="confirmPassword">Confirme a Senha</Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="mt-1"
+            placeholder="Confirme a senha"
+          />
+          {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+        </div>
       </div>
     </div>
   );

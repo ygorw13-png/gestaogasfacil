@@ -38,12 +38,12 @@ export const useUserCreation = () => {
     return true;
   };
 
-  const handleCreateNewUser = () => {
+  const handleCreateNewUser = async () => {
     if (!validatePassword(newUserPassword, newUserConfirmPassword)) {
-      return;
+      return { success: false };
     }
     
-    return createUser({
+    return await createUser({
       name: newUserName,
       email: newUserEmail,
       role: newUserRole,
