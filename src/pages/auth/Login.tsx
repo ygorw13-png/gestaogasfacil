@@ -10,8 +10,8 @@ export default function Login() {
   // If the user is already logged in, don't render the form
   if (user) return null;
 
-  const handleFormSubmit = (email: string, password: string) => {
-    handleSubmit(email, password, csrfToken);
+  const handleFormSubmit = async (email: string, password: string) => {
+    return await handleSubmit(email, password, csrfToken);
   };
 
   return (
