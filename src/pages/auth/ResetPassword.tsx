@@ -4,11 +4,12 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { resetPassword } from '@/contexts/auth';
+import { logger } from '@/utils/logger';
 
 // Schema de validação para o e-mail
 const emailSchema = z.object({
@@ -44,25 +45,27 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      // Sanitize input
-      const sanitizedEmail = email.trim().toLowerCase();
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
-        redirectTo: `${window.location.origin}/update-password`,
-      });
+      // Usar a função de redefinição de senha do serviço de autenticação
+      const { success, error } = await resetPassword(email);
 
-      if (error) throw error;
+      if (!success) {
+        throw new Error(error || "Erro ao enviar e-mail de recuperação");
+      }
 
       toast({
         title: "E-mail enviado",
         description: "Verifique sua caixa de entrada para redefinir sua senha."
       });
+      
+      logger.info("Solicitação de reset de senha", { module: 'auth' }, { email });
     } catch (error: any) {
       toast({
         title: "Erro ao enviar e-mail",
         description: error.message,
         variant: "destructive"
       });
+      
+      logger.error("Erro ao solicitar reset de senha", { module: 'auth' }, error);
     } finally {
       setLoading(false);
     }

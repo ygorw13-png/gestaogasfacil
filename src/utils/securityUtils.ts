@@ -55,3 +55,86 @@ export const sanitizeSqlParam = (param: string): string => {
 export const isValidId = (id: string): boolean => {
   return /^[a-zA-Z0-9_-]+$/.test(id);
 };
+
+/**
+ * Valida se uma senha atende aos requisitos de segurança
+ * @param password Senha a ser validada
+ * @returns Um objeto com o resultado da validação e mensagem de erro, se houver
+ */
+export const validatePasswordStrength = (password: string): { 
+  valid: boolean; 
+  message?: string;
+} => {
+  if (!password) {
+    return { valid: false, message: 'A senha é obrigatória' };
+  }
+
+  if (password.length < 8) {
+    return { valid: false, message: 'A senha deve ter pelo menos 8 caracteres' };
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return { valid: false, message: 'A senha deve conter pelo menos uma letra maiúscula' };
+  }
+
+  if (!/[0-9]/.test(password)) {
+    return { valid: false, message: 'A senha deve conter pelo menos um número' };
+  }
+
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    return { valid: false, message: 'A senha deve conter pelo menos um caractere especial' };
+  }
+
+  // Lista comum de senhas fracas
+  const commonPasswords = [
+    'password', 'senha123', 'admin123', '12345678', 'qwerty123', '123456789', 'abc12345'
+  ];
+  
+  if (commonPasswords.includes(password.toLowerCase())) {
+    return { valid: false, message: 'Esta senha é muito comum e facilmente adivinhável' };
+  }
+
+  return { valid: true };
+};
+
+/**
+ * Gera um hash de senha seguro (simulação - na prática o Supabase lida com isso)
+ * Apenas para referência de implementação
+ */
+export const hashPassword = (password: string): string => {
+  // Na prática, a autenticação do Supabase já usa bcrypt para senhas
+  // Esta função é apenas para demonstração
+  console.warn('AVISO: Esta função é apenas para demonstração. O Supabase já implementa hashing seguro de senhas.');
+  
+  // O código abaixo seria usado se precisássemos implementar nosso próprio hashing
+  // const salt = crypto.randomBytes(16).toString('hex');
+  // const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  // return `${salt}:${hash}`;
+  
+  return '[HASH SEGURO]';
+};
+
+/**
+ * Gera uma senha aleatória segura
+ * @param length Comprimento da senha (padrão: 12)
+ * @returns Uma senha segura aleatória
+ */
+export const generateSecurePassword = (length: number = 12): string => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+';
+  let password = '';
+  
+  // Garantir pelo menos um de cada tipo
+  password += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)];
+  password += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)];
+  password += '0123456789'[Math.floor(Math.random() * 10)];
+  password += '!@#$%^&*()-_=+'[Math.floor(Math.random() * 14)];
+  
+  // Preencher o resto
+  for (let i = 4; i < length; i++) {
+    password += chars[Math.floor(Math.random() * chars.length)];
+  }
+  
+  // Embaralhar a senha
+  return password.split('').sort(() => 0.5 - Math.random()).join('');
+};
+

@@ -15,6 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { UserRole, roleLabels } from "@/types/userTypes";
 import { supabase } from "@/integrations/supabase/client";
+import { validatePasswordStrength, generateSecurePassword } from "@/utils/securityUtils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 // Define a type for user metadata
 interface UserWithMetadata {
@@ -42,8 +45,27 @@ export function NewUserDialog({
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
-  const [newUserRole, setNewUserRole] = useState<UserRole>('vendedor');
   const [creatingUser, setCreatingUser] = useState(false);
+  const [newUserRole, setNewUserRole] = useState<UserRole>('vendedor');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  // Função para gerar senha aleatória segura
+  const handleGeneratePassword = () => {
+    const securePassword = generateSecurePassword();
+    setNewUserPassword(securePassword);
+    setPasswordError(null);
+  };
+
+  // Função para validar a senha
+  const validatePassword = (password: string) => {
+    const validation = validatePasswordStrength(password);
+    if (!validation.valid) {
+      setPasswordError(validation.message);
+      return false;
+    }
+    setPasswordError(null);
+    return true;
+  };
 
   const handleCreateNewUser = async () => {
     if (!newUserEmail || !newUserName || !newUserPassword || !organizationId) {
@@ -52,6 +74,11 @@ export function NewUserDialog({
         description: "Todos os campos são obrigatórios",
         variant: "destructive"
       });
+      return;
+    }
+
+    // Validar força da senha
+    if (!validatePassword(newUserPassword)) {
       return;
     }
 
@@ -127,6 +154,7 @@ export function NewUserDialog({
         setNewUserName('');
         setNewUserPassword('');
         setNewUserRole('vendedor');
+        setPasswordError(null);
         
         // Fechar o diálogo
         onOpenChange(false);
@@ -182,13 +210,39 @@ export function NewUserDialog({
             <Label htmlFor="password" className="text-right">
               Senha
             </Label>
-            <Input
-              id="password"
-              type="password"
-              value={newUserPassword}
-              onChange={(e) => setNewUserPassword(e.target.value)}
-              className="col-span-3"
-            />
+            <div className="col-span-3 space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  id="password"
+                  type="text" // Mostrar a senha para facilitar compartilhamento
+                  value={newUserPassword}
+                  onChange={(e) => {
+                    setNewUserPassword(e.target.value);
+                    if (e.target.value) validatePassword(e.target.value);
+                  }}
+                  className="flex-1"
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleGeneratePassword}
+                  className="whitespace-nowrap"
+                >
+                  Gerar Senha
+                </Button>
+              </div>
+              
+              {passwordError && (
+                <Alert variant="destructive" className="py-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-xs">{passwordError}</AlertDescription>
+                </Alert>
+              )}
+              
+              <p className="text-xs text-gray-500">
+                A senha deve conter pelo menos 8 caracteres, uma letra maiúscula, um número e um caractere especial.
+              </p>
+            </div>
           </div>
           
           <div className="grid grid-cols-4 items-center gap-4">

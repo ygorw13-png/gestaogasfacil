@@ -62,3 +62,32 @@ Realize verificações periódicas para garantir que:
 1. Nenhuma chave secreta esteja exposta no código-fonte
 2. Todas as chamadas a APIs externas sensíveis sejam feitas através de funções Edge
 3. O controle de acesso esteja corretamente implementado para todos os recursos
+
+## Políticas de Senha
+
+As seguintes políticas de senha são implementadas no sistema:
+
+1. **Requisitos Mínimos**:
+   - No mínimo 8 caracteres
+   - Pelo menos uma letra maiúscula
+   - Pelo menos um número
+   - Pelo menos um caractere especial
+
+2. **Armazenamento Seguro**:
+   - Senhas são armazenadas usando bcrypt através do Supabase Auth
+   - Nunca armazenamos senhas em texto plano
+   - Cada usuário possui um salt único para o hash de senha
+
+3. **Recuperação de Senha**:
+   - O sistema implementa recuperação de senha baseada em links enviados por email
+   - Links de recuperação são válidos por tempo limitado
+   - Novas senhas devem seguir os mesmos requisitos de segurança
+
+4. **Bloqueio por Tentativas**:
+   - Após múltiplas tentativas falhas, o acesso é bloqueado temporariamente
+   - Implementamos atraso progressivo entre tentativas
+
+5. **Atualizações de Senha**:
+   - Validações de segurança são aplicadas na criação e alteração de senhas
+   - Senhas comuns e facilmente adivináveis são rejeitadas
+   - A alteração de senha requer confirmação da senha atual

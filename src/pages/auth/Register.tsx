@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -36,19 +35,36 @@ export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<{ name?: string; email?: string; password?: string }>({});
+  const [validationErrors, setValidationErrors] = useState<{ name?: string; email?: string; password?: string; confirmPassword?: string }>({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const validateForm = (): boolean => {
     try {
+      // Validar campos básicos
       registerSchema.parse({ name, email, password });
+      
+      // Validação adicional para confirmar senha
+      if (password !== confirmPassword) {
+        setValidationErrors({...validationErrors, confirmPassword: 'As senhas não coincidem'});
+        return false;
+      }
+      
+      // Validar força da senha
+      const { validatePasswordStrength } = await import('@/utils/securityUtils');
+      const passwordCheck = validatePasswordStrength(password);
+      if (!passwordCheck.valid) {
+        setValidationErrors({...validationErrors, password: passwordCheck.message});
+        return false;
+      }
+      
       setValidationErrors({});
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors: { name?: string; email?: string; password?: string } = {};
+        const errors: { name?: string; email?: string; password?: string; confirmPassword?: string } = {};
         error.errors.forEach((err) => {
           if (err.path[0] === 'name') errors.name = err.message;
           if (err.path[0] === 'email') errors.email = err.message;
@@ -74,7 +90,7 @@ export default function Register() {
       const sanitizedName = name.trim();
       const sanitizedEmail = email.trim().toLowerCase();
 
-      // 1. Verificar se o email já está registrado
+      // Primeira validação de existência de email
       const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers();
 
       if (listError) {
@@ -100,24 +116,25 @@ export default function Register() {
         }
       }
 
-      // 2. Registrar o usuário
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: sanitizedEmail,
-        password,
-        options: {
-          data: {
-            name: sanitizedName // Salvar o nome nos metadados do usuário
-          }
-        }
-      });
-
-      if (authError) throw authError;
+      // Importar serviço de autenticação
+      const { signUpWithEmail } = await import('@/contexts/auth');
       
-      if (authData?.user) {
-        // 3. Criar o perfil do usuário e organização usando a RPC function
+      // Registrar o usuário
+      const { success, error: authError, user } = await signUpWithEmail(
+        sanitizedEmail,
+        password,
+        { name: sanitizedName }
+      );
+
+      if (!success || authError) {
+        throw new Error(authError || "Erro ao registrar usuário");
+      }
+      
+      if (user) {
+        // Criar o perfil do usuário e organização usando a RPC function
         const { error: profileError } = await supabase.functions.invoke('create_profile', {
           body: {
-            user_id: authData.user.id,
+            user_id: user.id,
             name: sanitizedName
           }
         });
@@ -208,8 +225,24 @@ export default function Register() {
                 <p className="text-sm text-red-500 mt-1">{validationErrors.password}</p>
               )}
               <p className="text-xs text-gray-500 mt-1">
-                A senha deve ter pelo menos 8 caracteres, incluir uma letra maiúscula e um número.
+                A senha deve ter pelo menos 8 caracteres, incluir uma letra maiúscula, um número e um caractere especial.
               </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+              <Input 
+                id="confirmPassword"
+                type="password" 
+                placeholder="Confirme sua senha" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className={`border-green-100 focus:border-green-500 ${validationErrors.confirmPassword ? 'border-red-500' : ''}`}
+                disabled={loading}
+                required 
+              />
+              {validationErrors.confirmPassword && (
+                <p className="text-sm text-red-500 mt-1">{validationErrors.confirmPassword}</p>
+              )}
             </div>
 
             <Button 
