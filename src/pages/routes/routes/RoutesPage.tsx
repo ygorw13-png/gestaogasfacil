@@ -3,9 +3,9 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { RoutesList } from "../../routes/components/RoutesList";
-import { NewRouteForm } from "../../routes/components/NewRouteForm";
-import { RouteReports } from "../../routes/components/RouteReports";
+import { RoutesList } from "../components/RoutesList";
+import { NewRouteForm } from "../components/NewRouteForm";
+import { RouteReports } from "../components/RouteReports";
 
 export default function RoutesPage() {
   return (
