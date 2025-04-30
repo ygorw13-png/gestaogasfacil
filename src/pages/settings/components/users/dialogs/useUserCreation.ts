@@ -20,7 +20,7 @@ export function useUserCreation({
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
-  // Use primitive string type instead of complex UserRole type to avoid type recursion
+  // Using a simple string type instead of UserRole to avoid recursive type issues
   const [newUserRole, setNewUserRole] = useState<string>('admin');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [creatingUser, setCreatingUser] = useState(false);
@@ -72,7 +72,7 @@ export function useUserCreation({
         options: {
           data: {
             name: newUserName,
-            organization_id: organizationId // Vincular ao ID da organização atual
+            organization_id: organizationId
           }
         }
       });
@@ -80,7 +80,7 @@ export function useUserCreation({
       if (authError) throw authError;
       
       if (authData?.user) {
-        // Pass role as string to avoid type recursion
+        // Send role as a plain string to avoid type issues
         const { error: profileError } = await supabase.functions.invoke('create_profile', {
           body: JSON.stringify({
             user_id: authData.user.id,
@@ -94,7 +94,7 @@ export function useUserCreation({
 
         if (profileError) throw profileError;
 
-        // Only use type assertion when interfacing with other components that expect UserRole
+        // Use type assertion only when needed for the interface
         const typedRole = newUserRole as UserRole;
         
         toast({
