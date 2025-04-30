@@ -144,7 +144,7 @@ function App() {
                 } />
                 <Route path="/routes" element={
                   <Suspense fallback={<LoadingComponent />}>
-                    <RoleGuard allowedRoles={['admin', 'gerente']}>
+                    <RoleGuard allowedRoles={['admin', 'gerente', 'authenticated']}>
                       <RoutesPage />
                     </RoleGuard>
                   </Suspense>

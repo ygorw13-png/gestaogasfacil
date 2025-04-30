@@ -11,6 +11,7 @@ export interface AuthContextType {
   refresh: () => Promise<void>;
   organization: { id: string; name: string; owner_id: string } | null;
   hasRole: (roles: string | string[]) => boolean;
+  getUserCurrentRole: () => string;
 }
 
 export interface AuthProviderProps {

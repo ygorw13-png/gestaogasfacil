@@ -2,7 +2,7 @@
 import React from 'react';
 import { AuthContext } from './AuthContext';
 import { AuthProviderProps } from './types';
-import { signInWithEmail, signOut as authSignOut, getCurrentSession, hasUserRole } from './services';
+import { signInWithEmail, signOut as authSignOut, getCurrentSession, hasUserRole, getUserRole } from './services';
 import { useAuthState } from './useAuthState';
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -19,6 +19,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Function to check if the user has a specific role
   const hasRole = (roles: string | string[]) => {
     return hasUserRole(user, roles);
+  };
+
+  // Function to get the user's current role
+  const getUserCurrentRole = () => {
+    return getUserRole(user);
   };
 
   // Function for login
@@ -73,6 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         refresh,
         organization,
         hasRole,
+        getUserCurrentRole,
       }}
     >
       {children}

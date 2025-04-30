@@ -1,17 +1,19 @@
 
 import React, { useEffect } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
-import { UserRole } from '@/types/userTypes';
+import { LoadingSpinner } from './LoadingSpinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useCsrfProtection } from '@/utils/csrfProtection';
+import { useSecurityTimeout } from '@/hooks/useSecurityTimeout';
 import { Button } from '@/components/ui/button';
-import { LoadingSpinner } from './LoadingSpinner';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface RoleGuardProps {
   children: React.ReactNode;
-  allowedRoles: UserRole[];
+  allowedRoles: string[];
   redirectTo?: string;
 }
 
@@ -31,7 +33,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
       path: location.pathname, 
       isLoading: loading, 
       hasUser: !!user,
-      userRole: user?.role,
+      userRole: user?.role || 'authenticated', // Assumir 'authenticated' se não tiver role
       allowedRoles
     });
   }, [user, loading, allowedRoles, location.pathname]);
@@ -64,8 +66,12 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Verificar se o usuário tem um papel e se está na lista de papéis permitidos
-  if (!allowedRoles.some(role => hasRole(role))) {
+  // Assumir que o usuário tem o papel 'authenticated' se não tiver um papel específico definido
+  const userHasRole = allowedRoles.includes('authenticated') || 
+                     allowedRoles.some(role => hasRole(role));
+
+  // Verificar se o usuário tem um papel permitido
+  if (!userHasRole) {
     return (
       <div className="p-4 flex flex-col space-y-4">
         <Alert variant="destructive">
@@ -73,7 +79,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
           <AlertTitle>Acesso Restrito</AlertTitle>
           <AlertDescription>
             Você não tem permissão para acessar esta página. 
-            {!user?.role && " Seu perfil de usuário não possui um papel definido."}
+            {!user?.role && " Seu perfil de usuário está configurado como 'authenticated'."}
           </AlertDescription>
         </Alert>
         
