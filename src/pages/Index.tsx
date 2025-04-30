@@ -2,8 +2,8 @@
 import { Navigate } from "react-router-dom";
 
 const Index = () => {
-  // Just redirect to dashboard
-  return <Navigate to="/" replace />;
+  // Redirect to dashboard or login
+  return <Navigate to="/dashboard" replace />;
 };
 
 export default Index;

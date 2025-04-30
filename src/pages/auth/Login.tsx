@@ -68,7 +68,7 @@ export default function Login() {
               navigate('/routes');
               break;
             default:
-              navigate('/'); // admin e gerente vão para o dashboard
+              navigate('/dashboard'); // admin e gerente vão para o dashboard
           }
         }
       }

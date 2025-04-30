@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AppLayout } from "./components/layout/AppLayout";
@@ -63,8 +62,6 @@ const initialCashierData: CashierData = {
 };
 
 function App() {
-  // We don't need to use navigate here, since it's not used in this component
-  // Remove the useNavigate hook from here
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
