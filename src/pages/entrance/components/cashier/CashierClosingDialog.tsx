@@ -19,11 +19,13 @@ import { useCashier } from "@/contexts/CashierContext";
 interface CashierClosingDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onSubmit?: (type: "partial" | "total", observations?: string) => void;  // Adicionada prop onSubmit
 }
 
 export function CashierClosingDialog({ 
   isOpen, 
-  onOpenChange
+  onOpenChange,
+  onSubmit
 }: CashierClosingDialogProps) {
   const [activeTab, setActiveTab] = useState<string>("form");
   const { cashierData, partialClosings, handleCashierClosingSubmit } = useCashier();
@@ -31,6 +33,15 @@ export function CashierClosingDialog({
   const totalSalesSinceLastPartial = {
     count: partialClosings.length > 0 ? partialClosings.length : 0,
     amount: calculateSalesAmountSinceLastPartial(cashierData, partialClosings)
+  };
+
+  // Função que lida com o submit, usando o onSubmit da prop ou o handleCashierClosingSubmit do contexto
+  const handleSubmit = (type: "partial" | "total", observations?: string) => {
+    if (onSubmit) {
+      onSubmit(type, observations);
+    } else {
+      handleCashierClosingSubmit(type, observations);
+    }
   };
 
   return (
@@ -63,7 +74,7 @@ export function CashierClosingDialog({
           
           <TabsContent value="form">
             <CashierClosingForm
-              onSubmit={handleCashierClosingSubmit}
+              onSubmit={handleSubmit}
               onCancel={() => onOpenChange(false)}
               cashierData={cashierData}
               partialClosings={partialClosings}

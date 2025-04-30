@@ -8,7 +8,7 @@ import { resetInventory } from "./data/mockData";
 interface CashierClosingProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: () => void; // This expects a function with no parameters
+  onSubmit: () => void; // Esta prop espera uma função sem parâmetros
   cashierData: CashierData;
 }
 
@@ -24,6 +24,7 @@ export default function CashierClosing({
   const { toast } = useToast();
   const [partialClosings, setPartialClosings] = useState<PartialClosing[]>(mockPartialClosings);
   
+  // Adaptador para converter a chamada da função com parâmetros para uma chamada sem parâmetros
   const handleSubmit = (type: "partial" | "total", observations?: string) => {
     // Em uma implementação real, você salvaria os dados do fechamento
     // e adicionaria à lista de fechamentos parciais se for o caso
@@ -52,8 +53,6 @@ export default function CashierClosing({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       onSubmit={handleSubmit}
-      cashierData={cashierData}
-      partialClosings={partialClosings}
     />
   );
 }

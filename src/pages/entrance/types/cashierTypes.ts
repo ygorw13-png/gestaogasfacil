@@ -1,4 +1,3 @@
-
 export interface CashierData {
   cash: number;
   credit: number;
@@ -27,7 +26,7 @@ export interface InventoryMovement {
 
 export interface PartialClosing {
   id: string;
-  timestamp: string;
+  timestamp: string;  // Explicitamente definido como string
   totalSales: number;
   quantities: {
     p13: number;

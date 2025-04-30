@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CashierData, PartialClosing } from '@/pages/entrance/types/cashierTypes';
 import { Sale, SalesByType } from '@/pages/entrance/types/entranceTypes';
@@ -146,9 +145,8 @@ export function CashierProvider({ children }: { children: React.ReactNode }) {
     if (type === "partial") {
       const newPartialClosing: PartialClosing = {
         id: Date.now().toString(), // Usar timestamp como ID temporário
-        timestamp: new Date(),
-        amount: cashierData.totalSales / 2, // Exemplo simplificado
-        cashier_name: "Usuário Atual", // Idealmente pegaria do contexto de autenticação
+        timestamp: new Date().toISOString(), // Convertemos Date para string
+        totalSales: cashierData.totalSales / 2, // Exemplo simplificado
         quantities: {
           p13: Math.floor(glpSales.p13 / 2),
           p20: Math.floor(glpSales.p20 / 2),
