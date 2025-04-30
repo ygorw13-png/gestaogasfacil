@@ -5,6 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { UserRole, roleLabels } from "@/types/userTypes";
 import { validatePasswordStrength } from "@/utils/securityUtils";
 
+// Lista de roles válidas como constante para evitar recursão de tipos
+const VALID_ROLES = ['admin', 'gerente', 'portaria', 'estoque', 'vendedor', 'entregador'];
+type ValidRoleString = 'admin' | 'gerente' | 'portaria' | 'estoque' | 'vendedor' | 'entregador';
+
 interface UserCreationProps {
   organizationId: string | null;
   onUserCreated: (user: { id: string; name: string; role: UserRole }) => void;
@@ -20,8 +24,8 @@ export function useUserCreation({
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
-  // Use string type explicitly to avoid recursive type references
-  const [newUserRole, setNewUserRole] = useState<string>('admin');
+  // Usar tipo primitivo em vez de UserRole para evitar referências recursivas
+  const [newUserRole, setNewUserRole] = useState<ValidRoleString>('admin');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [creatingUser, setCreatingUser] = useState(false);
 
@@ -80,12 +84,12 @@ export function useUserCreation({
       if (authError) throw authError;
       
       if (authData?.user) {
-        // Use string type for role in the function call to avoid recursive type issues
+        // Usar o valor string diretamente, evitando conversões de tipo complexas
         const { error: profileError } = await supabase.functions.invoke('create_profile', {
           body: JSON.stringify({
             user_id: authData.user.id,
             name: newUserName,
-            role: newUserRole, // Pass as string
+            role: newUserRole, // Passar como string primitivo
             email: newUserEmail,
             created_by_admin: true,
             organization_id: organizationId
@@ -94,19 +98,17 @@ export function useUserCreation({
 
         if (profileError) throw profileError;
 
-        // Cast to UserRole type only at this point, after all API operations are done
-        const roleValue = newUserRole as UserRole;
-        
+        // Usar type assertion simples apenas quando necessário para interface com outros componentes
         toast({
           title: "Usuário criado com sucesso!",
-          description: `${newUserName} foi adicionado como ${roleLabels[roleValue]}`
+          description: `${newUserName} foi adicionado como ${roleLabels[newUserRole as UserRole]}`
         });
         
         // Notificar o componente pai sobre o novo usuário
         onUserCreated({
           id: authData.user.id,
           name: newUserName,
-          role: roleValue
+          role: newUserRole as UserRole
         });
         
         // Limpar os campos do formulário
