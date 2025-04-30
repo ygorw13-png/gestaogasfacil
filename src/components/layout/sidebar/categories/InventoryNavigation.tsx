@@ -1,6 +1,6 @@
 
-import { SidebarLink } from "../SidebarLink";
 import { inventoryNavItems } from "../navigation-config";
+import { SidebarLink } from "../SidebarLink";
 
 export const InventoryNavigation = () => {
   return (
@@ -10,7 +10,7 @@ export const InventoryNavigation = () => {
           key={item.to}
           to={item.to} 
           icon={item.icon} 
-          label={item.label}
+          label={item.label} 
           aria-label={item.ariaLabel}
         />
       ))}

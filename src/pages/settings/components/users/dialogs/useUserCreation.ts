@@ -1,108 +1,85 @@
 
 import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { UserFormData } from '@/pages/entrance/types/cashierTypes';
 
-export const useUserCreation = () => {
+// Create schema for new user form
+const userFormSchema = z.object({
+  email: z.string()
+    .min(1, 'Email é obrigatório')
+    .email('Email inválido'),
+  name: z.string().min(1, 'Nome é obrigatório'),
+  role: z.string().min(1, 'Função é obrigatória'),
+  department: z.string().optional(),
+  password: z.string()
+    .min(8, 'Senha deve ter no mínimo 8 caracteres')
+    .regex(/[A-Z]/, 'Senha deve ter pelo menos uma letra maiúscula')
+    .regex(/[a-z]/, 'Senha deve ter pelo menos uma letra minúscula')
+    .regex(/[0-9]/, 'Senha deve ter pelo menos um número'),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Senhas não conferem',
+  path: ['confirmPassword'],
+});
+
+export type UserFormValues = z.infer<typeof userFormSchema>;
+
+export function useUserCreation() {
+  const [errors, setErrors] = useState<string | null>(null);
+  const [isCreateUserLoading, setIsCreateUserLoading] = useState(false);
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [newUserEmail, setNewUserEmail] = useState("");
-  const [newUserName, setNewUserName] = useState("");
-  const [newUserPassword, setNewUserPassword] = useState("");
-  const [newUserConfirmPassword, setNewUserConfirmPassword] = useState("");
-  const [newUserRole, setNewUserRole] = useState<string>("vendedor");
-  const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  const validatePassword = (password: string, confirmPassword: string): boolean => {
-    if (password !== confirmPassword) {
-      toast({
-        title: "As senhas não coincidem",
-        description: "Por favor, digite a mesma senha nos dois campos.",
-        variant: "destructive",
-      });
-      setPasswordError("As senhas não coincidem");
-      return false;
-    }
-    
-    if (password.length < 8) {
-      toast({
-        title: "Senha muito curta",
-        description: "A senha deve ter pelo menos 8 caracteres.",
-        variant: "destructive",
-      });
-      setPasswordError("A senha deve ter pelo menos 8 caracteres");
-      return false;
-    }
-    
-    setPasswordError(null);
-    return true;
-  };
+  const form = useForm<UserFormValues>({
+    resolver: zodResolver(userFormSchema),
+    defaultValues: {
+      email: '',
+      name: '',
+      role: '',
+      department: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
 
-  const handleCreateNewUser = async () => {
-    if (!validatePassword(newUserPassword, newUserConfirmPassword)) {
-      return { success: false };
-    }
-    
-    return await createUser({
-      name: newUserName,
-      email: newUserEmail,
-      role: newUserRole,
-      password: newUserPassword,
-      confirmPassword: newUserConfirmPassword
-    });
-  };
-
-  const createUser = async (userData: UserFormData) => {
-    if (!validatePassword(userData.password, userData.confirmPassword)) {
-      return { success: false };
-    }
-    
-    setIsLoading(true);
-    
+  const handleCreateUser = async (values: UserFormValues) => {
     try {
-      // Simular criação do usuário
+      setIsCreateUserLoading(true);
+      setErrors(null);
+
+      // Aqui seria integrado com Supabase para criar o usuário
+      console.log('Creating user:', values);
+      
+      // Simulação de uma requisição bem-sucedida
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
         title: "Usuário criado",
-        description: `${userData.name} foi adicionado como ${userData.role}.`,
+        description: `${values.name} foi adicionado com sucesso.`,
       });
       
-      return { 
-        success: true, 
-        user: { 
-          ...userData, 
-          id: 'new-user-id' 
-        } 
-      };
-    } catch (error) {
-      console.error("Erro ao criar usuário:", error);
-      toast({
-        title: "Erro ao criar usuário",
-        description: "Ocorreu um erro ao tentar criar o usuário. Tente novamente.",
-        variant: "destructive",
-      });
-      return { success: false };
+      form.reset();
+      return true;
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      setErrors(error.message || 'Falha ao criar usuário');
+      return false;
     } finally {
-      setIsLoading(false);
+      setIsCreateUserLoading(false);
     }
   };
 
-  return {
-    createUser,
-    isLoading,
-    newUserEmail,
-    setNewUserEmail,
-    newUserName,
-    setNewUserName,
-    newUserPassword,
-    setNewUserPassword,
-    newUserConfirmPassword,
-    setNewUserConfirmPassword,
-    newUserRole,
-    setNewUserRole,
-    passwordError,
-    creatingUser: isLoading,
-    handleCreateNewUser
+  const clearForm = () => {
+    form.reset();
+    setErrors(null);
   };
-};
+
+  return {
+    form,
+    isCreateUserLoading,
+    errors,
+    handleCreateUser,
+    clearForm
+  };
+}
