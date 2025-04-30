@@ -37,15 +37,15 @@ describe('Login Page', () => {
       signIn: vi.fn().mockResolvedValue({ success: true }),
       signOut: vi.fn(),
       refresh: vi.fn(),
-      organization: null
+      organization: null,
+      hasRole: vi.fn().mockReturnValue(false)  // Adicionando o mock para hasRole
     });
     
     // Mock para useToast
     vi.mocked(useToast).mockReturnValue({
       toast: vi.fn(),
       dismiss: vi.fn(),
-      toasts: [], // Adicionado a propriedade toasts que estava faltando
-      // Removido a propriedade update que estava causando erro
+      toasts: []
     });
   });
 
@@ -70,7 +70,8 @@ describe('Login Page', () => {
       signIn: vi.fn(),
       signOut: vi.fn(),
       refresh: vi.fn(),
-      organization: null
+      organization: null,
+      hasRole: vi.fn().mockReturnValue(false)  // Adicionando o mock para hasRole
     });
     
     const { container } = render(

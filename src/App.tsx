@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SidebarProvider } from "./components/ui/sidebar";
 import { CashierProvider } from "./contexts/CashierContext";
 import { RoleGuard } from "./components/ui/RoleGuard";
+import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 
 // Páginas de autenticação
 import Login from "./pages/auth/Login";
