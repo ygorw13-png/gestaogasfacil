@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -10,12 +11,10 @@ const Index = () => {
     console.log("Index page - Auth state:", loading ? "loading" : (user ? "authenticated" : "not authenticated"));
   }, [user, loading]);
 
-  // Enquanto estiver carregando, mostrar o spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="w-16 h-16 border-4 border-gasflow-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="ml-3 text-gasflow-500 font-medium">Carregando...</p>
+        <LoadingSpinner size="lg" message="Carregando..." />
       </div>
     );
   }

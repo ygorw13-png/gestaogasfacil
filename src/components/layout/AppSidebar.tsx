@@ -9,6 +9,29 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { SidebarNav } from "./sidebar/SidebarNav";
 
+interface SidebarHeaderProps {
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+const SidebarHeader: React.FC<SidebarHeaderProps> = ({ isOpen, onToggle }) => {
+  return (
+    <div className="flex items-center justify-between p-4">
+      {isOpen && (
+        <h2 className="text-xl font-bold tracking-tight">GasFlow Aqua</h2>
+      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onToggle}
+        className="h-8 w-8"
+      >
+        <Menu className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+};
+
 export function AppSidebar() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
@@ -36,22 +59,8 @@ export function AppSidebar() {
       isOpen ? "w-64" : "w-16",
       isMobile ? (isOpen ? "transform translate-x-0" : "transform -translate-x-full") : "transform translate-x-0"
     )}>
-      <div className="flex items-center justify-between p-4">
-        {isOpen && (
-          <h2 className="text-xl font-bold tracking-tight">GasFlow Aqua</h2>
-        )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-          className="h-8 w-8"
-        >
-          <Menu className="h-4 w-4" />
-        </Button>
-      </div>
-      
+      <SidebarHeader isOpen={isOpen} onToggle={toggleSidebar} />
       <Separator />
-      
       <SidebarNav />
     </aside>
   );
