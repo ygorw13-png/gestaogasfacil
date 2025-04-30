@@ -21,10 +21,16 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   const location = useLocation();
   const { refreshCsrfToken } = useCsrfProtection();
 
-  // Atualizar o token CSRF sempre que o componente for montado
+  // Atualizar o token CSRF apenas uma vez quando o componente montar
   useEffect(() => {
-    refreshCsrfToken();
-  }, [refreshCsrfToken]);
+    const handleRefreshToken = () => {
+      refreshCsrfToken();
+    };
+    
+    // Executar apenas uma vez na montagem do componente
+    handleRefreshToken();
+    // Importante: Não incluir refreshCsrfToken na lista de dependências para evitar loop infinito
+  }, []);
   
   // Configurar logout automático após 30 minutos de inatividade
   useSecurityTimeout({

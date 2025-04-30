@@ -3,9 +3,10 @@ import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { UserRole } from '@/types/userTypes';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 interface RoleGuardProps {
   children: React.ReactNode;
@@ -41,13 +42,24 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   // Verificar se o usuário tem um papel e se está na lista de papéis permitidos
   if (!user || !allowedRoles.some(role => hasRole(role))) {
     return (
-      <div className="p-4">
+      <div className="p-4 flex flex-col space-y-4">
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Acesso Restrito</AlertTitle>
           <AlertDescription>
-            Você não tem permissão para acessar esta página.
+            Você não tem permissão para acessar esta página. 
+            {!user?.role && " Seu perfil de usuário não possui um papel definido."}
           </AlertDescription>
         </Alert>
+        
+        <Button 
+          variant="default" 
+          onClick={() => navigate(redirectTo)}
+          className="w-full"
+        >
+          Voltar para o Dashboard
+        </Button>
+        
         {redirectTo && <Navigate to={redirectTo} replace state={{ from: location }} />}
       </div>
     );

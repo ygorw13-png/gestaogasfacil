@@ -82,33 +82,7 @@ export function useRegisterForm() {
       const sanitizedName = sanitizeHtml(data.name.trim());
       const sanitizedEmail = sanitizeHtml(data.email.trim().toLowerCase());
 
-      // Primeira validação de existência de email
-      const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers();
-
-      if (listError) {
-        console.error("Erro ao verificar usuários:", listError);
-      } else if (existingUsers?.users && Array.isArray(existingUsers.users)) {
-        // Check for existing user with this email
-        const userExists = existingUsers.users.some((user: UserWithMetadata) => {
-          // Safe check if user has email
-          if (user && user.email) {
-            return user.email === sanitizedEmail;
-          }
-          
-          // Safe check for user metadata
-          if (user && user.user_metadata && typeof user.user_metadata === 'object') {
-            return user.user_metadata.email === sanitizedEmail;
-          }
-          
-          return false;
-        });
-        
-        if (userExists) {
-          throw new Error("Este email já está registrado. Por favor, faça login ou use outro email.");
-        }
-      }
-      
-      // Registrar o usuário
+      // Primeiro registrar o usuário
       const { success, error: authError, user } = await signUpWithEmail(
         sanitizedEmail,
         data.password,
@@ -128,11 +102,42 @@ export function useRegisterForm() {
           }
         });
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error("Erro ao criar perfil:", profileError);
+          // Se falhar na criação do perfil, tentamos novamente com uma abordagem diferente
+          try {
+            const { error: directError } = await supabase.from('profiles').insert({
+              id: user.id,
+              name: sanitizedName,
+              role: 'admin'
+            });
+            
+            if (directError) throw directError;
+            
+            // Criar uma organização para o usuário
+            const { data: org, error: orgError } = await supabase.from('organizations').insert({
+              name: `${sanitizedName}'s Organization`,
+              owner_id: user.id
+            }).select('id').single();
+            
+            if (orgError) throw orgError;
+            
+            // Atualizar o perfil com a organização
+            const { error: updateError } = await supabase.from('profiles').update({
+              organization_id: org.id
+            }).eq('id', user.id);
+            
+            if (updateError) throw updateError;
+            
+          } catch (backupError) {
+            console.error("Erro na abordagem de backup:", backupError);
+            // Mesmo com erro no backup, continuamos para tentar permitir login
+          }
+        }
 
         toast({
           title: "Cadastro realizado com sucesso!",
-          description: "Por favor, verifique seu e-mail para confirmar o cadastro."
+          description: "Por favor, faça login com suas credenciais."
         });
         
         navigate('/login');

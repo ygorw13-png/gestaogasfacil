@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { generateCsrfToken } from './securityUtils';
 
 // Chave para armazenar o token CSRF no localStorage
@@ -26,19 +26,21 @@ export const useCsrfProtection = () => {
     return token === localStorage.getItem(CSRF_TOKEN_KEY);
   };
 
-  const refreshCsrfToken = (): string => {
+  // Use useCallback para evitar recriação da função em cada renderização
+  const refreshCsrfToken = useCallback((): string => {
     const newToken = generateCsrfToken();
     localStorage.setItem(CSRF_TOKEN_KEY, newToken);
     setCsrfToken(newToken);
     return newToken;
-  };
+  }, []);
 
-  const addCsrfHeader = (headers: Record<string, string> = {}): Record<string, string> => {
+  // Use useCallback para evitar recriação da função em cada renderização
+  const addCsrfHeader = useCallback((headers: Record<string, string> = {}): Record<string, string> => {
     return {
       ...headers,
       'X-CSRF-Token': csrfToken,
     };
-  };
+  }, [csrfToken]);
 
   return {
     csrfToken,
