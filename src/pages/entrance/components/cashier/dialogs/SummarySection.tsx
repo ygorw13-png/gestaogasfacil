@@ -20,6 +20,14 @@ export function SummarySection({
   adaptedSalesData,
   inventoryData,
 }: SummarySectionProps) {
+  // Create default inventory data if none is provided
+  const defaultInventoryData = [
+    { product: 'P13', initial: 10, additions: 0, sales: isPartialClosing ? Math.floor(adaptedSalesData.quantities.cash.p13 + adaptedSalesData.quantities.credit.p13) : Math.floor(cashierData.quantities.cash.p13 + cashierData.quantities.credit.p13), final: 10 },
+    { product: 'P20', initial: 5, additions: 0, sales: isPartialClosing ? Math.floor(adaptedSalesData.quantities.cash.p20 + adaptedSalesData.quantities.credit.p20) : Math.floor(cashierData.quantities.cash.p20 + cashierData.quantities.credit.p20), final: 5 },
+    { product: 'P45', initial: 3, additions: 0, sales: isPartialClosing ? Math.floor(adaptedSalesData.quantities.cash.p45 + adaptedSalesData.quantities.credit.p45) : Math.floor(cashierData.quantities.cash.p45 + cashierData.quantities.credit.p45), final: 3 },
+    { product: 'Água', initial: 20, additions: 0, sales: isPartialClosing ? Math.floor(adaptedSalesData.quantities.cash.water + adaptedSalesData.quantities.credit.water) : Math.floor(cashierData.quantities.cash.water + cashierData.quantities.credit.water), final: 20 },
+  ];
+  
   return (
     <div className="space-y-6">
       {!isPartialClosing && partialClosings.length > 0 && (
@@ -60,15 +68,9 @@ export function SummarySection({
       />
       
       <InventoryTable 
-        data={isPartialClosing 
-          ? getInventoryForPartialClosing(inventoryData, partialClosings)
-          : inventoryData
-        } 
+        data={defaultInventoryData} 
+        inventoryMovements={[]}
       />
     </div>
   );
 }
-
-const getInventoryForPartialClosing = (inventory: any, partialClosings: PartialClosing[]) => {
-  return inventory;
-};

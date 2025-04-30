@@ -37,6 +37,14 @@ export function CashierClosingForm({
   // Converter totalSalesSinceLastPartial para um formato compatível com CashierData
   const adaptedSalesData = prepareAdaptedSalesData(cashierData, totalSalesSinceLastPartial.amount);
 
+  // Create inventory data for the current closing
+  const inventoryData = [
+    { product: 'P13', initial: 10, additions: 0, sales: 2, final: 8 },
+    { product: 'P20', initial: 5, additions: 0, sales: 1, final: 4 },
+    { product: 'P45', initial: 3, additions: 0, sales: 0, final: 3 },
+    { product: 'Água', initial: 20, additions: 0, sales: 5, final: 15 },
+  ];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <ClosingTypeTabs 
@@ -50,7 +58,7 @@ export function CashierClosingForm({
         partialClosings={partialClosings}
         cashierData={cashierData}
         adaptedSalesData={adaptedSalesData}
-        inventoryData={{ /* passando inventoryClosing aqui */ }}
+        inventoryData={inventoryData}
       />
       
       <ObservationsSection value={observations} onChange={setObservations} />

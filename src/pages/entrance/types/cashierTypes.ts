@@ -1,3 +1,4 @@
+
 export interface CashierData {
   cash: number;
   credit: number;
@@ -37,7 +38,7 @@ export interface PartialClosing {
   observations?: string;
 }
 
-// Add missing InventoryTableProps interface
+// InventoryTableProps interface
 export interface InventoryTableProps {
   data: {
     product: string;
@@ -49,14 +50,14 @@ export interface InventoryTableProps {
   inventoryMovements?: InventoryMovement[];
 }
 
-// Add missing PaymentSummaryProps interface
+// PaymentSummaryProps interface
 export interface PaymentSummaryProps {
   data: CashierData;
   formatCurrency?: (value: number) => string;
   formatQuantities?: (quantities: { p13: number; p20: number; p45: number; water: number }) => string;
 }
 
-// Add missing ClosingExportData interface
+// ClosingExportData interface
 export interface ClosingExportData {
   date: string;
   type: string;
