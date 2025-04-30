@@ -10,29 +10,24 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle, History } from "lucide-react";
 import { useState } from "react";
-import { CashierData, PartialClosing } from "../../types/cashierTypes";
 import { Button } from "@/components/ui/button";
 import { ClosingHistoryTable } from "./ClosingHistoryTable";
 import { CashierClosingForm } from "./dialogs/CashierClosingForm";
-import { getTotalSalesFromPartials } from "../../utils/cashierUtils";
 import { calculateSalesAmountSinceLastPartial } from "../../utils/closingCalculations";
+import { useCashier } from "@/contexts/CashierContext";
 
 interface CashierClosingDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (type: "partial" | "total", observations?: string) => void;
-  cashierData: CashierData;
-  partialClosings?: PartialClosing[];
 }
 
 export function CashierClosingDialog({ 
   isOpen, 
-  onOpenChange, 
-  onSubmit, 
-  cashierData,
-  partialClosings = [] 
+  onOpenChange
 }: CashierClosingDialogProps) {
   const [activeTab, setActiveTab] = useState<string>("form");
+  const { cashierData, partialClosings, handleCashierClosingSubmit } = useCashier();
+  
   const totalSalesSinceLastPartial = {
     count: partialClosings.length > 0 ? partialClosings.length : 0,
     amount: calculateSalesAmountSinceLastPartial(cashierData, partialClosings)
@@ -68,7 +63,7 @@ export function CashierClosingDialog({
           
           <TabsContent value="form">
             <CashierClosingForm
-              onSubmit={onSubmit}
+              onSubmit={handleCashierClosingSubmit}
               onCancel={() => onOpenChange(false)}
               cashierData={cashierData}
               partialClosings={partialClosings}

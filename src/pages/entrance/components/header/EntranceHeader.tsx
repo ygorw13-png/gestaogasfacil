@@ -1,10 +1,11 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, Truck } from "lucide-react";
-import { Link } from "react-router-dom";
-import NewSaleForm from "../../NewSaleForm";
-import CashierClosing from "../../CashierClosing";
-import type { Sale } from "../../types/entranceTypes";
+import { Plus, CheckCircle } from "lucide-react";
+import { CashierData } from "../../types/cashierTypes";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sale } from "../../types/entranceTypes";
+import { SaleFormContent } from "../sale-form/SaleFormContent";
+import { CashierClosingDialog } from "../cashier/CashierClosingDialog";
 
 interface EntranceHeaderProps {
   newSaleOpen: boolean;
@@ -12,8 +13,8 @@ interface EntranceHeaderProps {
   setNewSaleOpen: (open: boolean) => void;
   setCashierClosingOpen: (open: boolean) => void;
   onNewSaleSubmit: (sale: Sale) => void;
-  onCashierClosingSubmit: () => void;
-  cashierData: any;
+  onCashierClosingSubmit: (type: "partial" | "total", observations?: string) => void;
+  cashierData: CashierData;
 }
 
 export function EntranceHeader({
@@ -22,33 +23,39 @@ export function EntranceHeader({
   setNewSaleOpen,
   setCashierClosingOpen,
   onNewSaleSubmit,
-  onCashierClosingSubmit,
-  cashierData,
+  cashierData
 }: EntranceHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <h1 className="text-3xl font-bold tracking-tight">Portaria</h1>
-      <div className="flex flex-wrap gap-2">
-        <NewSaleForm 
-          isOpen={newSaleOpen} 
-          onOpenChange={setNewSaleOpen} 
-          onSubmit={onNewSaleSubmit} 
-        />
-        
-        <CashierClosing
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Vendas da Portaria</h1>
+        <p className="text-muted-foreground">
+          Registre vendas, controle o caixa e gerencia o estoque da portaria.
+        </p>
+      </div>
+      <div className="flex gap-2">
+        <Button onClick={() => setNewSaleOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Nova Venda
+        </Button>
+        <CashierClosingDialog
           isOpen={cashierClosingOpen}
           onOpenChange={setCashierClosingOpen}
-          onSubmit={onCashierClosingSubmit}
-          cashierData={cashierData}
         />
-
-        <Button variant="outline" asChild>
-          <Link to="/orders" className="flex items-center gap-2">
-            <Truck size={16} />
-            <span>Ver Pedidos</span>
-          </Link>
-        </Button>
       </div>
+      
+      {/* Dialog para Nova Venda */}
+      <Dialog open={newSaleOpen} onOpenChange={setNewSaleOpen}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>Nova Venda da Portaria</DialogTitle>
+          </DialogHeader>
+          <SaleFormContent 
+            onSubmit={onNewSaleSubmit} 
+            onOpenChange={setNewSaleOpen}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

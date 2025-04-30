@@ -5,6 +5,7 @@ import { Suspense, lazy } from "react";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SidebarProvider } from "./components/ui/sidebar";
+import { CashierProvider } from "./contexts/CashierContext";
 
 // Páginas de autenticação
 import Login from "./pages/auth/Login";
