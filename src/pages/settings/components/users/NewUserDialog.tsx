@@ -84,39 +84,26 @@ export function NewUserDialog({
 
     setCreatingUser(true);
     try {
-      // 1. Verificar se o e-mail já está em uso
-      const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers();
+      // Verificar se o e-mail já está em uso
+      const { data: emailCheck, error: emailCheckError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', newUserEmail);
       
-      if (listError) {
-        console.error("Erro ao verificar usuários:", listError);
-      } else if (existingUsers?.users && Array.isArray(existingUsers.users)) {
-        // Check for existing user with this email
-        const userExists = existingUsers.users.some((user: UserWithMetadata) => {
-          // Safe check if user has email
-          if (user && user.email) {
-            return user.email === newUserEmail;
-          }
-          
-          // Safe check for user metadata
-          if (user && user.user_metadata && typeof user.user_metadata === 'object') {
-            return user.user_metadata.email === newUserEmail;
-          }
-          
-          return false;
-        });
-        
-        if (userExists) {
-          throw new Error("Este e-mail já está em uso");
-        }
+      if (emailCheckError) throw emailCheckError;
+      
+      if (emailCheck && emailCheck.length > 0) {
+        throw new Error("Este e-mail já está sendo usado por outro usuário");
       }
 
-      // 2. Registrar o usuário no Auth
+      // Registrar o usuário no Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUserEmail,
         password: newUserPassword,
         options: {
           data: {
-            name: newUserName
+            name: newUserName,
+            organization_id: organizationId // Vincular ao ID da organização atual
           }
         }
       });
@@ -124,12 +111,13 @@ export function NewUserDialog({
       if (authError) throw authError;
       
       if (authData?.user) {
-        // 3. Criar o perfil do usuário usando a função RPC, vinculando à organização atual
+        // Criar o perfil do usuário usando a função RPC, vinculando à organização atual
         const { error: profileError } = await supabase.functions.invoke('create_profile', {
           body: {
             user_id: authData.user.id,
             name: newUserName,
             role: newUserRole,
+            email: newUserEmail,
             created_by_admin: true,
             organization_id: organizationId
           }
@@ -176,7 +164,7 @@ export function NewUserDialog({
         <DialogHeader>
           <DialogTitle>Adicionar Novo Usuário</DialogTitle>
           <DialogDescription>
-            Crie um novo usuário para sua organização.
+            Crie um novo usuário para sua organização. Todos os usuários terão acesso apenas aos dados da sua organização.
           </DialogDescription>
         </DialogHeader>
 
@@ -261,8 +249,6 @@ export function NewUserDialog({
                 <SelectItem value="gerente">Gerente</SelectItem>
                 <SelectItem value="vendedor">Vendedor</SelectItem>
                 <SelectItem value="portaria">Portaria</SelectItem>
-                <SelectItem value="estoque">Estoque</SelectItem>
-                <SelectItem value="entregador">Entregador</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -1,10 +1,15 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
 import { UserManagement } from "./components/UserManagement";
 import { StockConfiguration } from "./components/StockConfiguration";
-import { useAuth } from "@/contexts/AuthContext";
+import { SystemConfiguration } from "./components/SystemConfiguration";
+import { NotificationSettings } from "./components/NotificationSettings";
+import { FinanceSettings } from "./components/FinanceSettings";
+import { DeliverySettings } from "./components/DeliverySettings";
+import { SecuritySettings } from "./components/SecuritySettings";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -31,9 +36,14 @@ export default function Settings() {
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="usuarios">Usuários</TabsTrigger>
           <TabsTrigger value="estoque">Estoque</TabsTrigger>
+          <TabsTrigger value="sistema">Sistema</TabsTrigger>
+          <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
+          <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
+          <TabsTrigger value="entregas">Entregas</TabsTrigger>
+          <TabsTrigger value="seguranca">Segurança</TabsTrigger>
         </TabsList>
         
         <TabsContent value="usuarios" className="mt-4">
@@ -42,6 +52,26 @@ export default function Settings() {
         
         <TabsContent value="estoque" className="mt-4">
           <StockConfiguration />
+        </TabsContent>
+
+        <TabsContent value="sistema" className="mt-4">
+          <SystemConfiguration />
+        </TabsContent>
+
+        <TabsContent value="notificacoes" className="mt-4">
+          <NotificationSettings />
+        </TabsContent>
+
+        <TabsContent value="financeiro" className="mt-4">
+          <FinanceSettings />
+        </TabsContent>
+
+        <TabsContent value="entregas" className="mt-4">
+          <DeliverySettings />
+        </TabsContent>
+
+        <TabsContent value="seguranca" className="mt-4">
+          <SecuritySettings />
         </TabsContent>
       </Tabs>
     </div>

@@ -38,6 +38,25 @@ serve(async (req) => {
       )
     }
 
+    // Verificar se o email já está cadastrado como usuário
+    const { data: existingUser } = await supabaseClient
+      .from('profiles')
+      .select('email')
+      .eq('id', user_id)
+      .single()
+
+    if (existingUser) {
+      return new Response(
+        JSON.stringify({
+          error: "Este email já está vinculado a um usuário existente."
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      )
+    }
+
     // Se o usuário for criado por um admin, usamos o organization_id fornecido,
     // caso contrário, criamos uma nova organização para este usuário
     let userOrganizationId = organization_id;
