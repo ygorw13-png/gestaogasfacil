@@ -15,7 +15,7 @@ const AppLayoutContent = memo(({ user, isLoading }: { user: any, isLoading: bool
   
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-background">
+      <div className="flex items-center justify-center h-screen bg-background" role="status" aria-live="polite">
         <LoadingSpinner size="lg" message="GasFlow Aqua Manager" />
       </div>
     );
@@ -28,7 +28,7 @@ const AppLayoutContent = memo(({ user, isLoading }: { user: any, isLoading: bool
         <div className="flex flex-col min-h-screen flex-1 transition-all duration-300">
           <TopBar />
           <ErrorBoundary>
-            <main className="flex-1 p-4 md:p-6 overflow-y-auto">
+            <main className="flex-1 p-4 md:p-6 overflow-y-auto" id="main-content" tabIndex={-1}>
               <Outlet />
             </main>
           </ErrorBoundary>
@@ -58,6 +58,19 @@ export function AppLayout() {
       setIsLoading(false);
     }
   }, [user]);
+
+  // Adicionar foco ao conteúdo principal quando carregado
+  useEffect(() => {
+    if (!isLoading) {
+      const mainContent = document.getElementById('main-content');
+      if (mainContent) {
+        // Adicionamos um pequeno delay para garantir que o DOM esteja pronto
+        setTimeout(() => {
+          mainContent.focus();
+        }, 100);
+      }
+    }
+  }, [isLoading]);
 
   return (
     <AuthGuard>

@@ -28,10 +28,10 @@ function ReturnHistoryTableComponent({ loans, clients }: ReturnHistoryTableProps
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Histórico de Devoluções</CardTitle>
+          <CardTitle id="history-title">Histórico de Devoluções</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4 text-gray-500">
+          <div className="text-center py-4 text-gray-500" aria-live="polite" aria-atomic="true">
             Nenhuma devolução registrada
           </div>
         </CardContent>
@@ -42,11 +42,11 @@ function ReturnHistoryTableComponent({ loans, clients }: ReturnHistoryTableProps
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Histórico de Devoluções</CardTitle>
+        <CardTitle id="history-title">Histórico de Devoluções</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <Table>
+          <Table aria-labelledby="history-title">
             <TableHeader>
               <TableRow>
                 <TableHead>Cliente</TableHead>
@@ -59,7 +59,7 @@ function ReturnHistoryTableComponent({ loans, clients }: ReturnHistoryTableProps
             <TableBody>
               {returnedLoans.map((loan) => (
                 <TableRow key={loan.id}>
-                  <TableCell>{clients.find(c => c.id === loan.cliente_id)?.name}</TableCell>
+                  <TableCell>{clients.find(c => c.id === loan.cliente_id)?.name || 'Cliente não encontrado'}</TableCell>
                   <TableCell>
                     {loan.tipo_vasilhame === 'agua' ? 'Água 20L' : `GLP ${loan.tipo_vasilhame}`}
                   </TableCell>

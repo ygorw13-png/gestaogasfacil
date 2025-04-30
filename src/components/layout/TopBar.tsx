@@ -47,10 +47,10 @@ export function TopBar() {
   };
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" role="banner">
       <div className="flex h-16 items-center px-4 gap-4">
-        <SidebarTrigger>
-          <Menu className="h-6 w-6" />
+        <SidebarTrigger aria-label="Abrir ou fechar o menu lateral">
+          <Menu className="h-6 w-6" aria-hidden="true" />
         </SidebarTrigger>
         
         <div className="flex-1"></div>
@@ -62,14 +62,14 @@ export function TopBar() {
             </Badge>
           )}
           
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+          <Button variant="ghost" size="icon" className="relative" aria-label="Ver notificações">
+            <Bell className="h-5 w-5" aria-hidden="true" />
+            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" aria-label="Notificações não lidas"></span>
           </Button>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full" aria-label="Abrir menu de usuário">
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="bg-gasflow-100 text-gasflow-700">
                     {getUserInitials()}
@@ -93,7 +93,7 @@ export function TopBar() {
               <DropdownMenuItem onClick={() => navigate('/settings')}>Configurações</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                <LogOut className="h-4 w-4 mr-2" />
+                <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />
                 Sair
               </DropdownMenuItem>
             </DropdownMenuContent>

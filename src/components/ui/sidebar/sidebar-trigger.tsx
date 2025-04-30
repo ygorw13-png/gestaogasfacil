@@ -22,10 +22,11 @@ const SidebarTrigger = React.forwardRef<
         onClick?.(event)
         toggleSidebar()
       }}
+      aria-label="Alternar menu lateral"
       {...props}
     >
-      <PanelLeft />
-      <span className="sr-only">Toggle Sidebar</span>
+      <PanelLeft aria-hidden="true" />
+      <span className="sr-only">Alternar Menu Lateral</span>
     </Button>
   )
 })
@@ -41,10 +42,10 @@ const SidebarRail = React.forwardRef<
     <button
       ref={ref}
       data-sidebar="rail"
-      aria-label="Toggle Sidebar"
-      tabIndex={-1}
+      aria-label="Expandir ou recolher barra lateral"
+      tabIndex={0}
       onClick={toggleSidebar}
-      title="Toggle Sidebar"
+      title="Alternar Barra Lateral"
       className={cn(
         "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] hover:after:bg-sidebar-border group-data-[side=left]:-right-4 group-data-[side=right]:left-0 sm:flex",
         "[[data-side=left]_&]:cursor-w-resize [[data-side=right]_&]:cursor-e-resize",
@@ -54,6 +55,7 @@ const SidebarRail = React.forwardRef<
         "[[data-side=right][data-collapsible=offcanvas]_&]:-left-2",
         className
       )}
+      role="button"
       {...props}
     />
   )

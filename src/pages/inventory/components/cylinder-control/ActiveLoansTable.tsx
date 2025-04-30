@@ -30,10 +30,10 @@ function ActiveLoansTableComponent({ loans, clients, onRegisterReturn }: ActiveL
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Empréstimos Ativos</CardTitle>
+          <CardTitle id="active-loans-title">Empréstimos Ativos</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4 text-gray-500">
+          <div className="text-center py-4 text-gray-500" aria-live="polite" aria-atomic="true">
             Nenhum empréstimo de vasilhame ativo
           </div>
         </CardContent>
@@ -44,11 +44,11 @@ function ActiveLoansTableComponent({ loans, clients, onRegisterReturn }: ActiveL
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Empréstimos Ativos</CardTitle>
+        <CardTitle id="active-loans-title">Empréstimos Ativos</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <Table>
+          <Table aria-labelledby="active-loans-title">
             <TableHeader>
               <TableRow>
                 <TableHead>Cliente</TableHead>
@@ -62,7 +62,7 @@ function ActiveLoansTableComponent({ loans, clients, onRegisterReturn }: ActiveL
             <TableBody>
               {activeLoans.map((loan) => (
                 <TableRow key={loan.id}>
-                  <TableCell>{clients.find(c => c.id === loan.cliente_id)?.name}</TableCell>
+                  <TableCell>{clients.find(c => c.id === loan.cliente_id)?.name || 'Cliente não encontrado'}</TableCell>
                   <TableCell>
                     {loan.tipo_vasilhame === 'agua' ? 'Água 20L' : `GLP ${loan.tipo_vasilhame}`}
                   </TableCell>
@@ -76,6 +76,7 @@ function ActiveLoansTableComponent({ loans, clients, onRegisterReturn }: ActiveL
                       size="sm" 
                       variant="outline" 
                       onClick={() => onRegisterReturn(loan.id, loan.quantidade)}
+                      aria-label={`Registrar devolução para o cliente ${clients.find(c => c.id === loan.cliente_id)?.name || 'desconhecido'}`}
                     >
                       Registrar Devolução
                     </Button>

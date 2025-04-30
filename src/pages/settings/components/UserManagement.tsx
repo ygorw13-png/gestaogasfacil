@@ -22,17 +22,19 @@ export function UserManagement() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Gerenciamento de Usuários</CardTitle>
+        <CardTitle id="user-management-title">Gerenciamento de Usuários</CardTitle>
         <CardDescription>
           Configure permissões de acesso para usuários do sistema
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <UserList 
-          users={users} 
-          loading={loading} 
-          onAddUserClick={() => setIsNewUserDialogOpen(true)}
-        />
+        <section aria-labelledby="user-management-title">
+          <UserList 
+            users={users} 
+            loading={loading} 
+            onAddUserClick={() => setIsNewUserDialogOpen(true)}
+          />
+        </section>
         
         <NewUserDialog
           open={isNewUserDialogOpen}

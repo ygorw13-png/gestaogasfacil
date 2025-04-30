@@ -55,21 +55,29 @@ export function UserList({ users, loading, onAddUserClick }: UserListProps) {
     }
   };
 
+  const formId = "user-permissions-form";
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Usuários da sua Organização</h2>
-        <Button onClick={onAddUserClick}>Adicionar Usuário</Button>
+        <h2 id={`${formId}-title`} className="text-lg font-semibold">Usuários da sua Organização</h2>
+        <Button 
+          onClick={onAddUserClick} 
+          aria-label="Adicionar novo usuário ao sistema"
+        >
+          Adicionar Usuário
+        </Button>
       </div>
       
-      <div className="space-y-4">
+      <div role="form" aria-labelledby={`${formId}-title`} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Selecione um usuário</label>
+          <label htmlFor={`${formId}-user-select`} className="block text-sm font-medium mb-1">Selecione um usuário</label>
           <Select 
             value={selectedUserId} 
             onValueChange={setSelectedUserId}
+            name="userId"
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger id={`${formId}-user-select`} className="w-full" aria-label="Selecione um usuário para modificar permissões">
               <SelectValue placeholder="Selecione um usuário" />
             </SelectTrigger>
             <SelectContent>
@@ -83,12 +91,13 @@ export function UserList({ users, loading, onAddUserClick }: UserListProps) {
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-1">Nível de acesso</label>
+          <label htmlFor={`${formId}-role-select`} className="block text-sm font-medium mb-1">Nível de acesso</label>
           <Select 
             value={selectedRole} 
             onValueChange={(value: UserRole) => setSelectedRole(value)}
+            name="role"
           >
-            <SelectTrigger>
+            <SelectTrigger id={`${formId}-role-select`} aria-label="Selecione o nível de acesso para o usuário">
               <SelectValue placeholder="Selecione um nível de acesso" />
             </SelectTrigger>
             <SelectContent>
@@ -102,7 +111,12 @@ export function UserList({ users, loading, onAddUserClick }: UserListProps) {
           </Select>
         </div>
         
-        <Button onClick={handleUpdateRole} disabled={loading || !selectedUserId}>
+        <Button 
+          onClick={handleUpdateRole}
+          disabled={loading || !selectedUserId}
+          aria-busy={loading}
+          aria-label="Atualizar permissões do usuário selecionado"
+        >
           {loading ? "Atualizando..." : "Atualizar Permissão"}
         </Button>
       </div>

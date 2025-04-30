@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -42,6 +43,17 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+    
+    // Garantir que todos os botões tenham um aria-label ou conteúdo acessível
+    if (props.type === 'submit' && !props['aria-label'] && !props.children) {
+      console.warn('Button: Submit buttons should have accessible text or aria-label');
+    }
+    
+    // Garantir que botões icon tenham aria-label
+    if (size === 'icon' && !props['aria-label'] && typeof props.children !== 'string') {
+      console.warn('Button: Icon buttons should have an aria-label');
+    }
+    
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}

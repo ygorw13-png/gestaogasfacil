@@ -39,83 +39,94 @@ function CylinderLoanFormComponent({ clients, loading, onSubmit }: CylinderLoanF
     await onSubmit({ clientId, tipoCliente, tipoVasilhame, quantidade });
   }, [clientId, tipoCliente, tipoVasilhame, quantidade, onSubmit]);
 
+  const formId = "cylinder-loan-form";
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Registro de Empréstimo de Vasilhame</CardTitle>
+        <CardTitle id={`${formId}-title`}>Registro de Empréstimo de Vasilhame</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Cliente</label>
-            <Select value={clientId} onValueChange={handleClientChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map(client => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <CardContent>
+        <div role="form" aria-labelledby={`${formId}-title`} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label htmlFor={`${formId}-client`} className="text-sm font-medium">Cliente</label>
+              <Select value={clientId} onValueChange={handleClientChange} name="client">
+                <SelectTrigger id={`${formId}-client`} aria-label="Selecione um cliente">
+                  <SelectValue placeholder="Selecione um cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map(client => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor={`${formId}-client-type`} className="text-sm font-medium">Tipo de Cliente</label>
+              <Select 
+                value={tipoCliente} 
+                onValueChange={handleTipoClienteChange}
+                name="clientType"
+              >
+                <SelectTrigger id={`${formId}-client-type`} aria-label="Selecione o tipo de cliente">
+                  <SelectValue placeholder="Tipo de Cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cliente">Cliente Final</SelectItem>
+                  <SelectItem value="agregado">Agregado/Revenda</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Tipo de Cliente</label>
-            <Select 
-              value={tipoCliente} 
-              onValueChange={handleTipoClienteChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo de Cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cliente">Cliente Final</SelectItem>
-                <SelectItem value="agregado">Agregado/Revenda</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label htmlFor={`${formId}-cylinder-type`} className="text-sm font-medium">Tipo de Vasilhame</label>
+              <Select 
+                value={tipoVasilhame} 
+                onValueChange={handleTipoVasilhameChange}
+                name="cylinderType"
+              >
+                <SelectTrigger id={`${formId}-cylinder-type`} aria-label="Selecione o tipo de vasilhame">
+                  <SelectValue placeholder="Tipo de Vasilhame" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="P13">GLP P13</SelectItem>
+                  <SelectItem value="P20">GLP P20</SelectItem>
+                  <SelectItem value="P45">GLP P45</SelectItem>
+                  <SelectItem value="agua">Água 20L</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor={`${formId}-quantity`} className="text-sm font-medium">Quantidade</label>
+              <Input 
+                id={`${formId}-quantity`}
+                type="number" 
+                value={quantidade}
+                onChange={handleQuantidadeChange}
+                min={1}
+                aria-label="Quantidade de vasilhames"
+                name="quantity"
+              />
+            </div>
           </div>
+
+          <Button 
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            onClick={handleSubmit}
+            disabled={loading || !clientId}
+            aria-busy={loading}
+            aria-label="Registrar empréstimo de vasilhame"
+          >
+            {loading ? "Registrando..." : "Registrar Empréstimo"}
+          </Button>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Tipo de Vasilhame</label>
-            <Select 
-              value={tipoVasilhame} 
-              onValueChange={handleTipoVasilhameChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo de Vasilhame" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="P13">GLP P13</SelectItem>
-                <SelectItem value="P20">GLP P20</SelectItem>
-                <SelectItem value="P45">GLP P45</SelectItem>
-                <SelectItem value="agua">Água 20L</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Quantidade</label>
-            <Input 
-              type="number" 
-              value={quantidade}
-              onChange={handleQuantidadeChange}
-              min={1}
-            />
-          </div>
-        </div>
-
-        <Button 
-          className="w-full bg-green-600 hover:bg-green-700 text-white"
-          onClick={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? "Registrando..." : "Registrar Empréstimo"}
-        </Button>
       </CardContent>
     </Card>
   );
