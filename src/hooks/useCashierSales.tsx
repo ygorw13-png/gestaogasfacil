@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { CashierData } from '@/pages/entrance/types/cashierTypes';
 import { Sale, SalesByType } from '@/pages/entrance/types/entranceTypes';
@@ -131,6 +132,7 @@ export function useCashierSales() {
     startTime,
     setStartTime,
     hoursElapsed,
+    setHoursElapsed,
     newSaleOpen,
     setNewSaleOpen,
     handleNewSaleSubmit

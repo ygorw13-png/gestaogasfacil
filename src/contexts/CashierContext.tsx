@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext } from 'react';
 import { CashierData, PartialClosing } from '@/pages/entrance/types/cashierTypes';
 import { Sale, SalesByType } from '@/pages/entrance/types/entranceTypes';
@@ -39,6 +40,7 @@ export function CashierProvider({ children }: { children: React.ReactNode }) {
     startTime,
     setStartTime,
     hoursElapsed,
+    setHoursElapsed,
     newSaleOpen,
     setNewSaleOpen,
     handleNewSaleSubmit
