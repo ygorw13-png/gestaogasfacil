@@ -38,29 +38,17 @@ export const useUserCreation = () => {
     return true;
   };
 
-  const handleCreateNewUser = (onSuccess?: () => void) => {
+  const handleCreateNewUser = () => {
     if (!validatePassword(newUserPassword, newUserConfirmPassword)) {
       return;
     }
     
-    createUser({
+    return createUser({
       name: newUserName,
       email: newUserEmail,
       role: newUserRole,
       password: newUserPassword,
       confirmPassword: newUserConfirmPassword
-    }).then(result => {
-      if (result?.success && onSuccess) {
-        // Reset form values
-        setNewUserEmail("");
-        setNewUserName("");
-        setNewUserPassword("");
-        setNewUserConfirmPassword("");
-        setNewUserRole("vendedor");
-        
-        // Call success callback
-        onSuccess();
-      }
     });
   };
 
@@ -109,6 +97,8 @@ export const useUserCreation = () => {
     setNewUserName,
     newUserPassword,
     setNewUserPassword,
+    newUserConfirmPassword,
+    setNewUserConfirmPassword,
     newUserRole,
     setNewUserRole,
     passwordError,

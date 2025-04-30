@@ -13,6 +13,7 @@ export function usePromissoryNotes() {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log("Fetching promissory notes...");
     fetchPromissoryNotes();
   }, []);
 
@@ -21,8 +22,7 @@ export function usePromissoryNotes() {
       // Por enquanto vamos continuar com os dados mocados
       // Em uma implementação real, aqui faríamos uma chamada ao Supabase
       // Quando a tabela de promissórias for criada
-      
-      // Usar dados mockados por enquanto
+      console.log("Loading mock promissory note data");
       const { mockPromissoryNotes } = await import('../data/mockData');
       setPromissoryNotes(mockPromissoryNotes);
       

@@ -1,6 +1,4 @@
 
-export type PromissoryStatus = "pending" | "assigned" | "paid" | "overdue";
-
 export interface PromissoryNote {
   id: string;
   clientName: string;
@@ -8,6 +6,23 @@ export interface PromissoryNote {
   dueDate: Date;
   status: PromissoryStatus;
   createdAt: Date;
-  paidAt?: Date;
   assignedTo?: string;
+  paidAt?: Date;
+}
+
+export type PromissoryStatus = "pending" | "assigned" | "paid" | "overdue";
+
+export interface PromissoryClient {
+  id: string;
+  name: string;
+  totalPromissoryValue: number;
+  paidPromissoryCount: number;
+  pendingPromissoryCount: number;
+  lastPurchaseDate?: Date;
+}
+
+export interface PromissoryCollector {
+  id: string;
+  name: string;
+  assignedCount: number;
 }
