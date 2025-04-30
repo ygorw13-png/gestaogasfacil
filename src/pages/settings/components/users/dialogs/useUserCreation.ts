@@ -20,7 +20,7 @@ export function useUserCreation({
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
-  // Fix: Use string type for state to avoid TypeScript recursion issues
+  // Using string type for newUserRole to avoid TypeScript recursion issues
   const [newUserRole, setNewUserRole] = useState<string>('admin');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [creatingUser, setCreatingUser] = useState(false);
@@ -85,7 +85,7 @@ export function useUserCreation({
           body: JSON.stringify({
             user_id: authData.user.id,
             name: newUserName,
-            role: newUserRole as UserRole,
+            role: newUserRole,
             email: newUserEmail,
             created_by_admin: true,
             organization_id: organizationId
@@ -94,7 +94,7 @@ export function useUserCreation({
 
         if (profileError) throw profileError;
 
-        // Get the actual UserRole by explicit type cast
+        // Explicitly casting newUserRole to UserRole to avoid type recursion
         const userRole = newUserRole as UserRole;
         
         toast({
