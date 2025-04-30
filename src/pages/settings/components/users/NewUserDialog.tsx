@@ -17,6 +17,14 @@ interface NewUserDialogProps {
   organizationId?: string | null;
 }
 
+interface CreatedUserResult {
+  user?: {
+    id: string;
+    name: string;
+    role: string;
+  };
+}
+
 export function NewUserDialog({ open, onOpenChange, onSuccess, onUserCreated, organizationId }: NewUserDialogProps) {
   const {
     form,
@@ -39,9 +47,9 @@ export function NewUserDialog({ open, onOpenChange, onSuccess, onUserCreated, or
     e.preventDefault();
     
     try {
-      const result = await handleCreateUser(form.getValues());
+      const result = await handleCreateUser(form.getValues()) as CreatedUserResult | boolean;
       
-      if (result) {
+      if (result && typeof result !== 'boolean') {
         if (onSuccess) {
           onSuccess();
         }
@@ -53,6 +61,9 @@ export function NewUserDialog({ open, onOpenChange, onSuccess, onUserCreated, or
             role: result.user.role as UserRole
           });
         }
+      } else if (result === true && onSuccess) {
+        // Handle case where result is true but doesn't have user object
+        onSuccess();
       }
     } catch (error) {
       console.error("Error creating user:", error);
