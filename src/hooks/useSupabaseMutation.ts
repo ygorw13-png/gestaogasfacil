@@ -40,8 +40,10 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
         });
       }
       
-      onSuccess?.(data);
-      return { data, error: null };
+      // Cast the response data to ensure it's treated as an array
+      const dataArray = Array.isArray(data) ? data : data ? [data] : [];
+      onSuccess?.(dataArray as TData[]);
+      return { data: dataArray, error: null };
       
     } catch (err: any) {
       console.error("Erro na mutação:", err);

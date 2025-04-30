@@ -35,8 +35,10 @@ export function useSupabaseQuery<T>({
       }
       
       if (responseData) {
-        setData(responseData);
-        onSuccess?.(responseData);
+        // Cast the response data to ensure it's treated as an array
+        const dataArray = Array.isArray(responseData) ? responseData : [responseData];
+        setData(dataArray);
+        onSuccess?.(dataArray);
       }
     } catch (err: any) {
       console.error("Erro na consulta:", err);
