@@ -1,10 +1,10 @@
-
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AppLayout } from "./components/layout/AppLayout";
 import { Suspense, lazy } from "react";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SidebarProvider } from "./components/ui/sidebar";
 
 // Páginas de autenticação
 import Login from "./pages/auth/Login";
@@ -47,114 +47,116 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Routes>
-          {/* Rota raiz verifica autenticação e redireciona */}
-          <Route path="/" element={<Index />} />
-          
-          {/* Rotas públicas de autenticação */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/404" element={<NotFound />} />
-          
-          {/* Rotas protegidas com AppLayout */}
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <Dashboard />
-              </Suspense>
-            } />
-            <Route path="/clients" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <Clients />
-              </Suspense>
-            } />
-            <Route path="/orders" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <Orders />
-              </Suspense>
-            } />
-            <Route path="/orders/map" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <OrdersMap orders={[]} />
-              </Suspense>
-            } />
-            <Route path="/orders/new" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <NewOrderForm onSubmit={() => {}} />
-              </Suspense>
-            } />
-            <Route path="/orders/:id" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <OrderDetails orderId="" orders={[]} isOpen={false} onOpenChange={() => {}} />
-              </Suspense>
-            } />
-            <Route path="/entrance" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <EntranceSales />
-              </Suspense>
-            } />
-            <Route path="/entrance/new-sale" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <NewSaleForm isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} />
-              </Suspense>
-            } />
-            <Route path="/entrance/history" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <SalesHistory />
-              </Suspense>
-            } />
-            <Route path="/entrance/cashier" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <CashierClosing isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} cashierData={null} />
-              </Suspense>
-            } />
-            <Route path="/inventory" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <Inventory />
-              </Suspense>
-            } />
-            <Route path="/promissory" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <Promissory />
-              </Suspense>
-            } />
-            <Route path="/routes" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <RoutesPage />
-              </Suspense>
-            } />
-            <Route path="/resellers" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <Resellers />
-              </Suspense>
-            } />
-            <Route path="/fleet" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <Fleet />
-              </Suspense>
-            } />
-            <Route path="/finance/expenses" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <Expenses />
-              </Suspense>
-            } />
-            <Route path="/settings" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <Settings />
-              </Suspense>
-            } />
-            <Route path="/colaboradores" element={
-              <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                <Colaboradores />
-              </Suspense>
-            } />
-          </Route>
-          
-          {/* Rota coringa para páginas não encontradas */}
-          <Route path="*" element={<Navigate to="/404" replace />} />
-        </Routes>
-        <Toaster richColors closeButton position="top-right" />
+        <SidebarProvider>
+          <Routes>
+            {/* Rota raiz verifica autenticação e redireciona */}
+            <Route path="/" element={<Index />} />
+            
+            {/* Rotas públicas de autenticação */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/404" element={<NotFound />} />
+            
+            {/* Rotas protegidas com AppLayout */}
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Dashboard />
+                </Suspense>
+              } />
+              <Route path="/clients" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Clients />
+                </Suspense>
+              } />
+              <Route path="/orders" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Orders />
+                </Suspense>
+              } />
+              <Route path="/orders/map" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <OrdersMap orders={[]} />
+                </Suspense>
+              } />
+              <Route path="/orders/new" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <NewOrderForm onSubmit={() => {}} />
+                </Suspense>
+              } />
+              <Route path="/orders/:id" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <OrderDetails orderId="" orders={[]} isOpen={false} onOpenChange={() => {}} />
+                </Suspense>
+              } />
+              <Route path="/entrance" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <EntranceSales />
+                </Suspense>
+              } />
+              <Route path="/entrance/new-sale" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <NewSaleForm isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} />
+                </Suspense>
+              } />
+              <Route path="/entrance/history" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <SalesHistory />
+                </Suspense>
+              } />
+              <Route path="/entrance/cashier" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <CashierClosing isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} cashierData={null} />
+                </Suspense>
+              } />
+              <Route path="/inventory" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Inventory />
+                </Suspense>
+              } />
+              <Route path="/promissory" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Promissory />
+                </Suspense>
+              } />
+              <Route path="/routes" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <RoutesPage />
+                </Suspense>
+              } />
+              <Route path="/resellers" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Resellers />
+                </Suspense>
+              } />
+              <Route path="/fleet" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Fleet />
+                </Suspense>
+              } />
+              <Route path="/finance/expenses" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Expenses />
+                </Suspense>
+              } />
+              <Route path="/settings" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Settings />
+                </Suspense>
+              } />
+              <Route path="/colaboradores" element={
+                <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Colaboradores />
+                </Suspense>
+              } />
+            </Route>
+            
+            {/* Rota coringa para páginas não encontradas */}
+            <Route path="*" element={<Navigate to="/404" replace />} />
+          </Routes>
+          <Toaster richColors closeButton position="top-right" />
+        </SidebarProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

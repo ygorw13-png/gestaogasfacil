@@ -47,9 +47,9 @@ export function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex w-full bg-background">
       <AppSidebar />
-      <div className="flex flex-col min-h-screen md:pl-64">
+      <div className="flex flex-col min-h-screen w-full md:pl-64">
         <TopBar />
         <main className="flex-1 p-4 md:p-6 overflow-y-auto">
           <Outlet />

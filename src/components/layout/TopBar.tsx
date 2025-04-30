@@ -20,8 +20,8 @@ export function TopBar() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   
-  const handleLogout = () => {
-    signOut();
+  const handleLogout = async () => {
+    await signOut();
     navigate('/login');
   };
 
