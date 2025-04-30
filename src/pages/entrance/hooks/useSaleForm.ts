@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { Sale } from "../types/saleTypes";
 import type { Reseller } from "../../resellers/types";
 
@@ -15,26 +15,22 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
   const [cylinderMovement, setCylinderMovement] = useState<'none' | 'loan' | 'return'>('none');
   const [movementQuantity, setMovementQuantity] = useState(1);
 
+  // Atualizar preço quando reseller ou produto mudam
   useEffect(() => {
     if (saleType === "reseller" && selectedReseller && product) {
-      switch (product) {
-        case "p13":
-          setUnitPrice(selectedReseller.priceP13);
-          break;
-        case "p20":
-          setUnitPrice(selectedReseller.priceP20);
-          break;
-        case "p45":
-          setUnitPrice(selectedReseller.priceP45);
-          break;
-        case "water":
-          setUnitPrice(selectedReseller.priceWater);
-          break;
-      }
+      const prices: Record<string, number> = {
+        p13: selectedReseller.priceP13,
+        p20: selectedReseller.priceP20,
+        p45: selectedReseller.priceP45,
+        water: selectedReseller.priceWater,
+      };
+      
+      setUnitPrice(prices[product] || 120);
     }
   }, [saleType, selectedReseller, product]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Função para lidar com o envio do formulário
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     
     const newSale: Sale = {
@@ -54,7 +50,7 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
       amount: quantity * unitPrice
     };
 
-    // Clear the form
+    // Limpar o formulário
     setSelectedClient(null);
     setSelectedReseller(null);
     setSaleType("regular");
@@ -68,7 +64,29 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
 
     onSubmit(newSale);
     onOpenChange(false);
-  };
+  }, [
+    selectedClient,
+    paymentMethod,
+    product,
+    quantity,
+    unitPrice,
+    onSubmit,
+    onOpenChange
+  ]);
+
+  // Função para resetar o formulário
+  const resetForm = useCallback(() => {
+    setSelectedClient(null);
+    setSelectedReseller(null);
+    setSaleType("regular");
+    setPaymentMethod("");
+    setProduct("");
+    setQuantity(1);
+    setUnitPrice(120);
+    setLoanGas(false);
+    setCylinderMovement('none');
+    setMovementQuantity(1);
+  }, []);
 
   return {
     saleType,
@@ -91,6 +109,7 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
     setCylinderMovement,
     movementQuantity,
     setMovementQuantity,
-    handleSubmit
+    handleSubmit,
+    resetForm
   };
 };

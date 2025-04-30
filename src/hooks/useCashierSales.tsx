@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CashierData } from '@/pages/entrance/types/cashierTypes';
 import { Sale, SalesByType } from '@/pages/entrance/types/entranceTypes';
 import { updateInventorySales } from '@/pages/entrance/data/mockData';
@@ -50,6 +50,15 @@ export function useCashierSales() {
   const [hoursElapsed, setHoursElapsed] = useState(0);
   const [newSaleOpen, setNewSaleOpen] = useState(false);
 
+  // Função para atualizar as horas decorridas
+  const updateHoursElapsed = useCallback(() => {
+    if (startTime) {
+      const now = new Date();
+      const elapsed = (now.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+      setHoursElapsed(Math.max(elapsed, 1)); // At least 1 hour to avoid division by zero
+    }
+  }, [startTime]);
+
   // Calculate hours elapsed since first sale or since the start of the day
   useEffect(() => {
     if (!startTime && recentSales.length > 0) {
@@ -59,29 +68,32 @@ export function useCashierSales() {
 
     // Update hours elapsed every minute
     const interval = setInterval(() => {
-      if (startTime) {
-        const now = new Date();
-        const elapsed = (now.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-        setHoursElapsed(Math.max(elapsed, 1)); // At least 1 hour to avoid division by zero
-      }
+      updateHoursElapsed();
     }, 60000); // Update every minute
 
-    return () => clearInterval(interval);
-  }, [startTime, recentSales]);
+    // Execute once immediately to set initial value
+    updateHoursElapsed();
 
-  const handleNewSaleSubmit = (newSale: Sale) => {
+    return () => clearInterval(interval);
+  }, [startTime, recentSales.length, updateHoursElapsed]);
+
+  const handleNewSaleSubmit = useCallback((newSale: Sale) => {
     // Set start time if this is the first sale after reset
-    if (!startTime) {
-      setStartTime(new Date());
-    }
+    setStartTime(prevStartTime => {
+      if (!prevStartTime) {
+        return new Date();
+      }
+      return prevStartTime;
+    });
     
-    const updatedSales = [newSale, ...recentSales.slice(0, 4)];
-    setRecentSales(updatedSales);
+    setRecentSales(prevSales => [newSale, ...prevSales.slice(0, 4)]);
     
-    const newTotal = cashierData.totalSales + newSale.amount;
-    setCashierData({
-      ...cashierData,
-      totalSales: newTotal,
+    setCashierData(prevData => {
+      const newTotal = prevData.totalSales + newSale.amount;
+      return {
+        ...prevData,
+        totalSales: newTotal,
+      };
     });
     
     // Atualizar as vendas de estoque e os contadores de produtos
@@ -116,7 +128,7 @@ export function useCashierSales() {
     });
     
     setNewSaleOpen(false);
-  };
+  }, [toast]);
 
   return {
     cashierData,

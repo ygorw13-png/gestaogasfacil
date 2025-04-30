@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from "@/types/userTypes";
 import { customTables } from "@/integrations/supabase/customClient";
@@ -49,16 +49,32 @@ export function useUserManagement(organizationId?: string) {
       }
     };
 
-    fetchUsers();
+    if (organizationId) {
+      fetchUsers();
+    }
   }, [toast, organizationId]);
 
-  const addUser = (newUser: User) => {
+  const addUser = useCallback((newUser: User) => {
     setUsers(prevUsers => [...prevUsers, newUser]);
-  };
+  }, []);
+
+  const removeUser = useCallback((userId: string) => {
+    setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+  }, []);
+
+  const updateUser = useCallback((userId: string, updatedData: Partial<User>) => {
+    setUsers(prevUsers => 
+      prevUsers.map(user => 
+        user.id === userId ? { ...user, ...updatedData } : user
+      )
+    );
+  }, []);
 
   return {
     users,
     loading,
-    addUser
+    addUser,
+    removeUser,
+    updateUser
   };
 }

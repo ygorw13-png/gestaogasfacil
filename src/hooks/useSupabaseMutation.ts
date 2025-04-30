@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useToast } from "./use-toast";
 import { PostgrestResponse, PostgrestError } from "@supabase/supabase-js";
 
@@ -27,7 +27,7 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
   const [error, setError] = useState<PostgrestError | Error | null>(null);
   const { toast } = useToast();
 
-  const mutate = async (variables: TVariables): Promise<MutationResult<TData>> => {
+  const mutate = useCallback(async (variables: TVariables): Promise<MutationResult<TData>> => {
     setLoading(true);
     setError(null);
 
@@ -67,11 +67,12 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
     } finally {
       setLoading(false);
     }
-  };
+  }, [mutationFn, onSuccess, onError, successMessage, errorMessage, toast]);
 
   return {
     mutate,
     loading,
-    error
+    error,
+    reset: useCallback(() => setError(null), [])
   };
 }

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { PartialClosing, CashierData } from '@/pages/entrance/types/cashierTypes';
 import { useToast } from '@/hooks/use-toast';
 import { resetInventory } from '@/pages/entrance/data/mockData';
@@ -22,7 +22,7 @@ export function useCashierClosing(
   const [partialClosings, setPartialClosings] = useState<PartialClosing[]>([]);
   const [cashierClosingOpen, setCashierClosingOpen] = useState(false);
   
-  const handleCashierClosingSubmit = (type: "partial" | "total", observations?: string) => {
+  const handleCashierClosingSubmit = useCallback((type: "partial" | "total", observations?: string) => {
     // Para fechamento parcial, vamos adicionar um registro no histórico de fechamentos
     if (type === "partial") {
       const newPartialClosing: PartialClosing = {
@@ -38,7 +38,7 @@ export function useCashierClosing(
         observations: observations || ""
       };
       
-      setPartialClosings([...partialClosings, newPartialClosing]);
+      setPartialClosings(prevClosings => [...prevClosings, newPartialClosing]);
       
       // Reduzir os valores atuais baseado no que foi fechado parcialmente
       setCashierData(prev => ({
@@ -52,7 +52,7 @@ export function useCashierClosing(
         p45: Math.ceil(prev.p45 / 2),
       }));
       
-      setWaterSales(Math.ceil(waterSales / 2));
+      setWaterSales(prev => Math.ceil(prev / 2));
       
       toast({
         title: "Fechamento parcial",
@@ -90,7 +90,19 @@ export function useCashierClosing(
     }
     
     setCashierClosingOpen(false);
-  };
+  }, [
+    cashierData,
+    glpSales,
+    waterSales,
+    setCashierData,
+    setGlpSales,
+    setWaterSales,
+    setSalesByType,
+    setRecentSales,
+    setStartTime,
+    setHoursElapsed,
+    toast
+  ]);
 
   return {
     previousDaySales,

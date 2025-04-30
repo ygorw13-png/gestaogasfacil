@@ -26,6 +26,7 @@ export function useClosingHistory(
   searchDate: string,
   filterType: "all" | "partial" | "total"
 ): UseClosingHistoryReturn {
+  // Formatar fechamentos uma única vez
   const formattedClosings = useMemo(() => {
     return [...partialClosings].reverse().map(closing => {
       const date = new Date(closing.timestamp);
@@ -38,6 +39,7 @@ export function useClosingHistory(
     });
   }, [partialClosings]);
   
+  // Filtrar fechamentos baseado nos critérios
   const filteredClosings = useMemo(() => {
     let filtered = formattedClosings;
     
@@ -52,6 +54,7 @@ export function useClosingHistory(
     return filtered;
   }, [formattedClosings, searchDate, filterType]);
   
+  // Agrupar por data para facilitar visualização
   const groupedByDate = useMemo(() => {
     const groups: Record<string, FormattedClosing[]> = {};
     
@@ -65,19 +68,22 @@ export function useClosingHistory(
     return groups;
   }, [formattedClosings]);
   
-  const calculateDailyTotals = (closings: FormattedClosing[]) => {
-    return closings.reduce(
-      (acc, closing) => {
-        acc.sales += closing.totalSales;
-        acc.p13 += closing.quantities.p13;
-        acc.p20 += closing.quantities.p20;
-        acc.p45 += closing.quantities.p45;
-        acc.water += closing.quantities.water;
-        return acc;
-      },
-      { sales: 0, p13: 0, p20: 0, p45: 0, water: 0 }
-    );
-  };
+  // Função para calcular totais diários
+  const calculateDailyTotals = useMemo(() => {
+    return (closings: FormattedClosing[]) => {
+      return closings.reduce(
+        (acc, closing) => {
+          acc.sales += closing.totalSales;
+          acc.p13 += closing.quantities.p13;
+          acc.p20 += closing.quantities.p20;
+          acc.p45 += closing.quantities.p45;
+          acc.water += closing.quantities.water;
+          return acc;
+        },
+        { sales: 0, p13: 0, p20: 0, p45: 0, water: 0 }
+      );
+    };
+  }, []);
 
   return {
     formattedClosings,
