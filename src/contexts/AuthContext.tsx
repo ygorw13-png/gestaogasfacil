@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -8,7 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   error: Error | null;
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signIn: (email: string, password: string, options?: { csrfToken?: string }) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
   organization: { id: string; name: string; owner_id: string } | null;
@@ -154,8 +153,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, [session]);
 
-  // Função para login
-  const signIn = async (email: string, password: string) => {
+  // Função para login atualizada para aceitar options
+  const signIn = async (email: string, password: string, options?: { csrfToken?: string }) => {
     try {
       setError(null);
       // Sanitizar entrada

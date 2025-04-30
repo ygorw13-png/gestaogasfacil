@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,9 +18,10 @@ interface LoginFormProps {
   onSubmit: (email: string, password: string) => Promise<void>;
   loading: boolean;
   error: string | null;
+  csrfToken?: string; // Adicionando a propriedade csrfToken como opcional
 }
 
-export default function LoginForm({ onSubmit, loading, error }: LoginFormProps) {
+export default function LoginForm({ onSubmit, loading, error, csrfToken }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string }>({});
