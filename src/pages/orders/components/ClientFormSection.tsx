@@ -15,6 +15,17 @@ export function ClientFormSection({ control }: ClientFormSectionProps) {
   
   const hasErrors = !!errors.clientName || !!errors.clientPhone || !!errors.street || !!errors.number;
 
+  // Função para formatar número de telefone
+  const formatPhoneNumber = (value: string): string => {
+    // Remove tudo que não for dígito
+    const cleaned = value.replace(/\D/g, '');
+    
+    // Limita a 11 dígitos
+    const limited = cleaned.substring(0, 11);
+    
+    return limited;
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Dados do Cliente</h3>
@@ -36,7 +47,15 @@ export function ClientFormSection({ control }: ClientFormSectionProps) {
             <FormItem>
               <FormLabel>Nome *</FormLabel>
               <FormControl>
-                <Input placeholder="Nome do cliente" {...field} />
+                <Input 
+                  placeholder="Nome do cliente" 
+                  {...field} 
+                  onChange={(e) => {
+                    // Sanitiza a entrada limitando a 100 caracteres
+                    const sanitized = e.target.value.substring(0, 100);
+                    field.onChange(sanitized);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -55,8 +74,8 @@ export function ClientFormSection({ control }: ClientFormSectionProps) {
                   maxLength={11}
                   {...field} 
                   onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '');
-                    field.onChange(value);
+                    const formattedValue = formatPhoneNumber(e.target.value);
+                    field.onChange(formattedValue);
                   }}
                 />
               </FormControl>
@@ -74,7 +93,15 @@ export function ClientFormSection({ control }: ClientFormSectionProps) {
             <FormItem>
               <FormLabel>Rua *</FormLabel>
               <FormControl>
-                <Input placeholder="Nome da rua" {...field} />
+                <Input 
+                  placeholder="Nome da rua" 
+                  {...field} 
+                  onChange={(e) => {
+                    // Sanitiza a entrada limitando a 100 caracteres
+                    const sanitized = e.target.value.substring(0, 100);
+                    field.onChange(sanitized);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -88,7 +115,15 @@ export function ClientFormSection({ control }: ClientFormSectionProps) {
             <FormItem>
               <FormLabel>Número *</FormLabel>
               <FormControl>
-                <Input placeholder="Número" {...field} />
+                <Input 
+                  placeholder="Número" 
+                  {...field} 
+                  onChange={(e) => {
+                    // Sanitiza a entrada limitando a 10 caracteres
+                    const sanitized = e.target.value.substring(0, 10);
+                    field.onChange(sanitized);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -104,7 +139,15 @@ export function ClientFormSection({ control }: ClientFormSectionProps) {
             <FormItem>
               <FormLabel>Complemento</FormLabel>
               <FormControl>
-                <Input placeholder="Complemento (opcional)" {...field} />
+                <Input 
+                  placeholder="Complemento (opcional)" 
+                  {...field} 
+                  onChange={(e) => {
+                    // Sanitiza a entrada limitando a 50 caracteres
+                    const sanitized = e.target.value.substring(0, 50);
+                    field.onChange(sanitized);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -118,7 +161,15 @@ export function ClientFormSection({ control }: ClientFormSectionProps) {
             <FormItem>
               <FormLabel>Bairro</FormLabel>
               <FormControl>
-                <Input placeholder="Bairro (opcional)" {...field} />
+                <Input 
+                  placeholder="Bairro (opcional)" 
+                  {...field}
+                  onChange={(e) => {
+                    // Sanitiza a entrada limitando a 50 caracteres
+                    const sanitized = e.target.value.substring(0, 50);
+                    field.onChange(sanitized);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

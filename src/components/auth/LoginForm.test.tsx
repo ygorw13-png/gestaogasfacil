@@ -47,6 +47,29 @@ describe('LoginForm', () => {
     expect(screen.getByRole('button', { name: 'Entrando...' })).toBeDisabled();
   });
 
+  it('exibe erros de validação quando os campos são preenchidos incorretamente', async () => {
+    render(
+      <BrowserRouter>
+        <LoginForm onSubmit={mockSubmit} loading={false} error={null} />
+      </BrowserRouter>
+    );
+    
+    // Email inválido
+    fireEvent.change(screen.getByLabelText('E-mail'), {
+      target: { value: 'email-invalido' }
+    });
+    
+    // Senha muito curta
+    fireEvent.change(screen.getByLabelText('Senha'), {
+      target: { value: '123' }
+    });
+    
+    fireEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+    
+    // Verificamos se não chamou onSubmit porque temos erros de validação
+    expect(mockSubmit).not.toHaveBeenCalled();
+  });
+
   it('chama a função onSubmit com email e senha corretos ao enviar o formulário', () => {
     render(
       <BrowserRouter>
@@ -59,11 +82,11 @@ describe('LoginForm', () => {
     });
     
     fireEvent.change(screen.getByLabelText('Senha'), {
-      target: { value: 'senha123' }
+      target: { value: 'senha123456' }
     });
     
     fireEvent.click(screen.getByRole('button', { name: 'Entrar' }));
     
-    expect(mockSubmit).toHaveBeenCalledWith('teste@exemplo.com', 'senha123');
+    expect(mockSubmit).toHaveBeenCalledWith('teste@exemplo.com', 'senha123456');
   });
 });

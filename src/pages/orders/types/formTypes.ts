@@ -1,45 +1,24 @@
 
 import { z } from "zod";
 
+// Schema para validação dos formulários de pedido
 export const formSchema = z.object({
-  clientName: z.string()
-    .min(3, "Nome deve ter no mínimo 3 caracteres")
-    .max(100, "Nome muito longo"),
+  clientName: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   clientPhone: z.string()
-    .regex(/^\d{10,11}$/, "Telefone deve ter 10 ou 11 dígitos"),
-  street: z.string()
-    .min(3, "Endereço deve ter no mínimo 3 caracteres")
-    .max(100, "Endereço muito longo"),
-  number: z.string()
-    .min(1, "Número é obrigatório")
-    .max(10, "Número muito longo"),
-  complement: z.string()
-    .max(100, "Complemento muito longo")
-    .optional(),
-  neighborhood: z.string()
-    .max(100, "Bairro muito longo")
-    .optional(),
-  gasP13: z.number()
-    .min(0, "Quantidade não pode ser negativa")
-    .max(99, "Quantidade muito alta")
-    .optional(),
-  gasP20: z.number()
-    .min(0, "Quantidade não pode ser negativa")
-    .max(99, "Quantidade muito alta")
-    .optional(),
-  gasP45: z.number()
-    .min(0, "Quantidade não pode ser negativa")
-    .max(99, "Quantidade muito alta")
-    .optional(),
-  water: z.number()
-    .min(0, "Quantidade não pode ser negativa")
-    .max(99, "Quantidade muito alta")
-    .optional(),
-  paymentMethod: z.string()
-    .min(1, "Forma de pagamento é obrigatória"),
-  observations: z.string()
-    .max(500, "Observação muito longa")
-    .optional(),
+    .min(10, "Número de telefone inválido")
+    .max(11, "Número de telefone inválido")
+    .regex(/^\d+$/, "Telefone deve conter apenas números"),
+  street: z.string().min(3, "Endereço deve ter pelo menos 3 caracteres"),
+  number: z.string().min(1, "Número é obrigatório"),
+  complement: z.string().optional(),
+  neighborhood: z.string().optional(),
+  gasP13: z.number().int().min(0, "Quantidade inválida").max(99, "Quantidade máxima excedida"),
+  gasP20: z.number().int().min(0, "Quantidade inválida").max(99, "Quantidade máxima excedida"),
+  gasP45: z.number().int().min(0, "Quantidade inválida").max(99, "Quantidade máxima excedida"),
+  water: z.number().int().min(0, "Quantidade inválida").max(99, "Quantidade máxima excedida"),
+  paymentMethod: z.string().min(1, "Método de pagamento é obrigatório"),
+  observations: z.string().optional(),
 });
 
+// Tipo derivado do schema
 export type FormValues = z.infer<typeof formSchema>;

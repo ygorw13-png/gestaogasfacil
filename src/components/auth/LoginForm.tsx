@@ -7,6 +7,13 @@ import { Label } from '@/components/ui/label';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
+import { z } from 'zod';
+
+// Schema de validação para o formulário de login
+const loginSchema = z.object({
+  email: z.string().email('E-mail inválido').min(1, 'E-mail é obrigatório'),
+  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres')
+});
 
 interface LoginFormProps {
   onSubmit: (email: string, password: string) => Promise<void>;
@@ -17,10 +24,31 @@ interface LoginFormProps {
 export default function LoginForm({ onSubmit, loading, error }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string }>({});
+
+  const validateForm = (): boolean => {
+    try {
+      loginSchema.parse({ email, password });
+      setValidationErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: { email?: string; password?: string } = {};
+        error.errors.forEach((err) => {
+          if (err.path[0] === 'email') errors.email = err.message;
+          if (err.path[0] === 'password') errors.password = err.message;
+        });
+        setValidationErrors(errors);
+      }
+      return false;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(email, password);
+    if (validateForm()) {
+      await onSubmit(email, password);
+    }
   };
 
   return (
@@ -47,10 +75,13 @@ export default function LoginForm({ onSubmit, loading, error }: LoginFormProps) 
               placeholder="E-mail" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="border-green-100 focus:border-green-500"
+              className={`border-green-100 focus:border-green-500 ${validationErrors.email ? 'border-red-500' : ''}`}
               disabled={loading}
               required 
             />
+            {validationErrors.email && (
+              <p className="text-sm text-red-500 mt-1">{validationErrors.email}</p>
+            )}
           </div>
           
           <div className="space-y-2">
@@ -61,10 +92,14 @@ export default function LoginForm({ onSubmit, loading, error }: LoginFormProps) 
               placeholder="Senha" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="border-green-100 focus:border-green-500"
+              className={`border-green-100 focus:border-green-500 ${validationErrors.password ? 'border-red-500' : ''}`}
               disabled={loading}
               required 
+              minLength={6}
             />
+            {validationErrors.password && (
+              <p className="text-sm text-red-500 mt-1">{validationErrors.password}</p>
+            )}
           </div>
 
           <Button 

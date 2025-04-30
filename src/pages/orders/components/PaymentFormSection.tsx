@@ -69,8 +69,16 @@ export function PaymentFormSection({ control }: PaymentFormSectionProps) {
                 className="resize-none"
                 maxLength={500}
                 {...field}
+                onChange={(e) => {
+                  // Sanitiza a entrada limitando a 500 caracteres
+                  const sanitized = e.target.value.substring(0, 500);
+                  field.onChange(sanitized);
+                }}
               />
             </FormControl>
+            <p className="text-xs text-gray-500 mt-1">
+              {field.value?.length || 0}/500 caracteres
+            </p>
             <FormMessage />
           </FormItem>
         )}
