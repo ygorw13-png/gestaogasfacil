@@ -2,7 +2,7 @@
 import React from 'react';
 import { AuthContext } from './AuthContext';
 import { AuthProviderProps } from './types';
-import { signInWithEmail, signOut as authSignOut, getCurrentSession, hasUserRole } from './authService';
+import { signInWithEmail, signOut as authSignOut, getCurrentSession, hasUserRole } from './services';
 import { useAuthState } from './useAuthState';
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {

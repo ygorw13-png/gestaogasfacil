@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { fetchUserProfile } from './authService';
+import { fetchUserProfile } from './services';
 import { logger } from '@/utils/logger';
 
 export function useAuthState() {
