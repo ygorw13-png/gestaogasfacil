@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { UserRole } from '@/types/userTypes';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -22,6 +22,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   const { user, loading, hasRole } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Registrar tentativas de acesso não autorizado
   useEffect(() => {
