@@ -1,8 +1,7 @@
-
 import React, { createContext, useContext } from 'react';
 import { CashierData, PartialClosing } from '@/pages/entrance/types/cashierTypes';
 import { Sale, SalesByType } from '@/pages/entrance/types/entranceTypes';
-import { useCashierSales } from '@/hooks/useCashierSales';
+import { useCashierSales } from '@/hooks/useCashierSales.tsx';
 import { useCashierClosing } from '@/hooks/useCashierClosing';
 
 interface CashierContextProps {
