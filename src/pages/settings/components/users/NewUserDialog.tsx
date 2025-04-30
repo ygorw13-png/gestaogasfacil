@@ -46,7 +46,7 @@ export function NewUserDialog({
   const [newUserName, setNewUserName] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [creatingUser, setCreatingUser] = useState(false);
-  const [newUserRole, setNewUserRole] = useState<UserRole>('vendedor');
+  const [newUserRole, setNewUserRole] = useState<UserRole>('admin'); // Changed default to admin
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   // Função para gerar senha aleatória segura
@@ -113,14 +113,14 @@ export function NewUserDialog({
       if (authData?.user) {
         // Criar o perfil do usuário usando a função RPC, vinculando à organização atual
         const { error: profileError } = await supabase.functions.invoke('create_profile', {
-          body: {
+          body: JSON.stringify({
             user_id: authData.user.id,
             name: newUserName,
             role: newUserRole,
             email: newUserEmail,
             created_by_admin: true,
             organization_id: organizationId
-          }
+          })
         });
 
         if (profileError) throw profileError;
@@ -141,7 +141,7 @@ export function NewUserDialog({
         setNewUserEmail('');
         setNewUserName('');
         setNewUserPassword('');
-        setNewUserRole('vendedor');
+        setNewUserRole('admin');
         setPasswordError(null);
         
         // Fechar o diálogo
@@ -239,7 +239,7 @@ export function NewUserDialog({
             </Label>
             <Select 
               value={newUserRole} 
-              onValueChange={(value: UserRole) => setNewUserRole(value)}
+              onValueChange={(value) => setNewUserRole(value as UserRole)}
             >
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Selecione uma função" />
