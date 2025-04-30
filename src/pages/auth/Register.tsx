@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { User } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { validatePasswordStrength } from '@/utils/securityUtils';
 
 // Define a type for user metadata
 interface UserWithMetadata {
@@ -53,7 +55,6 @@ export default function Register() {
       }
       
       // Validar força da senha
-      const { validatePasswordStrength } = await import('@/utils/securityUtils');
       const passwordCheck = validatePasswordStrength(password);
       if (!passwordCheck.valid) {
         setValidationErrors({...validationErrors, password: passwordCheck.message});

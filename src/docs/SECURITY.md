@@ -1,6 +1,17 @@
 
 # Diretrizes de Segurança para o Projeto
 
+## Análise de Dependências
+
+### Verificações Regulares de Segurança
+- Recomenda-se executar `npm audit` ou `yarn audit` regularmente para identificar vulnerabilidades nas dependências
+- Manter todas as bibliotecas atualizadas para as versões mais recentes e estáveis
+
+### Bibliotecas Críticas e suas Versões Seguras
+- **@supabase/supabase-js**: Manter na versão ^2.49.4 ou superior
+- **zod**: Manter na versão ^3.23.8 ou superior para validação segura
+- **react-hook-form**: Manter na versão ^7.53.0 ou superior
+
 ## Chaves de API e Dados Sensíveis
 
 ### Chaves Públicas vs. Chaves Secretas
@@ -91,3 +102,13 @@ As seguintes políticas de senha são implementadas no sistema:
    - Validações de segurança são aplicadas na criação e alteração de senhas
    - Senhas comuns e facilmente adivináveis são rejeitadas
    - A alteração de senha requer confirmação da senha atual
+
+## Código de Teste e Demonstração
+
+Diretrizes para código de teste e demonstração:
+1. Arquivos marcados como `*.test.tsx` ou `*.test.ts` são apenas para testes e não incluídos no build de produção
+2. Dados mockados (`mockData.ts`) não devem conter informações sensíveis reais
+3. Certifique-se de que nenhuma credencial de desenvolvimento está presente em:
+   - Comentários no código
+   - Arquivos de configuração
+   - Scripts de teste
