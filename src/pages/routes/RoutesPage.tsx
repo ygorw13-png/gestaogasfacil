@@ -1,22 +1,13 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RoutesList } from "./components/RoutesList";
 import { NewRouteForm } from "./components/NewRouteForm";
 import { RouteReports } from "./components/RouteReports";
-import { AlertTriangle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function RoutesPage() {
-  const { user } = useAuth();
-  
-  // Verificamos se o usuário tem permissão (apenas admin ou gerente)
-  if (!user || (user.role !== 'admin' && user.role !== 'gerente')) {
-    return <Navigate to="/" replace />;
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

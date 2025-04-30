@@ -11,9 +11,10 @@ import { PasswordSection } from "./dialogs/PasswordSection";
 interface NewUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export function NewUserDialog({ open, onOpenChange }: NewUserDialogProps) {
+export function NewUserDialog({ open, onOpenChange, onSuccess }: NewUserDialogProps) {
   const {
     form,
     isCreateUserLoading,
@@ -31,6 +32,15 @@ export function NewUserDialog({ open, onOpenChange }: NewUserDialogProps) {
     }
   }
 
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const result = await form.handleSubmit(handleCreateUser)();
+    
+    if (result && onSuccess) {
+      onSuccess();
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -43,13 +53,31 @@ export function NewUserDialog({ open, onOpenChange }: NewUserDialogProps) {
         <DialogHeader>
           <DialogTitle>Criar Novo Usuário</DialogTitle>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(handleCreateUser)}>
+        <form onSubmit={onSubmit}>
           <div className="space-y-4 py-2">
-            <UserDetailsSection form={form} />
+            <UserDetailsSection 
+              email={form.watch('email') || ''}
+              name={form.watch('name') || ''}
+              role={form.watch('role') || ''}
+              setEmail={(value) => form.setValue('email', value)}
+              setName={(value) => form.setValue('name', value)}
+              setRole={(value) => form.setValue('role', value)}
+              errors={{
+                email: form.formState.errors.email?.message,
+                name: form.formState.errors.name?.message,
+                role: form.formState.errors.role?.message
+              }}
+            />
             
             <Separator className="my-4" />
             
-            <PasswordSection form={form} />
+            <PasswordSection 
+              password={form.watch('password') || ''}
+              confirmPassword={form.watch('confirmPassword') || ''}
+              setPassword={(value) => form.setValue('password', value)}
+              setConfirmPassword={(value) => form.setValue('confirmPassword', value)}
+              error={form.formState.errors.confirmPassword?.message || form.formState.errors.password?.message}
+            />
 
             {errors && (
               <div className="text-red-500 text-sm mt-2">

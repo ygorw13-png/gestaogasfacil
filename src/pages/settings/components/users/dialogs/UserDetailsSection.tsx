@@ -1,71 +1,84 @@
 
-import { Input } from "@/components/ui/input";
+import React from 'react';
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { roleLabels, UserRole } from "@/types/userTypes";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface UserDetailsSectionProps {
-  name: string;
-  setName: (name: string) => void;
   email: string;
-  setEmail: (email: string) => void;
+  setEmail: (value: string) => void;
+  name: string;
+  setName: (value: string) => void;
   role: string;
-  setRole: (role: string) => void;
+  setRole: (value: string) => void;
+  errors?: {
+    email?: string;
+    name?: string;
+    role?: string;
+  };
 }
 
-export function UserDetailsSection({
-  name,
-  setName,
-  email,
-  setEmail,
-  role,
-  setRole
+export function UserDetailsSection({ 
+  email, 
+  setEmail, 
+  name, 
+  setName, 
+  role, 
+  setRole, 
+  errors 
 }: UserDetailsSectionProps) {
   return (
-    <>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="name" className="text-right">
-          Nome
-        </Label>
-        <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="col-span-3"
-        />
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="email" className="text-right">
-          E-mail
-        </Label>
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
         <Input
           id="email"
           type="email"
+          placeholder="usuario@exemplo.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="col-span-3"
         />
+        {errors?.email && (
+          <p className="text-sm text-red-500">{errors.email}</p>
+        )}
       </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="role" className="text-right">
-          Função
-        </Label>
-        <Select 
-          value={role} 
-          onValueChange={setRole}
-        >
-          <SelectTrigger id="role" className="col-span-3">
+
+      <div className="space-y-2">
+        <Label htmlFor="name">Nome</Label>
+        <Input
+          id="name"
+          placeholder="Nome completo"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        {errors?.name && (
+          <p className="text-sm text-red-500">{errors.name}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="role">Função</Label>
+        <Select value={role} onValueChange={setRole}>
+          <SelectTrigger>
             <SelectValue placeholder="Selecione uma função" />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(roleLabels).map(([value, label]) => (
-              <SelectItem key={value} value={value}>{label}</SelectItem>
-            ))}
+            <SelectItem value="admin">Administrador</SelectItem>
+            <SelectItem value="gerente">Gerente</SelectItem>
+            <SelectItem value="vendedor">Vendedor</SelectItem>
+            <SelectItem value="motorista">Motorista</SelectItem>
           </SelectContent>
         </Select>
+        {errors?.role && (
+          <p className="text-sm text-red-500">{errors.role}</p>
+        )}
       </div>
-    </>
+    </div>
   );
 }

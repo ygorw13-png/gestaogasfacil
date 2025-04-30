@@ -1,49 +1,59 @@
 
-import { Input } from "@/components/ui/input";
+import React from 'react';
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
-export interface PasswordSectionProps {
+interface PasswordSectionProps {
   password: string;
-  setPassword: (password: string) => void;
+  setPassword: (value: string) => void;
   confirmPassword: string;
-  setConfirmPassword: (confirmPassword: string) => void;
-  error: string | null;
+  setConfirmPassword: (value: string) => void;
+  error?: string;
 }
 
 export function PasswordSection({ 
   password, 
   setPassword, 
   confirmPassword, 
-  setConfirmPassword,
+  setConfirmPassword, 
   error 
 }: PasswordSectionProps) {
   return (
     <div className="space-y-4">
-      <div className="font-medium">Senha</div>
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="password">Senha</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1"
-            placeholder="Digite a senha"
-          />
-        </div>
-        <div>
-          <Label htmlFor="confirmPassword">Confirme a Senha</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="mt-1"
-            placeholder="Confirme a senha"
-          />
-          {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="password">Senha</Label>
+        <Input
+          id="password"
+          type="password"
+          placeholder="********"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          placeholder="********"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+      </div>
+
+      {error && (
+        <p className="text-sm text-red-500">{error}</p>
+      )}
+      
+      <div className="text-sm text-muted-foreground">
+        <p>A senha deve conter:</p>
+        <ul className="list-disc pl-5">
+          <li>Pelo menos 8 caracteres</li>
+          <li>Uma letra maiúscula</li>
+          <li>Uma letra minúscula</li>
+          <li>Um número</li>
+        </ul>
       </div>
     </div>
   );
