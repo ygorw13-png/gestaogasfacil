@@ -63,7 +63,7 @@ export function AppLayout() {
             <Outlet />
           </main>
           {isMobile && (
-            <div className="h-16"></div>
+            <div className="h-16">{/* Space for mobile navigation */}</div>
           )}
         </div>
       </div>
