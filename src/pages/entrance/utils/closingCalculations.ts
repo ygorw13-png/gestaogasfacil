@@ -1,5 +1,6 @@
 
 import { CashierData, PartialClosing } from "../types/cashierTypes";
+import { getTotalSalesFromPartials } from "./cashierUtils";
 
 /**
  * Calcula o valor total de vendas desde o último fechamento parcial
