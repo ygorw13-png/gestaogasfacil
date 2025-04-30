@@ -20,8 +20,8 @@ export function useUserCreation({
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
-  // Using a simple string type instead of UserRole to avoid recursive type issues
-  const [newUserRole, setNewUserRole] = useState<string>('admin');
+  // Store role as a primitive string type to avoid recursive type references
+  const [newUserRole, setNewUserRole] = useState('admin');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [creatingUser, setCreatingUser] = useState(false);
 
@@ -80,12 +80,12 @@ export function useUserCreation({
       if (authError) throw authError;
       
       if (authData?.user) {
-        // Send role as a plain string to avoid type issues
+        // Pass role as a plain string to the edge function
         const { error: profileError } = await supabase.functions.invoke('create_profile', {
           body: JSON.stringify({
             user_id: authData.user.id,
             name: newUserName,
-            role: newUserRole,
+            role: newUserRole, // Using string directly
             email: newUserEmail,
             created_by_admin: true,
             organization_id: organizationId
@@ -94,19 +94,19 @@ export function useUserCreation({
 
         if (profileError) throw profileError;
 
-        // Use type assertion only when needed for the interface
-        const typedRole = newUserRole as UserRole;
+        // Use type assertion only when interfacing with components that expect UserRole
+        const roleForCallback = newUserRole as UserRole;
         
         toast({
           title: "Usuário criado com sucesso!",
-          description: `${newUserName} foi adicionado como ${roleLabels[typedRole]}`
+          description: `${newUserName} foi adicionado como ${roleLabels[roleForCallback]}`
         });
         
         // Notificar o componente pai sobre o novo usuário
         onUserCreated({
           id: authData.user.id,
           name: newUserName,
-          role: typedRole
+          role: roleForCallback
         });
         
         // Limpar os campos do formulário
