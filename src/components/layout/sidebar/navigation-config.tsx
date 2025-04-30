@@ -44,8 +44,7 @@ export const ordersNavItems: AccordionNavItem[] = [
     value: "entrance",
     items: [
       { to: "/entrance", label: "Vendas", isEnd: true },
-      { to: "/entrance/history", label: "Histórico" },
-      { to: "/entrance/cashier", label: "Fechamento" }
+      { to: "/entrance/history", label: "Histórico" }
     ]
   }
 ];
@@ -57,11 +56,6 @@ export const inventoryNavItems: NavigationItem[] = [
   { to: "/routes", icon: Truck, label: "Rotas" },
   { to: "/resellers", icon: CalendarCheck, label: "Revendedores" },
   { to: "/fleet", icon: Truck, label: "Frota" }
-];
-
-// Finance navigation links
-export const financeNavItems: NavigationItem[] = [
-  { to: "/finance/expenses", icon: FileBarChart, label: "Finanças" }
 ];
 
 // Admin navigation links

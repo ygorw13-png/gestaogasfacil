@@ -5,7 +5,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle, History } from "lucide-react";
@@ -19,7 +18,7 @@ import { useCashier } from "@/contexts/CashierContext";
 interface CashierClosingDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit?: (type: "partial" | "total", observations?: string) => void;  // Adicionada prop onSubmit
+  onSubmit?: (type: "partial" | "total", observations?: string) => void;
 }
 
 export function CashierClosingDialog({ 
@@ -46,12 +45,6 @@ export function CashierClosingDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2">
-          <CheckCircle size={16} />
-          <span>Fechar Caixa</span>
-        </Button>
-      </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Fechamento de Caixa da Portaria</DialogTitle>

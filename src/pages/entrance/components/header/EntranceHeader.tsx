@@ -23,6 +23,7 @@ export function EntranceHeader({
   setNewSaleOpen,
   setCashierClosingOpen,
   onNewSaleSubmit,
+  onCashierClosingSubmit,
   cashierData
 }: EntranceHeaderProps) {
   return (
@@ -38,10 +39,14 @@ export function EntranceHeader({
           <Plus className="mr-2 h-4 w-4" />
           Nova Venda
         </Button>
-        <CashierClosingDialog
-          isOpen={cashierClosingOpen}
-          onOpenChange={setCashierClosingOpen}
-        />
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2"
+          onClick={() => setCashierClosingOpen(true)}
+        >
+          <CheckCircle size={16} />
+          <span>Fechar Caixa</span>
+        </Button>
       </div>
       
       {/* Dialog para Nova Venda */}
@@ -56,6 +61,13 @@ export function EntranceHeader({
           />
         </DialogContent>
       </Dialog>
+
+      {/* Dialog para Fechamento de Caixa */}
+      <CashierClosingDialog 
+        isOpen={cashierClosingOpen} 
+        onOpenChange={setCashierClosingOpen}
+        onSubmit={onCashierClosingSubmit}
+      />
     </div>
   );
 }
