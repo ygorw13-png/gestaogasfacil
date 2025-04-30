@@ -34,6 +34,27 @@ export function CashierClosingForm({
     onSubmit(closingType, observations);
   };
 
+  // Converter totalSalesSinceLastPartial para um formato compatível com CashierData
+  // para passar para CashierClosingSummary
+  const adaptedSalesData: CashierData = {
+    cash: cashierData.cash / 2,
+    credit: cashierData.credit / 2,
+    debit: cashierData.debit / 2,
+    pix: cashierData.pix / 2,
+    promissory: cashierData.promissory / 2,
+    gasVoucher: cashierData.gasVoucher / 2,
+    totalSales: totalSalesSinceLastPartial.amount,
+    quantities: {
+      cash: { p13: 0, p20: 0, p45: 0, water: 0 },
+      credit: { p13: 0, p20: 0, p45: 0, water: 0 },
+      debit: { p13: 0, p20: 0, p45: 0, water: 0 },
+      pix: { p13: 0, p20: 0, p45: 0, water: 0 },
+      promissory: { p13: 0, p20: 0, p45: 0, water: 0 },
+      gasVoucher: { p13: 0, p20: 0, p45: 0, water: 0 }
+    },
+    inventoryMovements: []
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <ClosingTypeTabs 
@@ -46,7 +67,7 @@ export function CashierClosingForm({
         cashierData={cashierData}
         inventoryData={inventoryClosing}
         isPartialClosing={closingType === "partial"}
-        totalSalesSinceLastPartial={totalSalesSinceLastPartial}
+        totalSalesSinceLastPartial={adaptedSalesData}
         partialClosings={partialClosings}
       />
       

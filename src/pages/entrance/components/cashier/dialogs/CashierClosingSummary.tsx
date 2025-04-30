@@ -1,6 +1,7 @@
+
 import { PaymentSummary } from "../../PaymentSummary";
 import { InventoryTable } from "../../InventoryTable";
-import { CashierData } from "../../../types/cashierTypes";
+import { CashierData, PartialClosing } from "../../../types/cashierTypes";
 import { formatCurrency, formatQuantities } from "@/lib/formatUtils";
 import { getTotalSalesFromPartials, getTotalQuantityFromPartials } from "../../../utils/cashierUtils";
 
@@ -9,7 +10,7 @@ interface CashierClosingSummaryProps {
   inventoryData: any;
   isPartialClosing: boolean;
   totalSalesSinceLastPartial: CashierData;
-  partialClosings: any[];
+  partialClosings: PartialClosing[];
 }
 
 export function CashierClosingSummary({
@@ -68,6 +69,6 @@ export function CashierClosingSummary({
   );
 }
 
-const getInventoryForPartialClosing = (inventory: any, partialClosings: any[]) => {
+const getInventoryForPartialClosing = (inventory: any, partialClosings: PartialClosing[]) => {
   return inventory;
 };

@@ -1,3 +1,4 @@
+
 import {
   Dialog,
   DialogContent,
@@ -9,7 +10,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle, History } from "lucide-react";
 import { useState } from "react";
-import { CashierData } from "../../types/cashierTypes";
+import { CashierData, PartialClosing } from "../../types/cashierTypes";
 import { Button } from "@/components/ui/button";
 import { ClosingHistoryTable } from "./ClosingHistoryTable";
 import { CashierClosingForm } from "./dialogs/CashierClosingForm";
@@ -23,19 +24,6 @@ interface CashierClosingDialogProps {
   partialClosings?: PartialClosing[];
 }
 
-export interface PartialClosing {
-  id: string;
-  timestamp: string;
-  totalSales: number;
-  quantities: {
-    p13: number;
-    p20: number;
-    p45: number;
-    water: number;
-  };
-  observations?: string;
-}
-
 export function CashierClosingDialog({ 
   isOpen, 
   onOpenChange, 
@@ -44,7 +32,10 @@ export function CashierClosingDialog({
   partialClosings = [] 
 }: CashierClosingDialogProps) {
   const [activeTab, setActiveTab] = useState<string>("form");
-  const totalSalesSinceLastPartial = calculateSalesSinceLastPartial(cashierData, partialClosings);
+  const totalSalesSinceLastPartial = {
+    count: partialClosings.length > 0 ? partialClosings.length : 0,
+    amount: calculateSalesAmountSinceLastPartial(cashierData, partialClosings)
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -93,61 +84,11 @@ export function CashierClosingDialog({
   );
 }
 
-const calculateSalesSinceLastPartial = (cashierData: CashierData, partialClosings: PartialClosing[]): CashierData => {
-  if (partialClosings.length === 0) return cashierData;
+const calculateSalesAmountSinceLastPartial = (cashierData: CashierData, partialClosings: PartialClosing[]): number => {
+  if (partialClosings.length === 0) return cashierData.totalSales;
   
   const totalPartialSales = getTotalSalesFromPartials(partialClosings);
   
-  return {
-    ...cashierData,
-    totalSales: cashierData.totalSales - totalPartialSales,
-    cash: cashierData.cash / 2,
-    credit: cashierData.credit / 2,
-    debit: cashierData.debit / 2,
-    pix: cashierData.pix / 2,
-    promissory: cashierData.promissory / 2,
-    gasVoucher: cashierData.gasVoucher / 2,
-    quantities: {
-      cash: {
-        p13: cashierData.quantities.cash.p13 - getTotalQuantityTypeFromPartials(partialClosings, 'p13', 'cash'),
-        p20: cashierData.quantities.cash.p20 - getTotalQuantityTypeFromPartials(partialClosings, 'p20', 'cash'),
-        p45: cashierData.quantities.cash.p45 - getTotalQuantityTypeFromPartials(partialClosings, 'p45', 'cash'),
-        water: cashierData.quantities.cash.water - getTotalQuantityTypeFromPartials(partialClosings, 'water', 'cash')
-      },
-      credit: {
-        p13: cashierData.quantities.credit.p13 / 2,
-        p20: cashierData.quantities.credit.p20 / 2,
-        p45: cashierData.quantities.credit.p45 / 2,
-        water: cashierData.quantities.credit.water / 2
-      },
-      debit: {
-        p13: cashierData.quantities.debit.p13 / 2,
-        p20: cashierData.quantities.debit.p20 / 2,
-        p45: cashierData.quantities.debit.p45 / 2,
-        water: cashierData.quantities.debit.water / 2
-      },
-      pix: {
-        p13: cashierData.quantities.pix.p13 / 2,
-        p20: cashierData.quantities.pix.p20 / 2,
-        p45: cashierData.quantities.pix.p45 / 2,
-        water: cashierData.quantities.pix.water / 2
-      },
-      promissory: {
-        p13: cashierData.quantities.promissory.p13 / 2,
-        p20: cashierData.quantities.promissory.p20 / 2,
-        p45: cashierData.quantities.promissory.p45 / 2,
-        water: cashierData.quantities.promissory.water / 2
-      },
-      gasVoucher: {
-        p13: cashierData.quantities.gasVoucher.p13 / 2,
-        p20: cashierData.quantities.gasVoucher.p20 / 2,
-        p45: cashierData.quantities.gasVoucher.p45 / 2,
-        water: cashierData.quantities.gasVoucher.water / 2
-      }
-    },
-    inventoryMovements: cashierData.inventoryMovements.filter(
-      mov => new Date(mov.timestamp).getTime() > 
-             new Date(partialClosings[partialClosings.length - 1].timestamp).getTime()
-    )
-  };
+  return cashierData.totalSales - totalPartialSales;
 };
+
