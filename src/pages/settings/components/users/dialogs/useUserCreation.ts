@@ -94,7 +94,7 @@ export function useUserCreation({
 
         if (profileError) throw profileError;
 
-        // Explicit cast to UserRole to prevent infinite type recursion
+        // Get the actual UserRole by explicit type cast
         const userRole = newUserRole as UserRole;
         
         toast({
