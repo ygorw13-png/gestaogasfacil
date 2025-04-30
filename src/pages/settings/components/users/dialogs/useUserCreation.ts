@@ -20,7 +20,7 @@ export function useUserCreation({
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
-  // Store role as a simple string type, not UserRole, to prevent recursion
+  // Use string type explicitly to avoid recursive type references
   const [newUserRole, setNewUserRole] = useState<string>('admin');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [creatingUser, setCreatingUser] = useState(false);
@@ -80,7 +80,7 @@ export function useUserCreation({
       if (authError) throw authError;
       
       if (authData?.user) {
-        // Pass role as string to avoid type recursion issues
+        // Use string type for role in the function call to avoid recursive type issues
         const { error: profileError } = await supabase.functions.invoke('create_profile', {
           body: JSON.stringify({
             user_id: authData.user.id,
@@ -94,7 +94,7 @@ export function useUserCreation({
 
         if (profileError) throw profileError;
 
-        // Only convert to UserRole type when needed, outside of the recursive context
+        // Cast to UserRole type only at this point, after all API operations are done
         const roleValue = newUserRole as UserRole;
         
         toast({
