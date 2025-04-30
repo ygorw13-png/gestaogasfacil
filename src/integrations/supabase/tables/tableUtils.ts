@@ -8,10 +8,10 @@ type TableNames = keyof Database['public']['Tables'];
 
 // Generic type for custom table operations
 export interface CustomTable<T> {
-  select: () => Promise<PostgrestResponse<T[]>>;
-  insert: (data: Omit<T, 'id'>) => Promise<PostgrestResponse<T[]>>;
-  update: (data: Partial<T> & { id: string }) => Promise<PostgrestResponse<T[]>>;
-  delete: (id: string) => Promise<PostgrestResponse<T[]>>;
+  select: () => Promise<PostgrestResponse<T>>;
+  insert: (data: Omit<T, 'id'>) => Promise<PostgrestResponse<T>>;
+  update: (data: Partial<T> & { id: string }) => Promise<PostgrestResponse<T>>;
+  delete: (id: string) => Promise<PostgrestResponse<T>>;
 }
 
 /**
@@ -27,14 +27,14 @@ export function createTableOperations<T extends Record<string, any>>(
       const response = await supabase
         .from(tableName)
         .select('*');
-      return response as PostgrestResponse<T[]>;
+      return response;
     },
     
     insert: async (data: Omit<T, 'id'>) => {
       const response = await supabase
         .from(tableName)
         .insert(data as any);
-      return response as PostgrestResponse<T[]>;
+      return response;
     },
     
     update: async (data: Partial<T> & { id: string }) => {
@@ -44,7 +44,7 @@ export function createTableOperations<T extends Record<string, any>>(
         .from(tableName)
         .update(updateData as any)
         .eq('id', id);
-      return response as PostgrestResponse<T[]>;
+      return response;
     },
     
     delete: async (id: string) => {
@@ -52,7 +52,7 @@ export function createTableOperations<T extends Record<string, any>>(
         .from(tableName)
         .delete()
         .eq('id', id);
-      return response as PostgrestResponse<T[]>;
+      return response;
     },
   };
 }

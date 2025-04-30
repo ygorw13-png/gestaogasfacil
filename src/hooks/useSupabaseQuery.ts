@@ -4,7 +4,7 @@ import { useToast } from "./use-toast";
 import { PostgrestResponse } from "@supabase/supabase-js";
 
 interface UseSupabaseQueryOptions<T> {
-  queryFn: () => Promise<PostgrestResponse<T[]>>;
+  queryFn: () => Promise<PostgrestResponse<T>>;
   onSuccess?: (data: T[]) => void;
   onError?: (error: Error) => void;
   errorMessage?: string;
@@ -35,10 +35,8 @@ export function useSupabaseQuery<T>({
       }
       
       if (responseData) {
-        // Ensure we're dealing with a T[] type
-        const typedData = responseData as T[];
-        setData(typedData);
-        onSuccess?.(typedData);
+        setData(responseData);
+        onSuccess?.(responseData);
       }
     } catch (err: any) {
       console.error("Erro na consulta:", err);
