@@ -46,7 +46,8 @@ export function NewUserDialog({
   const [newUserName, setNewUserName] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [creatingUser, setCreatingUser] = useState(false);
-  const [newUserRole, setNewUserRole] = useState<UserRole>('admin'); // Changed default to admin
+  // Fix: Explicitly define the type as string instead of UserRole to avoid deep type instantiation
+  const [newUserRole, setNewUserRole] = useState<string>('admin');
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   // Função para gerar senha aleatória segura
@@ -116,7 +117,7 @@ export function NewUserDialog({
           body: JSON.stringify({
             user_id: authData.user.id,
             name: newUserName,
-            role: newUserRole,
+            role: newUserRole as UserRole,
             email: newUserEmail,
             created_by_admin: true,
             organization_id: organizationId
@@ -127,14 +128,14 @@ export function NewUserDialog({
 
         toast({
           title: "Usuário criado com sucesso!",
-          description: `${newUserName} foi adicionado como ${roleLabels[newUserRole]}`
+          description: `${newUserName} foi adicionado como ${roleLabels[newUserRole as UserRole]}`
         });
         
         // Notificar o componente pai sobre o novo usuário
         onUserCreated({
           id: authData.user.id,
           name: newUserName,
-          role: newUserRole
+          role: newUserRole as UserRole
         });
         
         // Limpar os campos do formulário
@@ -239,7 +240,7 @@ export function NewUserDialog({
             </Label>
             <Select 
               value={newUserRole} 
-              onValueChange={(value) => setNewUserRole(value as UserRole)}
+              onValueChange={setNewUserRole}
             >
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Selecione uma função" />
