@@ -12,4 +12,5 @@ export const AuthContext = createContext<AuthContextType>({
   refresh: async () => {},
   organization: null,
   hasRole: () => false,
+  getUserCurrentRole: () => 'anonymous',
 });

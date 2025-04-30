@@ -46,7 +46,8 @@ describe('Login Page', () => {
       signOut: vi.fn(),
       refresh: vi.fn(),
       organization: null,
-      hasRole: vi.fn().mockReturnValue(false)  // Adicionando o mock para hasRole
+      hasRole: vi.fn().mockReturnValue(false),
+      getUserCurrentRole: vi.fn().mockReturnValue('anonymous')  // Adicionando o mock para getUserCurrentRole
     });
     
     // Mock para useToast
@@ -79,7 +80,8 @@ describe('Login Page', () => {
       signOut: vi.fn(),
       refresh: vi.fn(),
       organization: null,
-      hasRole: vi.fn().mockReturnValue(false)  // Adicionando o mock para hasRole
+      hasRole: vi.fn().mockReturnValue(false),
+      getUserCurrentRole: vi.fn().mockReturnValue('authenticated')  // Adicionando o mock para getUserCurrentRole
     });
     
     const { container } = render(
