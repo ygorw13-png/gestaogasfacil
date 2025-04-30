@@ -26,23 +26,65 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar sessão atual
+    // Escutar mudanças na autenticação primeiro (importante para a ordem!)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        // Buscar perfil do usuário usando a função RPC
+        try {
+          const { data, error } = await supabase.functions.invoke('get_user_profile', {
+            body: { user_id: session.user.id }
+          });
+          
+          if (error) {
+            console.error('Erro ao buscar perfil:', error);
+            setLoading(false);
+            return;
+          }
+          
+          if (data) {
+            setUser({
+              id: session.user.id,
+              name: data.name || session.user.user_metadata?.name || 'Usuário',
+              role: data.role as UserRole
+            });
+
+            if (data.organizations) {
+              setOrganization(data.organizations);
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao processar autenticação:', error);
+        } finally {
+          setLoading(false);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setOrganization(null);
+        setLoading(false);
+      }
+    });
+
+    // Depois verificar sessão atual
     const checkUser = async () => {
       try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (authUser) {
+        if (session?.user) {
           // Buscar perfil do usuário usando a função RPC
           const { data, error } = await supabase.functions.invoke('get_user_profile', {
-            body: { user_id: authUser.id }
+            body: { user_id: session.user.id }
           });
 
           if (error) {
             console.error('Erro ao buscar perfil:', error);
-          } else if (data) {
+            setLoading(false);
+            return;
+          }
+          
+          if (data) {
             setUser({
-              id: authUser.id,
-              name: data.name || authUser.user_metadata?.name || 'Usuário',
+              id: session.user.id,
+              name: data.name || session.user.user_metadata?.name || 'Usuário',
               role: data.role as UserRole
             });
 
@@ -59,33 +101,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     checkUser();
-
-    // Escutar mudanças na autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        // Buscar perfil do usuário usando a função RPC
-        const { data, error } = await supabase.functions.invoke('get_user_profile', {
-          body: { user_id: session.user.id }
-        });
-        
-        if (error) {
-          console.error('Erro ao buscar perfil:', error);
-        } else if (data) {
-          setUser({
-            id: session.user.id,
-            name: data.name || session.user.user_metadata?.name || 'Usuário',
-            role: data.role as UserRole
-          });
-
-          if (data.organizations) {
-            setOrganization(data.organizations);
-          }
-        }
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setOrganization(null);
-      }
-    });
 
     return () => {
       subscription.unsubscribe();

@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { TopBar } from "./TopBar";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -14,7 +13,7 @@ export function AppLayout() {
     // Simulate loading app data
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 800);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, []);
@@ -31,19 +30,17 @@ export function AppLayout() {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-h-screen">
-          <TopBar />
-          <main className="flex-1 p-4 md:p-6 overflow-y-auto">
-            <Outlet />
-          </main>
-          {isMobile && (
-            <div className="h-20"></div> /* Increased space for mobile navigation if needed */
-          )}
-        </div>
+    <div className="min-h-screen bg-background">
+      <AppSidebar />
+      <div className="flex flex-col min-h-screen md:pl-64">
+        <TopBar />
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
+          <Outlet />
+        </main>
+        {isMobile && (
+          <div className="h-16"></div> /* Espaço para navegação móvel */
+        )}
       </div>
-    </SidebarProvider>
+    </div>
   );
 }
