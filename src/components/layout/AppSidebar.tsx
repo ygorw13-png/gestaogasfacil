@@ -27,6 +27,7 @@ const SidebarHeader = memo(({ isOpen, onToggle }: SidebarHeaderProps) => {
         size="icon"
         onClick={onToggle}
         className="h-8 w-8"
+        aria-label="Alternar menu"
       >
         <Menu className="h-4 w-4" />
       </Button>
@@ -48,10 +49,6 @@ function AppSidebarComponent() {
     try {
       if (isMobile) {
         if (isOpen) {
-          sidebar.toggleSidebar();
-        }
-      } else {
-        if (!isOpen) {
           sidebar.toggleSidebar();
         }
       }
@@ -77,7 +74,7 @@ function AppSidebarComponent() {
       <aside className={cn(
         "fixed left-0 top-0 z-30 flex h-screen flex-col border-r bg-background transition-all duration-300",
         isOpen ? "w-64" : "w-16",
-        isMobile ? (isOpen ? "transform translate-x-0" : "transform -translate-x-full") : "transform translate-x-0"
+        isMobile ? (isOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"
       )}>
         <SidebarHeader isOpen={isOpen} onToggle={toggleSidebar} />
         <Separator />
