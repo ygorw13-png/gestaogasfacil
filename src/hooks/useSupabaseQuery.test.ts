@@ -13,7 +13,7 @@ describe('useSupabaseQuery', () => {
     vi.mocked(useToast).mockReturnValue({
       toast: vi.fn(),
       dismiss: vi.fn(),
-      update: vi.fn()
+      // Removido a propriedade update que estava causando erro
     });
   });
 
@@ -68,7 +68,7 @@ describe('useSupabaseQuery', () => {
     vi.mocked(useToast).mockReturnValue({
       toast,
       dismiss: vi.fn(),
-      update: vi.fn()
+      // Removido a propriedade update que estava causando erro
     });
 
     const { result } = renderHook(() => useSupabaseQuery({

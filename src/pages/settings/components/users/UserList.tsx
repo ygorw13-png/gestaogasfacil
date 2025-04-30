@@ -57,6 +57,25 @@ export function UserList({ users, loading, onAddUserClick }: UserListProps) {
 
   const formId = "user-permissions-form";
 
+  // Renderizar estado de carregamento se loading for verdadeiro
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
+
+  // Renderizar mensagem se não houver usuários
+  if (users.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Usuários da sua Organização</h2>
+          <Button onClick={onAddUserClick}>Adicionar Usuário</Button>
+        </div>
+        <p>Não há usuários cadastrados</p>
+      </div>
+    );
+  }
+
+  // Renderização normal com usuários
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">

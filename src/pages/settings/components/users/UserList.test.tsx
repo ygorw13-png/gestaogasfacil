@@ -2,11 +2,12 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { UserList } from './UserList';
+import { UserRole } from '@/types/userTypes';
 
 describe('UserList Component', () => {
   const mockUsers = [
-    { id: '1', name: 'João Silva', role: 'admin' },
-    { id: '2', name: 'Maria Souza', role: 'colaborador' },
+    { id: '1', name: 'João Silva', role: 'admin' as UserRole },
+    { id: '2', name: 'Maria Souza', role: 'colaborador' as UserRole },
   ];
 
   it('renderiza corretamente sem usuários', () => {
