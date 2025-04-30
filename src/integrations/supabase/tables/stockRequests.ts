@@ -1,5 +1,4 @@
 
-import { supabase } from "../client";
 import { StockRequest } from "@/types/supabaseTypes";
 import { createTableOperations } from "./tableUtils";
 

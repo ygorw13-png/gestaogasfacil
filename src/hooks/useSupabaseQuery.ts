@@ -35,6 +35,7 @@ export function useSupabaseQuery<T>({
       }
       
       if (responseData) {
+        // Handle the response data correctly as T[]
         setData(responseData);
         onSuccess?.(responseData);
       }

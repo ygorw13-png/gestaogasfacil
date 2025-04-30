@@ -40,6 +40,7 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
         });
       }
       
+      // The data is already correctly typed as TData[]
       onSuccess?.(data);
       return { data, error: null };
       
