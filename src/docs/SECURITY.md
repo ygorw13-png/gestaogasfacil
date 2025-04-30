@@ -35,3 +35,30 @@ VITE_SUPABASE_ANON_KEY=sua_chave_anon_aqui
 # Outras APIs (se necessário)
 VITE_API_XYZ_PUBLIC_KEY=chave_publica_aqui
 ```
+
+## Uso de Funções Edge para Operações Sensíveis
+
+Para operações que exigem chaves secretas ou credenciais privadas:
+
+1. Crie funções Edge no Supabase
+2. Configure as chaves secretas como secrets do Supabase
+3. Acesse as APIs externas através das funções Edge
+4. No frontend, chame apenas as funções Edge, nunca as APIs externas diretamente
+
+Exemplo de como chamar uma função Edge de forma segura:
+```typescript
+// Correto: Chamar função Edge
+const { data, error } = await supabase.functions.invoke('minha-funcao');
+
+// INCORRETO: Chamar API externa diretamente com chave no frontend
+// const data = await fetch('https://api.externa.com/recurso', {
+//   headers: { Authorization: 'Bearer CHAVE_SECRETA_EXPOSTA' }
+// });
+```
+
+## Revisões Regulares de Segurança
+
+Realize verificações periódicas para garantir que:
+1. Nenhuma chave secreta esteja exposta no código-fonte
+2. Todas as chamadas a APIs externas sensíveis sejam feitas através de funções Edge
+3. O controle de acesso esteja corretamente implementado para todos os recursos
