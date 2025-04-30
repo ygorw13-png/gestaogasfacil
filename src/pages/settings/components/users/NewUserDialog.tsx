@@ -7,14 +7,17 @@ import { Separator } from "@/components/ui/separator";
 import { useUserCreation } from "./dialogs/useUserCreation";
 import { UserDetailsSection } from "./dialogs/UserDetailsSection";
 import { PasswordSection } from "./dialogs/PasswordSection";
+import { UserRole } from "@/types/userTypes";
 
 interface NewUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  onUserCreated?: (user: {id: string; name: string; role: UserRole}) => void;
+  organizationId?: string | null;
 }
 
-export function NewUserDialog({ open, onOpenChange, onSuccess }: NewUserDialogProps) {
+export function NewUserDialog({ open, onOpenChange, onSuccess, onUserCreated, organizationId }: NewUserDialogProps) {
   const {
     form,
     isCreateUserLoading,
@@ -34,10 +37,25 @@ export function NewUserDialog({ open, onOpenChange, onSuccess }: NewUserDialogPr
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await form.handleSubmit(handleCreateUser)();
     
-    if (result && onSuccess) {
-      onSuccess();
+    try {
+      const result = await handleCreateUser(form.getValues());
+      
+      if (result) {
+        if (onSuccess) {
+          onSuccess();
+        }
+        
+        if (onUserCreated && result.user) {
+          onUserCreated({
+            id: result.user.id,
+            name: result.user.name,
+            role: result.user.role as UserRole
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error creating user:", error);
     }
   };
 

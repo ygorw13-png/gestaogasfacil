@@ -2,6 +2,7 @@
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { PasswordRequirements } from "@/components/common/PasswordRequirements";
 
 interface PasswordSectionProps {
   password: string;
@@ -46,15 +47,7 @@ export function PasswordSection({
         <p className="text-sm text-red-500">{error}</p>
       )}
       
-      <div className="text-sm text-muted-foreground">
-        <p>A senha deve conter:</p>
-        <ul className="list-disc pl-5">
-          <li>Pelo menos 8 caracteres</li>
-          <li>Uma letra maiúscula</li>
-          <li>Uma letra minúscula</li>
-          <li>Um número</li>
-        </ul>
-      </div>
+      <PasswordRequirements />
     </div>
   );
 }

@@ -39,6 +39,7 @@ export function UserManagement() {
         <NewUserDialog
           open={isNewUserDialogOpen}
           onOpenChange={setIsNewUserDialogOpen}
+          onSuccess={() => setIsNewUserDialogOpen(false)}
           onUserCreated={handleUserCreated}
           organizationId={organization?.id || null}
         />
