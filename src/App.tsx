@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SidebarProvider } from "./components/ui/sidebar";
 import { CashierProvider } from "./contexts/CashierContext";
+import { RoleGuard } from "./components/ui/RoleGuard";
 
 // Páginas de autenticação
 import Login from "./pages/auth/Login";
@@ -34,6 +35,13 @@ const Fleet = lazy(() => import("./pages/fleet/Fleet"));
 const Settings = lazy(() => import("./pages/settings/Settings"));
 const Expenses = lazy(() => import("./pages/finance/Expenses"));
 const Colaboradores = lazy(() => import("./pages/colaboradores/Colaboradores"));
+
+// Componente de carregamento para lazy loading
+const LoadingComponent = () => (
+  <div className="flex justify-center items-center p-8 h-screen">
+    <LoadingSpinner size="lg" message="Carregando..." />
+  </div>
+);
 
 // Criar cliente de consulta
 const queryClient = new QueryClient({
@@ -64,93 +72,101 @@ function App() {
               {/* Rotas protegidas com AppLayout */}
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <Dashboard />
                   </Suspense>
                 } />
                 <Route path="/clients" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <Clients />
                   </Suspense>
                 } />
                 <Route path="/orders" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <Orders />
                   </Suspense>
                 } />
                 <Route path="/orders/map" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <OrdersMap orders={[]} />
                   </Suspense>
                 } />
                 <Route path="/orders/new" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <NewOrderForm onSubmit={() => {}} />
                   </Suspense>
                 } />
                 <Route path="/orders/:id" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <OrderDetails orderId="" orders={[]} isOpen={false} onOpenChange={() => {}} />
                   </Suspense>
                 } />
                 <Route path="/entrance" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <EntranceSales />
                   </Suspense>
                 } />
                 <Route path="/entrance/new-sale" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <NewSaleForm isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} />
                   </Suspense>
                 } />
                 <Route path="/entrance/history" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <SalesHistory />
                   </Suspense>
                 } />
                 <Route path="/entrance/cashier" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <CashierClosing isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} cashierData={null} />
                   </Suspense>
                 } />
                 <Route path="/inventory" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <Inventory />
                   </Suspense>
                 } />
                 <Route path="/promissory" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <Promissory />
                   </Suspense>
                 } />
                 <Route path="/routes" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                    <RoutesPage />
+                  <Suspense fallback={<LoadingComponent />}>
+                    <RoleGuard allowedRoles={['admin', 'gerente']}>
+                      <RoutesPage />
+                    </RoleGuard>
                   </Suspense>
                 } />
                 <Route path="/resellers" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <Resellers />
                   </Suspense>
                 } />
                 <Route path="/fleet" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
+                  <Suspense fallback={<LoadingComponent />}>
                     <Fleet />
                   </Suspense>
                 } />
                 <Route path="/finance/expenses" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                    <Expenses />
+                  <Suspense fallback={<LoadingComponent />}>
+                    <RoleGuard allowedRoles={['admin', 'gerente']}>
+                      <Expenses />
+                    </RoleGuard>
                   </Suspense>
                 } />
                 <Route path="/settings" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                    <Settings />
+                  <Suspense fallback={<LoadingComponent />}>
+                    <RoleGuard allowedRoles={['admin', 'gerente']}>
+                      <Settings />
+                    </RoleGuard>
                   </Suspense>
                 } />
                 <Route path="/colaboradores" element={
-                  <Suspense fallback={<div className="flex justify-center p-8">Carregando...</div>}>
-                    <Colaboradores />
+                  <Suspense fallback={<LoadingComponent />}>
+                    <RoleGuard allowedRoles={['admin', 'gerente']}>
+                      <Colaboradores />
+                    </RoleGuard>
                   </Suspense>
                 } />
               </Route>

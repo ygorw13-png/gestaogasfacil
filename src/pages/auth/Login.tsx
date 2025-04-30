@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import LoginForm from '@/components/auth/LoginForm';
@@ -10,16 +10,20 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { error, handleError, clearError } = useErrorHandler({ toastOnError: false });
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { user, signIn } = useAuth();
   
   // Verificar se o usuário já está autenticado
   useEffect(() => {
     if (user) {
-      console.log("Login page - Usuário já autenticado, redirecionando para dashboard");
-      navigate('/dashboard', { replace: true });
+      console.log("Login page - Usuário já autenticado, redirecionando");
+      
+      // Redirecionar para página anterior se disponível, caso contrário para o dashboard
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, location]);
 
   // Limpar erros quando o componente é montado ou desmontado
   useEffect(() => {
@@ -42,7 +46,7 @@ export default function Login() {
           title: "Login realizado com sucesso!",
           description: "Bem-vindo(a) de volta!"
         });
-        // A navegação será tratada pelo useEffect
+        // A navegação será tratada pelo useEffect que observa a alteração do usuário
       } else {
         console.error("Falha no login:", error);
         handleError(new Error(error || "Falha no login. Verifique suas credenciais."));

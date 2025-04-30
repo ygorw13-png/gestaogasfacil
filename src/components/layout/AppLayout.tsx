@@ -1,6 +1,6 @@
 
 import { useState, useEffect, memo } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { TopBar } from "./TopBar";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -12,6 +12,15 @@ import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 const AppLayoutContent = memo(({ user, isLoading }: { user: any, isLoading: boolean }) => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Verificação adicional de segurança
+    if (!user) {
+      navigate('/login', { replace: true });
+      return;
+    }
+  }, [user, navigate]);
   
   if (isLoading) {
     return (

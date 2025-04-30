@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from './LoadingSpinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -16,6 +16,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   redirectTo = '/login'
 }) => {
   const { user, loading, error } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -43,7 +44,8 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 
   if (!user) {
     console.log("AuthGuard - Usuário não autenticado, redirecionando para login");
-    return <Navigate to={redirectTo} replace />;
+    // Salvar a localização atual para redirecionar de volta após o login
+    return <Navigate to={redirectTo} replace state={{ from: location }} />;
   }
 
   return <>{children}</>;

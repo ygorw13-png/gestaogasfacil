@@ -12,6 +12,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
   organization: { id: string; name: string; owner_id: string } | null;
+  hasRole: (roles: string | string[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
   refresh: async () => {},
   organization: null,
+  hasRole: () => false,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -48,6 +50,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setSession(null);
     setOrganization(null);
     setError(null);
+  };
+
+  // Função para verificar se o usuário tem um determinado papel
+  const hasRole = (roles: string | string[]) => {
+    if (!user || !user.role) return false;
+    
+    if (Array.isArray(roles)) {
+      return roles.includes(user.role);
+    }
+    
+    return user.role === roles;
   };
 
   // Função para buscar o perfil do usuário
@@ -111,11 +124,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
+  // Adicionar verificação de inatividade para logout automático
+  useEffect(() => {
+    if (!session) return;
+
+    let inactivityTimer: number | undefined;
+    
+    const resetInactivityTimer = () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      
+      // Fazer logout após 30 minutos de inatividade
+      inactivityTimer = window.setTimeout(() => {
+        console.log("Sessão expirada por inatividade");
+        signOut();
+      }, 30 * 60 * 1000); // 30 minutos
+    };
+    
+    // Eventos para resetar o timer de inatividade
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    
+    // Iniciar o timer e adicionar listeners
+    resetInactivityTimer();
+    events.forEach(event => document.addEventListener(event, resetInactivityTimer));
+    
+    return () => {
+      // Limpar o timer e remover listeners quando o componente é desmontado
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      events.forEach(event => document.removeEventListener(event, resetInactivityTimer));
+    };
+  }, [session]);
+
   // Função para login
   const signIn = async (email: string, password: string) => {
     try {
       setError(null);
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      // Sanitizar entrada
+      const sanitizedEmail = email.trim().toLowerCase();
+      
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email: sanitizedEmail, 
+        password 
+      });
       
       if (error) throw error;
       
@@ -178,6 +227,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         signOut,
         refresh,
         organization,
+        hasRole,
       }}
     >
       {children}

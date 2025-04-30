@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Link } from 'react-router-dom';
 import { z } from 'zod';
 
 // Schema de validação para o formulário de login
@@ -25,6 +25,15 @@ export default function LoginForm({ onSubmit, loading, error }: LoginFormProps) 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string }>({});
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Se houver um estado de redirecionamento anterior, use-o após o login bem-sucedido
+  useEffect(() => {
+    if (location.state?.from) {
+      console.log("Redirecionamento após login será para:", location.state.from);
+    }
+  }, [location]);
 
   const validateForm = (): boolean => {
     try {
@@ -46,8 +55,21 @@ export default function LoginForm({ onSubmit, loading, error }: LoginFormProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      await onSubmit(email, password);
+    
+    // Validação de entrada
+    if (!validateForm()) {
+      return;
+    }
+    
+    // Sanitizando entradas
+    const sanitizedEmail = email.trim().toLowerCase();
+    const sanitizedPassword = password;
+    
+    try {
+      await onSubmit(sanitizedEmail, sanitizedPassword);
+      // O redirecionamento é gerenciado pelo AuthContext após login bem-sucedido
+    } catch (error) {
+      console.error("Erro ao processar login:", error);
     }
   };
 
@@ -66,7 +88,7 @@ export default function LoginForm({ onSubmit, loading, error }: LoginFormProps) 
           </Alert>
         )}
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" aria-label="Formulário de login">
           <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
             <Input 
@@ -78,9 +100,11 @@ export default function LoginForm({ onSubmit, loading, error }: LoginFormProps) 
               className={`border-green-100 focus:border-green-500 ${validationErrors.email ? 'border-red-500' : ''}`}
               disabled={loading}
               required 
+              aria-invalid={!!validationErrors.email}
+              aria-describedby={validationErrors.email ? "email-error" : undefined}
             />
             {validationErrors.email && (
-              <p className="text-sm text-red-500 mt-1">{validationErrors.email}</p>
+              <p className="text-sm text-red-500 mt-1" id="email-error">{validationErrors.email}</p>
             )}
           </div>
           
@@ -96,9 +120,11 @@ export default function LoginForm({ onSubmit, loading, error }: LoginFormProps) 
               disabled={loading}
               required 
               minLength={6}
+              aria-invalid={!!validationErrors.password}
+              aria-describedby={validationErrors.password ? "password-error" : undefined}
             />
             {validationErrors.password && (
-              <p className="text-sm text-red-500 mt-1">{validationErrors.password}</p>
+              <p className="text-sm text-red-500 mt-1" id="password-error">{validationErrors.password}</p>
             )}
           </div>
 
@@ -106,6 +132,7 @@ export default function LoginForm({ onSubmit, loading, error }: LoginFormProps) 
             type="submit" 
             className="w-full bg-green-600 hover:bg-green-700 text-white" 
             disabled={loading}
+            aria-busy={loading}
           >
             {loading ? "Entrando..." : "Entrar"}
           </Button>
