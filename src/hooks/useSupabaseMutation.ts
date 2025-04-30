@@ -9,6 +9,9 @@ interface UseSupabaseMutationOptions<TData, TVariables> {
   onError?: (error: PostgrestError | Error) => void;
   successMessage?: string;
   errorMessage?: string;
+  showToast?: boolean;
+  retryEnabled?: boolean;
+  retryCount?: number;
 }
 
 interface MutationResult<TData> {
@@ -21,7 +24,10 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
   onSuccess,
   onError,
   successMessage,
-  errorMessage = "Ocorreu um erro"
+  errorMessage = "Ocorreu um erro",
+  showToast = true,
+  retryEnabled = false,
+  retryCount = 1
 }: UseSupabaseMutationOptions<TData, TVariables>) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<PostgrestError | Error | null>(null);
@@ -30,44 +36,59 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
   const mutate = useCallback(async (variables: TVariables): Promise<MutationResult<TData>> => {
     setLoading(true);
     setError(null);
+    
+    let attempts = 0;
+    let lastError: PostgrestError | Error | null = null;
 
-    try {
-      const { data, error: responseError } = await mutationFn(variables);
-      
-      if (responseError) {
-        throw responseError;
+    while (attempts <= (retryEnabled ? retryCount : 0)) {
+      try {
+        const { data, error: responseError } = await mutationFn(variables);
+        
+        if (responseError) {
+          throw responseError;
+        }
+        
+        if (showToast && successMessage) {
+          toast({
+            title: "Sucesso",
+            description: successMessage
+          });
+        }
+        
+        // Cast the response data to ensure it's treated as an array
+        const dataArray = Array.isArray(data) ? data : data ? [data] : [];
+        onSuccess?.(dataArray as TData[]);
+        return { data: dataArray as TData[], error: null };
+        
+      } catch (err: unknown) {
+        console.error(`Erro na mutação (tentativa ${attempts + 1}):`, err);
+        lastError = err as PostgrestError | Error;
+        attempts++;
+        
+        // Se não estamos fazendo novas tentativas ou atingimos o limite, tratamos o erro
+        if (!retryEnabled || attempts > retryCount) {
+          setError(lastError);
+          
+          if (showToast) {
+            toast({
+              title: "Erro",
+              description: errorMessage,
+              variant: "destructive"
+            });
+          }
+          
+          onError?.(lastError);
+          break;
+        }
+        
+        // Aguardar antes de tentar novamente (tempo exponencial)
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 500));
       }
-      
-      if (successMessage) {
-        toast({
-          title: "Sucesso",
-          description: successMessage
-        });
-      }
-      
-      // Cast the response data to ensure it's treated as an array
-      const dataArray = Array.isArray(data) ? data : data ? [data] : [];
-      onSuccess?.(dataArray as TData[]);
-      return { data: dataArray as TData[], error: null };
-      
-    } catch (err: unknown) {
-      console.error("Erro na mutação:", err);
-      const typedError = err as PostgrestError | Error;
-      setError(typedError);
-      
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      
-      onError?.(typedError);
-      return { data: null, error: typedError };
-      
-    } finally {
-      setLoading(false);
     }
-  }, [mutationFn, onSuccess, onError, successMessage, errorMessage, toast]);
+    
+    setLoading(false);
+    return { data: null, error: lastError };
+  }, [mutationFn, onSuccess, onError, successMessage, errorMessage, toast, showToast, retryEnabled, retryCount]);
 
   return {
     mutate,

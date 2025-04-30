@@ -3,6 +3,8 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from './LoadingSpinner';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -13,7 +15,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   children,
   redirectTo = '/login'
 }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, error } = useAuth();
 
   if (loading) {
     return (
@@ -25,8 +27,22 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <Alert variant="warning" className="max-w-md">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle>Erro de autenticação</AlertTitle>
+          <AlertDescription>
+            {error.message || "Ocorreu um erro ao verificar sua autenticação. Por favor, tente fazer login novamente."}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   if (!user) {
-    console.log("AuthGuard - User not authenticated, redirecting to login");
+    console.log("AuthGuard - Usuário não autenticado, redirecionando para login");
     return <Navigate to={redirectTo} replace />;
   }
 

@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AuthGuard } from "@/components/ui/AuthGuard";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 export function AppLayout() {
   const [isLoading, setIsLoading] = useState(true);
@@ -38,9 +39,11 @@ export function AppLayout() {
             <AppSidebar />
             <div className="flex flex-col min-h-screen flex-1 transition-all duration-300">
               <TopBar />
-              <main className="flex-1 p-4 md:p-6 overflow-y-auto">
-                <Outlet />
-              </main>
+              <ErrorBoundary>
+                <main className="flex-1 p-4 md:p-6 overflow-y-auto">
+                  <Outlet />
+                </main>
+              </ErrorBoundary>
               {isMobile && (
                 <div className="h-16">{/* Espaço para navegação mobile */}</div>
               )}

@@ -4,10 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import LoginForm from '@/components/auth/LoginForm';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { error, handleError, clearError } = useErrorHandler({ toastOnError: false });
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, signIn } = useAuth();
@@ -15,30 +16,36 @@ export default function Login() {
   // Verificar se o usuário já está autenticado
   useEffect(() => {
     if (user) {
-      console.log("Login page - User already authenticated, redirecting to dashboard");
+      console.log("Login page - Usuário já autenticado, redirecionando para dashboard");
       navigate('/dashboard', { replace: true });
     }
   }, [user, navigate]);
 
+  // Limpar erros quando o componente é montado ou desmontado
+  useEffect(() => {
+    clearError();
+    return () => clearError();
+  }, [clearError]);
+
   const handleSubmit = async (email: string, password: string) => {
     setLoading(true);
-    setError(null);
+    clearError();
     
-    console.log("Attempting login with:", email);
+    console.log("Tentativa de login com:", email);
 
     try {
       const { success, error } = await signIn(email, password);
       
       if (success) {
-        console.log("Login successful via form");
+        console.log("Login realizado com sucesso via formulário");
         toast({
           title: "Login realizado com sucesso!",
           description: "Bem-vindo(a) de volta!"
         });
         // A navegação será tratada pelo useEffect
       } else {
-        console.error("Login failed:", error);
-        setError(error || "Falha no login. Verifique suas credenciais.");
+        console.error("Falha no login:", error);
+        handleError(new Error(error || "Falha no login. Verifique suas credenciais."));
         toast({
           title: "Erro ao fazer login",
           description: error || "Verifique suas credenciais e tente novamente",
@@ -46,8 +53,8 @@ export default function Login() {
         });
       }
     } catch (error: any) {
-      console.error("Login exception:", error);
-      setError(error.message || "Verifique suas credenciais e tente novamente");
+      console.error("Exceção no login:", error);
+      handleError(error);
       toast({
         title: "Erro ao fazer login",
         description: error.message || "Verifique suas credenciais e tente novamente",
@@ -66,7 +73,7 @@ export default function Login() {
       <LoginForm 
         onSubmit={handleSubmit}
         loading={loading}
-        error={error}
+        error={error?.message || null}
       />
     </div>
   );

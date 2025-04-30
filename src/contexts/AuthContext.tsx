@@ -1,218 +1,186 @@
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User, UserRole } from '@/types/userTypes';
-import { Organization } from '@/types/supabaseTypes';
-import { toast } from '@/hooks/use-toast';
+import { Session, User } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
-  organization: Organization | null;
+  session: Session | null;
   loading: boolean;
-  updateUserData: (userData: User) => void;
+  error: Error | null;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
-  signIn: (email: string, password: string) => Promise<{success: boolean; error?: string}>;
+  refresh: () => Promise<void>;
+  organization: { id: string; name: string; owner_id: string } | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  organization: null,
+  session: null,
   loading: true,
-  updateUserData: () => {},
+  error: null,
+  signIn: async () => ({ success: false, error: 'Context não inicializado' }),
   signOut: async () => {},
-  signIn: async () => ({success: false})
+  refresh: async () => {},
+  organization: null,
 });
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const useAuth = () => useContext(AuthContext);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [organization, setOrganization] = useState<Organization | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [organization, setOrganization] = useState<{
+    id: string;
+    name: string;
+    owner_id: string;
+  } | null>(null);
 
-  useEffect(() => {
-    // Configurar o listener de alterações no estado de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session?.user?.id);
-      
-      if (event === 'SIGNED_IN' && session?.user) {
-        try {
-          // Buscar perfil do usuário usando a função RPC
-          const { data, error } = await supabase.functions.invoke('get_user_profile', {
-            body: { user_id: session.user.id }
-          });
-          
-          if (error) {
-            console.error('Erro ao buscar perfil:', error);
-            toast({
-              title: 'Erro!',
-              description: `Não foi possível carregar seu perfil: ${error.message}`,
-              variant: 'destructive'
-            });
-            setLoading(false);
-            return;
-          }
-          
-          if (data) {
-            console.log("Perfil de usuário carregado:", data);
-            setUser({
-              id: session.user.id,
-              name: data.name || session.user.user_metadata?.name || 'Usuário',
-              role: data.role as UserRole
-            });
+  // Função para limpar o estado da autenticação
+  const resetAuthState = () => {
+    setUser(null);
+    setSession(null);
+    setOrganization(null);
+    setError(null);
+  };
 
-            if (data.organizations) {
-              setOrganization(data.organizations);
-            }
-          }
-        } catch (error) {
-          console.error('Erro ao processar autenticação:', error);
-          toast({
-            title: 'Erro de autenticação',
-            description: 'Ocorreu um erro ao processar sua autenticação.',
-            variant: 'destructive'
-          });
-        } finally {
-          setLoading(false);
-        }
-      } else if (event === 'SIGNED_OUT') {
-        console.log("User signed out");
-        setUser(null);
-        setOrganization(null);
-        setLoading(false);
+  // Função para buscar o perfil do usuário
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get_user_profile', {
+        body: { user_id: userId },
+      });
+
+      if (error) throw error;
+
+      if (data?.organizations) {
+        setOrganization(data.organizations);
       }
+    } catch (err) {
+      console.error('Erro ao buscar perfil:', err);
+      setError(err instanceof Error ? err : new Error('Erro ao buscar informações do usuário'));
+    }
+  };
+
+  // Função para atualizar o estado da autenticação
+  const handleAuthStateChange = (session: Session | null) => {
+    setSession(session);
+    setUser(session?.user || null);
+    setLoading(false);
+    
+    // Se há um usuário, buscar perfil
+    if (session?.user) {
+      // Usar setTimeout para evitar deadlock com Supabase
+      setTimeout(() => {
+        fetchUserProfile(session.user.id);
+      }, 0);
+    }
+  };
+
+  // Inicializar autenticação e configurar listener
+  useEffect(() => {
+    console.log("Verificando sessão atual...");
+    setLoading(true);
+    
+    // Configurar listener para mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Estado de autenticação alterado:", event, session?.user?.id);
+      handleAuthStateChange(session);
     });
 
-    // Verificar se já existe uma sessão ativa
-    const checkCurrentSession = async () => {
-      try {
-        console.log("Checking current session...");
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          console.log("Found existing session:", session.user.id);
-          
-          // Buscar perfil do usuário
-          const { data, error } = await supabase.functions.invoke('get_user_profile', {
-            body: { user_id: session.user.id }
-          });
-
-          if (error) {
-            console.error('Erro ao buscar perfil:', error);
-            setLoading(false);
-            return;
-          }
-          
-          if (data) {
-            console.log("Perfil de usuário existente carregado:", data);
-            setUser({
-              id: session.user.id,
-              name: data.name || session.user.user_metadata?.name || 'Usuário',
-              role: data.role as UserRole
-            });
-
-            if (data.organizations) {
-              setOrganization(data.organizations);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao verificar sessão:', error);
-      } finally {
+    // Verificar se já existe uma sessão
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error("Erro ao obter sessão:", error);
+        setError(error);
         setLoading(false);
+        return;
       }
-    };
+      
+      handleAuthStateChange(session);
+    });
 
-    checkCurrentSession();
-    
-    // Limpar o subscription ao desmontar o componente
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  const updateUserData = (userData: User) => {
-    setUser(userData);
+  // Função para login
+  const signIn = async (email: string, password: string) => {
+    try {
+      setError(null);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) throw error;
+      
+      return { success: true };
+    } catch (err) {
+      console.error("Erro ao fazer login:", err);
+      setError(err instanceof Error ? err : new Error('Erro ao fazer login'));
+      return { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Erro ao fazer login' 
+      };
+    }
   };
 
+  // Função para logout
   const signOut = async () => {
     try {
-      console.log("Iniciando logout...");
+      setLoading(true);
       const { error } = await supabase.auth.signOut();
       
       if (error) throw error;
       
-      // Limpar todos os dados do usuário
-      setUser(null);
-      setOrganization(null);
-      
-      // Limpar qualquer cache de autenticação local
-      localStorage.removeItem('supabase.auth.token');
-      sessionStorage.removeItem('supabase.auth.token');
-      
-      toast({
-        title: "Logout realizado",
-        description: "Você saiu da sua conta com sucesso."
-      });
-      
-      console.log("Logout concluído");
-    } catch (error: any) {
-      console.error("Erro ao fazer logout:", error);
-      toast({
-        title: "Erro ao fazer logout",
-        description: "Ocorreu um erro ao tentar sair da sua conta.",
-        variant: "destructive"
-      });
+      resetAuthState(); // Limpar o estado ao fazer logout
+    } catch (err) {
+      console.error("Erro ao fazer logout:", err);
+      setError(err instanceof Error ? err : new Error('Erro ao fazer logout'));
+    } finally {
+      setLoading(false);
     }
   };
-  
-  const signIn = async (email: string, password: string) => {
+
+  // Função para atualizar o estado de autenticação
+  const refresh = async () => {
     try {
-      console.log("Tentando login com:", email);
+      setLoading(true);
+      setError(null);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      // Buscar sessão atual
+      const { data, error } = await supabase.auth.getSession();
       
-      if (error) {
-        console.error("Erro durante login:", error);
-        return {
-          success: false,
-          error: error.message
-        };
-      }
+      if (error) throw error;
       
-      if (data && data.user) {
-        console.log("Login bem-sucedido para:", data.user.id);
-        return { success: true };
-      }
-      
-      return {
-        success: false,
-        error: "Não foi possível realizar o login. Tente novamente."
-      };
-    } catch (error: any) {
-      console.error("Exceção durante login:", error);
-      return {
-        success: false,
-        error: error.message || "Ocorreu um erro durante o login."
-      };
+      handleAuthStateChange(data.session);
+    } catch (err) {
+      console.error("Erro ao atualizar autenticação:", err);
+      setError(err instanceof Error ? err : new Error('Erro ao atualizar autenticação'));
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      organization, 
-      loading, 
-      updateUserData, 
-      signOut,
-      signIn 
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        loading,
+        error,
+        signIn,
+        signOut,
+        refresh,
+        organization,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  return useContext(AuthContext);
 };
