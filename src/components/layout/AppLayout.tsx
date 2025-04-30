@@ -5,6 +5,7 @@ import { AppSidebar } from "./AppSidebar";
 import { TopBar } from "./TopBar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export function AppLayout() {
   const [isLoading, setIsLoading] = useState(true);
@@ -12,7 +13,7 @@ export function AppLayout() {
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    // Simular carregamento dos dados do aplicativo
+    // Simulate application data loading
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 400);
@@ -22,7 +23,7 @@ export function AppLayout() {
 
   console.log("AppLayout - Auth state:", loading ? "loading" : (user ? "authenticated" : "not authenticated"));
 
-  // Se estiver carregando dados de autenticação, exibir spinner
+  // If loading authentication data, show spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
@@ -34,13 +35,13 @@ export function AppLayout() {
     );
   }
 
-  // Se não estiver autenticado, redirecionar para o login
+  // If not authenticated, redirect to login
   if (!user) {
     console.log("AppLayout - User not authenticated, redirecting to login");
     return <Navigate to="/login" replace />;
   }
 
-  // Se estiver carregando dados do app, exibir spinner
+  // If loading app data, show spinner
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
@@ -53,17 +54,19 @@ export function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
-      <AppSidebar />
-      <div className="flex flex-col min-h-screen w-full md:pl-64">
-        <TopBar />
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
-          <Outlet />
-        </main>
-        {isMobile && (
-          <div className="h-16"></div> /* Espaço para navegação móvel */
-        )}
+    <SidebarProvider defaultOpen={!isMobile}>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
+        <div className="flex flex-col min-h-screen flex-1">
+          <TopBar />
+          <main className="flex-1 p-4 md:p-6 overflow-y-auto">
+            <Outlet />
+          </main>
+          {isMobile && (
+            <div className="h-16"></div> {/* Space for mobile navigation */}
+          )}
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
