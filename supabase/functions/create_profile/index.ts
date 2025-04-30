@@ -59,9 +59,8 @@ serve(async (req) => {
       userOrganizationId = org.id;
     }
 
-    // Determinar a role do usuário
-    // Se for criado por um admin, usamos a role fornecida, se não, é 'admin'
-    const userRole = created_by_admin ? role : 'admin';
+    // Sempre atribuir o papel de admin para novos usuários
+    const userRole = 'admin';
 
     // Insert the new profile
     const { error } = await supabaseClient

@@ -98,18 +98,20 @@ export function useRegisterForm() {
         const { error: profileError } = await supabase.functions.invoke('create_profile', {
           body: {
             user_id: user.id,
-            name: sanitizedName
+            name: sanitizedName,
+            role: 'admin', // Garantir que todos novos usuários sejam admin por padrão
+            created_by_admin: false // Indica que é um auto-registro
           }
         });
 
         if (profileError) {
           console.error("Erro ao criar perfil:", profileError);
-          // Se falhar na criação do perfil, tentamos novamente com uma abordagem diferente
+          // Abordagem de backup se a função falhar
           try {
             const { error: directError } = await supabase.from('profiles').insert({
               id: user.id,
               name: sanitizedName,
-              role: 'admin'
+              role: 'admin' // Garantir que todos novos usuários sejam admin por padrão
             });
             
             if (directError) throw directError;
