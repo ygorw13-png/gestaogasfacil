@@ -1,4 +1,5 @@
 
+import React, { memo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ interface PendingPromissoriesTableProps {
   onPayment: (id: string) => void;
 }
 
-export function PendingPromissoriesTable({ 
+function PendingPromissoriesTableComponent({ 
   promissories, 
   onAssign, 
   onPayment 
@@ -68,3 +69,5 @@ export function PendingPromissoriesTable({
     </Table>
   );
 }
+
+export const PendingPromissoriesTable = memo(PendingPromissoriesTableComponent);

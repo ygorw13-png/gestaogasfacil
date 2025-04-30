@@ -1,4 +1,5 @@
 
+import React, { MouseEvent, memo } from 'react';
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Order } from "../types";
@@ -6,7 +7,6 @@ import { StatusBadge } from "./StatusBadge";
 import { Clipboard, Check, X, Truck, PhoneCall } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { MouseEvent } from "react";
 
 interface OrderTableRowProps {
   order: Order;
@@ -17,7 +17,7 @@ interface OrderTableRowProps {
   onViewDetails: () => void;
 }
 
-export function OrderTableRow({
+function OrderTableRowComponent({
   order,
   onAssign,
   onStartClick,
@@ -123,3 +123,5 @@ export function OrderTableRow({
     </TableRow>
   );
 }
+
+export const OrderTableRow = memo(OrderTableRowComponent);

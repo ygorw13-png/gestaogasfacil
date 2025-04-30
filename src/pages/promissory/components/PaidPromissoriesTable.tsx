@@ -1,4 +1,5 @@
 
+import React, { memo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { PromissoryNote } from "../types";
@@ -7,7 +8,7 @@ interface PaidPromissoriesTableProps {
   promissories: PromissoryNote[];
 }
 
-export function PaidPromissoriesTable({ promissories }: PaidPromissoriesTableProps) {
+function PaidPromissoriesTableComponent({ promissories }: PaidPromissoriesTableProps) {
   return (
     <Table>
       <TableHeader>
@@ -37,3 +38,5 @@ export function PaidPromissoriesTable({ promissories }: PaidPromissoriesTablePro
     </Table>
   );
 }
+
+export const PaidPromissoriesTable = memo(PaidPromissoriesTableComponent);

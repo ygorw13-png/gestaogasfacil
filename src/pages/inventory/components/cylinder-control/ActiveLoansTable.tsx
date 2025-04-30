@@ -1,4 +1,5 @@
 
+import React, { memo, useCallback } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -13,15 +14,15 @@ interface ActiveLoansTableProps {
   onRegisterReturn: (loanId: string, currentQty: number) => void;
 }
 
-export function ActiveLoansTable({ loans, clients, onRegisterReturn }: ActiveLoansTableProps) {
-  const formatDate = (dateString: string | null | undefined) => {
+function ActiveLoansTableComponent({ loans, clients, onRegisterReturn }: ActiveLoansTableProps) {
+  const formatDate = useCallback((dateString: string | null | undefined) => {
     if (!dateString) return "-";
     try {
       return format(new Date(dateString), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
     } catch (e) {
       return dateString;
     }
-  };
+  }, []);
 
   const activeLoans = loans.filter(loan => loan.status !== 'devolvido');
 
@@ -88,3 +89,5 @@ export function ActiveLoansTable({ loans, clients, onRegisterReturn }: ActiveLoa
     </Card>
   );
 }
+
+export const ActiveLoansTable = memo(ActiveLoansTableComponent);

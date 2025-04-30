@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -13,30 +13,34 @@ const Index = () => {
     console.log("Index page - Estado de autenticação:", loading ? "carregando" : (user ? "autenticado" : "não autenticado"));
   }, [user, loading]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <LoadingSpinner size="lg" message="Carregando..." />
-      </div>
-    );
-  }
+  const renderContent = useCallback(() => {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-screen">
+          <LoadingSpinner size="lg" message="Carregando..." />
+        </div>
+      );
+    }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Alert variant="warning" className="max-w-md">
-          <AlertTriangle className="h-5 w-5" />
-          <AlertTitle>Erro de autenticação</AlertTitle>
-          <AlertDescription>
-            {error.message || "Ocorreu um erro ao verificar sua autenticação. Por favor, tente novamente."}
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-  
-  // Redirecionar para o dashboard apenas se autenticado, caso contrário para login
-  return user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
+    if (error) {
+      return (
+        <div className="flex items-center justify-center h-screen">
+          <Alert variant="warning" className="max-w-md">
+            <AlertTriangle className="h-5 w-5" />
+            <AlertTitle>Erro de autenticação</AlertTitle>
+            <AlertDescription>
+              {error.message || "Ocorreu um erro ao verificar sua autenticação. Por favor, tente novamente."}
+            </AlertDescription>
+          </Alert>
+        </div>
+      );
+    }
+    
+    // Redirecionar para o dashboard apenas se autenticado, caso contrário para login
+    return user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
+  }, [user, loading, error]);
+
+  return renderContent();
 };
 
-export default Index;
+export default React.memo(Index);

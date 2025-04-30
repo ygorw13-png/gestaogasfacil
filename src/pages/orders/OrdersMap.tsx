@@ -1,3 +1,4 @@
+import React, { memo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Order } from "./types";
 import { MapPin } from "lucide-react";
@@ -6,7 +7,7 @@ interface OrdersMapProps {
   orders: Order[];
 }
 
-export default function OrdersMap({ orders }: OrdersMapProps) {
+function OrdersMapComponent({ orders }: OrdersMapProps) {
   return (
     <Card>
       <CardHeader>
@@ -30,3 +31,5 @@ export default function OrdersMap({ orders }: OrdersMapProps) {
     </Card>
   );
 }
+
+export default memo(OrdersMapComponent);

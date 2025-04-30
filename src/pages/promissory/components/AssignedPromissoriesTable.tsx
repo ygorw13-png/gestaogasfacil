@@ -1,4 +1,5 @@
 
+import React, { memo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -10,7 +11,7 @@ interface AssignedPromissoriesTableProps {
   onPayment: (id: string) => void;
 }
 
-export function AssignedPromissoriesTable({ promissories, onPayment }: AssignedPromissoriesTableProps) {
+function AssignedPromissoriesTableComponent({ promissories, onPayment }: AssignedPromissoriesTableProps) {
   return (
     <Table>
       <TableHeader>
@@ -46,3 +47,5 @@ export function AssignedPromissoriesTable({ promissories, onPayment }: AssignedP
     </Table>
   );
 }
+
+export const AssignedPromissoriesTable = memo(AssignedPromissoriesTableComponent);

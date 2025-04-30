@@ -1,20 +1,14 @@
 
+import React, { useState, useEffect, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CheckCircle, XCircle } from "lucide-react";
 import { InventoryTableProps, InventoryMovement } from "../types/cashierTypes";
-import { useState, useEffect } from "react";
 
-export const InventoryTable = ({ data, inventoryMovements }: InventoryTableProps) => {
+export const InventoryTable = React.memo(({ data, inventoryMovements }: InventoryTableProps) => {
   const [loans, setLoans] = useState<{ [key: string]: number }>({});
   const [returns, setReturns] = useState<{ [key: string]: number }>({});
 
-  const calculateExpectedFinal = (item: any) => {
-    const loanValue = loans[item.product] || 0;
-    const returnValue = returns[item.product] || 0;
-    const expected = item.initial + item.additions - item.sales - loanValue + returnValue;
-    return expected;
-  };
-
+  // Memoize the calculation of loans and returns
   useEffect(() => {
     // Calculate loans and returns from inventory movements
     if (inventoryMovements && inventoryMovements.length > 0) {
@@ -33,6 +27,15 @@ export const InventoryTable = ({ data, inventoryMovements }: InventoryTableProps
       setReturns(newReturns);
     }
   }, [inventoryMovements]);
+
+  const calculateExpectedFinal = useMemo(() => {
+    return (item: any) => {
+      const loanValue = loans[item.product] || 0;
+      const returnValue = returns[item.product] || 0;
+      const expected = item.initial + item.additions - item.sales - loanValue + returnValue;
+      return expected;
+    };
+  }, [loans, returns]);
 
   return (
     <div className="space-y-4">
@@ -86,4 +89,4 @@ export const InventoryTable = ({ data, inventoryMovements }: InventoryTableProps
       </div>
     </div>
   );
-};
+});

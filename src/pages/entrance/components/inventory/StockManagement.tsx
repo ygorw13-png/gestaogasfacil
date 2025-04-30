@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InventoryMovement } from "../../types/cashierTypes";
@@ -9,7 +9,7 @@ import { MovementsList } from "./MovementsList";
 import { InitialStockForm } from "./InitialStockForm";
 import { syncStockWithDashboard } from "@/pages/dashboard/data";
 import { useInitialStock } from "./hooks/useInitialStock";
-import { calculateNetMovements } from "./MovementsCalculator";
+import { useNetMovements } from "./MovementsCalculator";
 
 interface StockManagementProps {
   currentStock: {
@@ -34,9 +34,9 @@ export function StockManagement({
     currentStock
   });
   
-  const movements = calculateNetMovements(inventoryMovements);
+  const movements = useNetMovements(inventoryMovements);
 
-  const handleInitialStockSubmit = async (initialMovements: InventoryMovement[]) => {
+  const handleInitialStockSubmit = useCallback(async (initialMovements: InventoryMovement[]) => {
     // Process each movement individually
     initialMovements.forEach(movement => {
       onInventoryMovement(movement);
@@ -52,7 +52,7 @@ export function StockManagement({
     
     // Switch back to movements tab
     setActiveTab("movements");
-  };
+  }, [currentStock, onInventoryMovement, setActiveTab]);
 
   return (
     <Card>

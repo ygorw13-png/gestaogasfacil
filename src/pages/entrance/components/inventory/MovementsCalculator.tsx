@@ -1,4 +1,5 @@
 
+import { useMemo } from "react";
 import { InventoryMovement } from "../../types/cashierTypes";
 
 export function calculateNetMovements(inventoryMovements: InventoryMovement[]) {
@@ -25,4 +26,8 @@ export function calculateNetMovements(inventoryMovements: InventoryMovement[]) {
   });
   
   return result;
+}
+
+export function useNetMovements(inventoryMovements: InventoryMovement[]) {
+  return useMemo(() => calculateNetMovements(inventoryMovements), [inventoryMovements]);
 }

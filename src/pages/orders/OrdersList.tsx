@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import React, { useState, useCallback, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -17,7 +18,7 @@ interface OrdersListProps {
   onCancelOrder: (orderId: string) => void;
 }
 
-export function OrdersList({ 
+function OrdersListComponent({ 
   orders, 
   loading,
   onAssignOrder, 
@@ -31,34 +32,38 @@ export function OrdersList({
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [selectedDeliveryPerson, setSelectedDeliveryPerson] = useState("");
 
-  const handleAssignClick = (orderId: string) => {
+  const handleAssignClick = useCallback((orderId: string) => {
     setSelectedOrder(orderId);
     setIsAssignDialogOpen(true);
-  };
+  }, []);
 
-  const handleCompleteClick = (orderId: string) => {
+  const handleCompleteClick = useCallback((orderId: string) => {
     setSelectedOrder(orderId);
     setIsCompleteDialogOpen(true);
-  };
+  }, []);
 
-  const handleDeliveryPersonChange = (value: string) => {
+  const handleDeliveryPersonChange = useCallback((value: string) => {
     setSelectedDeliveryPerson(value);
-  };
+  }, []);
 
-  const handleAssignSubmit = () => {
+  const handleAssignSubmit = useCallback(() => {
     if (selectedOrder && selectedDeliveryPerson) {
       onAssignOrder(selectedOrder, selectedDeliveryPerson);
       setSelectedDeliveryPerson("");
       setIsAssignDialogOpen(false);
     }
-  };
+  }, [selectedOrder, selectedDeliveryPerson, onAssignOrder]);
 
-  const handleCompleteSubmit = (paymentMethod: string) => {
+  const handleCompleteSubmit = useCallback((paymentMethod: string) => {
     if (selectedOrder) {
       onCompleteOrder(selectedOrder, paymentMethod);
       setIsCompleteDialogOpen(false);
     }
-  };
+  }, [selectedOrder, onCompleteOrder]);
+
+  const handleViewDetails = useCallback((orderId: string) => {
+    navigate(`/orders/${orderId}`);
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -123,7 +128,7 @@ export function OrdersList({
               onStartClick={onStartDelivery}
               onComplete={handleCompleteClick}
               onCancel={onCancelOrder}
-              onViewDetails={() => navigate(`/orders/${order.id}`)}
+              onViewDetails={() => handleViewDetails(order.id)}
             />
           ))}
         </TableBody>
@@ -145,3 +150,5 @@ export function OrdersList({
     </div>
   );
 }
+
+export const OrdersList = memo(OrdersListComponent);

@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Menu } from "lucide-react";
@@ -16,7 +16,7 @@ interface SidebarHeaderProps {
   onToggle: () => void;
 }
 
-const SidebarHeader: React.FC<SidebarHeaderProps> = ({ isOpen, onToggle }) => {
+const SidebarHeader = memo(({ isOpen, onToggle }: SidebarHeaderProps) => {
   return (
     <div className="flex items-center justify-between p-4">
       {isOpen && (
@@ -32,14 +32,16 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({ isOpen, onToggle }) => {
       </Button>
     </div>
   );
-};
+});
 
-export function AppSidebar() {
+SidebarHeader.displayName = 'SidebarHeader';
+
+function AppSidebarComponent() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const sidebar = useSidebar();
   const isOpen = sidebar.state === "expanded";
-  const toggleSidebar = sidebar.toggleSidebar;
+  const toggleSidebar = useCallback(() => sidebar.toggleSidebar(), [sidebar]);
   const [error, setError] = useState<Error | null>(null);
   
   useEffect(() => {
@@ -84,3 +86,5 @@ export function AppSidebar() {
     </>
   );
 }
+
+export const AppSidebar = memo(AppSidebarComponent);

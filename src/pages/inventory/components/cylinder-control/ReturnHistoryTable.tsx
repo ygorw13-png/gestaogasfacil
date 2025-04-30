@@ -1,4 +1,5 @@
 
+import React, { memo, useCallback } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,15 +12,15 @@ interface ReturnHistoryTableProps {
   clients: Client[];
 }
 
-export function ReturnHistoryTable({ loans, clients }: ReturnHistoryTableProps) {
-  const formatDate = (dateString: string | null | undefined) => {
+function ReturnHistoryTableComponent({ loans, clients }: ReturnHistoryTableProps) {
+  const formatDate = useCallback((dateString: string | null | undefined) => {
     if (!dateString) return "-";
     try {
       return format(new Date(dateString), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
     } catch (e) {
       return dateString;
     }
-  };
+  }, []);
 
   const returnedLoans = loans.filter(loan => loan.status === 'devolvido');
 
@@ -74,3 +75,5 @@ export function ReturnHistoryTable({ loans, clients }: ReturnHistoryTableProps) 
     </Card>
   );
 }
+
+export const ReturnHistoryTable = memo(ReturnHistoryTableComponent);
