@@ -18,10 +18,10 @@ export function AppLayout() {
       setIsLoading(false);
     }, 400);
 
-    return () => clearTimeout(timer);
-  }, []);
+    console.log("AppLayout - Auth state:", loading ? "loading" : (user ? "authenticated" : "not authenticated"));
 
-  console.log("AppLayout - Auth state:", loading ? "loading" : (user ? "authenticated" : "not authenticated"));
+    return () => clearTimeout(timer);
+  }, [user, loading]);
 
   // If loading authentication data, show spinner
   if (loading) {

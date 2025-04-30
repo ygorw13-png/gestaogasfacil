@@ -1,9 +1,14 @@
 
+import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const { user, loading } = useAuth();
+
+  useEffect(() => {
+    console.log("Index page - Auth state:", loading ? "loading" : (user ? "authenticated" : "not authenticated"));
+  }, [user, loading]);
 
   if (loading) {
     return (
@@ -13,8 +18,6 @@ const Index = () => {
       </div>
     );
   }
-
-  console.log("Index page - User state:", user ? "Autenticado" : "Não autenticado");
   
   // Se o usuário estiver autenticado, redireciona para o dashboard
   // Caso contrário, redireciona para a página de login
