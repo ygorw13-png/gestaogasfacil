@@ -34,7 +34,7 @@ export function AppSidebar() {
     <aside className={cn(
       "fixed left-0 top-0 z-30 flex h-screen flex-col border-r bg-background transition-all duration-300",
       isOpen ? "w-64" : "w-16",
-      isMobile ? "transform -translate-x-full md:translate-x-0" : ""
+      isMobile ? (isOpen ? "transform translate-x-0" : "transform -translate-x-full") : "transform translate-x-0"
     )}>
       <div className="flex items-center justify-between p-4">
         {isOpen && (

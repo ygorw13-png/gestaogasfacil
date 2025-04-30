@@ -10,6 +10,7 @@ const Index = () => {
     console.log("Index page - Auth state:", loading ? "loading" : (user ? "authenticated" : "not authenticated"));
   }, [user, loading]);
 
+  // Enquanto estiver carregando, mostrar o spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -19,7 +20,7 @@ const Index = () => {
     );
   }
   
-  // Redirect to dashboard if authenticated, otherwise to login page
+  // Redirecionar para o dashboard apenas se autenticado, caso contrário para login
   return user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
 };
 

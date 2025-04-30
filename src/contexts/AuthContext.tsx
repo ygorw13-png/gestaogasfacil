@@ -136,15 +136,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       console.log("Iniciando logout...");
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+      
+      // Limpar todos os dados do usuário
       setUser(null);
       setOrganization(null);
+      
+      // Limpar qualquer cache de autenticação local
+      localStorage.removeItem('supabase.auth.token');
+      sessionStorage.removeItem('supabase.auth.token');
+      
       toast({
         title: "Logout realizado",
         description: "Você saiu da sua conta com sucesso."
       });
+      
       console.log("Logout concluído");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao fazer logout:", error);
       toast({
         title: "Erro ao fazer logout",

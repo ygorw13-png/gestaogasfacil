@@ -19,7 +19,7 @@ export default function Login() {
   const { toast } = useToast();
   const { user, signIn } = useAuth();
   
-  // Check if user is already authenticated
+  // Verificar se o usuário já está autenticado
   useEffect(() => {
     if (user) {
       console.log("Login page - User already authenticated, redirecting to dashboard");
@@ -43,10 +43,10 @@ export default function Login() {
           title: "Login realizado com sucesso!",
           description: "Bem-vindo(a) de volta!"
         });
-        // Navigation will be handled by the useEffect
+        // A navegação será tratada pelo useEffect
       } else {
         console.error("Login failed:", error);
-        setError(error || "Failed login. Check your credentials.");
+        setError(error || "Falha no login. Verifique suas credenciais.");
         toast({
           title: "Erro ao fazer login",
           description: error || "Verifique suas credenciais e tente novamente",
@@ -66,12 +66,12 @@ export default function Login() {
     }
   };
 
-  // If user is already logged in, don't render the form
+  // Se o usuário já estiver logado, não renderizar o formulário
   if (user) return null;
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-green-50 to-white">
-      <Card className="w-full max-w-md shadow-lg border-green-100">
+    <div className="flex items-center justify-center min-h-screen w-full bg-gradient-to-b from-green-50 to-white">
+      <Card className="w-full max-w-md mx-auto shadow-lg border-green-100">
         <CardHeader className="space-y-2 text-center">
           <CardTitle className="text-2xl font-bold text-green-800">GasFlow Aqua</CardTitle>
           <p className="text-sm text-gray-600">Faça login para acessar o sistema</p>

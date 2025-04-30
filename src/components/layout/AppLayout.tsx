@@ -13,7 +13,7 @@ export function AppLayout() {
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    // Only simulate loading if we have an authenticated user
+    // Simular carregamento apenas se tivermos um usuário autenticado
     if (user && !loading) {
       const timer = setTimeout(() => {
         setIsLoading(false);
@@ -26,7 +26,7 @@ export function AppLayout() {
     console.log("AppLayout - Auth state:", loading ? "loading" : (user ? "authenticated" : "not authenticated"));
   }, [user, loading]);
 
-  // If loading authentication data, show spinner
+  // Se estiver carregando dados de autenticação, mostrar spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
@@ -38,13 +38,13 @@ export function AppLayout() {
     );
   }
 
-  // If not authenticated, redirect to login
+  // Se não estiver autenticado, redirecionar para login
   if (!user) {
     console.log("AppLayout - User not authenticated, redirecting to login");
     return <Navigate to="/login" replace />;
   }
 
-  // If loading app data, show spinner
+  // Se estiver carregando dados do app, mostrar spinner
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
@@ -60,13 +60,13 @@ export function AppLayout() {
     <SidebarProvider defaultOpen={!isMobile}>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
-        <div className="flex flex-col min-h-screen flex-1">
+        <div className="flex flex-col min-h-screen flex-1 transition-all duration-300">
           <TopBar />
           <main className="flex-1 p-4 md:p-6 overflow-y-auto">
             <Outlet />
           </main>
           {isMobile && (
-            <div className="h-16">{/* Space for mobile navigation */}</div>
+            <div className="h-16">{/* Espaço para navegação mobile */}</div>
           )}
         </div>
       </div>
