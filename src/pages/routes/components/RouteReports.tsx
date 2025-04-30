@@ -5,12 +5,13 @@ import { RouteReportsFilter } from "./reports/RouteReportsFilter";
 import { RouteReportsTable } from "./reports/RouteReportsTable";
 import { RouteDetailsDialog } from "./reports/RouteDetailsDialog";
 import { mockReports } from "../data/mockRouteReports";
+import { RouteReport } from "../data/mockRouteReports";
 
 export function RouteReports() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [driverId, setDriverId] = useState('all');
-  const [selectedReport, setSelectedReport] = useState(null);
+  const [selectedReport, setSelectedReport] = useState<RouteReport | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   const generateReport = () => {
