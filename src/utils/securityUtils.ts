@@ -57,6 +57,18 @@ export const isValidId = (id: string): boolean => {
 };
 
 /**
+ * Força redirecionamento para HTTPS quando a aplicação está em produção
+ * e o usuário está em uma conexão HTTP.
+ */
+export const enforceHttps = (): void => {
+  if (typeof window !== 'undefined' && 
+      window.location.protocol === 'http:' && 
+      process.env.NODE_ENV === 'production') {
+    window.location.href = window.location.href.replace('http:', 'https:');
+  }
+};
+
+/**
  * Valida se uma senha atende aos requisitos de segurança
  * @param password Senha a ser validada
  * @returns Um objeto com o resultado da validação e mensagem de erro, se houver

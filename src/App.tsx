@@ -1,14 +1,16 @@
-
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AppLayout } from "./components/layout/AppLayout";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SidebarProvider } from "./components/ui/sidebar";
 import { CashierProvider } from "./contexts/CashierContext";
 import { RoleGuard } from "./components/ui/RoleGuard";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
+import { enforceHttps } from "./utils/securityUtils";
+import { SecurityHeaders } from "./components/security/SecurityHeaders";
+import { HelmetProvider } from 'react-helmet-async';
 
 // Páginas de autenticação
 import Login from "./pages/auth/Login";
@@ -55,131 +57,139 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  // Forçar HTTPS em ambiente de produção
+  useEffect(() => {
+    enforceHttps();
+  }, []);
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <SidebarProvider>
-          <div className="w-full min-h-screen bg-background">
-            <Routes>
-              {/* Rota raiz verifica autenticação e redireciona */}
-              <Route path="/" element={<Index />} />
-              
-              {/* Rotas públicas de autenticação */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/404" element={<NotFound />} />
-              
-              {/* Rotas protegidas com AppLayout */}
-              <Route element={<AppLayout />}>
-                <Route path="/dashboard" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <Dashboard />
-                  </Suspense>
-                } />
-                <Route path="/clients" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <Clients />
-                  </Suspense>
-                } />
-                <Route path="/orders" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <Orders />
-                  </Suspense>
-                } />
-                <Route path="/orders/map" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <OrdersMap orders={[]} />
-                  </Suspense>
-                } />
-                <Route path="/orders/new" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <NewOrderForm onSubmit={() => {}} />
-                  </Suspense>
-                } />
-                <Route path="/orders/:id" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <OrderDetails orderId="" orders={[]} isOpen={false} onOpenChange={() => {}} />
-                  </Suspense>
-                } />
-                <Route path="/entrance" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <EntranceSales />
-                  </Suspense>
-                } />
-                <Route path="/entrance/new-sale" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <NewSaleForm isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} />
-                  </Suspense>
-                } />
-                <Route path="/entrance/history" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <SalesHistory />
-                  </Suspense>
-                } />
-                <Route path="/entrance/cashier" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <CashierClosing isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} cashierData={null} />
-                  </Suspense>
-                } />
-                <Route path="/inventory" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <Inventory />
-                  </Suspense>
-                } />
-                <Route path="/promissory" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <Promissory />
-                  </Suspense>
-                } />
-                <Route path="/routes" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <RoleGuard allowedRoles={['admin', 'gerente']}>
-                      <RoutesPage />
-                    </RoleGuard>
-                  </Suspense>
-                } />
-                <Route path="/resellers" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <Resellers />
-                  </Suspense>
-                } />
-                <Route path="/fleet" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <Fleet />
-                  </Suspense>
-                } />
-                <Route path="/finance/expenses" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <RoleGuard allowedRoles={['admin', 'gerente']}>
-                      <Expenses />
-                    </RoleGuard>
-                  </Suspense>
-                } />
-                <Route path="/settings" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <RoleGuard allowedRoles={['admin', 'gerente']}>
-                      <Settings />
-                    </RoleGuard>
-                  </Suspense>
-                } />
-                <Route path="/colaboradores" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <RoleGuard allowedRoles={['admin', 'gerente']}>
-                      <Colaboradores />
-                    </RoleGuard>
-                  </Suspense>
-                } />
-              </Route>
-              
-              {/* Rota coringa para páginas não encontradas */}
-              <Route path="*" element={<Navigate to="/404" replace />} />
-            </Routes>
-            <Toaster richColors closeButton position="top-right" />
-          </div>
-        </SidebarProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <SidebarProvider>
+            <div className="w-full min-h-screen bg-background">
+              <SecurityHeaders />
+              <Routes>
+                {/* Rota raiz verifica autenticação e redireciona */}
+                <Route path="/" element={<Index />} />
+                
+                {/* Rotas públicas de autenticação */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/404" element={<NotFound />} />
+                
+                {/* Rotas protegidas com AppLayout */}
+                <Route element={<AppLayout />}>
+                  <Route path="/dashboard" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <Dashboard />
+                    </Suspense>
+                  } />
+                  <Route path="/clients" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <Clients />
+                    </Suspense>
+                  } />
+                  <Route path="/orders" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <Orders />
+                    </Suspense>
+                  } />
+                  <Route path="/orders/map" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <OrdersMap orders={[]} />
+                    </Suspense>
+                  } />
+                  <Route path="/orders/new" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <NewOrderForm onSubmit={() => {}} />
+                    </Suspense>
+                  } />
+                  <Route path="/orders/:id" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <OrderDetails orderId="" orders={[]} isOpen={false} onOpenChange={() => {}} />
+                    </Suspense>
+                  } />
+                  <Route path="/entrance" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <EntranceSales />
+                    </Suspense>
+                  } />
+                  <Route path="/entrance/new-sale" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <NewSaleForm isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} />
+                    </Suspense>
+                  } />
+                  <Route path="/entrance/history" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <SalesHistory />
+                    </Suspense>
+                  } />
+                  <Route path="/entrance/cashier" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <CashierClosing isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} cashierData={null} />
+                    </Suspense>
+                  } />
+                  <Route path="/inventory" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <Inventory />
+                    </Suspense>
+                  } />
+                  <Route path="/promissory" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <Promissory />
+                    </Suspense>
+                  } />
+                  <Route path="/routes" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <RoleGuard allowedRoles={['admin', 'gerente']}>
+                        <RoutesPage />
+                      </RoleGuard>
+                    </Suspense>
+                  } />
+                  <Route path="/resellers" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <Resellers />
+                    </Suspense>
+                  } />
+                  <Route path="/fleet" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <Fleet />
+                    </Suspense>
+                  } />
+                  <Route path="/finance/expenses" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <RoleGuard allowedRoles={['admin', 'gerente']}>
+                        <Expenses />
+                      </RoleGuard>
+                    </Suspense>
+                  } />
+                  <Route path="/settings" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <RoleGuard allowedRoles={['admin', 'gerente']}>
+                        <Settings />
+                      </RoleGuard>
+                    </Suspense>
+                  } />
+                  <Route path="/colaboradores" element={
+                    <Suspense fallback={<LoadingComponent />}>
+                      <RoleGuard allowedRoles={['admin', 'gerente']}>
+                        <Colaboradores />
+                      </RoleGuard>
+                    </Suspense>
+                  } />
+                </Route>
+                
+                {/* Rota coringa para páginas não encontradas */}
+                <Route path="*" element={<Navigate to="/404" replace />} />
+              </Routes>
+              <Toaster richColors closeButton position="top-right" />
+            </div>
+          </SidebarProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 
