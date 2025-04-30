@@ -8,52 +8,15 @@ import { DbProfile } from "@/types/supabaseTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserList } from "./users/UserList";
 import { NewUserDialog } from "./users/NewUserDialog";
+import { useUserManagement } from "./users/hooks/useUserManagement";
 
 export function UserManagement() {
-  const { toast } = useToast();
-  const { user, organization } = useAuth();
-  const [users, setUsers] = useState<Array<{id: string, name: string, role: UserRole}>>([]);
-  const [loading, setLoading] = useState(false);
+  const { organization } = useAuth();
   const [isNewUserDialogOpen, setIsNewUserDialogOpen] = useState(false);
-
-  // Carregar usuários da mesma organização
-  useEffect(() => {
-    const fetchUsers = async () => {
-      if (!organization) return;
-      
-      setLoading(true);
-      try {
-        const { data, error } = await customTables.profiles.selectByOrganization(organization.id);
-
-        if (error) {
-          throw error;
-        }
-        
-        if (data && Array.isArray(data)) {
-          // Convert from DbProfile to our internal user format
-          setUsers(data.map((profile: DbProfile) => ({
-            id: profile.id,
-            name: profile.name,
-            role: profile.role as UserRole
-          })));
-        }
-      } catch (error) {
-        console.error("Erro ao carregar usuários:", error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar os usuários",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, [toast, organization]);
+  const { users, loading, addUser } = useUserManagement(organization?.id);
 
   const handleUserCreated = (newUser: {id: string, name: string, role: UserRole}) => {
-    setUsers([...users, newUser]);
+    addUser(newUser);
   };
 
   return (
