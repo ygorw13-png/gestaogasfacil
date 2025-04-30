@@ -1,14 +1,19 @@
 
 import { useState } from "react";
 import { useToast } from "./use-toast";
-import { PostgrestResponse } from "@supabase/supabase-js";
+import { PostgrestResponse, PostgrestError } from "@supabase/supabase-js";
 
 interface UseSupabaseMutationOptions<TData, TVariables> {
   mutationFn: (variables: TVariables) => Promise<PostgrestResponse<TData>>;
   onSuccess?: (data: TData[]) => void;
-  onError?: (error: Error) => void;
+  onError?: (error: PostgrestError | Error) => void;
   successMessage?: string;
   errorMessage?: string;
+}
+
+interface MutationResult<TData> {
+  data: TData[] | null;
+  error: PostgrestError | Error | null;
 }
 
 export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
@@ -19,10 +24,10 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
   errorMessage = "Ocorreu um erro"
 }: UseSupabaseMutationOptions<TData, TVariables>) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<PostgrestError | Error | null>(null);
   const { toast } = useToast();
 
-  const mutate = async (variables: TVariables) => {
+  const mutate = async (variables: TVariables): Promise<MutationResult<TData>> => {
     setLoading(true);
     setError(null);
 
@@ -43,11 +48,12 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
       // Cast the response data to ensure it's treated as an array
       const dataArray = Array.isArray(data) ? data : data ? [data] : [];
       onSuccess?.(dataArray as TData[]);
-      return { data: dataArray, error: null };
+      return { data: dataArray as TData[], error: null };
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro na mutação:", err);
-      setError(err);
+      const typedError = err as PostgrestError | Error;
+      setError(typedError);
       
       toast({
         title: "Erro",
@@ -55,8 +61,8 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
         variant: "destructive"
       });
       
-      onError?.(err);
-      return { data: null, error: err };
+      onError?.(typedError);
+      return { data: null, error: typedError };
       
     } finally {
       setLoading(false);

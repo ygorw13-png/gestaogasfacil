@@ -8,7 +8,6 @@ import {
   ColaboradorFormFields, 
   ColaboradorFormValues 
 } from "@/components/forms/ColaboradorFormFields";
-import { useSupabaseMutation } from "@/hooks/useSupabaseMutation";
 
 interface EditarColaboradorProps {
   colaborador: Colaborador;
@@ -21,7 +20,7 @@ export default function EditarColaborador({
   onSuccess,
   onCancel
 }: EditarColaboradorProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Converter data de string para Date para o form
@@ -37,7 +36,7 @@ export default function EditarColaborador({
     observacoes: colaborador.observacoes || "",
   };
 
-  const handleSubmit = async (values: ColaboradorFormValues) => {
+  const handleSubmit = async (values: ColaboradorFormValues): Promise<void> => {
     setIsSubmitting(true);
     
     try {
@@ -60,10 +59,11 @@ export default function EditarColaborador({
       });
       
       onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       toast({
         title: "Erro ao atualizar",
-        description: error.message,
+        description: err.message || "Ocorreu um erro ao atualizar o colaborador",
         variant: "destructive",
       });
     } finally {

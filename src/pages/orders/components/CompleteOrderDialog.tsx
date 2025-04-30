@@ -18,10 +18,13 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 
+// Definindo tipo específico para métodos de pagamento
+type PaymentMethod = "cash" | "credit" | "debit" | "pix" | "promissory" | "voucher";
+
 interface CompleteOrderDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (paymentMethod: string) => void;
+  onSubmit: (paymentMethod: PaymentMethod) => void;
 }
 
 export function CompleteOrderDialog({
@@ -29,11 +32,13 @@ export function CompleteOrderDialog({
   onOpenChange,
   onSubmit,
 }: CompleteOrderDialogProps) {
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
 
   const handleSubmit = () => {
-    onSubmit(paymentMethod);
-    setPaymentMethod("");
+    if (paymentMethod) {
+      onSubmit(paymentMethod as PaymentMethod);
+      setPaymentMethod("");
+    }
   };
 
   return (
@@ -50,7 +55,7 @@ export function CompleteOrderDialog({
             <Label htmlFor="paymentMethod">Forma de Pagamento</Label>
             <Select 
               value={paymentMethod} 
-              onValueChange={setPaymentMethod}
+              onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
             >
               <SelectTrigger id="paymentMethod">
                 <SelectValue placeholder="Selecione" />

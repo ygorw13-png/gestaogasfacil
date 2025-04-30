@@ -1,12 +1,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "./use-toast";
-import { PostgrestResponse } from "@supabase/supabase-js";
+import { PostgrestResponse, PostgrestError } from "@supabase/supabase-js";
 
 interface UseSupabaseQueryOptions<T> {
   queryFn: () => Promise<PostgrestResponse<T>>;
   onSuccess?: (data: T[]) => void;
-  onError?: (error: Error) => void;
+  onError?: (error: PostgrestError | Error) => void;
   errorMessage?: string;
   enabled?: boolean;
 }
@@ -20,7 +20,7 @@ export function useSupabaseQuery<T>({
 }: UseSupabaseQueryOptions<T>) {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<PostgrestError | Error | null>(null);
   const { toast } = useToast();
 
   const fetchData = useCallback(async () => {
@@ -40,9 +40,10 @@ export function useSupabaseQuery<T>({
         setData(dataArray);
         onSuccess?.(dataArray);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro na consulta:", err);
-      setError(err);
+      const typedError = err as PostgrestError | Error;
+      setError(typedError);
       
       toast({
         title: "Erro",
@@ -50,7 +51,7 @@ export function useSupabaseQuery<T>({
         variant: "destructive"
       });
       
-      onError?.(err);
+      onError?.(typedError);
     } finally {
       setLoading(false);
     }

@@ -14,7 +14,7 @@ interface NovoColaboradorProps {
 }
 
 export default function NovoColaborador({ onSuccess }: NovoColaboradorProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { organization } = useAuth();
   const { toast } = useToast();
 
@@ -28,7 +28,7 @@ export default function NovoColaborador({ onSuccess }: NovoColaboradorProps) {
     observacoes: "",
   };
 
-  const handleSubmit = async (values: ColaboradorFormValues) => {
+  const handleSubmit = async (values: ColaboradorFormValues): Promise<void> => {
     if (!organization) {
       toast({
         title: "Erro",
@@ -60,10 +60,11 @@ export default function NovoColaborador({ onSuccess }: NovoColaboradorProps) {
       });
       
       onSuccess();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       toast({
         title: "Erro ao cadastrar",
-        description: error.message,
+        description: err.message || "Ocorreu um erro ao cadastrar o colaborador",
         variant: "destructive",
       });
     } finally {

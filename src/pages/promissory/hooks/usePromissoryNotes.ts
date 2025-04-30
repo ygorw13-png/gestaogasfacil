@@ -2,14 +2,13 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { PromissoryNote, PromissoryStatus } from "../types";
-import { supabase } from "@/integrations/supabase/client";
 import { overviewData } from "@/pages/dashboard/data";
 
 export function usePromissoryNotes() {
   const [promissoryNotes, setPromissoryNotes] = useState<PromissoryNote[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedStatus, setSelectedStatus] = useState("all");
-  const [selectedClient, setSelectedClient] = useState("all");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedClient, setSelectedClient] = useState<string>("all");
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -17,21 +16,20 @@ export function usePromissoryNotes() {
     fetchPromissoryNotes();
   }, []);
 
-  const fetchPromissoryNotes = async () => {
+  const fetchPromissoryNotes = async (): Promise<void> => {
     try {
       // Por enquanto vamos continuar com os dados mocados
       // Em uma implementação real, aqui faríamos uma chamada ao Supabase
       // Quando a tabela de promissórias for criada
       
       // Usar dados mockados por enquanto
-      import('../data/mockData').then(({ mockPromissoryNotes }) => {
-        setPromissoryNotes(mockPromissoryNotes);
-        
-        // Atualizar dados do dashboard
-        updateDashboardData(mockPromissoryNotes);
-        
-        setLoading(false);
-      });
+      const { mockPromissoryNotes } = await import('../data/mockData');
+      setPromissoryNotes(mockPromissoryNotes);
+      
+      // Atualizar dados do dashboard
+      updateDashboardData(mockPromissoryNotes);
+      
+      setLoading(false);
     } catch (error) {
       console.error("Erro ao buscar promissórias:", error);
       setLoading(false);
@@ -39,7 +37,7 @@ export function usePromissoryNotes() {
   };
   
   // Atualizar dados do dashboard com base nas promissórias
-  const updateDashboardData = (notes: PromissoryNote[]) => {
+  const updateDashboardData = (notes: PromissoryNote[]): void => {
     const pendingNotes = notes.filter(note => note.status === "pending" || note.status === "overdue");
     const pendingValue = pendingNotes.reduce((sum, note) => sum + note.value, 0);
     
@@ -65,7 +63,7 @@ export function usePromissoryNotes() {
   // Extrair lista única de clientes para o filtro
   const clients = [...new Set(promissoryNotes.map(note => note.clientName))];
 
-  const addPromissoryNote = (note: Omit<PromissoryNote, 'id' | 'createdAt'>) => {
+  const addPromissoryNote = (note: Omit<PromissoryNote, 'id' | 'createdAt'>): void => {
     const newNote: PromissoryNote = {
       id: (Math.random() * 1000).toFixed(0),
       clientName: note.clientName,
@@ -88,7 +86,7 @@ export function usePromissoryNotes() {
     });
   };
 
-  const handleAssign = (collector: string) => {
+  const handleAssign = (collector: string): void => {
     if (selectedNoteId) {
       const updatedNotes = promissoryNotes.map((note) => {
         if (note.id === selectedNoteId) {
@@ -113,7 +111,7 @@ export function usePromissoryNotes() {
     }
   };
 
-  const handlePayment = (amount: number, method: string) => {
+  const handlePayment = (amount: number, method: string): void => {
     if (selectedNoteId) {
       const updatedNotes = promissoryNotes.map((note) => {
         if (note.id === selectedNoteId) {
@@ -138,12 +136,14 @@ export function usePromissoryNotes() {
     }
   };
 
-  const handleNewPromissory = (data: {
+  interface NewPromissoryData {
     clientName: string;
     value: number;
     dueDate: Date;
     collector: string | null;
-  }) => {
+  }
+
+  const handleNewPromissory = (data: NewPromissoryData): void => {
     addPromissoryNote({
       clientName: data.clientName,
       value: data.value,

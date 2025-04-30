@@ -6,6 +6,7 @@ import { StatusBadge } from "./StatusBadge";
 import { Clipboard, Check, X, Truck, PhoneCall } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { MouseEvent } from "react";
 
 interface OrderTableRowProps {
   order: Order;
@@ -24,11 +25,11 @@ export function OrderTableRow({
   onCancel,
   onViewDetails,
 }: OrderTableRowProps) {
-  const getTimeAgo = (date: Date) => {
+  const getTimeAgo = (date: Date): string => {
     return formatDistanceToNow(date, { addSuffix: true, locale: ptBR });
   };
 
-  const handleCallClient = (e: React.MouseEvent) => {
+  const handleCallClient = (e: MouseEvent<HTMLButtonElement>): void => {
     e.stopPropagation(); // Prevent any navigation
     if (order.clientPhone) {
       window.open(`tel:${order.clientPhone}`, '_blank');

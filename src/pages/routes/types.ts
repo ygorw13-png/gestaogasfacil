@@ -1,3 +1,27 @@
+
+export type RouteStatus = 'preparing' | 'in-progress' | 'completed' | 'verified';
+export type PaymentMethod = 'money' | 'credit' | 'debit' | 'pix' | 'promissory';
+
+export interface RouteInventory {
+  gasP13: number;
+  gasP20: number;
+  gasP45: number;
+  emptyGasP13: number;
+  emptyGasP20: number;
+  emptyGasP45: number;
+  water: number;
+}
+
+export interface SaleItems {
+  gasP13?: number;
+  gasP20?: number;
+  gasP45?: number;
+  water?: number;
+  emptyGasP13?: number;
+  emptyGasP20?: number;
+  emptyGasP45?: number;
+}
+
 export interface RouteItem {
   id: string;
   date: string;
@@ -5,18 +29,10 @@ export interface RouteItem {
   driverName: string;
   destination: string;
   clientsCount: number;
-  status: 'preparing' | 'in-progress' | 'completed' | 'verified';
+  status: RouteStatus;
   departureTime?: string;
   returnTime?: string;
-  inventory: {
-    gasP13: number;
-    gasP20: number;
-    gasP45: number;
-    emptyGasP13: number;
-    emptyGasP20: number;
-    emptyGasP45: number;
-    water: number;
-  };
+  inventory: RouteInventory;
   sales?: RouteSale[];
   expenses?: RouteExpense[];
   notes?: string;
@@ -28,16 +44,8 @@ export interface RouteSale {
   clientName: string;
   location?: string; // GPS coordinates or address
   time: string;
-  items: {
-    gasP13?: number;
-    gasP20?: number;
-    gasP45?: number;
-    water?: number;
-    emptyGasP13?: number;
-    emptyGasP20?: number;
-    emptyGasP45?: number;
-  };
-  paymentMethod: 'money' | 'credit' | 'debit' | 'pix' | 'promissory';
+  items: SaleItems;
+  paymentMethod: PaymentMethod;
   promissoryId?: string; // If payment method is promissory
   total: number;
   notes?: string;

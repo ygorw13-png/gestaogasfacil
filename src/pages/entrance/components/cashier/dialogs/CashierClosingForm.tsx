@@ -6,13 +6,17 @@ import { useState } from "react";
 import { CashierClosingSummary } from "./CashierClosingSummary";
 import { ClosingTypeTabs } from "../ClosingTypeTabs";
 import { inventoryClosing } from "../../../data/mockData";
+import { CashierData, PartialClosing } from "../../../types/cashierTypes";
 
 interface CashierClosingFormProps {
   onSubmit: (type: "partial" | "total", observations?: string) => void;
   onCancel: () => void;
-  cashierData: any;
-  partialClosings: any[];
-  totalSalesSinceLastPartial: any;
+  cashierData: CashierData;
+  partialClosings: PartialClosing[];
+  totalSalesSinceLastPartial: {
+    count: number;
+    amount: number;
+  };
 }
 
 export function CashierClosingForm({
@@ -23,7 +27,7 @@ export function CashierClosingForm({
   totalSalesSinceLastPartial
 }: CashierClosingFormProps) {
   const [closingType, setClosingType] = useState<"partial" | "total">("partial");
-  const [observations, setObservations] = useState("");
+  const [observations, setObservations] = useState<string>("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

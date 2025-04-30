@@ -11,7 +11,19 @@ interface PromissoryNotesSectionProps {
 }
 
 export function PromissoryNotesSection({ control }: PromissoryNotesSectionProps) {
-  const [noteId, setNoteId] = useState("");
+  const [noteId, setNoteId] = useState<string>("");
+
+  const handleAddNote = (field: { value: string[], onChange: (value: string[]) => void }) => {
+    if (noteId.trim()) {
+      field.onChange([...field.value, noteId.trim()]);
+      setNoteId("");
+    }
+  };
+
+  const handleRemoveNote = (field: { value: string[], onChange: (value: string[]) => void }, index: number) => {
+    const newNotes = field.value.filter((_, i) => i !== index);
+    field.onChange(newNotes);
+  };
 
   return (
     <FormField
@@ -32,12 +44,7 @@ export function PromissoryNotesSection({ control }: PromissoryNotesSectionProps)
             </FormControl>
             <Button
               type="button"
-              onClick={() => {
-                if (noteId.trim()) {
-                  field.onChange([...field.value, noteId.trim()]);
-                  setNoteId("");
-                }
-              }}
+              onClick={() => handleAddNote(field)}
             >
               Adicionar
             </Button>
@@ -54,10 +61,7 @@ export function PromissoryNotesSection({ control }: PromissoryNotesSectionProps)
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        const newNotes = field.value.filter((_, i) => i !== index);
-                        field.onChange(newNotes);
-                      }}
+                      onClick={() => handleRemoveNote(field, index)}
                     >
                       Remover
                     </Button>
