@@ -33,7 +33,7 @@ const SalesHistory = lazy(() => import("./pages/entrance/SalesHistory"));
 const CashierClosing = lazy(() => import("./pages/entrance/CashierClosing"));
 const Inventory = lazy(() => import("./pages/inventory/Inventory"));
 const Promissory = lazy(() => import("./pages/promissory/Promissory"));
-const RoutesPage = lazy(() => import("./pages/routes/RoutesPage"));
+const RoutesPage = lazy(() => import("./pages/routes/routes/RoutesPage"));
 const Resellers = lazy(() => import("./pages/resellers/Resellers"));
 const Fleet = lazy(() => import("./pages/fleet/Fleet"));
 const Settings = lazy(() => import("./pages/settings/Settings"));
