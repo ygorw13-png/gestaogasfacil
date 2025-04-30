@@ -16,11 +16,13 @@ import {
   Package,
   DollarSign,
   Briefcase,
-  Menu
+  Menu,
+  ChevronRight,
+  ChevronDown
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SidebarLinkProps {
@@ -43,7 +45,7 @@ const SidebarLink = ({ to, icon: Icon, label, className }: SidebarLinkProps) => 
       }
     >
       <Icon className="h-4 w-4 flex-shrink-0" />
-      <span className="truncate">{label}</span>
+      {label && <span className="truncate">{label}</span>}
     </NavLink>
   );
 };
@@ -52,12 +54,20 @@ export function AppSidebar() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
+  
+  // Fechar o sidebar em dispositivos móveis por padrão
+  useEffect(() => {
+    if (isMobile) {
+      setIsCollapsed(true);
+    }
+  }, [isMobile]);
   
   if (!user) return null;
 
   return (
     <aside className={cn(
-      "fixed left-0 top-0 z-30 flex h-screen flex-col border-r bg-background transition-all",
+      "fixed left-0 top-0 z-30 flex h-screen flex-col border-r bg-background transition-all duration-300",
       isCollapsed ? "w-16" : "w-64",
       isMobile ? "transform -translate-x-full md:translate-x-0" : ""
     )}>
@@ -83,7 +93,13 @@ export function AppSidebar() {
         <SidebarLink to="/colaboradores" icon={Briefcase} label={isCollapsed ? "" : "Colaboradores"} />
         
         {!isCollapsed ? (
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion 
+            type="single" 
+            collapsible 
+            className="w-full"
+            value={accordionValue}
+            onValueChange={setAccordionValue}
+          >
             <AccordionItem value="orders" className="border-none">
               <AccordionTrigger className="py-2 hover:bg-muted rounded-lg px-3 hover:no-underline">
                 <div className="flex items-center gap-3 text-muted-foreground">
@@ -91,7 +107,7 @@ export function AppSidebar() {
                   <span className="truncate">Pedidos</span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="pl-9 space-y-2">
+              <AccordionContent className="pl-9 space-y-2 pt-2">
                 <NavLink
                   to="/orders"
                   className={({ isActive }) => 
@@ -100,6 +116,7 @@ export function AppSidebar() {
                       isActive ? "text-foreground bg-accent" : "hover:bg-muted"
                     )
                   }
+                  end
                 >
                   Lista de Pedidos
                 </NavLink>
@@ -124,7 +141,7 @@ export function AppSidebar() {
                   <span className="truncate">Portaria</span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="pl-9 space-y-2">
+              <AccordionContent className="pl-9 space-y-2 pt-2">
                 <NavLink
                   to="/entrance"
                   className={({ isActive }) => 

@@ -26,11 +26,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Escutar mudanças na autenticação primeiro (importante para a ordem!)
+    // Configurar o listener de alterações no estado de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session?.user?.id);
+      
       if (event === 'SIGNED_IN' && session?.user) {
-        // Buscar perfil do usuário usando a função RPC
         try {
+          // Buscar perfil do usuário usando a função RPC
           const { data, error } = await supabase.functions.invoke('get_user_profile', {
             body: { user_id: session.user.id }
           });
@@ -58,19 +60,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setLoading(false);
         }
       } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
         setUser(null);
         setOrganization(null);
         setLoading(false);
       }
     });
 
-    // Depois verificar sessão atual
-    const checkUser = async () => {
+    // Verificar se já existe uma sessão ativa
+    const checkCurrentSession = async () => {
       try {
+        console.log("Checking current session...");
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          // Buscar perfil do usuário usando a função RPC
+          console.log("Found existing session:", session.user.id);
+          
+          // Buscar perfil do usuário
           const { data, error } = await supabase.functions.invoke('get_user_profile', {
             body: { user_id: session.user.id }
           });
@@ -94,14 +100,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
         }
       } catch (error) {
-        console.error('Erro ao verificar usuário:', error);
+        console.error('Erro ao verificar sessão:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    checkUser();
-
+    checkCurrentSession();
+    
+    // Limpar o subscription ao desmontar o componente
     return () => {
       subscription.unsubscribe();
     };
@@ -112,9 +119,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setOrganization(null);
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setOrganization(null);
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
   };
 
   return (

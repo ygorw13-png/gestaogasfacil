@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,13 +19,14 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { updateUserData, user } = useAuth();
+  const { user } = useAuth();
   
-  // Se o usuário já está logado, redirecionar para o dashboard
-  if (user) {
-    navigate('/dashboard', { replace: true });
-    return null;
-  }
+  // Verificar se o usuário já está autenticado
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,54 +34,20 @@ export default function Login() {
     setError(null);
 
     try {
-      const { data: { user, session }, error } = await supabase.auth.signInWithPassword({
+      console.log("Tentando login com:", email);
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) throw error;
       
-      if (user) {
-        // Buscar o perfil do usuário com a role usando a função RPC
-        const { data, error: profileError } = await supabase.functions.invoke('get_user_profile', {
-          body: { user_id: user.id }
+      if (data.user) {
+        toast({
+          title: "Login realizado com sucesso!",
+          description: `Bem-vindo(a) ${data.user.user_metadata?.name || data.user.email || 'Usuário'}!`
         });
-
-        if (profileError) {
-          throw profileError;
-        }
-
-        if (data) {
-          // Atualizar o contexto de autenticação com os dados do usuário
-          updateUserData({
-            id: user.id,
-            name: data.name || user.user_metadata?.name || 'Usuário',
-            role: data.role as UserRole
-          });
-
-          toast({
-            title: "Login realizado com sucesso!",
-            description: `Bem-vindo(a) ${data.name || user.user_metadata?.name || 'Usuário'}!`
-          });
-          
-          // Redirecionar baseado na role
-          switch (data.role) {
-            case 'portaria':
-              navigate('/entrance');
-              break;
-            case 'estoque':
-              navigate('/inventory');
-              break;
-            case 'vendedor':
-              navigate('/orders');
-              break;
-            case 'entregador':
-              navigate('/routes');
-              break;
-            default:
-              navigate('/dashboard'); // admin e gerente vão para o dashboard
-          }
-        }
+        // Navegação será feita pelo contexto de autenticação
       }
     } catch (error: any) {
       console.error("Erro de login:", error);
@@ -94,6 +61,11 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  // Se o usuário já estiver logado, não renderizar o formulário
+  if (user) {
+    return null;
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-green-50 to-white">

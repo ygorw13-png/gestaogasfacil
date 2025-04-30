@@ -1,16 +1,18 @@
 
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, Navigate } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { TopBar } from "./TopBar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function AppLayout() {
   const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    // Simulate loading app data
+    // Simular carregamento dos dados do aplicativo
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 400);
@@ -18,6 +20,21 @@ export function AppLayout() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Se estiver carregando dados de autenticação, exibir spinner
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="w-16 h-16 border-4 border-gasflow-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Se não estiver autenticado, redirecionar para o login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Se estiver carregando dados do app, exibir spinner
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">

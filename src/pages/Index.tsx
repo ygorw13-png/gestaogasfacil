@@ -5,7 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 const Index = () => {
   const { user, loading } = useAuth();
 
-  // Se estiver carregando, mostra uma tela de loading
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -14,7 +13,8 @@ const Index = () => {
     );
   }
 
-  // Se estiver autenticado, vai para o dashboard, senão vai para o login
+  // Se o usuário estiver autenticado, redireciona para o dashboard
+  // Caso contrário, redireciona para a página de login
   return user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
 };
 
