@@ -13,6 +13,7 @@ describe('useSupabaseQuery', () => {
     vi.mocked(useToast).mockReturnValue({
       toast: vi.fn(),
       dismiss: vi.fn(),
+      toasts: [], // Adicionado a propriedade toasts que estava faltando
       // Removido a propriedade update que estava causando erro
     });
   });
@@ -68,6 +69,7 @@ describe('useSupabaseQuery', () => {
     vi.mocked(useToast).mockReturnValue({
       toast,
       dismiss: vi.fn(),
+      toasts: [], // Adicionado a propriedade toasts que estava faltando
       // Removido a propriedade update que estava causando erro
     });
 

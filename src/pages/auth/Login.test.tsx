@@ -43,7 +43,8 @@ describe('Login Page', () => {
     // Mock para useToast
     vi.mocked(useToast).mockReturnValue({
       toast: vi.fn(),
-      dismiss: vi.fn()
+      dismiss: vi.fn(),
+      toasts: [], // Adicionado a propriedade toasts que estava faltando
       // Removido a propriedade update que estava causando erro
     });
   });
