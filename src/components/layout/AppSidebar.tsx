@@ -32,7 +32,8 @@ interface SidebarLinkProps {
 }
 
 const SidebarLink = ({ to, icon: Icon, label, className }: SidebarLinkProps) => {
-  const { isOpen } = useSidebar();
+  const sidebar = useSidebar();
+  const isOpen = sidebar.state === "expanded";
   
   return (
     <NavLink
@@ -54,16 +55,22 @@ const SidebarLink = ({ to, icon: Icon, label, className }: SidebarLinkProps) => 
 export function AppSidebar() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
-  const { isOpen, setIsOpen } = useSidebar();
+  const sidebar = useSidebar();
+  const isOpen = sidebar.state === "expanded";
+  const toggleSidebar = sidebar.toggleSidebar;
   const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
   
   useEffect(() => {
     if (isMobile) {
-      setIsOpen(false);
+      if (isOpen) {
+        sidebar.toggleSidebar();
+      }
     } else {
-      setIsOpen(true);
+      if (!isOpen) {
+        sidebar.toggleSidebar();
+      }
     }
-  }, [isMobile, setIsOpen]);
+  }, [isMobile, isOpen, sidebar]);
   
   if (!user) return null;
 
@@ -80,7 +87,7 @@ export function AppSidebar() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={toggleSidebar}
           className="h-8 w-8"
         >
           <Menu className="h-4 w-4" />
