@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ClosingTypeTabs } from "../ClosingTypeTabs";
 import { CashierData, PartialClosing } from "../../../types/cashierTypes";
 import { SummarySection } from "./SummarySection";
+import { prepareAdaptedSalesData } from "../../../utils/closingCalculations";
 
 interface CashierClosingFormProps {
   onSubmit: (type: "partial" | "total", observations?: string) => void;
@@ -34,24 +35,7 @@ export function CashierClosingForm({
   };
 
   // Converter totalSalesSinceLastPartial para um formato compatível com CashierData
-  const adaptedSalesData: CashierData = {
-    cash: cashierData.cash / 2,
-    credit: cashierData.credit / 2,
-    debit: cashierData.debit / 2,
-    pix: cashierData.pix / 2,
-    promissory: cashierData.promissory / 2,
-    gasVoucher: cashierData.gasVoucher / 2,
-    totalSales: totalSalesSinceLastPartial.amount,
-    quantities: {
-      cash: { p13: 0, p20: 0, p45: 0, water: 0 },
-      credit: { p13: 0, p20: 0, p45: 0, water: 0 },
-      debit: { p13: 0, p20: 0, p45: 0, water: 0 },
-      pix: { p13: 0, p20: 0, p45: 0, water: 0 },
-      promissory: { p13: 0, p20: 0, p45: 0, water: 0 },
-      gasVoucher: { p13: 0, p20: 0, p45: 0, water: 0 }
-    },
-    inventoryMovements: []
-  };
+  const adaptedSalesData = prepareAdaptedSalesData(cashierData, totalSalesSinceLastPartial.amount);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

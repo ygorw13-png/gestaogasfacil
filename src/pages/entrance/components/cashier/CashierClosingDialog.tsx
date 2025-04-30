@@ -14,7 +14,8 @@ import { CashierData, PartialClosing } from "../../types/cashierTypes";
 import { Button } from "@/components/ui/button";
 import { ClosingHistoryTable } from "./ClosingHistoryTable";
 import { CashierClosingForm } from "./dialogs/CashierClosingForm";
-import { getTotalSalesFromPartials, getTotalQuantityTypeFromPartials, getTotalQuantityFromPartials } from "../../utils/cashierUtils";
+import { getTotalSalesFromPartials } from "../../utils/cashierUtils";
+import { calculateSalesAmountSinceLastPartial } from "../../utils/closingCalculations";
 
 interface CashierClosingDialogProps {
   isOpen: boolean;
@@ -83,11 +84,3 @@ export function CashierClosingDialog({
     </Dialog>
   );
 }
-
-const calculateSalesAmountSinceLastPartial = (cashierData: CashierData, partialClosings: PartialClosing[]): number => {
-  if (partialClosings.length === 0) return cashierData.totalSales;
-  
-  const totalPartialSales = getTotalSalesFromPartials(partialClosings);
-  
-  return cashierData.totalSales - totalPartialSales;
-};
