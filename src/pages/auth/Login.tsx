@@ -24,12 +24,14 @@ export default function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen w-full bg-gradient-to-b from-green-50 to-white">
-      <LoginForm 
-        onSubmit={handleFormSubmit}
-        loading={loading}
-        error={error?.message || null}
-      />
+    <div className="flex items-center justify-center min-h-screen w-full bg-gradient-to-b from-green-50 to-white p-4 md:p-0">
+      <div className="w-full max-w-md">
+        <LoginForm 
+          onSubmit={handleFormSubmit}
+          loading={loading}
+          error={error?.message || null}
+        />
+      </div>
     </div>
   );
 }

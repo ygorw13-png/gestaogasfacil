@@ -41,6 +41,15 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     }
   });
 
+  // Adicionar log para depuração
+  useEffect(() => {
+    console.log("AuthGuard - Estado de autenticação:", { 
+      isLoading: loading, 
+      hasUser: !!user,
+      path: location.pathname 
+    });
+  }, [loading, user, location]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">

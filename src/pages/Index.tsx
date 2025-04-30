@@ -1,5 +1,5 @@
 
-import React, { useEffect, useCallback } from "react";
+import React, { useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -8,10 +8,6 @@ import { AlertTriangle } from "lucide-react";
 
 const Index = () => {
   const { user, loading, error } = useAuth();
-
-  useEffect(() => {
-    console.log("Index page - Estado de autenticação:", loading ? "carregando" : (user ? "autenticado" : "não autenticado"));
-  }, [user, loading]);
 
   const renderContent = useCallback(() => {
     if (loading) {
@@ -36,7 +32,7 @@ const Index = () => {
       );
     }
     
-    // Redirecionar para o dashboard apenas se autenticado, caso contrário para login
+    // Redirecionar para o login se não estiver autenticado
     return user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
   }, [user, loading, error]);
 

@@ -2,16 +2,16 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AppLayout } from "./components/layout/AppLayout";
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy } from "react";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SidebarProvider } from "./components/ui/sidebar";
-import { CashierProvider } from "./contexts/CashierContext";
 import { RoleGuard } from "./components/ui/RoleGuard";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { enforceHttps } from "./utils/securityUtils";
 import { SecurityHeaders } from "./components/security/SecurityHeaders";
 import { HelmetProvider } from 'react-helmet-async';
+import { useEffect } from "react";
 
 // Páginas de autenticação
 import Login from "./pages/auth/Login";
