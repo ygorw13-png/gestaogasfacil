@@ -23,4 +23,5 @@ export type Order = {
   deliveredAt?: Date;
   paymentMethod?: string;
   notes?: string;
+  userId?: string; // Added userId as an optional property
 };

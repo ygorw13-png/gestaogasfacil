@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Order, OrderStatus } from "../types";
@@ -66,7 +65,6 @@ export function useOrders() {
           deliveredAt: order.delivered_at ? new Date(order.delivered_at) : undefined,
           paymentMethod: order.payment_method,
           notes: order.notes,
-          // Adicionar userId para as mutações
           userId: user?.id
         };
       });
