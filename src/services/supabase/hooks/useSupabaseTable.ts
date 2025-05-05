@@ -7,7 +7,7 @@ import { useTableCRUD } from "./useTableCRUD";
  * Combined hook for data loading and CRUD operations
  * This is the main entry point for Supabase table operations
  */
-export function useSupabaseTable<T extends Record<string, any>>(
+export function useSupabaseTable(
   tableName: ValidTableName,
   options: {
     fetchOnMount?: boolean;
@@ -39,7 +39,7 @@ export function useSupabaseTable<T extends Record<string, any>>(
     fetchData,
     setData,
     refresh
-  } = useTableData<T>(tableName, {
+  } = useTableData(tableName, {
     fetchOnMount,
     initialQueryOptions,
     toastMessages: {
@@ -54,7 +54,7 @@ export function useSupabaseTable<T extends Record<string, any>>(
     createRecord,
     updateRecord,
     deleteRecord
-  } = useTableCRUD<T>(tableName, {
+  } = useTableCRUD(tableName, {
     idField,
     toastMessages: {
       createSuccess: toastMessages.createSuccess,
@@ -67,23 +67,23 @@ export function useSupabaseTable<T extends Record<string, any>>(
   });
 
   // Create state-updating versions of the CRUD operations
-  const wrappedCreateRecord = async (record: Omit<T, 'id'>) => {
+  const wrappedCreateRecord = async (record: Record<string, any>) => {
     const result = await createRecord(record);
     
     if (result.status === 'success' && result.data) {
-      setData(prev => [...prev, result.data as T]);
+      setData(prev => [...prev, result.data as Record<string, any>]);
     }
     
     return result;
   };
 
-  const wrappedUpdateRecord = async (id: string | number, updates: Partial<T>) => {
+  const wrappedUpdateRecord = async (id: string | number, updates: Record<string, any>) => {
     const result = await updateRecord(id, updates);
     
     if (result.status === 'success' && result.data) {
       setData(prev => 
         prev.map(item => 
-          item[idField as keyof T] === id ? (result.data as T) : item
+          item[idField] === id ? (result.data as Record<string, any>) : item
         )
       );
     }
@@ -95,7 +95,7 @@ export function useSupabaseTable<T extends Record<string, any>>(
     const result = await deleteRecord(id);
     
     if (result.status === 'success') {
-      setData(prev => prev.filter(item => item[idField as keyof T] !== id));
+      setData(prev => prev.filter(item => item[idField] !== id));
     }
     
     return result;
