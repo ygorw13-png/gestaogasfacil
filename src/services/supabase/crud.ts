@@ -78,7 +78,7 @@ export async function updateData(
       throw new Error(`Record not found after update: ${idColumn}=${id}`);
     }
     
-    // No complex type casting to avoid recursion
+    // Return the result without complex type casting
     return createSuccessResponse(result);
   } catch (error) {
     return createErrorResponse(error, `updateData in ${table}`);
