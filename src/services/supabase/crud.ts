@@ -49,23 +49,23 @@ export async function insertData<TData extends Record<string, any>>(
   }
 }
 
-// Completely refactored update function with simplified typing approach
-export async function updateData<TData extends Record<string, any>>(
+// Simple two-step update function that avoids complex type inference
+export async function updateData<TData>(
   table: ValidTableName,
   id: string,
-  data: Partial<TData>,
+  data: Partial<Record<string, unknown>>,
   idColumn: string = 'id'
 ): Promise<ApiResponse<TData>> {
   try {
-    // Perform the update operation
+    // Step 1: Perform the update operation with minimal type complexity
     const { error: updateError } = await supabase
       .from(table)
-      .update(data as Record<string, unknown>)
+      .update(data)
       .eq(idColumn, id);
     
     if (updateError) throw updateError;
     
-    // Fetch the updated record separately
+    // Step 2: Fetch the updated record in a separate query
     const { data: fetchedData, error: fetchError } = await supabase
       .from(table)
       .select('*')
@@ -78,8 +78,8 @@ export async function updateData<TData extends Record<string, any>>(
       throw new Error(`Record not found after update: ${idColumn}=${id}`);
     }
     
-    // Simple type casting without complex type inference
-    return createSuccessResponse(fetchedData as unknown as TData);
+    // Use a simple type assertion without complex generics
+    return createSuccessResponse<TData>(fetchedData as unknown as TData);
   } catch (error) {
     return createErrorResponse<TData>(error, `updateData in ${table}`);
   }
