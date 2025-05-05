@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { RealtimeChannel } from "@supabase/supabase-js";
+import { ValidTableName } from "@/services/supabaseService";
 
 type EventType = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
@@ -15,7 +16,7 @@ export interface RealtimePayload {
 }
 
 interface SupabaseRealtimeOptions {
-  table: string;
+  table: ValidTableName;
   schema?: string;
   event?: EventType;
   filter?: string;
@@ -48,8 +49,15 @@ export function useSupabaseRealtime({
           filter
         },
         (payload: any) => {
-          // Usar type assertion para evitar problemas de tipos profundos
-          const typedPayload = payload as RealtimePayload;
+          // Criar um payload tipado para nosso uso
+          const typedPayload: RealtimePayload = {
+            new: payload.new || {},
+            old: payload.old || {},
+            eventType: payload.eventType || 'UPDATE',
+            table,
+            schema
+          };
+          
           setLatestPayload(typedPayload);
           if (onRecordChange) onRecordChange(typedPayload);
         }

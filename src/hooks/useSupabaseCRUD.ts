@@ -57,7 +57,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       
       if (error) throw error;
       
-      return data as T[];
+      return data as unknown as T[];
     } catch (error) {
       return handleError(error, `Não foi possível carregar dados de ${tableName}`);
     } finally {
@@ -81,7 +81,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       
       if (error) throw error;
       
-      return data as T;
+      return data as unknown as T;
     } catch (error) {
       return handleError(error, `Não foi possível carregar o item de ${tableName}`);
     } finally {
@@ -110,7 +110,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
         description: successMessage
       });
       
-      return result as T;
+      return result as unknown as T;
     } catch (error) {
       return handleError(error, `Não foi possível criar o item em ${tableName}`);
     } finally {
@@ -150,7 +150,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
         description: successMessage
       });
       
-      return result as T;
+      return result as unknown as T;
     } catch (error) {
       return handleError(error, `Não foi possível atualizar o item em ${tableName}`);
     } finally {

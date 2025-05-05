@@ -78,7 +78,7 @@ function applyPagination(query: any, pagination?: { page: number; pageSize: numb
 }
 
 // Generic fetch function with error handling
-export async function fetchData<T>(
+export async function fetchData<TData extends Record<string, any>>(
   table: ValidTableName,
   queryOptions?: {
     columns?: string;
@@ -87,7 +87,7 @@ export async function fetchData<T>(
     pagination?: { page: number; pageSize: number };
     relations?: string[];
   }
-): Promise<ApiResponse<T[]>> {
+): Promise<ApiResponse<TData[]>> {
   try {
     let query = supabase.from(table).select(queryOptions?.columns || '*');
 
@@ -100,17 +100,17 @@ export async function fetchData<T>(
 
     if (error) throw error;
 
-    return createSuccessResponse(data as T[]);
+    return createSuccessResponse(data as unknown as TData[]);
   } catch (error) {
-    return createErrorResponse<T[]>(error, `fetchData from ${table}`);
+    return createErrorResponse<TData[]>(error, `fetchData from ${table}`);
   }
 }
 
 // Generic insert function with error handling
-export async function insertData<T>(
+export async function insertData<TData extends Record<string, any>>(
   table: ValidTableName,
-  data: Partial<T>
-): Promise<ApiResponse<T>> {
+  data: Partial<TData>
+): Promise<ApiResponse<TData>> {
   try {
     const { data: result, error } = await supabase
       .from(table)
@@ -120,19 +120,19 @@ export async function insertData<T>(
 
     if (error) throw error;
 
-    return createSuccessResponse(result as T);
+    return createSuccessResponse(result as unknown as TData);
   } catch (error) {
-    return createErrorResponse<T>(error, `insertData into ${table}`);
+    return createErrorResponse<TData>(error, `insertData into ${table}`);
   }
 }
 
 // Generic update function with error handling
-export async function updateData<T>(
+export async function updateData<TData extends Record<string, any>>(
   table: ValidTableName,
   id: string,
-  data: Partial<T>,
+  data: Partial<TData>,
   idColumn: string = 'id'
-): Promise<ApiResponse<T>> {
+): Promise<ApiResponse<TData>> {
   try {
     const { data: result, error } = await supabase
       .from(table)
@@ -143,9 +143,9 @@ export async function updateData<T>(
 
     if (error) throw error;
 
-    return createSuccessResponse(result as T);
+    return createSuccessResponse(result as unknown as TData);
   } catch (error) {
-    return createErrorResponse<T>(error, `updateData in ${table}`);
+    return createErrorResponse<TData>(error, `updateData in ${table}`);
   }
 }
 
@@ -192,7 +192,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
           .select(options?.columns || '*');
         
         if (error) throw error;
-        return data as TData[];
+        return data as unknown as TData[];
       },
       enabled: options?.enabled !== false,
       errorMessage: `Erro ao carregar dados de ${tableName}`
@@ -214,7 +214,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
           .single();
         
         if (error) throw error;
-        return data as TData;
+        return data as unknown as TData;
       },
       onSuccess: options?.onSuccess,
       onError: options?.onError,
@@ -241,7 +241,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
           .single();
         
         if (error) throw error;
-        return result as TData;
+        return result as unknown as TData;
       },
       onSuccess: options?.onSuccess,
       onError: options?.onError,

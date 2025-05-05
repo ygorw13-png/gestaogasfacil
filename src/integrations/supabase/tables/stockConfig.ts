@@ -29,7 +29,12 @@ export const stockConfigTable = {
         data: null,
         error: error instanceof PostgrestError 
           ? error 
-          : new PostgrestError("Erro ao buscar configurações")
+          : { 
+              message: "Erro ao buscar configurações",
+              details: String(error),
+              hint: "",
+              code: "custom_error"
+            } as PostgrestError
       };
     }
   },
@@ -49,7 +54,12 @@ export const stockConfigTable = {
         data: null,
         error: error instanceof PostgrestError 
           ? error 
-          : new PostgrestError("Erro ao inserir configuração")
+          : { 
+              message: "Erro ao inserir configuração",
+              details: String(error),
+              hint: "",
+              code: "custom_error"
+            } as PostgrestError
       };
     }
   },
@@ -72,7 +82,12 @@ export const stockConfigTable = {
         data: null,
         error: error instanceof PostgrestError 
           ? error 
-          : new PostgrestError("Erro ao atualizar configuração")
+          : { 
+              message: "Erro ao atualizar configuração",
+              details: String(error),
+              hint: "",
+              code: "custom_error"
+            } as PostgrestError
       };
     }
   },
@@ -90,7 +105,12 @@ export const stockConfigTable = {
       return {
         error: error instanceof PostgrestError 
           ? error 
-          : new PostgrestError("Erro ao excluir configuração")
+          : { 
+              message: "Erro ao excluir configuração",
+              details: String(error),
+              hint: "",
+              code: "custom_error"
+            } as PostgrestError
       };
     }
   },
@@ -111,7 +131,12 @@ export const stockConfigTable = {
         data: null,
         error: error instanceof PostgrestError 
           ? error 
-          : new PostgrestError(`Erro ao buscar configuração ${id}`)
+          : { 
+              message: `Erro ao buscar configuração ${id}`,
+              details: String(error),
+              hint: "",
+              code: "custom_error"
+            } as PostgrestError
       };
     }
   }

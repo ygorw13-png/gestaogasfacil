@@ -48,7 +48,7 @@ export async function fetchFromTable<T>(
       ? await query.single()
       : await query;
     
-    return { data: data as T, error };
+    return { data: data as unknown as T, error };
   } catch (error) {
     console.error(`Error fetching from ${tableName}:`, error);
     return { 
@@ -75,7 +75,7 @@ export async function insertIntoTable<T>(
       ? await query.select().single()
       : await query;
     
-    return { data: responseData as T, error };
+    return { data: responseData as unknown as T, error };
   } catch (error) {
     console.error(`Error inserting into ${tableName}:`, error);
     return { 
@@ -107,7 +107,7 @@ export async function updateInTable<T>(
       ? await query.select().single()
       : await query;
     
-    return { data: responseData as T, error };
+    return { data: responseData as unknown as T, error };
   } catch (error) {
     console.error(`Error updating in ${tableName}:`, error);
     return { 
@@ -167,7 +167,7 @@ export function subscribeToTable(
   const channel = supabase
     .channel(`public-${tableName}-changes`)
     .on(
-      'postgres_changes',
+      'postgres_changes' as any,
       {
         event,
         schema: 'public',
