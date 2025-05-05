@@ -16,18 +16,18 @@ export function useLoginForm() {
   const { toast } = useToast();
   const { user, signIn } = useAuth();
 
-  // Limpar erros quando o componente é montado ou desmontado
+  // Clear errors when component is mounted or unmounted
   useEffect(() => {
     clearError();
     return () => clearError();
   }, [clearError]);
 
-  // Verificar se o usuário já está autenticado
+  // Check if user is already authenticated
   useEffect(() => {
     if (user) {
-      logger.debug("Login page - Usuário já autenticado, redirecionando", { module: 'auth', user: user.id });
+      logger.debug("Login page - User already authenticated, redirecting", { module: 'auth', user: user.id });
       
-      // Redirecionar para página anterior se disponível, caso contrário para o dashboard
+      // Redirect to previous page if available, otherwise to dashboard
       const from = location.state?.from?.pathname || '/dashboard';
       navigate(from, { replace: true });
     }
@@ -37,17 +37,17 @@ export function useLoginForm() {
     setLoading(true);
     clearError();
     
-    // Sanitizar entradas para prevenir XSS
+    // Sanitize inputs to prevent XSS
     const sanitizedEmail = sanitizeHtml(email.trim().toLowerCase());
     
-    // Verificar proteção contra força bruta
+    // Check brute force protection
     const loginStatus = checkLoginStatus(sanitizedEmail);
     if (loginStatus.blocked) {
       const minutesLeft = loginStatus.blockExpiresAt 
         ? Math.ceil((loginStatus.blockExpiresAt - Date.now()) / (60 * 1000))
         : 15;
       
-      logger.warn("Tentativa de login bloqueada por excesso de tentativas", 
+      logger.warn("Login attempt blocked due to too many attempts", 
         { module: 'auth' }, 
         { email: sanitizedEmail, remainingMinutes: minutesLeft }
       );
@@ -61,23 +61,23 @@ export function useLoginForm() {
       return;
     }
 
-    logger.debug("Tentativa de login com:", { module: 'auth' }, { email: sanitizedEmail });
+    logger.debug("Login attempt with:", { module: 'auth' }, { email: sanitizedEmail });
 
     try {
-      // Adicionar token CSRF na requisição de login
+      // Add CSRF token to login request
       const { success, error } = await signIn(sanitizedEmail, password, { csrfToken });
       
       if (success) {
-        logger.info("Login realizado com sucesso via formulário", { module: 'auth' });
+        logger.info("Login successful via form", { module: 'auth' });
         toast({
           title: "Login realizado com sucesso!",
           description: "Bem-vindo(a) de volta!"
         });
-        // Resetar contador de tentativas falhas
+        // Reset failed attempts counter
         resetFailedAttempts(sanitizedEmail);
-        // A navegação será tratada pelo useEffect que observa a alteração do usuário
+        // Navigation will be handled by the useEffect that watches for user changes
       } else {
-        logger.warn("Falha no login:", { module: 'auth' }, { email: sanitizedEmail, error });
+        logger.warn("Login failed:", { module: 'auth' }, { email: sanitizedEmail, error });
         handleError(new Error(error || "Falha no login. Verifique suas credenciais."));
         toast({
           title: "Erro ao fazer login",
@@ -85,7 +85,7 @@ export function useLoginForm() {
           variant: "destructive"
         });
         
-        // Registrar tentativa falha
+        // Register failed attempt
         const failStatus = registerFailedAttempt(sanitizedEmail);
         if (failStatus.attemptsLeft > 0) {
           toast({
@@ -96,7 +96,7 @@ export function useLoginForm() {
         }
       }
     } catch (error: any) {
-      logger.error("Exceção no login:", { module: 'auth' }, error);
+      logger.error("Exception during login:", { module: 'auth' }, error);
       handleError(error);
       toast({
         title: "Erro ao fazer login",
@@ -104,7 +104,7 @@ export function useLoginForm() {
         variant: "destructive"
       });
       
-      // Registrar tentativa falha
+      // Register failed attempt
       registerFailedAttempt(sanitizedEmail);
     } finally {
       setLoading(false);

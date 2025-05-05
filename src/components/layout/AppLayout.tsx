@@ -10,16 +10,16 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { cn } from "@/lib/utils";
 
-// Componente de conteúdo para gerenciar o layout com base no estado da sidebar
+// Content component to manage layout based on sidebar state
 const MainContent = memo(() => {
   const sidebar = useSidebar();
   const isOpen = sidebar.state === "expanded";
   const isMobile = useIsMobile();
   const location = useLocation();
 
-  // Log para ajudar a debugar o layout
+  // Debug logging
   useEffect(() => {
-    console.log("MainContent - Renderizado:", {
+    console.log("MainContent - Rendered:", {
       path: location.pathname,
       sidebarState: sidebar.state,
       isMobile
@@ -39,7 +39,7 @@ const MainContent = memo(() => {
         </main>
       </ErrorBoundary>
       {isMobile && (
-        <div className="h-16">{/* Espaço para navegação mobile */}</div>
+        <div className="h-16">{/* Space for mobile navigation */}</div>
       )}
     </div>
   );
@@ -54,9 +54,9 @@ export function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Log para ajudar a debugar o layout
+  // Debug logging
   useEffect(() => {
-    console.log("AppLayout - Montado:", { 
+    console.log("AppLayout - Mounted:", { 
       path: location.pathname,
       hasUser: !!user,
       isMobile
@@ -64,27 +64,27 @@ export function AppLayout() {
   }, [location.pathname, user, isMobile]);
 
   useEffect(() => {
-    // Verificar se o usuário está autenticado
+    // Check if user is authenticated
     if (!user) {
-      console.log("AppLayout - Usuário não autenticado, redirecionando para login");
-      navigate("/login", { replace: true });
+      console.log("AppLayout - User not authenticated, redirecting to login");
+      navigate("/login", { replace: true, state: { from: location } });
       return;
     }
 
-    // Simular carregamento apenas se tivermos um usuário autenticado
+    // Simulate loading only if we have an authenticated user
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 400);
     
     return () => clearTimeout(timer);
-  }, [user, navigate]);
+  }, [user, navigate, location]);
 
-  // Adicionar foco ao conteúdo principal quando carregado
+  // Focus main content when loaded
   useEffect(() => {
     if (!isLoading) {
       const mainContent = document.getElementById('main-content');
       if (mainContent) {
-        // Adicionamos um pequeno delay para garantir que o DOM esteja pronto
+        // Small delay to ensure DOM is ready
         setTimeout(() => {
           mainContent.focus();
         }, 100);

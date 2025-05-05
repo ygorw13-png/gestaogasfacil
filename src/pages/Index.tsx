@@ -9,9 +9,9 @@ import { AlertTriangle } from "lucide-react";
 const Index = () => {
   const { user, loading, error } = useAuth();
 
-  // Log para debugging
+  // Debug logging
   useEffect(() => {
-    console.log("Index - Estado de autenticação:", { 
+    console.log("Index - Authentication state:", { 
       isLoading: loading, 
       hasUser: !!user,
       errorMsg: error?.message
@@ -41,8 +41,7 @@ const Index = () => {
       );
     }
     
-    // Redirecionar para o login se não estiver autenticado
-    // Só vai para o dashboard quando já estiver autenticado
+    // Redirect to dashboard if authenticated, otherwise to login
     return user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
   }, [user, loading, error]);
 

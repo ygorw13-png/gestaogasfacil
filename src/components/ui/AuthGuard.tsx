@@ -21,7 +21,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   const location = useLocation();
   const { refreshCsrfToken } = useCsrfProtection();
 
-  // Melhor log para depuração
+  // Debug logging
   useEffect(() => {
     console.log("AuthGuard - Estado de autenticação:", { 
       path: location.pathname,
@@ -31,25 +31,24 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     });
   }, [loading, user, error, location.pathname]);
 
-  // Atualizar o token CSRF apenas uma vez quando o componente montar
+  // Update CSRF token only once when component mounts
   useEffect(() => {
-    if (!user) return; // Não atualizar o token se não houver usuário
+    if (!user) return; // Don't update token if there's no user
     
     const handleRefreshToken = () => {
       refreshCsrfToken();
     };
     
-    // Executar apenas uma vez na montagem do componente quando usuário estiver autenticado
+    // Run only once on component mount when user is authenticated
     handleRefreshToken();
-    // Importante: Não incluir refreshCsrfToken na lista de dependências para evitar loop infinito
-  }, [user]);
+  }, [user, refreshCsrfToken]);
   
-  // Configurar logout automático após 30 minutos de inatividade
+  // Set up automatic logout after 30 minutes of inactivity
   useSecurityTimeout({
     timeoutMinutes: 30,
     onTimeout: () => {
       if (user) {
-        console.log("Sessão expirada por inatividade");
+        console.log("Session expired due to inactivity");
         signOut();
       }
     }
@@ -79,9 +78,10 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     );
   }
 
+  // If no user is logged in, redirect to login
   if (!user) {
     console.log("AuthGuard - Usuário não autenticado, redirecionando para login de:", location.pathname);
-    // Salvar a localização atual para redirecionar de volta após o login
+    // Save current location to redirect back after login
     return <Navigate to={redirectTo} replace state={{ from: location }} />;
   }
 

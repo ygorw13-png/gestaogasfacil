@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AppLayout } from "./components/layout/AppLayout";
@@ -13,14 +12,14 @@ import { HelmetProvider } from 'react-helmet-async';
 import { useEffect } from "react";
 import { AuthGuard } from "./components/ui/AuthGuard";
 
-// Páginas de autenticação
+// Authentication pages
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ResetPassword from "./pages/auth/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 
-// Carregamento lazy das páginas para melhor desempenho
+// Lazy loading pages for better performance
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Clients = lazy(() => import("./pages/clients/Clients"));
 const Orders = lazy(() => import("./pages/orders/Orders"));
@@ -40,14 +39,14 @@ const Settings = lazy(() => import("./pages/settings/Settings"));
 const Expenses = lazy(() => import("./pages/finance/Expenses"));
 const Colaboradores = lazy(() => import("./pages/colaboradores/Colaboradores"));
 
-// Componente de carregamento para lazy loading
+// Loading component for lazy loading
 const LoadingComponent = () => (
   <div className="flex justify-center items-center p-8 h-screen">
     <LoadingSpinner size="lg" message="Carregando..." />
   </div>
 );
 
-// Criar cliente de consulta
+// Create query client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -58,7 +57,7 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  // Forçar HTTPS em ambiente de produção
+  // Force HTTPS in production environment
   useEffect(() => {
     enforceHttps();
   }, []);
@@ -70,16 +69,16 @@ function App() {
           <div className="w-full min-h-screen bg-background">
             <SecurityHeaders />
             <Routes>
-              {/* Rota raiz verifica autenticação e redireciona */}
+              {/* Root route checks authentication and redirects */}
               <Route path="/" element={<Index />} />
               
-              {/* Rotas públicas de autenticação */}
+              {/* Public authentication routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/404" element={<NotFound />} />
               
-              {/* Rotas protegidas com AppLayout - todas acessíveis para usuários autenticados */}
+              {/* Protected routes with AppLayout - all accessible to authenticated users */}
               <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
                 <Route path="/dashboard" element={
                   <Suspense fallback={<LoadingComponent />}>
@@ -173,7 +172,7 @@ function App() {
                 } />
               </Route>
               
-              {/* Rota coringa para páginas não encontradas */}
+              {/* Wildcard route for pages not found */}
               <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
             <Toaster richColors closeButton position="top-right" />

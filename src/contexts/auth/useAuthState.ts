@@ -22,11 +22,11 @@ export function useAuthState() {
     setUser(session?.user || null);
     setLoading(false);
     
-    // Log de alteração de estado de autenticação
+    // Log authentication state change
     if (session?.user) {
-      logger.debug("Estado de autenticação alterado", { module: 'auth', user: session.user.id });
+      logger.debug("Authentication state changed", { module: 'auth', user: session.user.id });
     } else {
-      logger.debug("Estado de autenticação alterado para deslogado", { module: 'auth' });
+      logger.debug("Authentication state changed to logged out", { module: 'auth' });
     }
     
     // If there's a user, fetch their profile
@@ -38,7 +38,7 @@ export function useAuthState() {
             if (organizations) setOrganization(organizations);
           })
           .catch(err => {
-            logger.error('Erro ao buscar perfil de usuário', { module: 'auth', user: session.user.id }, err);
+            logger.error('Error fetching user profile', { module: 'auth', user: session.user.id }, err);
             setError(err instanceof Error ? err : new Error('Error fetching user profile'));
           });
       }, 0);
@@ -55,25 +55,25 @@ export function useAuthState() {
     setError(null);
     
     if (currentUserId) {
-      logger.debug("Estado de autenticação resetado", { module: 'auth', user: currentUserId });
+      logger.debug("Authentication state reset", { module: 'auth', user: currentUserId });
     }
   };
 
   // Initialize authentication and setup listener
   useEffect(() => {
-    logger.info("Verificando sessão atual...", { module: 'auth' });
+    logger.info("Checking current session...", { module: 'auth' });
     setLoading(true);
     
     // Set up listener for authentication state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      logger.debug("Estado de autenticação alterado:", { module: 'auth' }, { event, userId: session?.user?.id });
+      logger.debug("Authentication state changed:", { module: 'auth' }, { event, userId: session?.user?.id });
       handleAuthStateChange(session);
     });
 
     // Check if a session already exists
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        logger.error("Erro ao obter sessão:", { module: 'auth' }, error);
+        logger.error("Error getting session:", { module: 'auth' }, error);
         setError(error);
         setLoading(false);
         return;
@@ -86,36 +86,6 @@ export function useAuthState() {
       subscription.unsubscribe();
     };
   }, []);
-
-  // Add inactivity check for automatic logout
-  useEffect(() => {
-    if (!session) return;
-
-    let inactivityTimer: number | undefined;
-    
-    const resetInactivityTimer = () => {
-      if (inactivityTimer) clearTimeout(inactivityTimer);
-      
-      // Logout after 30 minutes of inactivity
-      inactivityTimer = window.setTimeout(() => {
-        logger.auth.sessionExpired(session.user.id);
-        resetAuthState();
-      }, 30 * 60 * 1000); // 30 minutes
-    };
-    
-    // Events to reset the inactivity timer
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-    
-    // Start the timer and add listeners
-    resetInactivityTimer();
-    events.forEach(event => document.addEventListener(event, resetInactivityTimer));
-    
-    return () => {
-      // Clear the timer and remove listeners when component unmounts
-      if (inactivityTimer) clearTimeout(inactivityTimer);
-      events.forEach(event => document.removeEventListener(event, resetInactivityTimer));
-    };
-  }, [session]);
 
   return {
     user,

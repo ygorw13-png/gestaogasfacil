@@ -3,25 +3,38 @@ import { useCsrfProtection } from '@/utils/csrfProtection';
 import LoginForm from '@/components/auth/LoginForm';
 import { useLoginForm } from '@/hooks/useLoginForm';
 import { validateEmail } from '@/utils/inputValidation';
+import { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Login() {
   const { loading, error, user, handleSubmit } = useLoginForm();
   const { csrfToken } = useCsrfProtection();
+  const navigate = useNavigate();
+  const location = useLocation();
   
-  // If the user is already logged in, don't render the form
-  if (user) return null;
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (user) {
+      console.log("Login - User already logged in, redirecting");
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, location]);
 
   const handleFormSubmit = async (email: string, password: string): Promise<void> => {
     try {
-      // Validar email antes de enviar
+      // Validate email before sending
       const validatedEmail = validateEmail(email);
-      // Chamar o handler de submit com os dados validados
+      // Call submit handler with validated data
       return await handleSubmit(validatedEmail, password, csrfToken);
     } catch (error: any) {
-      console.error("Erro de validação:", error.message);
+      console.error("Validation error:", error.message);
       throw error;
     }
   };
+
+  // Don't render login form if user is already logged in
+  if (user) return null;
 
   return (
     <div className="flex min-h-screen w-full bg-gradient-to-b from-green-50 to-white">
@@ -35,6 +48,7 @@ export default function Login() {
               onSubmit={handleFormSubmit}
               loading={loading}
               error={error?.message || null}
+              csrfToken={csrfToken}
             />
           </div>
         </div>
