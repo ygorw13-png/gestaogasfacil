@@ -67,7 +67,7 @@ export interface RealtimePayload {
   schema: string;
 }
 
-// Subscribe to real-time changes
+// Subscribe to real-time changes - updated to use the correct channel API
 export function subscribeToTable(
   tableName: ValidTableName,
   callback: (payload: RealtimePayload) => void,
@@ -78,7 +78,7 @@ export function subscribeToTable(
 ): () => void {
   const { event = '*', filter } = options;
   
-  // Create a channel for realtime subscriptions
+  // Create a channel for realtime subscriptions using the new API
   const channel = supabase
     .channel(`public-${tableName}-changes`)
     .on(

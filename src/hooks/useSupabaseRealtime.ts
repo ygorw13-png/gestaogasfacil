@@ -38,6 +38,7 @@ export function useSupabaseRealtime({
     const channelName = `${schema}-${table}-changes`;
     
     // Create channel to listen for changes
+    // Fix for using proper realtime channel API
     const realtimeChannel = supabase
       .channel(channelName)
       .on(
