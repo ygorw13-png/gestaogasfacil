@@ -49,8 +49,8 @@ export async function insertData<TData extends Record<string, any>>(
   }
 }
 
-// Completely rewritten update function to avoid type recursion issues
-export async function updateData<TData>(
+// Completely rewritten update function to eliminate type recursion
+export async function updateData<TData = any>(
   table: ValidTableName,
   id: string,
   data: Record<string, any>,
@@ -78,8 +78,8 @@ export async function updateData<TData>(
       throw new Error(`Record not found after update: ${idColumn}=${id}`);
     }
     
-    // Use a direct type assertion to avoid complex type inference
-    return createSuccessResponse<TData>(result as TData);
+    // Use a direct type assertion with minimal type inference
+    return createSuccessResponse<TData>(result as unknown as TData);
   } catch (error) {
     return createErrorResponse<TData>(error, `updateData in ${table}`);
   }
