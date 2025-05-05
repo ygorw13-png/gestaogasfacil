@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { ApiResponse } from '@/services/supabase/types';
 
 // Example type definition
 interface StockItem {
@@ -25,7 +24,7 @@ export function SupabaseHooksExample() {
     createRecord,
     updateRecord,
     deleteRecord
-  } = useSupabaseTable<StockItem>('configuracoes_estoque', {
+  } = useSupabaseTable('configuracoes_estoque', {
     fetchOnMount: true,
     toastMessages: {
       createSuccess: 'Item adicionado com sucesso',
@@ -42,7 +41,7 @@ export function SupabaseHooksExample() {
     update,
     remove,
     loading: crudLoading
-  } = useSupabaseCRUD<StockItem>('configuracoes_estoque');
+  } = useSupabaseCRUD('configuracoes_estoque');
 
   // Component state
   const [newItemName, setNewItemName] = useState('');
@@ -53,7 +52,6 @@ export function SupabaseHooksExample() {
   const handleCreateItem = () => {
     if (!newItemName) return;
     
-    // Fixed the type error by removing 'id' from the record being created
     createRecord({
       produto: newItemName,
       estoque_minimo: 10,
@@ -69,7 +67,7 @@ export function SupabaseHooksExample() {
     
     // Fixed error by checking if result is an Error before accessing data
     if (result && !(result instanceof Error)) {
-      setDetailItem(result);
+      setDetailItem(result as StockItem);
       setSelectedItemId(id);
     }
   };

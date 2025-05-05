@@ -6,7 +6,7 @@ import { ValidTableName } from "@/services/supabaseService";
 import { useSupabaseErrorHandler, buildSupabaseQuery } from "./useSupabaseHelpers";
 
 // Hook reutilizável para operações CRUD no Supabase com tratamento de erro padronizado
-export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidTableName) {
+export function useSupabaseCRUD(tableName: ValidTableName) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<PostgrestError | Error | null>(null);
   
@@ -35,7 +35,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       
       if (error) throw error;
       
-      return data as unknown as T[];
+      return data as Record<string, any>[];
     } catch (error) {
       return handleError(error, `Não foi possível carregar dados de ${tableName}`);
     } finally {
@@ -59,7 +59,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       
       if (error) throw error;
       
-      return data as unknown as T;
+      return data as Record<string, any>;
     } catch (error) {
       return handleError(error, `Não foi possível carregar o item de ${tableName}`);
     } finally {
@@ -68,7 +68,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
   }, [tableName, handleError]);
 
   // Criar um novo registro
-  const create = useCallback(async (data: Omit<T, 'id'>, options?: { successMessage?: string }) => {
+  const create = useCallback(async (data: Record<string, any>, options?: { successMessage?: string }) => {
     setLoading(true);
     setError(null);
     
@@ -84,7 +84,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       if (error) throw error;
       
       handleSuccess(successMessage);
-      return result as unknown as T;
+      return result as Record<string, any>;
     } catch (error) {
       return handleError(error, `Não foi possível criar o item em ${tableName}`);
     } finally {
@@ -95,7 +95,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
   // Atualizar um registro existente
   const update = useCallback(async (
     id: string, 
-    data: Partial<T>, 
+    data: Record<string, any>, 
     options?: { 
       successMessage?: string;
       idField?: string;
@@ -132,7 +132,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       }
       
       handleSuccess(successMessage);
-      return result as unknown as T;
+      return result as Record<string, any>;
     } catch (error) {
       return handleError(error, `Não foi possível atualizar o item em ${tableName}`);
     } finally {
