@@ -190,7 +190,7 @@ export function useSupabaseTable<T>(tableName: ValidTableName) {
   }) => {
     const queryKey = options?.queryKey || [tableName];
     
-    return useSupabaseQuery<T>({
+    return useSupabaseQuery<T[]>({
       queryKey,
       queryFn: async () => {
         const { data, error } = await supabase

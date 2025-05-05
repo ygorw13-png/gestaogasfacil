@@ -149,7 +149,7 @@ export async function deleteFromTable(
 }
 
 // Subscribe to real-time changes
-export function subscribeToTable(
+export function subscribeToTable<T = any>(
   tableName: ValidTableName,
   callback: (payload: any) => void,
   options: {

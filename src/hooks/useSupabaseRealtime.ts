@@ -31,7 +31,7 @@ export function useSupabaseRealtime({
     const realtimeChannel = supabase
       .channel(channelName)
       .on(
-        'postgres_changes', // This is the correct event type for Supabase realtime
+        'postgres_changes',
         {
           event,
           schema,
