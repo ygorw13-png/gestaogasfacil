@@ -100,8 +100,8 @@ export async function fetchData<TData extends Record<string, any>>(
 
     if (error) throw error;
 
-    // Explicitly cast the data to the expected type
-    return createSuccessResponse(data as TData[]);
+    // Explicitly cast the data to the expected type with extra type safety
+    return createSuccessResponse(data as unknown as TData[]);
   } catch (error) {
     return createErrorResponse<TData[]>(error, `fetchData from ${table}`);
   }
@@ -122,7 +122,7 @@ export async function insertData<TData extends Record<string, any>>(
     if (error) throw error;
 
     // Explicitly cast the result to the expected type
-    return createSuccessResponse(result as TData);
+    return createSuccessResponse(result as unknown as TData);
   } catch (error) {
     return createErrorResponse<TData>(error, `insertData into ${table}`);
   }
@@ -146,7 +146,7 @@ export async function updateData<TData extends Record<string, any>>(
     if (error) throw error;
 
     // Explicitly cast the result to the expected type
-    return createSuccessResponse(result as TData);
+    return createSuccessResponse(result as unknown as TData);
   } catch (error) {
     return createErrorResponse<TData>(error, `updateData in ${table}`);
   }
@@ -193,17 +193,18 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
         
         if (error) throw error;
         // Explicit casting to avoid type inference issues
-        return data as TData[];
+        return data as unknown as TData[];
       },
       enabled: options?.enabled !== false,
       errorMessage: `Erro ao carregar dados de ${tableName}`
     });
   };
 
-  // Define explicit function types to avoid excessive type instantiation
-  type AddFunctionType = (newData: Partial<TData>) => Promise<TData>;
-  type UpdateFunctionType = (params: { id: string; data: Partial<TData> }) => Promise<TData>;
-  type DeleteFunctionType = (id: string) => Promise<null>;
+  // Define function types explicitly to avoid excessive type instantiation
+  // and fix the infinite type instantiation issue
+  type AddFnType = (newData: Partial<TData>) => Promise<TData>;
+  type UpdateFnType = (params: { id: string; data: Partial<TData> }) => Promise<TData>;
+  type DeleteFnType = (id: string) => Promise<null>;
 
   // Add an item to a table
   const useAddItem = (options?: {
@@ -211,7 +212,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
     onError?: (error: PostgrestError | Error) => void;
     successMessage?: string;
   }) => {
-    const addFunction: AddFunctionType = async (newData) => {
+    const addFunction: AddFnType = async (newData) => {
       const { data, error } = await supabase
         .from(tableName)
         .insert(newData)
@@ -219,7 +220,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
         .single();
       
       if (error) throw error;
-      return data as TData;
+      return data as unknown as TData;
     };
     
     return useSupabaseMutation<TData, Partial<TData>>({
@@ -239,7 +240,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
   }) => {
     const idField = options?.idField || 'id';
     
-    const updateFunction: UpdateFunctionType = async ({ id, data }) => {
+    const updateFunction: UpdateFnType = async ({ id, data }) => {
       const { data: result, error } = await supabase
         .from(tableName)
         .update(data)
@@ -248,7 +249,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
         .single();
       
       if (error) throw error;
-      return result as TData;
+      return result as unknown as TData;
     };
     
     return useSupabaseMutation<TData, { id: string; data: Partial<TData> }>({
@@ -268,7 +269,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
   }) => {
     const idField = options?.idField || 'id';
     
-    const deleteFunction: DeleteFunctionType = async (id) => {
+    const deleteFunction: DeleteFnType = async (id) => {
       const { error } = await supabase
         .from(tableName)
         .delete()

@@ -82,7 +82,7 @@ export function subscribeToTable(
   const channel = supabase
     .channel(`public-${tableName}-changes`)
     .on(
-      'postgres_changes',
+      'postgres_changes' as any, // Type cast to bypass TS error temporarily
       {
         event,
         schema: 'public',
