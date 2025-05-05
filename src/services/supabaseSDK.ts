@@ -29,20 +29,22 @@ export async function fetchFromTable<T>(
     if (where) {
       Object.entries(where).forEach(([key, value]) => {
         if (value !== undefined) {
-          // Use eq method for equality filters
-          query = query.eq(key, value);
+          // Use type assertion to avoid deep type instantiation
+          query = query.eq(key, value) as any;
         }
       });
     }
     
     // Apply ordering
     if (orderBy) {
-      query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
+      // Use type assertion to avoid deep type instantiation
+      query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true }) as any;
     }
     
     // Apply limit
     if (limit) {
-      query = query.limit(limit);
+      // Use type assertion to avoid deep type instantiation
+      query = query.limit(limit) as any;
     }
     
     // Execute query
