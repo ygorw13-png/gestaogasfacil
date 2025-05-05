@@ -49,7 +49,7 @@ export async function insertData<TData extends Record<string, any>>(
   }
 }
 
-// Fully refactored update function avoiding complex type inference completely
+// Simplified update function that avoids type inference issues
 export async function updateData<TData extends Record<string, any>>(
   table: ValidTableName,
   id: string,
@@ -57,69 +57,31 @@ export async function updateData<TData extends Record<string, any>>(
   idColumn: string = 'id'
 ): Promise<ApiResponse<TData>> {
   try {
-    // Step 1: First just update the record without type inference
-    const updateQuery = `UPDATE ${table} SET ${Object.keys(data).map(key => `${key} = $${key}`).join(', ')} WHERE ${idColumn} = $id RETURNING *`;
+    // First update the data without type inference issues
+    const updateResult = await supabase
+      .from(table)
+      .update(data as Record<string, any>)
+      .eq(idColumn, id);
     
-    // Build parameters object for the query
-    const params: Record<string, any> = { ...data, id };
+    if (updateResult.error) throw updateResult.error;
     
-    // Execute the raw query as string to bypass TypeScript inference
-    const { data: updated, error: updateError } = await supabase.rpc('execute_sql', { 
-      sql_query: updateQuery,
-      params: params
-    });
+    // Then fetch the updated record separately
+    const { data: fetchedData, error: fetchError } = await supabase
+      .from(table)
+      .select('*')
+      .eq(idColumn, id)
+      .maybeSingle();
     
-    if (updateError) throw updateError;
+    if (fetchError) throw fetchError;
     
-    if (!updated || updated.length === 0) {
-      // If no record was updated, fetch it to check if it exists
-      const { data: existingData, error: fetchError } = await supabase
-        .from(table)
-        .select('*')
-        .eq(idColumn, id)
-        .maybeSingle();
-      
-      if (fetchError) throw fetchError;
-      
-      if (!existingData) {
-        throw new Error(`Record not found: ${idColumn}=${id}`);
-      }
-      
-      // Record exists but no fields were changed
-      return createSuccessResponse(existingData as TData);
+    if (!fetchedData) {
+      throw new Error(`Record not found: ${idColumn}=${id}`);
     }
     
-    // Return the first record from the update operation
-    return createSuccessResponse(updated[0] as TData);
+    // Use double casting to safely convert to the expected type
+    return createSuccessResponse(fetchedData as unknown as TData);
   } catch (error) {
-    // Fallback approach if the rpc method fails
-    try {
-      // First do the update without returning data
-      const { error: updateError } = await supabase
-        .from(table)
-        .update(data as Record<string, any>)
-        .eq(idColumn, id);
-      
-      if (updateError) throw updateError;
-      
-      // Then fetch the updated record
-      const { data: fetchedData, error: fetchError } = await supabase
-        .from(table)
-        .select('*')
-        .eq(idColumn, id)
-        .maybeSingle();
-      
-      if (fetchError) throw fetchError;
-      
-      if (!fetchedData) {
-        throw new Error(`Record not found after update: ${idColumn}=${id}`);
-      }
-      
-      return createSuccessResponse(fetchedData as TData);
-    } catch (fallbackError) {
-      // If both approaches fail, return the original error
-      return createErrorResponse<TData>(error, `updateData in ${table}`);
-    }
+    return createErrorResponse<TData>(error, `updateData in ${table}`);
   }
 }
 
