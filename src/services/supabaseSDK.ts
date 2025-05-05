@@ -22,7 +22,11 @@ export async function fetchFromTable<T>(
   try {
     const { columns = '*', where, orderBy, limit, single } = options;
     
-    let query = supabase.from(tableName).select(columns);
+    // Start with a basic query - explicitly type the query variable to avoid deep type instantiation
+    const baseQuery = supabase.from(tableName).select(columns);
+    
+    // Apply filters - use a mutable variable to track the query state
+    let query = baseQuery;
     
     // Apply filters
     if (where) {
