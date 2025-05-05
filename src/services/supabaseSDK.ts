@@ -22,29 +22,27 @@ export async function fetchFromTable<T>(
   try {
     const { columns = '*', where, orderBy, limit, single } = options;
     
-    // Start with a basic query
-    let query = supabase.from(tableName).select(columns);
+    // Start with a basic query - use type assertion here at the beginning
+    // This prevents TypeScript from trying to deeply infer the type through chaining
+    let query = supabase.from(tableName).select(columns) as any;
     
     // Apply filters
     if (where) {
       Object.entries(where).forEach(([key, value]) => {
         if (value !== undefined) {
-          // Use type assertion to avoid deep type instantiation
-          query = query.eq(key, value) as any;
+          query = query.eq(key, value);
         }
       });
     }
     
     // Apply ordering
     if (orderBy) {
-      // Use type assertion to avoid deep type instantiation
-      query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true }) as any;
+      query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
     }
     
     // Apply limit
     if (limit) {
-      // Use type assertion to avoid deep type instantiation
-      query = query.limit(limit) as any;
+      query = query.limit(limit);
     }
     
     // Execute query
@@ -85,11 +83,14 @@ export function subscribeToTable(
 ): () => void {
   const { event = '*', filter } = options;
   
-  // Create a channel with simpler configuration to avoid deep type instantiation
+  // Create a channel with type assertion to avoid deep type instantiation
   const channel = supabase
-    .channel(`public-${tableName}-changes`)
+    .channel(`public-${tableName}-changes`) as any;
+  
+  // Setup the channel subscription with type casting to avoid deep inference
+  const subscription = channel
     .on(
-      'postgres_changes' as any,
+      'postgres_changes',
       {
         event,
         schema: 'public',
