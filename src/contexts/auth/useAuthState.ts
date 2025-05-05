@@ -38,8 +38,12 @@ export function useAuthState() {
             if (organizations) setOrganization(organizations);
           })
           .catch(err => {
+            // Log the error but don't block the user from proceeding
             logger.error('Error fetching user profile', { module: 'auth', user: session.user.id }, err);
-            setError(err instanceof Error ? err : new Error('Error fetching user profile'));
+            
+            // Don't set error state to prevent blocking the authentication flow
+            // Instead, we'll assume this is a new user and they can continue without profile data
+            // The profile will be created later or can be retried on subsequent logins
           });
       }, 0);
     }

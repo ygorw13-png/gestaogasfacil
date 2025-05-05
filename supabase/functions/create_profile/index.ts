@@ -38,21 +38,24 @@ serve(async (req) => {
       )
     }
 
-    // Verificar se o email já está cadastrado como usuário
-    const { data: existingUser } = await supabaseClient
+    // Verificar se o perfil já existe
+    const { data: existingProfile } = await supabaseClient
       .from('profiles')
-      .select('email')
+      .select('id')
       .eq('id', user_id)
       .single()
 
-    if (existingUser) {
+    if (existingProfile) {
+      // Se o perfil já existe, retornar uma resposta de sucesso
+      // para evitar erros no processo de registro
       return new Response(
         JSON.stringify({
-          error: "Este email já está vinculado a um usuário existente."
+          message: "Profile already exists",
+          user_id: user_id
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
+          status: 200,
         }
       )
     }
@@ -104,8 +107,10 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error("Error in create_profile function:", error)
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || "An unexpected error occurred" }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
