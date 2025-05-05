@@ -1,122 +1,234 @@
 
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
-import { useSupabaseMutation } from "@/hooks/useSupabaseMutation";
-import { ValidTableName } from "./types";
+import { ApiResponse, ValidTableName, QueryOptions } from "./types";
+import { useSupabaseErrorHandler, buildSupabaseQuery } from "@/hooks/useSupabaseHelpers";
+import { createSuccessResponse, createErrorResponse } from "./utils";
 
-// Factory for creating table-specific hooks
-export function useSupabaseTable<TData extends Record<string, any>>(tableName: ValidTableName) {
-  // Get data from a table with filtering options
-  const useTableData = (options?: {
-    columns?: string;
-    filters?: Record<string, any>;
-    orderBy?: { column: string; ascending?: boolean };
-    enabled?: boolean;
-    queryKey?: string[];
-  }) => {
-    const queryKey = options?.queryKey || [tableName];
+/**
+ * A reusable hook for interacting with Supabase tables
+ * This hook provides basic CRUD operations with standardized error handling
+ */
+export function useSupabaseTable<T extends Record<string, any>>(
+  tableName: ValidTableName,
+  options: {
+    fetchOnMount?: boolean;
+    idField?: string;
+    initialQueryOptions?: QueryOptions;
+    toastMessages?: {
+      fetchError?: string;
+      createSuccess?: string;
+      createError?: string;
+      updateSuccess?: string;
+      updateError?: string;
+      deleteSuccess?: string;
+      deleteError?: string;
+    };
+  } = {}
+) {
+  const {
+    fetchOnMount = true,
+    idField = 'id',
+    initialQueryOptions,
+    toastMessages = {}
+  } = options;
+
+  const [data, setData] = useState<T[]>([]);
+  const [loading, setLoading] = useState(fetchOnMount);
+  const [error, setError] = useState<Error | null>(null);
+  
+  const { handleError, handleSuccess } = useSupabaseErrorHandler();
+
+  const fetchData = useCallback(async (queryOptions?: QueryOptions) => {
+    setLoading(true);
+    setError(null);
     
-    return useSupabaseQuery<TData[]>({
-      queryKey,
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from(tableName)
-          .select(options?.columns || '*');
-        
-        if (error) throw error;
-        // Explicit casting to avoid type inference issues
-        return data as unknown as TData[];
-      },
-      enabled: options?.enabled !== false,
-      errorMessage: `Erro ao carregar dados de ${tableName}`
-    });
-  };
+    try {
+      // Merge with initial query options if provided
+      const mergedOptions = {
+        ...initialQueryOptions,
+        ...queryOptions,
+        filters: {
+          ...(initialQueryOptions?.filters || {}),
+          ...(queryOptions?.filters || {})
+        }
+      };
 
-  // Add an item to a table
-  const useAddItem = (options?: {
-    onSuccess?: (data: TData) => void;
-    onError?: (error: any) => void;
-    successMessage?: string;
-  }) => {
-    const addFunction = async (newData: Partial<TData>) => {
+      const { columns = '*' } = mergedOptions || {};
+      
+      let query = supabase.from(tableName).select(columns);
+      query = buildSupabaseQuery(query, mergedOptions);
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      
+      setData(data as unknown as T[]);
+      return createSuccessResponse(data as unknown as T[]);
+    } catch (error) {
+      setError(error instanceof Error ? error : new Error(String(error)));
+      return createErrorResponse(
+        error, 
+        toastMessages.fetchError || `Error fetching data from ${tableName}`
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [tableName, initialQueryOptions, toastMessages.fetchError]);
+
+  const getById = useCallback(async (id: string | number) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
       const { data, error } = await supabase
         .from(tableName)
-        .insert(newData)
-        .select()
-        .single();
+        .select('*')
+        .eq(idField, id)
+        .maybeSingle();
       
       if (error) throw error;
-      return data as unknown as TData;
-    };
-    
-    return useSupabaseMutation<TData, Partial<TData>>({
-      mutationFn: addFunction,
-      onSuccess: options?.onSuccess,
-      onError: options?.onError,
-      successMessage: options?.successMessage || `Item adicionado com sucesso`
-    });
-  };
+      
+      return createSuccessResponse(data as unknown as T);
+    } catch (error) {
+      setError(error instanceof Error ? error : new Error(String(error)));
+      return createErrorResponse(
+        error, 
+        `Error fetching ${tableName} with id ${id}`
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [tableName, idField]);
 
-  // Update an item in a table
-  const useUpdateItem = (options?: {
-    onSuccess?: (data: TData) => void;
-    onError?: (error: any) => void;
-    successMessage?: string;
-    idField?: string;
-  }) => {
-    const idField = options?.idField || 'id';
+  const createRecord = useCallback(async (record: Omit<T, 'id'>) => {
+    setLoading(true);
+    setError(null);
     
-    const updateFunction = async (params: { id: string; data: Partial<TData> }) => {
-      const { data: result, error } = await supabase
+    try {
+      const { data, error } = await supabase
         .from(tableName)
-        .update(params.data)
-        .eq(idField, params.id)
+        .insert(record)
         .select()
         .single();
       
       if (error) throw error;
-      return result as unknown as TData;
-    };
-    
-    return useSupabaseMutation<TData, { id: string; data: Partial<TData> }>({
-      mutationFn: updateFunction,
-      onSuccess: options?.onSuccess,
-      onError: options?.onError,
-      successMessage: options?.successMessage || `Item atualizado com sucesso`
-    });
-  };
+      
+      setData(prev => [...prev, data as unknown as T]);
+      
+      const successMsg = toastMessages.createSuccess || `${tableName} created successfully`;
+      handleSuccess(successMsg);
+      
+      return createSuccessResponse(data as unknown as T);
+    } catch (error) {
+      setError(error instanceof Error ? error : new Error(String(error)));
+      handleError(
+        error, 
+        toastMessages.createError || `Error creating ${tableName}`
+      );
+      return createErrorResponse(error, `Error creating ${tableName}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [tableName, toastMessages.createSuccess, toastMessages.createError, handleSuccess, handleError]);
 
-  // Delete an item from a table
-  const useDeleteItem = (options?: {
-    onSuccess?: () => void;
-    onError?: (error: any) => void;
-    successMessage?: string;
-    idField?: string;
-  }) => {
-    const idField = options?.idField || 'id';
+  const updateRecord = useCallback(async (id: string | number, updates: Partial<T>) => {
+    setLoading(true);
+    setError(null);
     
-    const deleteFunction = async (id: string) => {
+    try {
+      // First update
+      const { error: updateError } = await supabase
+        .from(tableName)
+        .update(updates)
+        .eq(idField, id);
+      
+      if (updateError) throw updateError;
+      
+      // Then fetch the updated record
+      const { data, error: fetchError } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq(idField, id)
+        .maybeSingle();
+        
+      if (fetchError) throw fetchError;
+      
+      if (!data) {
+        throw new Error(`Record not found after update: ${idField}=${id}`);
+      }
+      
+      // Update local state
+      setData(prev => 
+        prev.map(item => 
+          item[idField as keyof T] === id ? (data as unknown as T) : item
+        )
+      );
+      
+      const successMsg = toastMessages.updateSuccess || `${tableName} updated successfully`;
+      handleSuccess(successMsg);
+      
+      return createSuccessResponse(data as unknown as T);
+    } catch (error) {
+      setError(error instanceof Error ? error : new Error(String(error)));
+      handleError(
+        error, 
+        toastMessages.updateError || `Error updating ${tableName}`
+      );
+      return createErrorResponse(error, `Error updating ${tableName}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [tableName, idField, toastMessages.updateSuccess, toastMessages.updateError, handleSuccess, handleError]);
+
+  const deleteRecord = useCallback(async (id: string | number) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
       const { error } = await supabase
         .from(tableName)
         .delete()
         .eq(idField, id);
       
       if (error) throw error;
-      return null;
-    };
-    
-    return useSupabaseMutation<null, string>({
-      mutationFn: deleteFunction,
-      onSuccess: options?.onSuccess,
-      onError: options?.onError,
-      successMessage: options?.successMessage || `Item excluído com sucesso`
-    });
-  };
+      
+      // Update local state
+      setData(prev => prev.filter(item => item[idField as keyof T] !== id));
+      
+      const successMsg = toastMessages.deleteSuccess || `${tableName} deleted successfully`;
+      handleSuccess(successMsg);
+      
+      return createSuccessResponse(null);
+    } catch (error) {
+      setError(error instanceof Error ? error : new Error(String(error)));
+      handleError(
+        error, 
+        toastMessages.deleteError || `Error deleting ${tableName}`
+      );
+      return createErrorResponse(error, `Error deleting ${tableName}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [tableName, idField, toastMessages.deleteSuccess, toastMessages.deleteError, handleSuccess, handleError]);
+
+  // Fetch data on component mount if fetchOnMount is true
+  useEffect(() => {
+    if (fetchOnMount) {
+      fetchData(initialQueryOptions);
+    }
+  }, [fetchOnMount, fetchData, initialQueryOptions]);
 
   return {
-    useTableData,
-    useAddItem,
-    useUpdateItem,
-    useDeleteItem
+    data,
+    loading,
+    error,
+    fetchData,
+    getById,
+    createRecord,
+    updateRecord,
+    deleteRecord,
+    refresh: () => fetchData(initialQueryOptions),
+    setData
   };
 }

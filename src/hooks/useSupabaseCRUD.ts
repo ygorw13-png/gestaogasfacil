@@ -1,29 +1,17 @@
 
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "./use-toast";
 import { PostgrestError } from "@supabase/supabase-js";
 import { ValidTableName } from "@/services/supabaseService";
+import { useSupabaseErrorHandler, buildSupabaseQuery } from "./useSupabaseHelpers";
 
 // Hook reutilizável para operações CRUD no Supabase com tratamento de erro padronizado
 export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidTableName) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<PostgrestError | Error | null>(null);
-  const { toast } = useToast();
-
-  // Função genérica para tratamento de erros
-  const handleError = useCallback((error: unknown, message: string) => {
-    console.error(`Erro em ${tableName}:`, error);
-    setError(error instanceof PostgrestError ? error : new Error(String(error)));
-    
-    toast({
-      title: "Erro",
-      description: message,
-      variant: "destructive"
-    });
-    
-    return null;
-  }, [tableName, toast]);
+  
+  // Use our shared error handler
+  const { handleError, handleSuccess } = useSupabaseErrorHandler();
 
   // Buscar todos os registros
   const getAll = useCallback(async (options?: {
@@ -35,23 +23,13 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
     setError(null);
     
     try {
-      const { columns = '*', filters, orderBy } = options || {};
+      const { columns = '*' } = options || {};
       
+      // Create base query
       let query = supabase.from(tableName).select(columns);
       
-      // Aplicar filtros
-      if (filters) {
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined) {
-            query = query.eq(key, value);
-          }
-        });
-      }
-      
-      // Aplicar ordenação
-      if (orderBy) {
-        query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
-      }
+      // Use shared query builder
+      query = buildSupabaseQuery(query, options);
       
       const { data, error } = await query;
       
@@ -105,18 +83,14 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       
       if (error) throw error;
       
-      toast({
-        title: "Sucesso",
-        description: successMessage
-      });
-      
+      handleSuccess(successMessage);
       return result as unknown as T;
     } catch (error) {
       return handleError(error, `Não foi possível criar o item em ${tableName}`);
     } finally {
       setLoading(false);
     }
-  }, [tableName, handleError, toast]);
+  }, [tableName, handleError, handleSuccess]);
 
   // Atualizar um registro existente
   const update = useCallback(async (
@@ -136,27 +110,35 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
         idField = 'id'
       } = options || {};
       
-      const { data: result, error } = await supabase
+      // First update
+      const { error: updateError } = await supabase
         .from(tableName)
         .update(data)
+        .eq(idField, id);
+      
+      if (updateError) throw updateError;
+      
+      // Then fetch the updated record
+      const { data: result, error: fetchError } = await supabase
+        .from(tableName)
+        .select('*')
         .eq(idField, id)
-        .select()
-        .single();
+        .maybeSingle();
+        
+      if (fetchError) throw fetchError;
       
-      if (error) throw error;
+      if (!result) {
+        throw new Error(`Record not found after update: ${idField}=${id}`);
+      }
       
-      toast({
-        title: "Sucesso",
-        description: successMessage
-      });
-      
+      handleSuccess(successMessage);
       return result as unknown as T;
     } catch (error) {
       return handleError(error, `Não foi possível atualizar o item em ${tableName}`);
     } finally {
       setLoading(false);
     }
-  }, [tableName, handleError, toast]);
+  }, [tableName, handleError, handleSuccess]);
 
   // Excluir um registro
   const remove = useCallback(async (
@@ -182,18 +164,14 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       
       if (error) throw error;
       
-      toast({
-        title: "Sucesso",
-        description: successMessage
-      });
-      
+      handleSuccess(successMessage);
       return true;
     } catch (error) {
       return handleError(error, `Não foi possível excluir o item de ${tableName}`);
     } finally {
       setLoading(false);
     }
-  }, [tableName, handleError, toast]);
+  }, [tableName, handleError, handleSuccess]);
 
   return {
     loading,

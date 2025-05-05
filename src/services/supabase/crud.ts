@@ -49,7 +49,7 @@ export async function insertData<TData extends Record<string, any>>(
   }
 }
 
-// Completely rewritten update function with explicit typing and no complex inference
+// Simplified update function with no complex type inference to avoid deep instantiation
 export async function updateData(
   table: ValidTableName,
   id: string,
@@ -57,7 +57,7 @@ export async function updateData(
   idColumn: string = 'id'
 ): Promise<ApiResponse<any>> {
   try {
-    // First, perform the update operation
+    // First, perform the update operation - separate from the fetch
     const { error: updateError } = await supabase
       .from(table)
       .update(data)
@@ -78,7 +78,7 @@ export async function updateData(
       throw new Error(`Record not found after update: ${idColumn}=${id}`);
     }
     
-    // Very simple typing with no inference
+    // No complex type casting to avoid recursion
     return createSuccessResponse(result);
   } catch (error) {
     return createErrorResponse(error, `updateData in ${table}`);
