@@ -1,8 +1,6 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { useAuth } from "@/contexts/AuthContext";
 import { UserManagement } from "./components/UserManagement";
 import { StockConfiguration } from "./components/StockConfiguration";
 import { SystemConfiguration } from "./components/SystemConfiguration";
@@ -12,22 +10,9 @@ import { DeliverySettings } from "./components/DeliverySettings";
 import { SecuritySettings } from "./components/SecuritySettings";
 
 export default function Settings() {
-  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("usuarios");
 
-  // Verificar se o usuário tem permissão para acessar a página
-  if (user?.role !== 'admin' && user?.role !== 'gerente') {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
-        <Card>
-          <CardContent className="pt-6">
-            <p>Você não tem permissão para acessar esta página.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Removed role-based restrictions
 
   return (
     <div className="space-y-6">

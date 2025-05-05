@@ -1,28 +1,13 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RoutesList } from "../components/RoutesList";
 import { NewRouteForm } from "../components/NewRouteForm";
 import { RouteReports } from "../components/RouteReports";
-import { useAuth } from '@/contexts/auth';
-import { useToast } from '@/hooks/use-toast';
 
 export default function RoutesPage() {
-  const { user, loading, getUserCurrentRole } = useAuth();
-  const { toast } = useToast();
-  
-  // Log para depuração
-  useEffect(() => {
-    console.log("RoutesPage - Estado:", {
-      isLoading: loading,
-      hasUser: !!user,
-      userRole: user?.role || 'authenticated',
-      currentRole: getUserCurrentRole()
-    });
-  }, [user, loading, getUserCurrentRole]);
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

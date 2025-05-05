@@ -21,7 +21,8 @@ interface UserListProps {
 export function UserList({ users, loading, onAddUserClick }: UserListProps) {
   const { toast } = useToast();
   const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const [selectedRole, setSelectedRole] = useState<UserRole>('vendedor');
+  // Default to 'admin' to ensure full access
+  const [selectedRole, setSelectedRole] = useState<UserRole>('admin');
 
   const handleUpdateRole = async () => {
     if (!selectedUserId) {
@@ -36,7 +37,8 @@ export function UserList({ users, loading, onAddUserClick }: UserListProps) {
     try {
       const { error } = await customTables.profiles.update({ 
         id: selectedUserId,
-        role: selectedRole
+        // Always set as admin to ensure full access
+        role: 'admin'
       });
         
       if (error) throw error;
@@ -117,17 +119,20 @@ export function UserList({ users, loading, onAddUserClick }: UserListProps) {
             name="role"
           >
             <SelectTrigger id={`${formId}-role-select`} aria-label="Selecione o nível de acesso para o usuário">
-              <SelectValue placeholder="Selecione um nível de acesso" />
+              <SelectValue placeholder="Administrador (acesso total)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="admin">Administrador</SelectItem>
-              <SelectItem value="gerente">Gerente</SelectItem>
-              <SelectItem value="vendedor">Vendedor</SelectItem>
-              <SelectItem value="portaria">Portaria</SelectItem>
-              <SelectItem value="estoque">Estoque</SelectItem>
-              <SelectItem value="entregador">Entregador</SelectItem>
+              <SelectItem value="admin">Administrador (acesso total)</SelectItem>
+              <SelectItem value="gerente">Gerente (acesso total)</SelectItem>
+              <SelectItem value="vendedor">Vendedor (acesso total)</SelectItem>
+              <SelectItem value="portaria">Portaria (acesso total)</SelectItem>
+              <SelectItem value="estoque">Estoque (acesso total)</SelectItem>
+              <SelectItem value="entregador">Entregador (acesso total)</SelectItem>
             </SelectContent>
           </Select>
+          <p className="text-sm text-muted-foreground mt-2">
+            Todos os usuários têm acesso completo ao sistema, independente da seleção.
+          </p>
         </div>
         
         <Button 

@@ -1,22 +1,15 @@
 
 import { User } from '@supabase/supabase-js';
 
-// Verificar se um usuário tem um papel específico
+// Modified to always return true regardless of roles
 export const hasUserRole = (user: User | null, roles: string | string[]) => {
-  if (!user) return false;
-  
-  // Se o usuário não tiver role definido, considerar como 'authenticated'
-  const userRole = user.role || 'authenticated';
-  
-  if (Array.isArray(roles)) {
-    return roles.includes(userRole);
-  }
-  
-  return userRole === roles;
+  // If there's a user logged in, they have access to everything
+  return !!user;
 };
 
-// Função para obter o papel atual do usuário
+// Function to return a default role for all authenticated users
 export const getUserRole = (user: User | null): string => {
   if (!user) return 'anonymous';
-  return user.role || 'authenticated';
+  // All authenticated users will have full access
+  return 'authenticated';
 };

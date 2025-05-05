@@ -6,7 +6,6 @@ import { Suspense, lazy } from "react";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SidebarProvider } from "./components/ui/sidebar";
-import { RoleGuard } from "./components/ui/RoleGuard";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { enforceHttps } from "./utils/securityUtils";
 import { SecurityHeaders } from "./components/security/SecurityHeaders";
@@ -80,7 +79,7 @@ function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/404" element={<NotFound />} />
               
-              {/* Rotas protegidas com AppLayout */}
+              {/* Rotas protegidas com AppLayout - todas acessíveis para usuários autenticados */}
               <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
                 <Route path="/dashboard" element={
                   <Suspense fallback={<LoadingComponent />}>
@@ -144,9 +143,7 @@ function App() {
                 } />
                 <Route path="/routes" element={
                   <Suspense fallback={<LoadingComponent />}>
-                    <RoleGuard allowedRoles={['admin', 'gerente', 'authenticated']}>
-                      <RoutesPage />
-                    </RoleGuard>
+                    <RoutesPage />
                   </Suspense>
                 } />
                 <Route path="/resellers" element={
@@ -161,24 +158,17 @@ function App() {
                 } />
                 <Route path="/finance/expenses" element={
                   <Suspense fallback={<LoadingComponent />}>
-                    <RoleGuard allowedRoles={['admin', 'gerente']}>
-                      <Expenses />
-                    </RoleGuard>
+                    <Expenses />
                   </Suspense>
                 } />
                 <Route path="/settings" element={
                   <Suspense fallback={<LoadingComponent />}>
-                    <RoleGuard allowedRoles={['admin', 'gerente']}>
-                      <Settings />
-                    </RoleGuard>
+                    <Settings />
                   </Suspense>
                 } />
-                {/* Corrigimos a rota de colaboradores para estar dentro do AuthGuard e AppLayout */}
                 <Route path="/colaboradores" element={
                   <Suspense fallback={<LoadingComponent />}>
-                    <RoleGuard allowedRoles={['admin', 'gerente']}>
-                      <Colaboradores />
-                    </RoleGuard>
+                    <Colaboradores />
                   </Suspense>
                 } />
               </Route>

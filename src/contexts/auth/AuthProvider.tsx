@@ -16,12 +16,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     resetAuthState
   } = useAuthState();
 
-  // Function to check if the user has a specific role
+  // Function to check if the user has a specific role - always returns true if user is logged in
   const hasRole = (roles: string | string[]) => {
     return hasUserRole(user, roles);
   };
 
-  // Function to get the user's current role
+  // Function to get the user's current role - always returns 'authenticated' for logged in users
   const getUserCurrentRole = () => {
     return getUserRole(user);
   };
