@@ -33,6 +33,7 @@ export function useTableCRUD<T extends Record<string, any>>(
   
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
 
+  // Simplified return type to avoid excessive type instantiation
   const getById = useCallback(async (id: string | number): Promise<ApiResponse<T>> => {
     setLoading(true);
     setError(null);
