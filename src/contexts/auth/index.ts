@@ -14,13 +14,12 @@ import {
 
 import {
   fetchUserProfile,
-  hasUserRole,
-  getUserRole
 } from './services/userProfile';
 
 import {
-  resetPassword as resetPasswordService
-} from './authService';
+  hasUserRole,
+  getUserRole
+} from './services/permissions';
 
 // Export services with explicit naming
 export {
@@ -32,9 +31,58 @@ export {
   getUserRole
 };
 
-// Export renamed functions to avoid conflicts
-export const resetPassword = resetPasswordService;
+// Create and export the authService functions
+export const resetPassword = async (email: string) => {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/update-password`,
+    });
+    
+    if (error) throw error;
+    
+    return { success: true };
+  } catch (err) {
+    return { 
+      success: false, 
+      error: err instanceof Error ? err.message : 'Error resetting password' 
+    };
+  }
+};
 
-// Explicitly import and export the signUpWithEmail function from authService
-import { signUpWithEmail as signUpWithEmailFromAuthService } from './authService';
-export const signUpWithEmail = signUpWithEmailFromAuthService;
+// Import supabase client for the functions above
+import { supabase } from '@/integrations/supabase/client';
+import { validatePasswordStrength } from '@/utils/securityUtils';
+
+// Export signUpWithEmail function directly
+export const signUpWithEmail = async (email: string, password: string, userData?: { name?: string }) => {
+  try {
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.valid) {
+      return { success: false, error: passwordValidation.message };
+    }
+    
+    // Sanitize input
+    const sanitizedEmail = email.trim().toLowerCase();
+    
+    // Register user
+    const { data, error } = await supabase.auth.signUp({
+      email: sanitizedEmail,
+      password,
+      options: {
+        data: userData
+      }
+    });
+    
+    if (error) {
+      throw error;
+    }
+    
+    return { success: true, user: data.user };
+  } catch (err) {
+    return { 
+      success: false, 
+      error: err instanceof Error ? err.message : 'Error registering user' 
+    };
+  }
+};

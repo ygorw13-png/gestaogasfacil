@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestError } from "@supabase/supabase-js";
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
@@ -212,7 +211,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
     onError?: (error: PostgrestError | Error) => void;
     successMessage?: string;
   }) => {
-    const addFunction: AddFnType = async (newData) => {
+    const addFunction = async (newData: Partial<TData>) => {
       const { data, error } = await supabase
         .from(tableName)
         .insert(newData)
@@ -240,11 +239,11 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
   }) => {
     const idField = options?.idField || 'id';
     
-    const updateFunction: UpdateFnType = async ({ id, data }) => {
+    const updateFunction = async (params: { id: string; data: Partial<TData> }) => {
       const { data: result, error } = await supabase
         .from(tableName)
-        .update(data)
-        .eq(idField, id)
+        .update(params.data)
+        .eq(idField, params.id)
         .select()
         .single();
       
@@ -269,7 +268,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
   }) => {
     const idField = options?.idField || 'id';
     
-    const deleteFunction: DeleteFnType = async (id) => {
+    const deleteFunction = async (id: string) => {
       const { error } = await supabase
         .from(tableName)
         .delete()

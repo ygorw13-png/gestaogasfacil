@@ -37,12 +37,11 @@ export function useSupabaseRealtime({
   useEffect(() => {
     const channelName = `${schema}-${table}-changes`;
     
-    // Create channel to listen for changes
-    // Fix: Using correct channel API with proper type parameter
+    // Create channel to listen for changes with correct type casting
     const realtimeChannel = supabase
       .channel(channelName)
       .on(
-        'postgres_changes' as any, // Type cast to bypass type checking temporarily
+        'postgres_changes' as any,
         {
           event,
           schema,

@@ -78,11 +78,11 @@ export function subscribeToTable(
 ): () => void {
   const { event = '*', filter } = options;
   
-  // Create a channel for realtime subscriptions using the new API
+  // Create a channel for realtime subscriptions using the new API with type casting
   const channel = supabase
     .channel(`public-${tableName}-changes`)
     .on(
-      'postgres_changes' as any, // Type cast to bypass TS error temporarily
+      'postgres_changes' as any,
       {
         event,
         schema: 'public',
