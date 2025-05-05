@@ -184,8 +184,8 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
   }) => {
     const queryKey = options?.queryKey || [tableName];
     
-    // Fix for TypeScript error: Use a more explicit return type and cast data properly
-    return useSupabaseQuery<TData[]>({
+    // Use a specific return type for useSupabaseQuery to avoid type instantiation issues
+    return useSupabaseQuery({
       queryKey,
       queryFn: async () => {
         const { data, error } = await supabase
@@ -193,7 +193,8 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
           .select(options?.columns || '*');
         
         if (error) throw error;
-        return data as unknown as TData[];
+        // Use a type assertion with unknown first to break the direct type relationship
+        return (data as unknown) as TData[];
       },
       enabled: options?.enabled !== false,
       errorMessage: `Erro ao carregar dados de ${tableName}`
@@ -206,9 +207,11 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
     onError?: (error: PostgrestError | Error) => void;
     successMessage?: string;
   }) => {
-    // Fix for infinite type instantiation: explicitly define return type
+    // Specify the exact mutation function type to break recursive type dependencies
+    type AddMutationFn = (newData: Partial<TData>) => Promise<TData>;
+    
     return useSupabaseMutation<TData, Partial<TData>>({
-      mutationFn: async (newData) => {
+      mutationFn: (async (newData) => {
         const { data, error } = await supabase
           .from(tableName)
           .insert(newData)
@@ -216,8 +219,9 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
           .single();
         
         if (error) throw error;
-        return data as TData;
-      },
+        // Use a type assertion with unknown first
+        return (data as unknown) as TData;
+      }) as AddMutationFn,
       onSuccess: options?.onSuccess,
       onError: options?.onError,
       successMessage: options?.successMessage || `Item adicionado com sucesso`
@@ -233,9 +237,11 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
   }) => {
     const idField = options?.idField || 'id';
     
-    // Fix for infinite type instantiation: explicitly define return type
+    // Specify the exact mutation function type to break recursive type dependencies
+    type UpdateMutationFn = (params: { id: string; data: Partial<TData> }) => Promise<TData>;
+    
     return useSupabaseMutation<TData, { id: string; data: Partial<TData> }>({
-      mutationFn: async ({ id, data }) => {
+      mutationFn: (async ({ id, data }) => {
         const { data: result, error } = await supabase
           .from(tableName)
           .update(data)
@@ -244,8 +250,9 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
           .single();
         
         if (error) throw error;
-        return result as TData;
-      },
+        // Use a type assertion with unknown first
+        return (result as unknown) as TData;
+      }) as UpdateMutationFn,
       onSuccess: options?.onSuccess,
       onError: options?.onError,
       successMessage: options?.successMessage || `Item atualizado com sucesso`
@@ -261,9 +268,11 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
   }) => {
     const idField = options?.idField || 'id';
     
-    // Fix for infinite type instantiation: explicitly define return type
+    // Specify the exact mutation function type to break recursive type dependencies
+    type DeleteMutationFn = (id: string) => Promise<null>;
+    
     return useSupabaseMutation<null, string>({
-      mutationFn: async (id) => {
+      mutationFn: (async (id) => {
         const { error } = await supabase
           .from(tableName)
           .delete()
@@ -271,7 +280,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
         
         if (error) throw error;
         return null;
-      },
+      }) as DeleteMutationFn,
       onSuccess: options?.onSuccess,
       onError: options?.onError,
       successMessage: options?.successMessage || `Item excluído com sucesso`
