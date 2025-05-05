@@ -27,18 +27,18 @@ export function SystemConfiguration() {
       
       setLoading(true);
       try {
-        const { data, error } = await getConfigSistema(organization.id);
+        const response = await getConfigSistema(organization.id);
         
-        if (error) {
-          throw error;
+        if (response.error) {
+          throw response.error;
         }
         
-        if (data) {
+        if (response.data) {
           setFormData({
-            companyName: data.nome_empresa,
-            address: data.endereco || "",
-            phone: data.telefone || "",
-            email: data.email || ""
+            companyName: response.data.nome_empresa,
+            address: response.data.endereco || "",
+            phone: response.data.telefone || "",
+            email: response.data.email || ""
           });
         }
       } catch (error) {

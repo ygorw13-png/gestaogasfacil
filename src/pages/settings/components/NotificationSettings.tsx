@@ -25,17 +25,17 @@ export function NotificationSettings() {
       
       setLoading(true);
       try {
-        const { data, error } = await getConfigNotificacoes(organization.id);
+        const response = await getConfigNotificacoes(organization.id);
         
-        if (error) {
-          throw error;
+        if (response.error) {
+          throw response.error;
         }
         
-        if (data) {
-          setEmailNotifications(data.email_ativo !== false);
-          setSmsNotifications(data.sms_ativo === true);
-          setOrderNotifications(data.notificacao_pedidos !== false);
-          setStockNotifications(data.notificacao_estoque !== false);
+        if (response.data) {
+          setEmailNotifications(response.data.email_ativo !== false);
+          setSmsNotifications(response.data.sms_ativo === true);
+          setOrderNotifications(response.data.notificacao_pedidos !== false);
+          setStockNotifications(response.data.notificacao_estoque !== false);
         }
       } catch (error) {
         console.error("Erro ao carregar configurações de notificações:", error);

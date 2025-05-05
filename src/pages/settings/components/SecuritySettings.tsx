@@ -27,17 +27,17 @@ export function SecuritySettings() {
       
       setLoading(true);
       try {
-        const { data, error } = await getConfigSeguranca(organization.id);
+        const response = await getConfigSeguranca(organization.id);
         
-        if (error) {
-          throw error;
+        if (response.error) {
+          throw response.error;
         }
         
-        if (data) {
-          setSessionTimeout(data.tempo_sessao_minutos ? data.tempo_sessao_minutos.toString() : "60");
-          setPasswordExpiration(data.expiracao_senha_dias ? data.expiracao_senha_dias.toString() : "90");
-          setTwoFactorAuth(data.dois_fatores_ativo === true);
-          setLogLevel(data.nivel_log || "warning");
+        if (response.data) {
+          setSessionTimeout(response.data.tempo_sessao_minutos ? response.data.tempo_sessao_minutos.toString() : "60");
+          setPasswordExpiration(response.data.expiracao_senha_dias ? response.data.expiracao_senha_dias.toString() : "90");
+          setTwoFactorAuth(response.data.dois_fatores_ativo === true);
+          setLogLevel(response.data.nivel_log || "warning");
         }
       } catch (error) {
         console.error("Erro ao carregar configurações de segurança:", error);

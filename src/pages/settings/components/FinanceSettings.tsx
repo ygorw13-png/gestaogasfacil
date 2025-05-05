@@ -27,18 +27,18 @@ export function FinanceSettings() {
       
       setLoading(true);
       try {
-        const { data, error } = await getConfigFinanceira(organization.id);
+        const response = await getConfigFinanceira(organization.id);
         
-        if (error) {
-          throw error;
+        if (response.error) {
+          throw response.error;
         }
         
-        if (data) {
-          setCurrency(data.moeda || "BRL");
-          setTaxRate(data.taxa_imposto ? data.taxa_imposto.toString() : "18");
+        if (response.data) {
+          setCurrency(response.data.moeda || "BRL");
+          setTaxRate(response.data.taxa_imposto ? response.data.taxa_imposto.toString() : "18");
           
-          if (data.metodos_pagamento && Array.isArray(data.metodos_pagamento)) {
-            setPaymentMethods(data.metodos_pagamento.join(','));
+          if (response.data.metodos_pagamento && Array.isArray(response.data.metodos_pagamento)) {
+            setPaymentMethods(response.data.metodos_pagamento.join(','));
           }
         }
       } catch (error) {

@@ -26,17 +26,17 @@ export function DeliverySettings() {
       
       setLoading(true);
       try {
-        const { data, error } = await getConfigEntrega(organization.id);
+        const response = await getConfigEntrega(organization.id);
         
-        if (error) {
-          throw error;
+        if (response.error) {
+          throw response.error;
         }
         
-        if (data) {
-          setDeliveryFee(data.taxa_entrega ? data.taxa_entrega.toString() : "5.00");
-          setMinFreeDelivery(data.valor_min_entrega_gratis ? data.valor_min_entrega_gratis.toString() : "100.00");
-          setMaxRadius(data.raio_maximo_km ? data.raio_maximo_km.toString() : "15");
-          setEnableTracking(data.rastreamento_ativo !== false);
+        if (response.data) {
+          setDeliveryFee(response.data.taxa_entrega ? response.data.taxa_entrega.toString() : "5.00");
+          setMinFreeDelivery(response.data.valor_min_entrega_gratis ? response.data.valor_min_entrega_gratis.toString() : "100.00");
+          setMaxRadius(response.data.raio_maximo_km ? response.data.raio_maximo_km.toString() : "15");
+          setEnableTracking(response.data.rastreamento_ativo !== false);
         }
       } catch (error) {
         console.error("Erro ao carregar configurações de entrega:", error);

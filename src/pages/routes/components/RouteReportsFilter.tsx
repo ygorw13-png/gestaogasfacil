@@ -3,8 +3,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Download } from "lucide-react";
-import { DateRangeFilter } from "./filters/DateRangeFilter";
-import { DriverFilter } from "./filters/DriverFilter";
+import { DateRangeFilter } from "./reports/filters/DateRangeFilter";
+import { DriverFilter } from "./reports/filters/DriverFilter";
 
 interface RouteReportsFilterProps {
   startDate: string;
