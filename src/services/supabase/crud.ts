@@ -49,7 +49,7 @@ export async function insertData<TData extends Record<string, any>>(
   }
 }
 
-// Generic update function with error handling
+// Generic update function with error handling - significantly simplified to avoid type inference issues
 export async function updateData<TData extends Record<string, any>>(
   table: ValidTableName,
   id: string,
@@ -57,25 +57,31 @@ export async function updateData<TData extends Record<string, any>>(
   idColumn: string = 'id'
 ): Promise<ApiResponse<TData>> {
   try {
-    // First perform the update operation without returning data
-    const { error: updateError } = await (supabase
+    // Perform the update operation
+    const updateResult = await supabase
       .from(table)
       .update(data)
-      .eq(idColumn, id) as any);
+      .eq(idColumn, id);
       
-    if (updateError) throw updateError;
+    if (updateResult.error) throw updateResult.error;
     
-    // Then fetch the updated record in a completely separate query
-    const { data: result, error: fetchError } = await (supabase
+    // Fetch the updated record using a completely separate query with explicit typing
+    const fetchResult = await supabase
       .from(table)
       .select('*')
       .eq(idColumn, id)
-      .single() as any);
+      .limit(1);
 
-    if (fetchError) throw fetchError;
+    if (fetchResult.error) throw fetchResult.error;
+    
+    if (!fetchResult.data || fetchResult.data.length === 0) {
+      throw new Error(`Record with ${idColumn} = ${id} not found after update`);
+    }
 
+    const updatedRecord = fetchResult.data[0];
+    
     // Explicitly cast the result to the expected type
-    return createSuccessResponse(result as unknown as TData);
+    return createSuccessResponse(updatedRecord as unknown as TData);
   } catch (error) {
     return createErrorResponse<TData>(error, `updateData in ${table}`);
   }
@@ -88,13 +94,13 @@ export async function deleteData(
   idColumn: string = 'id'
 ): Promise<ApiResponse<null>> {
   try {
-    // Execute the delete operation with type assertion to avoid deep inference
-    const { error } = await (supabase
+    // Execute the delete operation with a simplified approach
+    const deleteResult = await supabase
       .from(table)
       .delete()
-      .eq(idColumn, id) as any);
+      .eq(idColumn, id);
 
-    if (error) throw error;
+    if (deleteResult.error) throw deleteResult.error;
 
     return createSuccessResponse(null);
   } catch (error) {
