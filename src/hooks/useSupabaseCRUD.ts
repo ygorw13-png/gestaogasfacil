@@ -66,7 +66,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
   }, [tableName, handleError]);
 
   // Buscar um registro pelo ID
-  const getById = useCallback(async (id: string | number, options?: { columns?: string }) => {
+  const getById = useCallback(async (id: string, options?: { columns?: string }) => {
     setLoading(true);
     setError(null);
     
@@ -120,7 +120,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
 
   // Atualizar um registro existente
   const update = useCallback(async (
-    id: string | number, 
+    id: string, 
     data: Partial<T>, 
     options?: { 
       successMessage?: string;
@@ -160,7 +160,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
 
   // Excluir um registro
   const remove = useCallback(async (
-    id: string | number, 
+    id: string, 
     options?: { 
       successMessage?: string;
       idField?: string;

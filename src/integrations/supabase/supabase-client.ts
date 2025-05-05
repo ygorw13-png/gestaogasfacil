@@ -1,6 +1,7 @@
 
 import { supabase } from "./client";
 import { PostgrestError } from "@supabase/supabase-js";
+import { ValidTableName } from "@/services/supabaseService";
 
 // Interface padrão para respostas do Supabase
 export interface SupabaseResponse<T> {
@@ -28,7 +29,7 @@ export const supabaseUtils = {
   table: {
     // Selecionar com tratamento de erros padronizado
     select: async <T>(
-      tableName: string, 
+      tableName: ValidTableName, 
       options: {
         columns?: string;
         filters?: Record<string, any>;
@@ -66,7 +67,7 @@ export const supabaseUtils = {
           ? await query.single()
           : await query;
         
-        return { data: data as T, error };
+        return { data: data as unknown as T, error };
       } catch (error) {
         return supabaseUtils.createErrorResponse(error, `select from ${tableName}`);
       }
@@ -74,7 +75,7 @@ export const supabaseUtils = {
     
     // Inserir com tratamento de erros padronizado
     insert: async <T>(
-      tableName: string, 
+      tableName: ValidTableName, 
       data: Partial<T>,
       returnData: boolean = true
     ): Promise<SupabaseResponse<T>> => {
@@ -85,7 +86,7 @@ export const supabaseUtils = {
           ? await query.select().single()
           : await query;
         
-        return { data: responseData as T, error };
+        return { data: responseData as unknown as T, error };
       } catch (error) {
         return supabaseUtils.createErrorResponse(error, `insert into ${tableName}`);
       }
@@ -93,8 +94,8 @@ export const supabaseUtils = {
     
     // Atualizar com tratamento de erros padronizado
     update: async <T>(
-      tableName: string, 
-      id: string | number,
+      tableName: ValidTableName, 
+      id: string,
       data: Partial<T>,
       options: {
         idColumn?: string;
@@ -113,7 +114,7 @@ export const supabaseUtils = {
           ? await query.select().single()
           : await query;
         
-        return { data: responseData as T, error };
+        return { data: responseData as unknown as T, error };
       } catch (error) {
         return supabaseUtils.createErrorResponse(error, `update in ${tableName}`);
       }
@@ -121,8 +122,8 @@ export const supabaseUtils = {
     
     // Excluir com tratamento de erros padronizado
     delete: async (
-      tableName: string, 
-      id: string | number,
+      tableName: ValidTableName, 
+      id: string,
       idColumn: string = 'id'
     ): Promise<SupabaseResponse<null>> => {
       try {
@@ -141,7 +142,7 @@ export const supabaseUtils = {
   // Interface simplificada para dados de tempo real
   realtime: {
     subscribe: (
-      tableName: string,
+      tableName: ValidTableName,
       callback: (payload: { 
         new: Record<string, any>; 
         old: Record<string, any>; 

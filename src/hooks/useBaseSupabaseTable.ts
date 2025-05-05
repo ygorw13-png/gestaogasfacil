@@ -93,8 +93,9 @@ export function useBaseSupabaseTable<T extends Record<string, any>>(
       
       if (error) throw error;
       
-      setData(data as unknown as T[]);
-      return data as unknown as T[];
+      const typedData = data as unknown as T[];
+      setData(typedData);
+      return typedData;
     } catch (error) {
       handleError(error, `Erro ao carregar dados de ${tableName}`);
       return [] as T[];
@@ -104,7 +105,7 @@ export function useBaseSupabaseTable<T extends Record<string, any>>(
   }, [tableName, handleError]);
 
   // Buscar um item pelo ID
-  const getById = useCallback(async (id: string | number) => {
+  const getById = useCallback(async (id: string) => {
     setLoading(true);
     setError(null);
     
@@ -150,14 +151,16 @@ export function useBaseSupabaseTable<T extends Record<string, any>>(
       
       // Atualizar dados em cache se tiver sido retornado
       if (returnItem && data) {
-        setData(prev => [...prev, data as unknown as T]);
+        const newItem = data as unknown as T;
+        setData(prev => [...prev, newItem]);
+        handleSuccess(successMessage);
+        return newItem;
       } else {
         // Se não retornou o item, recarregar dados
         await fetchData();
+        handleSuccess(successMessage);
+        return null;
       }
-      
-      handleSuccess(successMessage);
-      return data as unknown as T | null;
     } catch (error) {
       handleError(error, `Erro ao adicionar item em ${tableName}`);
       return null;
@@ -168,7 +171,7 @@ export function useBaseSupabaseTable<T extends Record<string, any>>(
 
   // Atualizar um item existente
   const updateItem = useCallback(async (
-    id: string | number,
+    id: string,
     updates: Partial<T>,
     options: {
       successMessage?: string;
@@ -194,16 +197,18 @@ export function useBaseSupabaseTable<T extends Record<string, any>>(
       
       // Atualizar dados em cache se tiver sido retornado
       if (returnItem && data) {
+        const updatedItem = data as unknown as T;
         setData(prev => prev.map(item => 
-          item[idField] === id ? { ...item, ...data } as unknown as T : item
+          item[idField as keyof T] === id ? updatedItem : item
         ));
+        handleSuccess(successMessage);
+        return updatedItem;
       } else {
         // Se não retornou o item, recarregar dados
         await fetchData();
+        handleSuccess(successMessage);
+        return null;
       }
-      
-      handleSuccess(successMessage);
-      return data as unknown as T | null;
     } catch (error) {
       handleError(error, `Erro ao atualizar item em ${tableName}`);
       return null;
@@ -214,7 +219,7 @@ export function useBaseSupabaseTable<T extends Record<string, any>>(
 
   // Excluir um item
   const deleteItem = useCallback(async (
-    id: string | number,
+    id: string,
     options: {
       successMessage?: string;
     } = {}
@@ -233,7 +238,7 @@ export function useBaseSupabaseTable<T extends Record<string, any>>(
       if (error) throw error;
       
       // Atualizar dados em cache
-      setData(prev => prev.filter(item => item[idField] !== id));
+      setData(prev => prev.filter(item => item[idField as keyof T] !== id));
       
       handleSuccess(successMessage);
       return true;

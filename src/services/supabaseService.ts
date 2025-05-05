@@ -100,7 +100,7 @@ export async function fetchData<T>(
 
     if (error) throw error;
 
-    return createSuccessResponse(data as T[]);
+    return createSuccessResponse(data as unknown as T[]);
   } catch (error) {
     return createErrorResponse<T[]>(error, `fetchData from ${table}`);
   }
@@ -120,7 +120,7 @@ export async function insertData<T>(
 
     if (error) throw error;
 
-    return createSuccessResponse(result as T);
+    return createSuccessResponse(result as unknown as T);
   } catch (error) {
     return createErrorResponse<T>(error, `insertData into ${table}`);
   }
@@ -129,7 +129,7 @@ export async function insertData<T>(
 // Generic update function with error handling
 export async function updateData<T>(
   table: ValidTableName,
-  id: string | number,
+  id: string,
   data: Partial<T>,
   idColumn: string = 'id'
 ): Promise<ApiResponse<T>> {
@@ -143,7 +143,7 @@ export async function updateData<T>(
 
     if (error) throw error;
 
-    return createSuccessResponse(result as T);
+    return createSuccessResponse(result as unknown as T);
   } catch (error) {
     return createErrorResponse<T>(error, `updateData in ${table}`);
   }
@@ -152,7 +152,7 @@ export async function updateData<T>(
 // Generic delete function with error handling
 export async function deleteData(
   table: ValidTableName,
-  id: string | number,
+  id: string,
   idColumn: string = 'id'
 ): Promise<ApiResponse<null>> {
   try {
@@ -192,7 +192,7 @@ export function useSupabaseTable<T extends Record<string, any>>(tableName: Valid
           .select(options?.columns || '*');
         
         if (error) throw error;
-        return data as T[];
+        return data as unknown as T[];
       },
       enabled: options?.enabled !== false,
       errorMessage: `Erro ao carregar dados de ${tableName}`
@@ -214,7 +214,7 @@ export function useSupabaseTable<T extends Record<string, any>>(tableName: Valid
           .single();
         
         if (error) throw error;
-        return data as T;
+        return data as unknown as T;
       },
       onSuccess: options?.onSuccess,
       onError: options?.onError,
@@ -231,7 +231,7 @@ export function useSupabaseTable<T extends Record<string, any>>(tableName: Valid
   }) => {
     const idField = options?.idField || 'id';
     
-    return useSupabaseMutation<T, { id: string | number; data: Partial<T> }>({
+    return useSupabaseMutation<T, { id: string; data: Partial<T> }>({
       mutationFn: async ({ id, data }) => {
         const { data: result, error } = await supabase
           .from(tableName)
@@ -241,7 +241,7 @@ export function useSupabaseTable<T extends Record<string, any>>(tableName: Valid
           .single();
         
         if (error) throw error;
-        return result as T;
+        return result as unknown as T;
       },
       onSuccess: options?.onSuccess,
       onError: options?.onError,
@@ -258,7 +258,7 @@ export function useSupabaseTable<T extends Record<string, any>>(tableName: Valid
   }) => {
     const idField = options?.idField || 'id';
     
-    return useSupabaseMutation<null, string | number>({
+    return useSupabaseMutation<null, string>({
       mutationFn: async (id) => {
         const { error } = await supabase
           .from(tableName)

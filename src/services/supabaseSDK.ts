@@ -1,17 +1,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestError } from "@supabase/supabase-js";
+import { ValidTableName } from "@/services/supabaseService";
 
 export interface SupabaseResponse<T> {
   data: T | null;
   error: PostgrestError | Error | null;
 }
-
-// List of valid tables in the database
-export type ValidTableName = 'cascos_emprestados' | 'clients' | 'colaboradores' | 'organizations' | 
-  'configuracoes_entrega' | 'configuracoes_estoque' | 'configuracoes_financeiras' | 
-  'configuracoes_notificacoes' | 'configuracoes_seguranca' | 'configuracoes_sistema' | 
-  'dashboard_data' | 'orders' | 'profiles' | 'requisicoes_estoque';
 
 // Generic data fetching function
 export async function fetchFromTable<T>(
@@ -53,7 +48,7 @@ export async function fetchFromTable<T>(
       ? await query.single()
       : await query;
     
-    return { data: data as T, error };
+    return { data: data as unknown as T, error };
   } catch (error) {
     console.error(`Error fetching from ${tableName}:`, error);
     return { 
@@ -80,7 +75,7 @@ export async function insertIntoTable<T>(
       ? await query.select().single()
       : await query;
     
-    return { data: responseData as T, error };
+    return { data: responseData as unknown as T, error };
   } catch (error) {
     console.error(`Error inserting into ${tableName}:`, error);
     return { 
@@ -93,7 +88,7 @@ export async function insertIntoTable<T>(
 // Generalized update function
 export async function updateInTable<T>(
   tableName: ValidTableName, 
-  id: string | number,
+  id: string,
   data: Partial<T>,
   options: {
     idColumn?: string;
@@ -112,7 +107,7 @@ export async function updateInTable<T>(
       ? await query.select().single()
       : await query;
     
-    return { data: responseData as T, error };
+    return { data: responseData as unknown as T, error };
   } catch (error) {
     console.error(`Error updating in ${tableName}:`, error);
     return { 
@@ -125,7 +120,7 @@ export async function updateInTable<T>(
 // Generalized delete function
 export async function deleteFromTable(
   tableName: ValidTableName, 
-  id: string | number,
+  id: string,
   options: {
     idColumn?: string;
   } = {}
@@ -148,7 +143,7 @@ export async function deleteFromTable(
   }
 }
 
-// Simplificado para evitar tipos recursivos infinitos
+// Modified to avoid recursive types
 export interface RealtimePayload {
   new: Record<string, any>;
   old: Record<string, any>;
@@ -179,7 +174,17 @@ export function subscribeToTable(
         table: tableName,
         filter
       },
-      (payload) => callback(payload as RealtimePayload)
+      (payload: any) => {
+        // Convert the payload to our simplified RealtimePayload type
+        const typedPayload: RealtimePayload = {
+          new: payload.new || {},
+          old: payload.old || {},
+          eventType: payload.eventType || 'UPDATE',
+          table: tableName,
+          schema: 'public'
+        };
+        callback(typedPayload);
+      }
     )
     .subscribe();
   
