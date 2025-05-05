@@ -49,11 +49,16 @@ export function useSupabaseRealtime({
           filter
         },
         (payload: any) => {
+          // Access payload data safely
+          const newData = payload.new || (payload.payload && payload.payload.new) || {};
+          const oldData = payload.old || (payload.payload && payload.payload.old) || {};
+          const eventType = payload.eventType || payload.type || 'UPDATE';
+          
           // Criar um payload tipado para nosso uso
           const typedPayload: RealtimePayload = {
-            new: payload.new || (payload.payload && payload.payload.new) || {},
-            old: payload.old || (payload.payload && payload.payload.old) || {},
-            eventType: payload.eventType || (payload.type ? payload.type : 'UPDATE'),
+            new: newData,
+            old: oldData,
+            eventType: eventType,
             table,
             schema
           };

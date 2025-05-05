@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestError } from "@supabase/supabase-js";
 import { ValidTableName } from "@/services/supabaseService";
@@ -175,11 +174,16 @@ export function subscribeToTable(
         filter
       },
       (payload: any) => {
+        // Access payload data safely
+        const newData = payload.new || (payload.payload && payload.payload.new) || {};
+        const oldData = payload.old || (payload.payload && payload.payload.old) || {};
+        const eventType = payload.eventType || payload.type || 'UPDATE';
+        
         // Convert the payload to our simplified RealtimePayload type
         const typedPayload: RealtimePayload = {
-          new: payload.new || (payload.payload && payload.payload.new) || {},
-          old: payload.old || (payload.payload && payload.payload.old) || {},
-          eventType: payload.eventType || 'UPDATE',
+          new: newData,
+          old: oldData,
+          eventType: eventType,
           table: tableName,
           schema: 'public'
         };

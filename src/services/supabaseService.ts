@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestError } from "@supabase/supabase-js";
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
@@ -194,7 +193,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
         
         if (error) throw error;
         // Use type assertion to help TypeScript understand the structure
-        return data as unknown as TData[];
+        return data as TData[];
       },
       enabled: options?.enabled !== false,
       errorMessage: `Erro ao carregar dados de ${tableName}`
