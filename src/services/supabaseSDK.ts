@@ -7,9 +7,15 @@ export interface SupabaseResponse<T> {
   error: PostgrestError | Error | null;
 }
 
+// List of valid tables in the database
+type ValidTableName = 'cascos_emprestados' | 'clients' | 'colaboradores' | 'organizations' | 
+  'configuracoes_entrega' | 'configuracoes_estoque' | 'configuracoes_financeiras' | 
+  'configuracoes_notificacoes' | 'configuracoes_seguranca' | 'configuracoes_sistema' | 
+  'dashboard_data' | 'orders' | 'profiles' | 'requisicoes_estoque';
+
 // Generic data fetching function
 export async function fetchFromTable<T>(
-  tableName: string, 
+  tableName: ValidTableName, 
   options: {
     columns?: string;
     where?: Record<string, any>;
@@ -59,7 +65,7 @@ export async function fetchFromTable<T>(
 
 // Generalized insert function
 export async function insertIntoTable<T>(
-  tableName: string, 
+  tableName: ValidTableName, 
   data: Partial<T>,
   options: {
     returnData?: boolean;
@@ -86,7 +92,7 @@ export async function insertIntoTable<T>(
 
 // Generalized update function
 export async function updateInTable<T>(
-  tableName: string, 
+  tableName: ValidTableName, 
   id: string | number,
   data: Partial<T>,
   options: {
@@ -118,7 +124,7 @@ export async function updateInTable<T>(
 
 // Generalized delete function
 export async function deleteFromTable(
-  tableName: string, 
+  tableName: ValidTableName, 
   id: string | number,
   options: {
     idColumn?: string;
@@ -144,7 +150,7 @@ export async function deleteFromTable(
 
 // Subscribe to real-time changes
 export function subscribeToTable(
-  tableName: string,
+  tableName: ValidTableName,
   callback: (payload: any) => void,
   options: {
     event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*';

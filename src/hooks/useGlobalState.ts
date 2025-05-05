@@ -20,16 +20,19 @@ interface GlobalState {
   };
 }
 
+// Default stock values
+const defaultStock = {
+  p13: 0,
+  p20: 0,
+  p45: 0,
+  agua: 0
+};
+
 export function useGlobalState() {
   const { toast } = useToast();
   const { user, organization } = useAuth();
   const [globalState, setGlobalState] = useState<GlobalState>({
-    currentStock: {
-      p13: 0,
-      p20: 0,
-      p45: 0,
-      agua: 0
-    },
+    currentStock: defaultStock,
     pendingOrders: 0,
     activeDeliveries: 0,
     stockAlerts: {
@@ -81,7 +84,12 @@ export function useGlobalState() {
       if (stockConfigError) throw stockConfigError;
       
       // Process stock alert data
-      const stockLevels = stockData?.stock_data || { p13: 0, p20: 0, p45: 0, agua: 0 };
+      const stockLevels = stockData?.stock_data ? 
+        (typeof stockData.stock_data === 'object' ? 
+          stockData.stock_data as { p13: number; p20: number; p45: number; agua: number; } : 
+          defaultStock) : 
+        defaultStock;
+      
       const lowStockItems: string[] = [];
       
       stockConfigData?.forEach((config) => {

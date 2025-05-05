@@ -12,9 +12,15 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+// Valid table names
+type ValidTableName = 'cascos_emprestados' | 'clients' | 'colaboradores' | 'organizations' | 
+  'configuracoes_entrega' | 'configuracoes_estoque' | 'configuracoes_financeiras' | 
+  'configuracoes_notificacoes' | 'configuracoes_seguranca' | 'configuracoes_sistema' | 
+  'dashboard_data' | 'orders' | 'profiles' | 'requisicoes_estoque';
+
 // Generic fetch function with error handling
 export async function fetchData<T>(
-  table: string,
+  table: ValidTableName,
   queryOptions?: {
     columns?: string;
     filters?: Record<string, any>;
@@ -82,7 +88,7 @@ export async function fetchData<T>(
 
 // Generic insert function with error handling
 export async function insertData<T>(
-  table: string,
+  table: ValidTableName,
   data: Partial<T>
 ): Promise<ApiResponse<T>> {
   try {
@@ -112,7 +118,7 @@ export async function insertData<T>(
 
 // Generic update function with error handling
 export async function updateData<T>(
-  table: string,
+  table: ValidTableName,
   id: string | number,
   data: Partial<T>,
   idColumn: string = 'id'
@@ -145,7 +151,7 @@ export async function updateData<T>(
 
 // Generic delete function with error handling
 export async function deleteData(
-  table: string,
+  table: ValidTableName,
   id: string | number,
   idColumn: string = 'id'
 ): Promise<ApiResponse<null>> {
@@ -173,7 +179,7 @@ export async function deleteData(
 }
 
 // Custom hooks for common Supabase operations
-export function useSupabaseTable<T>(tableName: string) {
+export function useSupabaseTable<T>(tableName: ValidTableName) {
   // Get data from a table with filtering options
   const useTableData = (options?: {
     columns?: string;
