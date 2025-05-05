@@ -49,15 +49,15 @@ export async function insertData<TData extends Record<string, any>>(
   }
 }
 
-// Simple two-step update function that avoids complex type inference
+// Completely rewritten update function to avoid type recursion issues
 export async function updateData<TData>(
   table: ValidTableName,
   id: string,
-  data: Partial<Record<string, unknown>>,
+  data: Record<string, any>,
   idColumn: string = 'id'
 ): Promise<ApiResponse<TData>> {
   try {
-    // Step 1: Perform the update operation with minimal type complexity
+    // First, perform the update operation
     const { error: updateError } = await supabase
       .from(table)
       .update(data)
@@ -65,8 +65,8 @@ export async function updateData<TData>(
     
     if (updateError) throw updateError;
     
-    // Step 2: Fetch the updated record in a separate query
-    const { data: fetchedData, error: fetchError } = await supabase
+    // Then, fetch the updated record in a separate query
+    const { data: result, error: fetchError } = await supabase
       .from(table)
       .select('*')
       .eq(idColumn, id)
@@ -74,12 +74,12 @@ export async function updateData<TData>(
     
     if (fetchError) throw fetchError;
     
-    if (!fetchedData) {
+    if (!result) {
       throw new Error(`Record not found after update: ${idColumn}=${id}`);
     }
     
-    // Use a simple type assertion without complex generics
-    return createSuccessResponse<TData>(fetchedData as unknown as TData);
+    // Use a direct type assertion to avoid complex type inference
+    return createSuccessResponse<TData>(result as TData);
   } catch (error) {
     return createErrorResponse<TData>(error, `updateData in ${table}`);
   }
