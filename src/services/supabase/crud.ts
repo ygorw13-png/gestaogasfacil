@@ -9,7 +9,9 @@ export async function fetchData<TData extends Record<string, any>>(
   queryOptions?: QueryOptions
 ): Promise<ApiResponse<TData[]>> {
   try {
-    let query = supabase.from(table).select(queryOptions?.columns || '*');
+    // Start with a basic query - use type assertion here at the beginning
+    // This prevents TypeScript from trying to deeply infer the type through chaining
+    let query = supabase.from(table).select(queryOptions?.columns || '*') as any;
 
     // Apply query modifiers
     query = applyFilters(query, queryOptions?.filters);

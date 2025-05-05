@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -14,13 +15,21 @@ import { useToast } from "@/hooks/use-toast";
 import { syncStockWithDashboard } from "@/pages/dashboard/data";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define a stock data interface for proper typing
+interface StockData {
+  p13: number;
+  p20: number;
+  p45: number;
+  water: number;
+}
+
 export default function Inventory() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("inventory");
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [currentStock, setCurrentStock] = useState({
+  const [currentStock, setCurrentStock] = useState<StockData>({
     p13: 0,
     p20: 0,
     p45: 0,
@@ -42,7 +51,8 @@ export default function Inventory() {
       }
 
       if (data && data.stock_data) {
-        const stockData = data.stock_data;
+        // Type assertion to ensure TypeScript understands the structure
+        const stockData = data.stock_data as StockData;
         setCurrentStock({
           p13: stockData.p13 || 0,
           p20: stockData.p20 || 0,
