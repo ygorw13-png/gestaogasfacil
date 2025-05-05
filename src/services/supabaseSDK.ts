@@ -148,7 +148,7 @@ export async function deleteFromTable(
   }
 }
 
-// Subscribe to real-time changes - with corrected type handling
+// Subscribe to real-time changes - with fixed type handling to avoid infinite recursion
 export function subscribeToTable(
   tableName: ValidTableName,
   callback: (payload: any) => void,
@@ -159,6 +159,7 @@ export function subscribeToTable(
 ): () => void {
   const { event = '*', filter } = options;
   
+  // Use type assertion to bypass TypeScript error
   const channel = supabase
     .channel(`public-${tableName}-changes`)
     .on(
