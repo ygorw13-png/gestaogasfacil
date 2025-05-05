@@ -148,10 +148,18 @@ export async function deleteFromTable(
   }
 }
 
-// Subscribe to real-time changes - with fixed type handling to avoid infinite recursion
+// Simplified type for realtime payload to avoid recursive type issues
+export type RealtimePayload = {
+  new: Record<string, any>;
+  old: Record<string, any>;
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  [key: string]: any;
+};
+
+// Subscribe to real-time changes with simplified type handling
 export function subscribeToTable(
   tableName: ValidTableName,
-  callback: (payload: any) => void,
+  callback: (payload: RealtimePayload) => void,
   options: {
     event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
     filter?: string;
@@ -170,7 +178,7 @@ export function subscribeToTable(
         table: tableName,
         filter
       },
-      callback
+      (payload: any) => callback(payload as RealtimePayload)
     )
     .subscribe();
   

@@ -178,6 +178,9 @@ export async function deleteData(
   }
 }
 
+// Define simple type for query function
+export type QueryFunction<T> = () => Promise<T[]>;
+
 // Custom hooks for common Supabase operations
 export function useSupabaseTable<T>(tableName: ValidTableName) {
   // Get data from a table with filtering options

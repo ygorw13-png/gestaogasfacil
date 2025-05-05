@@ -1,16 +1,26 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { RealtimeChannel, RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { RealtimeChannel } from "@supabase/supabase-js";
 
 type EventType = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
+
+// Simplified type for realtime payload to avoid recursive type issues
+export type RealtimePayload = {
+  new: Record<string, any>;
+  old: Record<string, any>;
+  eventType: string;
+  table: string;
+  schema: string;
+  [key: string]: any;
+};
 
 interface SupabaseRealtimeOptions {
   table: string;
   schema?: string;
   event?: EventType;
   filter?: string;
-  onRecordChange?: (payload: RealtimePostgresChangesPayload<any>) => void;
+  onRecordChange?: (payload: RealtimePayload) => void;
 }
 
 export function useSupabaseRealtime({
@@ -22,7 +32,7 @@ export function useSupabaseRealtime({
 }: SupabaseRealtimeOptions) {
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const [isListening, setIsListening] = useState(false);
-  const [latestPayload, setLatestPayload] = useState<RealtimePostgresChangesPayload<any> | null>(null);
+  const [latestPayload, setLatestPayload] = useState<RealtimePayload | null>(null);
 
   useEffect(() => {
     const channelName = `${schema}-${table}-changes`;
@@ -38,9 +48,10 @@ export function useSupabaseRealtime({
           table,
           filter
         },
-        (payload: RealtimePostgresChangesPayload<any>) => {
-          setLatestPayload(payload);
-          if (onRecordChange) onRecordChange(payload);
+        (payload: any) => {
+          const typedPayload = payload as RealtimePayload;
+          setLatestPayload(typedPayload);
+          if (onRecordChange) onRecordChange(typedPayload);
         }
       )
       .subscribe((status) => {
