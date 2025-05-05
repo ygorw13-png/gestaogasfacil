@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ApiResponse } from '@/services/supabase/types';
 
 // Example type definition
 interface StockItem {
@@ -52,8 +53,8 @@ export function SupabaseHooksExample() {
   const handleCreateItem = () => {
     if (!newItemName) return;
     
+    // Fixed the type error by removing 'id' from the record being created
     createRecord({
-      id: newItemName.toLowerCase().replace(/\s+/g, '_'),
       produto: newItemName,
       estoque_minimo: 10,
       alerta_ativo: true
@@ -65,8 +66,10 @@ export function SupabaseHooksExample() {
   // Example of fetching a single item with useSupabaseCRUD
   const handleFetchDetail = async (id: string) => {
     const result = await getById(id);
-    if (result.data) {
-      setDetailItem(result.data);
+    
+    // Fixed error by checking if result is an Error before accessing data
+    if (result && !(result instanceof Error)) {
+      setDetailItem(result);
       setSelectedItemId(id);
     }
   };
