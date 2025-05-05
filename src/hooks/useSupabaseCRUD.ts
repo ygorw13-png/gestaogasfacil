@@ -3,9 +3,10 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./use-toast";
 import { PostgrestError } from "@supabase/supabase-js";
+import { ValidTableName } from "@/services/supabaseService";
 
 // Hook reutilizável para operações CRUD no Supabase com tratamento de erro padronizado
-export function useSupabaseCRUD<T extends Record<string, any>>(tableName: string) {
+export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidTableName) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<PostgrestError | Error | null>(null);
   const { toast } = useToast();
@@ -56,7 +57,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: string
       
       if (error) throw error;
       
-      return data as T[];
+      return data as unknown as T[];
     } catch (error) {
       return handleError(error, `Não foi possível carregar dados de ${tableName}`);
     } finally {
@@ -80,7 +81,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: string
       
       if (error) throw error;
       
-      return data as T;
+      return data as unknown as T;
     } catch (error) {
       return handleError(error, `Não foi possível carregar o item de ${tableName}`);
     } finally {
@@ -109,7 +110,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: string
         description: successMessage
       });
       
-      return result as T;
+      return result as unknown as T;
     } catch (error) {
       return handleError(error, `Não foi possível criar o item em ${tableName}`);
     } finally {
@@ -149,7 +150,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: string
         description: successMessage
       });
       
-      return result as T;
+      return result as unknown as T;
     } catch (error) {
       return handleError(error, `Não foi possível atualizar o item em ${tableName}`);
     } finally {

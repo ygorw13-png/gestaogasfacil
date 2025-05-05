@@ -3,10 +3,11 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./use-toast";
 import { PostgrestError } from "@supabase/supabase-js";
+import { ValidTableName } from "@/services/supabaseService";
 
 // Hook genérico e reutilizável para operações CRUD em tabelas do Supabase
 export function useBaseSupabaseTable<T extends Record<string, any>>(
-  tableName: string,
+  tableName: ValidTableName,
   options: {
     idField?: string;
     defaultErrorMessage?: string;
@@ -92,11 +93,11 @@ export function useBaseSupabaseTable<T extends Record<string, any>>(
       
       if (error) throw error;
       
-      setData(data as T[]);
-      return data as T[];
+      setData(data as unknown as T[]);
+      return data as unknown as T[];
     } catch (error) {
       handleError(error, `Erro ao carregar dados de ${tableName}`);
-      return [];
+      return [] as T[];
     } finally {
       setLoading(false);
     }
@@ -116,7 +117,7 @@ export function useBaseSupabaseTable<T extends Record<string, any>>(
       
       if (error) throw error;
       
-      return data as T;
+      return data as unknown as T | null;
     } catch (error) {
       handleError(error, `Erro ao buscar item de ${tableName}`);
       return null;
@@ -149,14 +150,14 @@ export function useBaseSupabaseTable<T extends Record<string, any>>(
       
       // Atualizar dados em cache se tiver sido retornado
       if (returnItem && data) {
-        setData(prev => [...prev, data as T]);
+        setData(prev => [...prev, data as unknown as T]);
       } else {
         // Se não retornou o item, recarregar dados
         await fetchData();
       }
       
       handleSuccess(successMessage);
-      return data as T;
+      return data as unknown as T | null;
     } catch (error) {
       handleError(error, `Erro ao adicionar item em ${tableName}`);
       return null;
@@ -194,7 +195,7 @@ export function useBaseSupabaseTable<T extends Record<string, any>>(
       // Atualizar dados em cache se tiver sido retornado
       if (returnItem && data) {
         setData(prev => prev.map(item => 
-          item[idField] === id ? { ...item, ...data } : item
+          item[idField] === id ? { ...item, ...data } as unknown as T : item
         ));
       } else {
         // Se não retornou o item, recarregar dados
@@ -202,7 +203,7 @@ export function useBaseSupabaseTable<T extends Record<string, any>>(
       }
       
       handleSuccess(successMessage);
-      return data as T;
+      return data as unknown as T | null;
     } catch (error) {
       handleError(error, `Erro ao atualizar item em ${tableName}`);
       return null;
