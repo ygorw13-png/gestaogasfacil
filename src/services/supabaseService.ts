@@ -184,15 +184,16 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
   }) => {
     const queryKey = options?.queryKey || [tableName];
     
-    // Break the recursive type dependence by using a more specific return type
+    // Use explicit return type to break recursive type dependency
     return useSupabaseQuery<TData[]>({
       queryKey,
-      queryFn: async () => {
+      queryFn: async (): Promise<TData[]> => {
         const { data, error } = await supabase
           .from(tableName)
           .select(options?.columns || '*');
         
         if (error) throw error;
+        // Use type assertion to help TypeScript understand the structure
         return data as unknown as TData[];
       },
       enabled: options?.enabled !== false,
