@@ -3,9 +3,10 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, FileText } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DateRange } from "react-day-picker";
+import NewMiscExpenseForm from "./forms/NewMiscExpenseForm";
 
 interface MiscExpensesProps {
   dateRange?: DateRange;
@@ -21,7 +22,7 @@ export default function MiscExpenses({ dateRange }: MiscExpensesProps) {
           <div>
             <CardTitle>Despesas Diversas</CardTitle>
             <CardDescription>
-              Gerencie despesas variáveis e não recorrentes
+              Gerencie despesas diversas como material de escritório, alimentação, etc
             </CardDescription>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
@@ -35,11 +36,7 @@ export default function MiscExpenses({ dateRange }: MiscExpensesProps) {
               <DialogHeader>
                 <DialogTitle>Nova Despesa Diversa</DialogTitle>
               </DialogHeader>
-              {/* Formulário será implementado futuramente */}
-              <div className="space-y-4">
-                <p>Formulário para adicionar nova despesa diversa será implementado em breve.</p>
-                <Button onClick={() => setOpen(false)}>Fechar</Button>
-              </div>
+              <NewMiscExpenseForm onSuccess={() => setOpen(false)} />
             </DialogContent>
           </Dialog>
         </div>
@@ -52,6 +49,7 @@ export default function MiscExpenses({ dateRange }: MiscExpensesProps) {
               <TableHead>Descrição</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead>Valor</TableHead>
+              <TableHead>Forma de Pagamento</TableHead>
               <TableHead>Observações</TableHead>
             </TableRow>
           </TableHeader>

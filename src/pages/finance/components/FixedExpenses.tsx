@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Calendar } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DateRange } from "react-day-picker";
+import NewFixedExpenseForm from "./forms/NewFixedExpenseForm";
 
 interface FixedExpensesProps {
   dateRange?: DateRange;
@@ -35,11 +36,7 @@ export default function FixedExpenses({ dateRange }: FixedExpensesProps) {
               <DialogHeader>
                 <DialogTitle>Nova Despesa Fixa</DialogTitle>
               </DialogHeader>
-              {/* Formulário será implementado futuramente */}
-              <div className="space-y-4">
-                <p>Formulário para adicionar nova despesa fixa será implementado em breve.</p>
-                <Button onClick={() => setOpen(false)}>Fechar</Button>
-              </div>
+              <NewFixedExpenseForm onSuccess={() => setOpen(false)} />
             </DialogContent>
           </Dialog>
         </div>

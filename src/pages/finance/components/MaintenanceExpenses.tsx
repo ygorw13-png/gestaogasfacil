@@ -3,9 +3,10 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Car, Wrench } from "lucide-react";
+import { Plus, Wrench } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DateRange } from "react-day-picker";
+import NewMaintenanceExpenseForm from "./forms/NewMaintenanceExpenseForm";
 
 interface MaintenanceExpensesProps {
   dateRange?: DateRange;
@@ -19,9 +20,9 @@ export default function MaintenanceExpenses({ dateRange }: MaintenanceExpensesPr
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Controle de Manutenção</CardTitle>
+            <CardTitle>Despesas de Manutenção</CardTitle>
             <CardDescription>
-              Gerencie despesas com manutenção de veículos e ambiente de trabalho
+              Gerencie despesas de manutenção de veículos e equipamentos
             </CardDescription>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
@@ -31,15 +32,11 @@ export default function MaintenanceExpenses({ dateRange }: MaintenanceExpensesPr
                 Nova Manutenção
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-3xl">
               <DialogHeader>
                 <DialogTitle>Nova Despesa de Manutenção</DialogTitle>
               </DialogHeader>
-              {/* Formulário será implementado futuramente */}
-              <div className="space-y-4">
-                <p>Formulário para adicionar nova despesa de manutenção será implementado em breve.</p>
-                <Button onClick={() => setOpen(false)}>Fechar</Button>
-              </div>
+              <NewMaintenanceExpenseForm onSuccess={() => setOpen(false)} />
             </DialogContent>
           </Dialog>
         </div>
@@ -49,11 +46,12 @@ export default function MaintenanceExpenses({ dateRange }: MaintenanceExpensesPr
           <TableHeader>
             <TableRow>
               <TableHead>Data</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Descrição</TableHead>
               <TableHead>Veículo</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Prestador</TableHead>
               <TableHead>Valor</TableHead>
-              <TableHead>Observações</TableHead>
+              <TableHead>Nota/Comprovante</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
