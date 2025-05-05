@@ -2,9 +2,9 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import { StockConfig } from "@/types/supabaseTypes";
-import { customTables } from "@/integrations/supabase/customClient";
+import { fetchFromTable } from "@/services/supabaseSDK";
 
 interface StockAlertProps {
   currentStock: {
@@ -22,17 +22,12 @@ export function StockAlert({ currentStock }: StockAlertProps) {
   useEffect(() => {
     const fetchStockConfigs = async () => {
       try {
-        const { data, error } = await customTables.stockConfig.select();
+        const { data, error } = await fetchFromTable<StockConfig[]>('configuracoes_estoque');
         
         if (error) throw error;
         
-        if (data) {
-          // Fix the type issue by properly handling the data
-          if (Array.isArray(data)) {
-            setStockConfigs(data as StockConfig[]);
-          } else {
-            setStockConfigs([]);
-          }
+        if (data && Array.isArray(data)) {
+          setStockConfigs(data);
         }
       } catch (error) {
         console.error("Erro ao buscar configurações de estoque:", error);
@@ -49,7 +44,7 @@ export function StockAlert({ currentStock }: StockAlertProps) {
     
     const alerts = [];
     
-    const p13Config = stockConfigs.find(config => config.produto === 'P13');
+    const p13Config = stockConfigs.find(config => config.id === 'P13');
     if (p13Config && p13Config.alerta_ativo && currentStock.p13 < p13Config.estoque_minimo) {
       alerts.push({
         product: "GLP P13",
@@ -58,7 +53,7 @@ export function StockAlert({ currentStock }: StockAlertProps) {
       });
     }
     
-    const p20Config = stockConfigs.find(config => config.produto === 'P20');
+    const p20Config = stockConfigs.find(config => config.id === 'P20');
     if (p20Config && p20Config.alerta_ativo && currentStock.p20 < p20Config.estoque_minimo) {
       alerts.push({
         product: "GLP P20",
@@ -67,7 +62,7 @@ export function StockAlert({ currentStock }: StockAlertProps) {
       });
     }
     
-    const p45Config = stockConfigs.find(config => config.produto === 'P45');
+    const p45Config = stockConfigs.find(config => config.id === 'P45');
     if (p45Config && p45Config.alerta_ativo && currentStock.p45 < p45Config.estoque_minimo) {
       alerts.push({
         product: "GLP P45",
@@ -76,7 +71,7 @@ export function StockAlert({ currentStock }: StockAlertProps) {
       });
     }
     
-    const aguaConfig = stockConfigs.find(config => config.produto === 'agua');
+    const aguaConfig = stockConfigs.find(config => config.id === 'agua');
     if (aguaConfig && aguaConfig.alerta_ativo && currentStock.water < aguaConfig.estoque_minimo) {
       alerts.push({
         product: "Água 20L",
@@ -91,7 +86,13 @@ export function StockAlert({ currentStock }: StockAlertProps) {
   const alerts = getAlerts();
   
   if (loading) {
-    return <div>Carregando alertas...</div>;
+    return (
+      <Card className="border-orange-200 bg-orange-50">
+        <CardContent className="p-4 flex justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-orange-700" />
+        </CardContent>
+      </Card>
+    );
   }
   
   if (alerts.length === 0) {

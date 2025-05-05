@@ -1,7 +1,10 @@
 
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { fetchFromTable } from "@/services/supabaseSDK";
+import { StockConfig } from "@/types/supabaseTypes";
 
 interface StockOverviewProps {
   currentStock: {
@@ -10,24 +13,60 @@ interface StockOverviewProps {
     p45: number;
     water: number;
   };
-  minStock?: {
-    p13: number;
-    p20: number;
-    p45: number;
-    water: number;
-  };
 }
 
-export function StockOverview({ 
-  currentStock,
-  minStock = { p13: 20, p20: 5, p45: 5, water: 20 }
-}: StockOverviewProps) {
+export function StockOverview({ currentStock }: StockOverviewProps) {
+  const [loading, setLoading] = useState(true);
+  const [minStock, setMinStock] = useState({
+    p13: 20,
+    p20: 5,
+    p45: 5,
+    water: 20
+  });
+
+  useEffect(() => {
+    const fetchStockConfig = async () => {
+      try {
+        const { data, error } = await fetchFromTable<StockConfig[]>('configuracoes_estoque');
+        
+        if (error) throw error;
+        
+        if (data && Array.isArray(data)) {
+          const p13Config = data.find(item => item.id === 'P13');
+          const p20Config = data.find(item => item.id === 'P20');
+          const p45Config = data.find(item => item.id === 'P45');
+          const aguaConfig = data.find(item => item.id === 'agua');
+          
+          setMinStock({
+            p13: p13Config?.estoque_minimo || 20,
+            p20: p20Config?.estoque_minimo || 5,
+            p45: p45Config?.estoque_minimo || 5,
+            water: aguaConfig?.estoque_minimo || 20
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao buscar configurações de estoque:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStockConfig();
+  }, []);
   
   const getStockStatus = (current: number, min: number) => {
     if (current <= 0) return { status: 'critical', color: 'bg-red-500' };
     if (current < min) return { status: 'low', color: 'bg-yellow-500' };
     return { status: 'ok', color: 'bg-green-500' };
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center p-4">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
