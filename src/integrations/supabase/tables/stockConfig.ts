@@ -29,7 +29,7 @@ export const stockConfigTable = {
         data: null,
         error: error instanceof PostgrestError 
           ? error 
-          : new PostgrestError("Erro ao buscar configurações", 500)
+          : new PostgrestError("Erro ao buscar configurações")
       };
     }
   },
@@ -49,7 +49,7 @@ export const stockConfigTable = {
         data: null,
         error: error instanceof PostgrestError 
           ? error 
-          : new PostgrestError("Erro ao inserir configuração", 500)
+          : new PostgrestError("Erro ao inserir configuração")
       };
     }
   },
@@ -72,7 +72,7 @@ export const stockConfigTable = {
         data: null,
         error: error instanceof PostgrestError 
           ? error 
-          : new PostgrestError("Erro ao atualizar configuração", 500)
+          : new PostgrestError("Erro ao atualizar configuração")
       };
     }
   },
@@ -90,7 +90,7 @@ export const stockConfigTable = {
       return {
         error: error instanceof PostgrestError 
           ? error 
-          : new PostgrestError("Erro ao excluir configuração", 500)
+          : new PostgrestError("Erro ao excluir configuração")
       };
     }
   },
@@ -111,7 +111,7 @@ export const stockConfigTable = {
         data: null,
         error: error instanceof PostgrestError 
           ? error 
-          : new PostgrestError(`Erro ao buscar configuração ${id}`, 500)
+          : new PostgrestError(`Erro ao buscar configuração ${id}`)
       };
     }
   }

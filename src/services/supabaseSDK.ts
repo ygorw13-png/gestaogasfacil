@@ -48,7 +48,7 @@ export async function fetchFromTable<T>(
       ? await query.single()
       : await query;
     
-    return { data: data as unknown as T, error };
+    return { data: data as T, error };
   } catch (error) {
     console.error(`Error fetching from ${tableName}:`, error);
     return { 
@@ -75,7 +75,7 @@ export async function insertIntoTable<T>(
       ? await query.select().single()
       : await query;
     
-    return { data: responseData as unknown as T, error };
+    return { data: responseData as T, error };
   } catch (error) {
     console.error(`Error inserting into ${tableName}:`, error);
     return { 
@@ -107,7 +107,7 @@ export async function updateInTable<T>(
       ? await query.select().single()
       : await query;
     
-    return { data: responseData as unknown as T, error };
+    return { data: responseData as T, error };
   } catch (error) {
     console.error(`Error updating in ${tableName}:`, error);
     return { 
@@ -143,7 +143,7 @@ export async function deleteFromTable(
   }
 }
 
-// Modified to avoid recursive types
+// Interface for realtime payload (simplified)
 export interface RealtimePayload {
   new: Record<string, any>;
   old: Record<string, any>;
@@ -152,7 +152,7 @@ export interface RealtimePayload {
   schema: string;
 }
 
-// Subscribe to real-time changes with simplified type handling
+// Subscribe to real-time changes
 export function subscribeToTable(
   tableName: ValidTableName,
   callback: (payload: RealtimePayload) => void,
@@ -167,7 +167,7 @@ export function subscribeToTable(
   const channel = supabase
     .channel(`public-${tableName}-changes`)
     .on(
-      'postgres_changes' as any,
+      'postgres_changes',
       {
         event,
         schema: 'public',

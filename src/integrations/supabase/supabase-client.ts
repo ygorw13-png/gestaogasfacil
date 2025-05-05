@@ -67,7 +67,7 @@ export const supabaseUtils = {
           ? await query.single()
           : await query;
         
-        return { data: data as unknown as T, error };
+        return { data: data as T, error };
       } catch (error) {
         return supabaseUtils.createErrorResponse(error, `select from ${tableName}`);
       }
@@ -86,7 +86,7 @@ export const supabaseUtils = {
           ? await query.select().single()
           : await query;
         
-        return { data: responseData as unknown as T, error };
+        return { data: responseData as T, error };
       } catch (error) {
         return supabaseUtils.createErrorResponse(error, `insert into ${tableName}`);
       }
@@ -114,7 +114,7 @@ export const supabaseUtils = {
           ? await query.select().single()
           : await query;
         
-        return { data: responseData as unknown as T, error };
+        return { data: responseData as T, error };
       } catch (error) {
         return supabaseUtils.createErrorResponse(error, `update in ${tableName}`);
       }
@@ -158,14 +158,18 @@ export const supabaseUtils = {
       const channel = supabase
         .channel(`public-${tableName}-changes`)
         .on(
-          'postgres_changes' as any,
+          'postgres_changes',
           {
             event,
             schema: 'public',
             table: tableName,
             filter
           },
-          (payload) => callback(payload as any)
+          (payload) => callback({
+            new: payload.new || {},
+            old: payload.old || {},
+            eventType: payload.eventType || 'UPDATE'
+          })
         )
         .subscribe();
       
