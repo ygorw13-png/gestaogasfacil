@@ -49,7 +49,7 @@ export async function insertData<TData extends Record<string, any>>(
   }
 }
 
-// Simplified update function that avoids type inference issues
+// Completely refactored update function that fully avoids type inference issues
 export async function updateData<TData extends Record<string, any>>(
   table: ValidTableName,
   id: string,
@@ -57,29 +57,31 @@ export async function updateData<TData extends Record<string, any>>(
   idColumn: string = 'id'
 ): Promise<ApiResponse<TData>> {
   try {
-    // First update the data without type inference issues
-    const updateResult = await supabase
+    // Step 1: Perform the update operation without returning data
+    const { error: updateError } = await supabase
       .from(table)
-      .update(data as Record<string, any>)
+      .update(data as any)
       .eq(idColumn, id);
     
-    if (updateResult.error) throw updateResult.error;
+    if (updateError) throw updateError;
     
-    // Then fetch the updated record separately
-    const { data: fetchedData, error: fetchError } = await supabase
+    // Step 2: Fetch the updated record in a separate operation
+    const fetchQuery = supabase
       .from(table)
       .select('*')
-      .eq(idColumn, id)
-      .maybeSingle();
+      .eq(idColumn, id);
+    
+    const { data: fetchedData, error: fetchError } = await fetchQuery;
     
     if (fetchError) throw fetchError;
     
-    if (!fetchedData) {
+    if (!fetchedData || fetchedData.length === 0) {
       throw new Error(`Record not found: ${idColumn}=${id}`);
     }
     
-    // Use double casting to safely convert to the expected type
-    return createSuccessResponse(fetchedData as unknown as TData);
+    // Use a more explicit double-casting approach to avoid deep type inference
+    const result = fetchedData[0];
+    return createSuccessResponse(result as any as TData);
   } catch (error) {
     return createErrorResponse<TData>(error, `updateData in ${table}`);
   }
