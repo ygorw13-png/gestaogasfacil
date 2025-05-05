@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestError } from "@supabase/supabase-js";
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
@@ -183,17 +184,16 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
   }) => {
     const queryKey = options?.queryKey || [tableName];
     
-    // Use explicit return type to break recursive type dependency
+    // Fix for TypeScript error: Use a more explicit return type and cast data properly
     return useSupabaseQuery<TData[]>({
       queryKey,
-      queryFn: async (): Promise<TData[]> => {
+      queryFn: async () => {
         const { data, error } = await supabase
           .from(tableName)
           .select(options?.columns || '*');
         
         if (error) throw error;
-        // Use type assertion to help TypeScript understand the structure
-        return data as TData[];
+        return data as unknown as TData[];
       },
       enabled: options?.enabled !== false,
       errorMessage: `Erro ao carregar dados de ${tableName}`
@@ -206,6 +206,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
     onError?: (error: PostgrestError | Error) => void;
     successMessage?: string;
   }) => {
+    // Fix for infinite type instantiation: explicitly define return type
     return useSupabaseMutation<TData, Partial<TData>>({
       mutationFn: async (newData) => {
         const { data, error } = await supabase
@@ -215,7 +216,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
           .single();
         
         if (error) throw error;
-        return data as unknown as TData;
+        return data as TData;
       },
       onSuccess: options?.onSuccess,
       onError: options?.onError,
@@ -232,6 +233,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
   }) => {
     const idField = options?.idField || 'id';
     
+    // Fix for infinite type instantiation: explicitly define return type
     return useSupabaseMutation<TData, { id: string; data: Partial<TData> }>({
       mutationFn: async ({ id, data }) => {
         const { data: result, error } = await supabase
@@ -242,7 +244,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
           .single();
         
         if (error) throw error;
-        return result as unknown as TData;
+        return result as TData;
       },
       onSuccess: options?.onSuccess,
       onError: options?.onError,
@@ -259,6 +261,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
   }) => {
     const idField = options?.idField || 'id';
     
+    // Fix for infinite type instantiation: explicitly define return type
     return useSupabaseMutation<null, string>({
       mutationFn: async (id) => {
         const { error } = await supabase
