@@ -38,7 +38,7 @@ export function useSupabaseRealtime({
           table,
           filter
         },
-        (payload) => {
+        (payload: RealtimePostgresChangesPayload<any>) => {
           setLatestPayload(payload);
           if (onRecordChange) onRecordChange(payload);
         }
