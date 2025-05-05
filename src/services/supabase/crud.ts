@@ -57,25 +57,30 @@ export async function updateData<TData extends Record<string, any>>(
   idColumn: string = 'id'
 ): Promise<ApiResponse<TData>> {
   try {
-    // First step: Just do the update without returning data (avoiding complex type inference)
-    const updateResult = await supabase
+    // Use a two-step approach to avoid complex type inference issues
+    
+    // Step 1: Perform the update without returning data
+    const updateOperation = await supabase
       .from(table)
       .update(data)
       .eq(idColumn, id);
       
-    if (updateResult.error) throw updateResult.error;
+    if (updateOperation.error) throw updateOperation.error;
     
-    // Second step: Get the updated record in a separate query (simpler type inference)
-    const getResult = await supabase
+    // Step 2: Fetch the updated record separately
+    const fetchOperation = await supabase
       .from(table)
       .select('*')
       .eq(idColumn, id)
-      .single();
+      .maybeSingle();
     
-    if (getResult.error) throw getResult.error;
+    if (fetchOperation.error) throw fetchOperation.error;
+    if (!fetchOperation.data) {
+      throw new Error(`Record not found after update: ${idColumn}=${id}`);
+    }
     
-    // Simple and explicit type assertion
-    return createSuccessResponse(getResult.data as unknown as TData);
+    // Safely cast the result to the expected type
+    return createSuccessResponse(fetchOperation.data as unknown as TData);
   } catch (error) {
     return createErrorResponse<TData>(error, `updateData in ${table}`);
   }
@@ -88,12 +93,12 @@ export async function deleteData(
   idColumn: string = 'id'
 ): Promise<ApiResponse<null>> {
   try {
-    const deleteResult = await supabase
+    const deleteOperation = await supabase
       .from(table)
       .delete()
       .eq(idColumn, id);
 
-    if (deleteResult.error) throw deleteResult.error;
+    if (deleteOperation.error) throw deleteOperation.error;
 
     return createSuccessResponse(null);
   } catch (error) {
