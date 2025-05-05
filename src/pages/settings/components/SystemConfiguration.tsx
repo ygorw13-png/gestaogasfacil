@@ -1,20 +1,113 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { getConfigSistema, upsertConfigSistema } from "@/integrations/supabase/tables/configTablesUtils";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export function SystemConfiguration() {
-  const [companyName, setCompanyName] = useState("GasFlow Aqua");
-  const [address, setAddress] = useState("Av. Principal, 123");
-  const [phone, setPhone] = useState("(11) 99999-9999");
-  const [email, setEmail] = useState("contato@gasflowaqua.com.br");
+  const { user, organization } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    companyName: "GasFlow Aqua",
+    address: "Av. Principal, 123",
+    phone: "(11) 99999-9999",
+    email: "contato@gasflowaqua.com.br"
+  });
 
-  const handleSave = () => {
-    // Lógica para salvar as configurações do sistema
-    alert("Configurações salvas com sucesso!");
+  useEffect(() => {
+    const fetchConfig = async () => {
+      if (!organization?.id) return;
+      
+      setLoading(true);
+      try {
+        const { data, error } = await getConfigSistema(organization.id);
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setFormData({
+            companyName: data.nome_empresa,
+            address: data.endereco || "",
+            phone: data.telefone || "",
+            email: data.email || ""
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao carregar configurações do sistema:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar as configurações do sistema",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchConfig();
+  }, [organization?.id, toast]);
+
+  const handleSave = async () => {
+    if (!organization?.id || !user?.id) {
+      toast({
+        title: "Erro",
+        description: "Dados da organização não disponíveis",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      const configData = {
+        organization_id: organization.id,
+        nome_empresa: formData.companyName,
+        endereco: formData.address,
+        telefone: formData.phone,
+        email: formData.email,
+        atualizado_por: user.id
+      };
+      
+      const { error } = await upsertConfigSistema(configData);
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Sucesso",
+        description: "Configurações do sistema salvas com sucesso"
+      });
+    } catch (error) {
+      console.error("Erro ao salvar configurações:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar as configurações",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6 flex justify-center items-center">
+          <LoadingSpinner message="Carregando configurações..." />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -29,8 +122,8 @@ export function SystemConfiguration() {
           <Label htmlFor="company-name">Nome da Empresa</Label>
           <Input
             id="company-name"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
+            value={formData.companyName}
+            onChange={(e) => setFormData({...formData, companyName: e.target.value})}
           />
         </div>
         
@@ -38,8 +131,8 @@ export function SystemConfiguration() {
           <Label htmlFor="address">Endereço</Label>
           <Input
             id="address"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            value={formData.address}
+            onChange={(e) => setFormData({...formData, address: e.target.value})}
           />
         </div>
         
@@ -47,8 +140,8 @@ export function SystemConfiguration() {
           <Label htmlFor="phone">Telefone</Label>
           <Input
             id="phone"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            value={formData.phone}
+            onChange={(e) => setFormData({...formData, phone: e.target.value})}
           />
         </div>
         
@@ -56,12 +149,14 @@ export function SystemConfiguration() {
           <Label htmlFor="email">E-mail</Label>
           <Input
             id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={(e) => setFormData({...formData, email: e.target.value})}
           />
         </div>
         
-        <Button onClick={handleSave}>Salvar Configurações</Button>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Salvando..." : "Salvar Configurações"}
+        </Button>
       </CardContent>
     </Card>
   );

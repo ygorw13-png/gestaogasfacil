@@ -1,10 +1,13 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { customTables } from "@/integrations/supabase/customClient";
+import { getConfiguracoesEstoque, updateConfiguracoesEstoque } from "@/integrations/supabase/tables/configTablesUtils";
 import { StockConfig } from "@/types/supabaseTypes";
 
 interface StockSettings {
@@ -31,7 +34,7 @@ export function StockConfiguration() {
     const fetchStockSettings = async () => {
       setLoading(true);
       try {
-        const { data, error } = await customTables.stockConfig.select();
+        const { data, error } = await getConfiguracoesEstoque();
           
         if (error) {
           throw error;
@@ -58,20 +61,24 @@ export function StockConfiguration() {
         }
       } catch (error) {
         console.error("Erro ao carregar configurações de estoque:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar as configurações de estoque",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchStockSettings();
-  }, []);
+  }, [toast]);
 
   const handleUpdateStockSettings = async () => {
     setLoading(true);
     try {
       // Atualizar P13
-      await customTables.stockConfig.update({ 
-        id: "P13", // Assume this is the ID
+      await updateConfiguracoesEstoque("P13", { 
         estoque_minimo: storeSettings.p13Min,
         alerta_ativo: storeSettings.alertsEnabled,
         atualizado_por: user?.id || '',
@@ -79,8 +86,7 @@ export function StockConfiguration() {
       });
         
       // Atualizar P20
-      await customTables.stockConfig.update({ 
-        id: "P20", // Assume this is the ID
+      await updateConfiguracoesEstoque("P20", { 
         estoque_minimo: storeSettings.p20Min,
         alerta_ativo: storeSettings.alertsEnabled,
         atualizado_por: user?.id || '',
@@ -88,8 +94,7 @@ export function StockConfiguration() {
       });
         
       // Atualizar P45
-      await customTables.stockConfig.update({ 
-        id: "P45", // Assume this is the ID
+      await updateConfiguracoesEstoque("P45", { 
         estoque_minimo: storeSettings.p45Min,
         alerta_ativo: storeSettings.alertsEnabled,
         atualizado_por: user?.id || '',
@@ -97,8 +102,7 @@ export function StockConfiguration() {
       });
         
       // Atualizar Água
-      await customTables.stockConfig.update({ 
-        id: "agua", // Assume this is the ID
+      await updateConfiguracoesEstoque("agua", { 
         estoque_minimo: storeSettings.aguaMin,
         alerta_ativo: storeSettings.alertsEnabled,
         atualizado_por: user?.id || '',
@@ -170,16 +174,14 @@ export function StockConfiguration() {
         </div>
         
         <div className="flex items-center space-x-2">
-          <input 
-            type="checkbox" 
+          <Switch 
             id="enableAlerts"
             checked={storeSettings.alertsEnabled}
-            onChange={(e) => setStoreSettings({...storeSettings, alertsEnabled: e.target.checked})}
-            className="h-4 w-4 text-green-600"
+            onCheckedChange={(checked) => setStoreSettings({...storeSettings, alertsEnabled: checked})}
           />
-          <label htmlFor="enableAlerts" className="text-sm font-medium">
+          <Label htmlFor="enableAlerts" className="text-sm font-medium">
             Habilitar alertas de estoque mínimo
-          </label>
+          </Label>
         </div>
         
         <Button 

@@ -137,6 +137,50 @@ export type Database = {
           },
         ]
       }
+      configuracoes_entrega: {
+        Row: {
+          atualizado_em: string | null
+          atualizado_por: string | null
+          criado_em: string | null
+          id: string
+          organization_id: string | null
+          raio_maximo_km: number | null
+          rastreamento_ativo: boolean | null
+          taxa_entrega: number | null
+          valor_min_entrega_gratis: number | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          criado_em?: string | null
+          id?: string
+          organization_id?: string | null
+          raio_maximo_km?: number | null
+          rastreamento_ativo?: boolean | null
+          taxa_entrega?: number | null
+          valor_min_entrega_gratis?: number | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          criado_em?: string | null
+          id?: string
+          organization_id?: string | null
+          raio_maximo_km?: number | null
+          rastreamento_ativo?: boolean | null
+          taxa_entrega?: number | null
+          valor_min_entrega_gratis?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "configuracoes_entrega_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       configuracoes_estoque: {
         Row: {
           alerta_ativo: boolean
@@ -166,6 +210,179 @@ export type Database = {
           produto?: string
         }
         Relationships: []
+      }
+      configuracoes_financeiras: {
+        Row: {
+          atualizado_em: string | null
+          atualizado_por: string | null
+          criado_em: string | null
+          id: string
+          metodos_pagamento: string[] | null
+          moeda: string
+          organization_id: string | null
+          taxa_imposto: number | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          criado_em?: string | null
+          id?: string
+          metodos_pagamento?: string[] | null
+          moeda?: string
+          organization_id?: string | null
+          taxa_imposto?: number | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          criado_em?: string | null
+          id?: string
+          metodos_pagamento?: string[] | null
+          moeda?: string
+          organization_id?: string | null
+          taxa_imposto?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "configuracoes_financeiras_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      configuracoes_notificacoes: {
+        Row: {
+          atualizado_em: string | null
+          atualizado_por: string | null
+          criado_em: string | null
+          email_ativo: boolean | null
+          id: string
+          notificacao_estoque: boolean | null
+          notificacao_pedidos: boolean | null
+          organization_id: string | null
+          sms_ativo: boolean | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          criado_em?: string | null
+          email_ativo?: boolean | null
+          id?: string
+          notificacao_estoque?: boolean | null
+          notificacao_pedidos?: boolean | null
+          organization_id?: string | null
+          sms_ativo?: boolean | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          criado_em?: string | null
+          email_ativo?: boolean | null
+          id?: string
+          notificacao_estoque?: boolean | null
+          notificacao_pedidos?: boolean | null
+          organization_id?: string | null
+          sms_ativo?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "configuracoes_notificacoes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      configuracoes_seguranca: {
+        Row: {
+          atualizado_em: string | null
+          atualizado_por: string | null
+          criado_em: string | null
+          dois_fatores_ativo: boolean | null
+          expiracao_senha_dias: number | null
+          id: string
+          nivel_log: string | null
+          organization_id: string | null
+          tempo_sessao_minutos: number | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          criado_em?: string | null
+          dois_fatores_ativo?: boolean | null
+          expiracao_senha_dias?: number | null
+          id?: string
+          nivel_log?: string | null
+          organization_id?: string | null
+          tempo_sessao_minutos?: number | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          criado_em?: string | null
+          dois_fatores_ativo?: boolean | null
+          expiracao_senha_dias?: number | null
+          id?: string
+          nivel_log?: string | null
+          organization_id?: string | null
+          tempo_sessao_minutos?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "configuracoes_seguranca_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      configuracoes_sistema: {
+        Row: {
+          atualizado_em: string | null
+          atualizado_por: string | null
+          criado_em: string | null
+          email: string | null
+          endereco: string | null
+          id: string
+          nome_empresa: string
+          organization_id: string | null
+          telefone: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          criado_em?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome_empresa: string
+          organization_id?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          atualizado_por?: string | null
+          criado_em?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome_empresa?: string
+          organization_id?: string | null
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "configuracoes_sistema_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dashboard_data: {
         Row: {
@@ -351,6 +568,10 @@ export type Database = {
       clear_test_data: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      user_belongs_to_organization: {
+        Args: { user_id: string; org_id: string }
+        Returns: boolean
       }
     }
     Enums: {

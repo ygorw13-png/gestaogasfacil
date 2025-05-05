@@ -1,20 +1,109 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { getConfigNotificacoes, upsertConfigNotificacoes } from "@/integrations/supabase/tables/configTablesUtils";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export function NotificationSettings() {
+  const { user, organization } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [orderNotifications, setOrderNotifications] = useState(true);
   const [stockNotifications, setStockNotifications] = useState(true);
   
-  const handleSave = () => {
-    // Lógica para salvar as configurações de notificação
-    alert("Configurações de notificações salvas com sucesso!");
+  useEffect(() => {
+    const fetchConfig = async () => {
+      if (!organization?.id) return;
+      
+      setLoading(true);
+      try {
+        const { data, error } = await getConfigNotificacoes(organization.id);
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setEmailNotifications(data.email_ativo !== false);
+          setSmsNotifications(data.sms_ativo === true);
+          setOrderNotifications(data.notificacao_pedidos !== false);
+          setStockNotifications(data.notificacao_estoque !== false);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar configurações de notificações:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar as configurações de notificações",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchConfig();
+  }, [organization?.id, toast]);
+  
+  const handleSave = async () => {
+    if (!organization?.id || !user?.id) {
+      toast({
+        title: "Erro",
+        description: "Dados da organização não disponíveis",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      const configData = {
+        organization_id: organization.id,
+        email_ativo: emailNotifications,
+        sms_ativo: smsNotifications,
+        notificacao_pedidos: orderNotifications,
+        notificacao_estoque: stockNotifications,
+        atualizado_por: user.id
+      };
+      
+      const { error } = await upsertConfigNotificacoes(configData);
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Sucesso",
+        description: "Configurações de notificações salvas com sucesso"
+      });
+    } catch (error) {
+      console.error("Erro ao salvar configurações:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar as configurações",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6 flex justify-center items-center">
+          <LoadingSpinner message="Carregando configurações..." />
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <Card>
@@ -81,7 +170,9 @@ export function NotificationSettings() {
           />
         </div>
         
-        <Button onClick={handleSave}>Salvar Configurações</Button>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Salvando..." : "Salvar Configurações"}
+        </Button>
       </CardContent>
     </Card>
   );

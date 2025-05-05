@@ -1,22 +1,111 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { getConfigSeguranca, upsertConfigSeguranca } from "@/integrations/supabase/tables/configTablesUtils";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export function SecuritySettings() {
+  const { user, organization } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [sessionTimeout, setSessionTimeout] = useState("60");
   const [passwordExpiration, setPasswordExpiration] = useState("90");
   const [twoFactorAuth, setTwoFactorAuth] = useState(false);
   const [logLevel, setLogLevel] = useState("warning");
   
-  const handleSave = () => {
-    // Lógica para salvar as configurações de segurança
-    alert("Configurações de segurança salvas com sucesso!");
+  useEffect(() => {
+    const fetchConfig = async () => {
+      if (!organization?.id) return;
+      
+      setLoading(true);
+      try {
+        const { data, error } = await getConfigSeguranca(organization.id);
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setSessionTimeout(data.tempo_sessao_minutos ? data.tempo_sessao_minutos.toString() : "60");
+          setPasswordExpiration(data.expiracao_senha_dias ? data.expiracao_senha_dias.toString() : "90");
+          setTwoFactorAuth(data.dois_fatores_ativo === true);
+          setLogLevel(data.nivel_log || "warning");
+        }
+      } catch (error) {
+        console.error("Erro ao carregar configurações de segurança:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar as configurações de segurança",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchConfig();
+  }, [organization?.id, toast]);
+  
+  const handleSave = async () => {
+    if (!organization?.id || !user?.id) {
+      toast({
+        title: "Erro",
+        description: "Dados da organização não disponíveis",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      const configData = {
+        organization_id: organization.id,
+        tempo_sessao_minutos: parseInt(sessionTimeout) || 60,
+        expiracao_senha_dias: parseInt(passwordExpiration) || 90,
+        dois_fatores_ativo: twoFactorAuth,
+        nivel_log: logLevel,
+        atualizado_por: user.id
+      };
+      
+      const { error } = await upsertConfigSeguranca(configData);
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Sucesso",
+        description: "Configurações de segurança salvas com sucesso"
+      });
+    } catch (error) {
+      console.error("Erro ao salvar configurações:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar as configurações",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6 flex justify-center items-center">
+          <LoadingSpinner message="Carregando configurações..." />
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <Card>
@@ -33,6 +122,8 @@ export function SecuritySettings() {
             id="session-timeout"
             value={sessionTimeout}
             onChange={(e) => setSessionTimeout(e.target.value)}
+            type="number"
+            min="1"
           />
         </div>
         
@@ -42,6 +133,8 @@ export function SecuritySettings() {
             id="password-expiration"
             value={passwordExpiration}
             onChange={(e) => setPasswordExpiration(e.target.value)}
+            type="number"
+            min="1"
           />
         </div>
         
@@ -74,7 +167,9 @@ export function SecuritySettings() {
           </Select>
         </div>
         
-        <Button onClick={handleSave}>Salvar Configurações</Button>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Salvando..." : "Salvar Configurações"}
+        </Button>
       </CardContent>
     </Card>
   );

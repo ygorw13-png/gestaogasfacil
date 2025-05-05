@@ -1,21 +1,110 @@
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { getConfigEntrega, upsertConfigEntrega } from "@/integrations/supabase/tables/configTablesUtils";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export function DeliverySettings() {
+  const { user, organization } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState("5.00");
   const [minFreeDelivery, setMinFreeDelivery] = useState("100.00");
   const [maxRadius, setMaxRadius] = useState("15");
   const [enableTracking, setEnableTracking] = useState(true);
   
-  const handleSave = () => {
-    // Lógica para salvar as configurações de entrega
-    alert("Configurações de entrega salvas com sucesso!");
+  useEffect(() => {
+    const fetchConfig = async () => {
+      if (!organization?.id) return;
+      
+      setLoading(true);
+      try {
+        const { data, error } = await getConfigEntrega(organization.id);
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setDeliveryFee(data.taxa_entrega ? data.taxa_entrega.toString() : "5.00");
+          setMinFreeDelivery(data.valor_min_entrega_gratis ? data.valor_min_entrega_gratis.toString() : "100.00");
+          setMaxRadius(data.raio_maximo_km ? data.raio_maximo_km.toString() : "15");
+          setEnableTracking(data.rastreamento_ativo !== false);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar configurações de entrega:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar as configurações de entrega",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchConfig();
+  }, [organization?.id, toast]);
+  
+  const handleSave = async () => {
+    if (!organization?.id || !user?.id) {
+      toast({
+        title: "Erro",
+        description: "Dados da organização não disponíveis",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      const configData = {
+        organization_id: organization.id,
+        taxa_entrega: parseFloat(deliveryFee) || 0,
+        valor_min_entrega_gratis: parseFloat(minFreeDelivery) || 0,
+        raio_maximo_km: parseInt(maxRadius) || 0,
+        rastreamento_ativo: enableTracking,
+        atualizado_por: user.id
+      };
+      
+      const { error } = await upsertConfigEntrega(configData);
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Sucesso",
+        description: "Configurações de entrega salvas com sucesso"
+      });
+    } catch (error) {
+      console.error("Erro ao salvar configurações:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar as configurações",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6 flex justify-center items-center">
+          <LoadingSpinner message="Carregando configurações..." />
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <Card>
@@ -67,7 +156,9 @@ export function DeliverySettings() {
           />
         </div>
         
-        <Button onClick={handleSave}>Salvar Configurações</Button>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Salvando..." : "Salvar Configurações"}
+        </Button>
       </CardContent>
     </Card>
   );
