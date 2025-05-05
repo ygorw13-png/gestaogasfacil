@@ -57,27 +57,32 @@ export async function updateData<TData extends Record<string, any>>(
   idColumn: string = 'id'
 ): Promise<ApiResponse<TData>> {
   try {
-    // First perform the update operation
-    const { error: updateError } = await supabase
+    // Completely separate the operations to avoid type inference issues
+    
+    // Step 1: Just perform the update without any return
+    const updateResult = await supabase
       .from(table)
       .update(data)
       .eq(idColumn, id);
       
-    if (updateError) throw updateError;
+    if (updateResult.error) throw updateResult.error;
     
-    // Then fetch the updated record in a separate query
-    const { data: updatedRecord, error: fetchError } = await supabase
+    // Step 2: Separately fetch the record after update
+    type GenericRecord = Record<string, any>;
+    const fetchResult = await supabase
       .from(table)
       .select('*')
       .eq(idColumn, id)
       .maybeSingle();
     
-    if (fetchError) throw fetchError;
+    if (fetchResult.error) throw fetchResult.error;
+    
+    const updatedRecord = fetchResult.data as GenericRecord;
     if (!updatedRecord) {
       throw new Error(`Record not found after update: ${idColumn}=${id}`);
     }
     
-    // Return the result with a simple type cast
+    // Use a simple type assertion at the end
     return createSuccessResponse(updatedRecord as unknown as TData);
   } catch (error) {
     return createErrorResponse<TData>(error, `updateData in ${table}`);
