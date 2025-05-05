@@ -158,18 +158,21 @@ export const supabaseUtils = {
       const channel = supabase
         .channel(`public-${tableName}-changes`)
         .on(
-          'postgres_changes' as any,
+          'postgres_changes',
           {
             event,
             schema: 'public',
             table: tableName,
             filter
           },
-          (payload) => callback({
-            new: payload.new || {},
-            old: payload.old || {},
-            eventType: payload.eventType || 'UPDATE'
-          })
+          (payload: any) => {
+            // Extract the correct properties based on the actual payload structure
+            callback({
+              new: payload.new || payload.payload?.new || {},
+              old: payload.old || payload.payload?.old || {},
+              eventType: payload.eventType || payload.payload?.type || 'UPDATE'
+            });
+          }
         )
         .subscribe();
       

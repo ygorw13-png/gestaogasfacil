@@ -41,7 +41,7 @@ export function useSupabaseRealtime({
     const realtimeChannel = supabase
       .channel(channelName)
       .on(
-        'postgres_changes' as any, // Type assertion para evitar erro de tipo
+        'postgres_changes',
         {
           event,
           schema,
@@ -51,9 +51,9 @@ export function useSupabaseRealtime({
         (payload: any) => {
           // Criar um payload tipado para nosso uso
           const typedPayload: RealtimePayload = {
-            new: payload.new || {},
-            old: payload.old || {},
-            eventType: payload.eventType || 'UPDATE',
+            new: payload.new || (payload.payload && payload.payload.new) || {},
+            old: payload.old || (payload.payload && payload.payload.old) || {},
+            eventType: payload.eventType || (payload.type ? payload.type : 'UPDATE'),
             table,
             schema
           };

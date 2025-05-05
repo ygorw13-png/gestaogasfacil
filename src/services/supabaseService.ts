@@ -184,6 +184,7 @@ export function useSupabaseTable<TData extends Record<string, any>>(tableName: V
   }) => {
     const queryKey = options?.queryKey || [tableName];
     
+    // Break the recursive type dependence by using a more specific return type
     return useSupabaseQuery<TData[]>({
       queryKey,
       queryFn: async () => {

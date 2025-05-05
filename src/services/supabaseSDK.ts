@@ -167,7 +167,7 @@ export function subscribeToTable(
   const channel = supabase
     .channel(`public-${tableName}-changes`)
     .on(
-      'postgres_changes' as any,
+      'postgres_changes',
       {
         event,
         schema: 'public',
@@ -177,8 +177,8 @@ export function subscribeToTable(
       (payload: any) => {
         // Convert the payload to our simplified RealtimePayload type
         const typedPayload: RealtimePayload = {
-          new: payload.new || {},
-          old: payload.old || {},
+          new: payload.new || (payload.payload && payload.payload.new) || {},
+          old: payload.old || (payload.payload && payload.payload.old) || {},
           eventType: payload.eventType || 'UPDATE',
           table: tableName,
           schema: 'public'
