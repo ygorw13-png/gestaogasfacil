@@ -6,14 +6,14 @@ import { RealtimeChannel } from "@supabase/supabase-js";
 type EventType = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
 // Simplified type for realtime payload to avoid recursive type issues
-export type RealtimePayload = {
+export interface RealtimePayload {
   new: Record<string, any>;
   old: Record<string, any>;
   eventType: string;
   table: string;
   schema: string;
   [key: string]: any;
-};
+}
 
 interface SupabaseRealtimeOptions {
   table: string;

@@ -149,12 +149,14 @@ export async function deleteFromTable(
 }
 
 // Simplified type for realtime payload to avoid recursive type issues
-export type RealtimePayload = {
+export interface RealtimePayload {
   new: Record<string, any>;
   old: Record<string, any>;
   eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  table: string;
+  schema: string;
   [key: string]: any;
-};
+}
 
 // Subscribe to real-time changes with simplified type handling
 export function subscribeToTable(
@@ -167,7 +169,7 @@ export function subscribeToTable(
 ): () => void {
   const { event = '*', filter } = options;
   
-  // Use a string literal to avoid typescript issues with the realtime API
+  // Create a channel for realtime subscriptions
   const channel = supabase
     .channel(`public-${tableName}-changes`)
     .on(
@@ -178,6 +180,7 @@ export function subscribeToTable(
         table: tableName,
         filter
       },
+      // Use type assertion to prevent deep type instantiation
       (payload: any) => callback(payload as RealtimePayload)
     )
     .subscribe();

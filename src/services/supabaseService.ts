@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { PostgrestResponse, PostgrestError } from "@supabase/supabase-js";
+import { PostgrestError } from "@supabase/supabase-js";
 import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
 import { useSupabaseMutation } from "@/hooks/useSupabaseMutation";
 
