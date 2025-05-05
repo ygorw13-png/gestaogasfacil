@@ -13,7 +13,7 @@ export interface ApiResponse<T> {
 }
 
 // Valid table names
-type ValidTableName = 'cascos_emprestados' | 'clients' | 'colaboradores' | 'organizations' | 
+export type ValidTableName = 'cascos_emprestados' | 'clients' | 'colaboradores' | 'organizations' | 
   'configuracoes_entrega' | 'configuracoes_estoque' | 'configuracoes_financeiras' | 
   'configuracoes_notificacoes' | 'configuracoes_seguranca' | 'configuracoes_sistema' | 
   'dashboard_data' | 'orders' | 'profiles' | 'requisicoes_estoque';
@@ -190,14 +190,16 @@ export function useSupabaseTable<T>(tableName: ValidTableName) {
   }) => {
     const queryKey = options?.queryKey || [tableName];
     
-    return useSupabaseQuery<T>({
-      queryFn: () => supabase
-        .from(tableName)
-        .select(options?.columns || '*')
-        .then(queryResult => {
-          // Apply filtering after fetching if needed
-          return queryResult;
-        }),
+    return useSupabaseQuery<T[]>({
+      queryKey,
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from(tableName)
+          .select(options?.columns || '*');
+        
+        if (error) throw error;
+        return data as T[];
+      },
       enabled: options?.enabled !== false,
       errorMessage: `Erro ao carregar dados de ${tableName}`
     });
@@ -205,16 +207,21 @@ export function useSupabaseTable<T>(tableName: ValidTableName) {
 
   // Add an item to a table
   const useAddItem = (options?: {
-    onSuccess?: (data: T[]) => void;
+    onSuccess?: (data: T) => void;
     onError?: (error: PostgrestError | Error) => void;
     successMessage?: string;
   }) => {
     return useSupabaseMutation<T, Partial<T>>({
-      mutationFn: (newData) => supabase
-        .from(tableName)
-        .insert(newData)
-        .select()
-        .single(),
+      mutationFn: async (newData) => {
+        const { data, error } = await supabase
+          .from(tableName)
+          .insert(newData)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        return data as T;
+      },
       onSuccess: options?.onSuccess,
       onError: options?.onError,
       successMessage: options?.successMessage || `Item adicionado com sucesso`
@@ -223,7 +230,7 @@ export function useSupabaseTable<T>(tableName: ValidTableName) {
 
   // Update an item in a table
   const useUpdateItem = (options?: {
-    onSuccess?: (data: T[]) => void;
+    onSuccess?: (data: T) => void;
     onError?: (error: PostgrestError | Error) => void;
     successMessage?: string;
     idField?: string;
@@ -231,12 +238,17 @@ export function useSupabaseTable<T>(tableName: ValidTableName) {
     const idField = options?.idField || 'id';
     
     return useSupabaseMutation<T, { id: string | number; data: Partial<T> }>({
-      mutationFn: ({ id, data }) => supabase
-        .from(tableName)
-        .update(data)
-        .eq(idField, id)
-        .select()
-        .single(),
+      mutationFn: async ({ id, data }) => {
+        const { data: result, error } = await supabase
+          .from(tableName)
+          .update(data)
+          .eq(idField, id)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        return result as T;
+      },
       onSuccess: options?.onSuccess,
       onError: options?.onError,
       successMessage: options?.successMessage || `Item atualizado com sucesso`
@@ -245,19 +257,23 @@ export function useSupabaseTable<T>(tableName: ValidTableName) {
 
   // Delete an item from a table
   const useDeleteItem = (options?: {
-    onSuccess?: (data: T[]) => void;
+    onSuccess?: () => void;
     onError?: (error: PostgrestError | Error) => void;
     successMessage?: string;
     idField?: string;
   }) => {
     const idField = options?.idField || 'id';
     
-    return useSupabaseMutation<T, string | number>({
-      mutationFn: (id) => supabase
-        .from(tableName)
-        .delete()
-        .eq(idField, id)
-        .select(),
+    return useSupabaseMutation<null, string | number>({
+      mutationFn: async (id) => {
+        const { error } = await supabase
+          .from(tableName)
+          .delete()
+          .eq(idField, id);
+        
+        if (error) throw error;
+        return null;
+      },
       onSuccess: options?.onSuccess,
       onError: options?.onError,
       successMessage: options?.successMessage || `Item excluído com sucesso`

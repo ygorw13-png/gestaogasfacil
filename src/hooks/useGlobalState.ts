@@ -84,11 +84,21 @@ export function useGlobalState() {
       if (stockConfigError) throw stockConfigError;
       
       // Process stock alert data
-      const stockLevels = stockData?.stock_data ? 
-        (typeof stockData.stock_data === 'object' ? 
-          stockData.stock_data as { p13: number; p20: number; p45: number; agua: number; } : 
-          defaultStock) : 
-        defaultStock;
+      let stockLevels = defaultStock;
+      
+      if (stockData?.stock_data) {
+        // Make sure we have a proper object with the right structure
+        if (typeof stockData.stock_data === 'object' && stockData.stock_data !== null) {
+          // Check if it has the required keys
+          const stockObj = stockData.stock_data as Record<string, any>;
+          stockLevels = {
+            p13: typeof stockObj.p13 === 'number' ? stockObj.p13 : 0,
+            p20: typeof stockObj.p20 === 'number' ? stockObj.p20 : 0,
+            p45: typeof stockObj.p45 === 'number' ? stockObj.p45 : 0,
+            agua: typeof stockObj.agua === 'number' ? stockObj.agua : 0
+          };
+        }
+      }
       
       const lowStockItems: string[] = [];
       

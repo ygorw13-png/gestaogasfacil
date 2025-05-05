@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { PostgrestError } from "@supabase/supabase-js";
+import { PostgrestError, RealtimeChannel } from "@supabase/supabase-js";
 
 export interface SupabaseResponse<T> {
   data: T | null;
@@ -8,7 +8,7 @@ export interface SupabaseResponse<T> {
 }
 
 // List of valid tables in the database
-type ValidTableName = 'cascos_emprestados' | 'clients' | 'colaboradores' | 'organizations' | 
+export type ValidTableName = 'cascos_emprestados' | 'clients' | 'colaboradores' | 'organizations' | 
   'configuracoes_entrega' | 'configuracoes_estoque' | 'configuracoes_financeiras' | 
   'configuracoes_notificacoes' | 'configuracoes_seguranca' | 'configuracoes_sistema' | 
   'dashboard_data' | 'orders' | 'profiles' | 'requisicoes_estoque';
@@ -156,7 +156,7 @@ export function subscribeToTable(
     event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
     filter?: string;
   } = {}
-) {
+): () => void {
   const { event = '*', filter } = options;
   
   const channel = supabase
