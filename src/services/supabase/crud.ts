@@ -49,7 +49,7 @@ export async function insertData<TData extends Record<string, any>>(
   }
 }
 
-// Fix for the TS2589 error - simplify return type and avoid complex type instantiation
+// Simplificada para evitar erro TS2589
 export async function updateData(
   table: ValidTableName,
   id: string,

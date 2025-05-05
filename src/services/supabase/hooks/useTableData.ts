@@ -30,7 +30,7 @@ export function useTableData<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  const fetchData = useCallback(async (queryOptions?: QueryOptions): Promise<ApiResponse<T[]>> => {
+  const fetchData = useCallback(async (queryOptions?: QueryOptions): Promise<ApiResponse<any[]>> => {
     setLoading(true);
     setError(null);
     
@@ -58,8 +58,8 @@ export function useTableData<T extends Record<string, any>>(
       
       if (error) throw error;
       
-      setData(data as unknown as T[]);
-      return createSuccessResponse(data as unknown as T[]);
+      setData(data as T[]);
+      return createSuccessResponse(data as T[]);
     } catch (error) {
       setError(error instanceof Error ? error : new Error(String(error)));
       return createErrorResponse(
