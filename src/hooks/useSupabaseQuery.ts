@@ -4,8 +4,8 @@ import { useToast } from "./use-toast";
 import { PostgrestError } from "@supabase/supabase-js";
 
 interface UseSupabaseQueryOptions<T> {
-  queryFn: () => Promise<T[]>;
-  onSuccess?: (data: T[]) => void;
+  queryFn: () => Promise<T>;
+  onSuccess?: (data: T) => void;
   onError?: (error: PostgrestError | Error) => void;
   errorMessage?: string;
   showErrorToast?: boolean;
@@ -26,7 +26,7 @@ export function useSupabaseQuery<T>({
   retryDelay = 2000,
   queryKey = []
 }: UseSupabaseQueryOptions<T>) {
-  const [data, setData] = useState<T[]>([]);
+  const [data, setData] = useState<T>([] as unknown as T);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<PostgrestError | Error | null>(null);
   const [retries, setRetries] = useState(0);
@@ -38,12 +38,9 @@ export function useSupabaseQuery<T>({
 
     try {
       const responseData = await queryFn();
-      
-      // Ensure data is always treated as an array
-      const dataArray = Array.isArray(responseData) ? responseData : [responseData];
-      setData(dataArray);
-      onSuccess?.(dataArray);
-      // Resetar contagem de tentativas em caso de sucesso
+      setData(responseData);
+      onSuccess?.(responseData);
+      // Reset retry count on success
       setRetries(0);
     } catch (err: unknown) {
       console.error("Erro na consulta:", err);
@@ -60,7 +57,7 @@ export function useSupabaseQuery<T>({
       
       onError?.(typedError);
 
-      // Tentar novamente se ainda não atingimos o limite de tentativas
+      // Try again if we haven't reached the retry limit
       if (retries < retryCount) {
         setTimeout(() => {
           setRetries(prev => prev + 1);

@@ -61,7 +61,7 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
         lastError = err as PostgrestError | Error;
         attempts++;
         
-        // Se não estamos fazendo novas tentativas ou atingimos o limite, tratamos o erro
+        // If we're not retrying or we've reached the limit, handle the error
         if (!retryEnabled || attempts > retryCount) {
           setError(lastError);
           
@@ -77,7 +77,7 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
           break;
         }
         
-        // Aguardar antes de tentar novamente (tempo exponencial)
+        // Wait before trying again (exponential backoff)
         await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 500));
       }
     }

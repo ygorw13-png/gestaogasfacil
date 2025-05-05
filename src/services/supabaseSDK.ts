@@ -162,7 +162,7 @@ export function subscribeToTable<T = any>(
   const channel = supabase
     .channel(`public-${tableName}-changes`)
     .on(
-      'postgres_changes',
+      'postgres_changes' as any, // Type assertion to bypass type checking
       {
         event,
         schema: 'public',
