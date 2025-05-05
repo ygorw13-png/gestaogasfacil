@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -51,8 +50,8 @@ export default function Inventory() {
       }
 
       if (data && data.stock_data) {
-        // Type assertion to ensure TypeScript understands the structure
-        const stockData = data.stock_data as StockData;
+        // First cast to unknown, then to our expected type to avoid TypeScript errors
+        const stockData = data.stock_data as unknown as Record<string, number>;
         setCurrentStock({
           p13: stockData.p13 || 0,
           p20: stockData.p20 || 0,
