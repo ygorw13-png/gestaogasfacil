@@ -49,13 +49,13 @@ export async function insertData<TData extends Record<string, any>>(
   }
 }
 
-// Fixed update function - removed complex generic type handling
-export async function updateData<T = any>(
+// Completely rewritten update function with explicit typing and no complex inference
+export async function updateData(
   table: ValidTableName,
   id: string,
   data: Record<string, any>,
   idColumn: string = 'id'
-): Promise<ApiResponse<T>> {
+): Promise<ApiResponse<any>> {
   try {
     // First, perform the update operation
     const { error: updateError } = await supabase
@@ -78,10 +78,10 @@ export async function updateData<T = any>(
       throw new Error(`Record not found after update: ${idColumn}=${id}`);
     }
     
-    // Simple type cast without complex type inference
-    return createSuccessResponse<T>(result as unknown as T);
+    // Very simple typing with no inference
+    return createSuccessResponse(result);
   } catch (error) {
-    return createErrorResponse<T>(error, `updateData in ${table}`);
+    return createErrorResponse(error, `updateData in ${table}`);
   }
 }
 
