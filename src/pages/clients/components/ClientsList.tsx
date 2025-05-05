@@ -2,7 +2,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { FileText, Download } from "lucide-react";
 import { Client } from "../hooks/useClients";
+import { useState } from "react";
+import { generateClientReport } from "../utils/clientReportUtils";
+import { toast } from "@/hooks/use-toast";
 
 interface ClientsListProps {
   clients: Client[];
@@ -23,13 +27,63 @@ export function ClientsList({
   onReturnCylinders,
   onViewClientDetails
 }: ClientsListProps) {
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+  const handleGenerateReport = async () => {
+    try {
+      setIsGeneratingReport(true);
+      const blob = await generateClientReport(clients);
+      
+      // Criar URL temporária e iniciar download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `relatorio_clientes_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Limpar recursos
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      toast({
+        title: "Relatório gerado com sucesso",
+        description: "O download do relatório foi iniciado",
+      });
+    } catch (error) {
+      console.error("Erro ao gerar relatório:", error);
+      toast({
+        title: "Erro ao gerar relatório",
+        description: "Não foi possível gerar o relatório de clientes",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>
-          {description}
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleGenerateReport}
+          disabled={isGeneratingReport || clients.length === 0}
+        >
+          {isGeneratingReport ? (
+            <span className="animate-spin mr-2">⏳</span>
+          ) : (
+            <FileText className="h-4 w-4 mr-2" />
+          )}
+          Gerar Relatório
+        </Button>
       </CardHeader>
       <CardContent className="p-0">
         <Table>

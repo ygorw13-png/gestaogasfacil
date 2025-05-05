@@ -14,6 +14,7 @@ interface RouteReportsFilterProps {
   onEndDateChange: (date: string) => void;
   onDriverIdChange: (id: string) => void;
   onGenerateReport: () => void;
+  isGeneratingReport?: boolean;
 }
 
 export function RouteReportsFilter({
@@ -23,7 +24,8 @@ export function RouteReportsFilter({
   onStartDateChange,
   onEndDateChange,
   onDriverIdChange,
-  onGenerateReport
+  onGenerateReport,
+  isGeneratingReport = false
 }: RouteReportsFilterProps) {
   return (
     <Card>
@@ -45,9 +47,21 @@ export function RouteReportsFilter({
         </div>
         
         <div className="flex justify-end">
-          <Button onClick={onGenerateReport}>
-            <FileText className="h-4 w-4 mr-2" />
-            Gerar Relatório
+          <Button 
+            onClick={onGenerateReport}
+            disabled={isGeneratingReport}
+          >
+            {isGeneratingReport ? (
+              <>
+                <span className="animate-spin mr-2">⏳</span>
+                Gerando...
+              </>
+            ) : (
+              <>
+                <FileText className="h-4 w-4 mr-2" />
+                Gerar Relatório
+              </>
+            )}
           </Button>
         </div>
       </CardContent>
