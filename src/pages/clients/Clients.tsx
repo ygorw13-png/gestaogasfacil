@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Search, UserPlus, Bell, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ClientDetailDialog } from "./components/ClientDetailDialog";
 
 // Mock data for clients with cylinder loans
 const mockClients = [
@@ -92,6 +93,7 @@ export default function Clients() {
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
   const [isCylinderDialogOpen, setIsCylinderDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<typeof mockClients[0] | null>(null);
+  const [isClientDetailOpen, setIsClientDetailOpen] = useState(false);
   const [newCylinders, setNewCylinders] = useState<{type: string, quantity: number}[]>([{type: "P13", quantity: 1}]);
   const { toast } = useToast();
 
@@ -134,6 +136,11 @@ export default function Clients() {
       title: "Relatório gerado",
       description: "O relatório de comodatos foi gerado e está pronto para download."
     });
+  };
+
+  const handleViewClientDetails = (client: typeof mockClients[0]) => {
+    setSelectedClient(client);
+    setIsClientDetailOpen(true);
   };
 
   return (
@@ -211,7 +218,9 @@ export default function Clients() {
                     </TableRow>
                   ) : (
                     filteredClients.map((client) => (
-                      <TableRow key={client.id}>
+                      <TableRow key={client.id} 
+                        className="cursor-pointer hover:bg-muted/50" 
+                        onClick={() => handleViewClientDetails(client)}>
                         <TableCell>{client.name}</TableCell>
                         <TableCell>{client.phone}</TableCell>
                         <TableCell className="max-w-[200px] truncate">{client.address}</TableCell>
@@ -224,10 +233,11 @@ export default function Clients() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <Button 
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setSelectedClient(client);
                                 setIsCylinderDialogOpen(true);
                               }} 
@@ -237,7 +247,10 @@ export default function Clients() {
                               Adicionar
                             </Button>
                             <Button 
-                              onClick={() => handleReturnCylinders(client.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleReturnCylinders(client.id);
+                              }}
                               variant="outline"
                               size="sm"
                               disabled={client.cylinderCount === 0}
@@ -279,7 +292,9 @@ export default function Clients() {
                   {filteredClients
                     .filter(client => client.cylinderCount > 0)
                     .map((client) => (
-                      <TableRow key={client.id}>
+                      <TableRow key={client.id} 
+                        className="cursor-pointer hover:bg-muted/50" 
+                        onClick={() => handleViewClientDetails(client)}>
                         <TableCell>{client.name}</TableCell>
                         <TableCell>{client.phone}</TableCell>
                         <TableCell>
@@ -293,9 +308,12 @@ export default function Clients() {
                         </TableCell>
                         <TableCell>{client.cylinderTypes.join(", ")}</TableCell>
                         <TableCell>{new Date(client.loanDate).toLocaleDateString('pt-BR')}</TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Button 
-                            onClick={() => handleReturnCylinders(client.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReturnCylinders(client.id);
+                            }}
                             variant="outline"
                             size="sm"
                           >
@@ -448,6 +466,13 @@ export default function Clients() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog for client details */}
+      <ClientDetailDialog 
+        open={isClientDetailOpen} 
+        onOpenChange={setIsClientDetailOpen} 
+        client={selectedClient} 
+      />
     </div>
   );
 }

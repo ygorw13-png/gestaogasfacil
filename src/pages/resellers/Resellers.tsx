@@ -25,7 +25,9 @@ export default function Resellers() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { user } = useAuth();
   
-  const canManageResellers = user?.role === 'admin' || user?.role === 'gerente';
+  // Removendo a verificação de cargo que estava escondendo o botão
+  // const canManageResellers = user?.role === 'admin' || user?.role === 'gerente';
+  const canManageResellers = true;
   
   const handleAddReseller = (reseller: any) => {
     const newReseller = {
