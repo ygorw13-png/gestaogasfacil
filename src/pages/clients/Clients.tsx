@@ -8,7 +8,7 @@ import { ClientsWithCylindersTab } from "./components/ClientsWithCylindersTab";
 import { NewClientDialog } from "./components/NewClientDialog";
 import { CylinderDialog } from "./components/CylinderDialog";
 import { ClientsAlertDialog } from "./components/AlertDialog";
-import { ClientDetailDialog } from "./components/ClientDetailDialog";
+import { ClientDetailDialog } from "./components/client-details/ClientDetailDialog";
 
 export default function Clients() {
   const {
