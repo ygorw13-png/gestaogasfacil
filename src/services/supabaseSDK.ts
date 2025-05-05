@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { PostgrestError, RealtimeChannel } from "@supabase/supabase-js";
+import { PostgrestError } from "@supabase/supabase-js";
 
 export interface SupabaseResponse<T> {
   data: T | null;

@@ -1,10 +1,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "./use-toast";
-import { PostgrestResponse, PostgrestError } from "@supabase/supabase-js";
+import { PostgrestError } from "@supabase/supabase-js";
 
 interface UseSupabaseQueryOptions<T> {
-  queryFn: () => Promise<PostgrestResponse<T>>;
+  queryFn: () => Promise<T[]>;
   onSuccess?: (data: T[]) => void;
   onError?: (error: PostgrestError | Error) => void;
   errorMessage?: string;
@@ -12,6 +12,7 @@ interface UseSupabaseQueryOptions<T> {
   enabled?: boolean;
   retryCount?: number;
   retryDelay?: number;
+  queryKey?: any[];
 }
 
 export function useSupabaseQuery<T>({
@@ -22,7 +23,8 @@ export function useSupabaseQuery<T>({
   showErrorToast = true,
   enabled = true,
   retryCount = 0,
-  retryDelay = 2000
+  retryDelay = 2000,
+  queryKey = []
 }: UseSupabaseQueryOptions<T>) {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
@@ -35,20 +37,14 @@ export function useSupabaseQuery<T>({
     setError(null);
 
     try {
-      const { data: responseData, error: responseError } = await queryFn();
+      const responseData = await queryFn();
       
-      if (responseError) {
-        throw responseError;
-      }
-      
-      if (responseData) {
-        // Cast the response data to ensure it's treated as an array
-        const dataArray = Array.isArray(responseData) ? responseData : [responseData];
-        setData(dataArray);
-        onSuccess?.(dataArray);
-        // Resetar contagem de tentativas em caso de sucesso
-        setRetries(0);
-      }
+      // Ensure data is always treated as an array
+      const dataArray = Array.isArray(responseData) ? responseData : [responseData];
+      setData(dataArray);
+      onSuccess?.(dataArray);
+      // Resetar contagem de tentativas em caso de sucesso
+      setRetries(0);
     } catch (err: unknown) {
       console.error("Erro na consulta:", err);
       const typedError = err as PostgrestError | Error;
@@ -80,7 +76,7 @@ export function useSupabaseQuery<T>({
     if (enabled) {
       fetchData();
     }
-  }, [enabled, fetchData]);
+  }, [enabled, fetchData, ...queryKey]);
 
   return {
     data,

@@ -4,8 +4,8 @@ import { useToast } from "./use-toast";
 import { PostgrestResponse, PostgrestError } from "@supabase/supabase-js";
 
 interface UseSupabaseMutationOptions<TData, TVariables> {
-  mutationFn: (variables: TVariables) => Promise<PostgrestResponse<TData>>;
-  onSuccess?: (data: TData[]) => void;
+  mutationFn: (variables: TVariables) => Promise<TData>;
+  onSuccess?: (data: TData extends any[] ? TData : [TData]) => void;
   onError?: (error: PostgrestError | Error) => void;
   successMessage?: string;
   errorMessage?: string;
@@ -15,7 +15,7 @@ interface UseSupabaseMutationOptions<TData, TVariables> {
 }
 
 interface MutationResult<TData> {
-  data: TData[] | null;
+  data: TData | null;
   error: PostgrestError | Error | null;
 }
 
@@ -42,11 +42,7 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
 
     while (attempts <= (retryEnabled ? retryCount : 0)) {
       try {
-        const { data, error: responseError } = await mutationFn(variables);
-        
-        if (responseError) {
-          throw responseError;
-        }
+        const result = await mutationFn(variables);
         
         if (showToast && successMessage) {
           toast({
@@ -55,10 +51,11 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
           });
         }
         
-        // Cast the response data to ensure it's treated as an array
-        const dataArray = Array.isArray(data) ? data : data ? [data] : [];
-        onSuccess?.(dataArray as TData[]);
-        return { data: dataArray as TData[], error: null };
+        // Process the data to ensure it's in the expected format for onSuccess
+        const dataForCallback = Array.isArray(result) ? result : [result];
+        onSuccess?.(dataForCallback as any);
+        
+        return { data: result, error: null };
         
       } catch (err: unknown) {
         console.error(`Erro na mutação (tentativa ${attempts + 1}):`, err);

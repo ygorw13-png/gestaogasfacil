@@ -84,7 +84,7 @@ export function useGlobalState() {
       if (stockConfigError) throw stockConfigError;
       
       // Process stock alert data
-      let stockLevels = defaultStock;
+      let stockLevels = { ...defaultStock };
       
       if (stockData?.stock_data) {
         // Make sure we have a proper object with the right structure
