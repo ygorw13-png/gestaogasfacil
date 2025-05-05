@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ApiResponse, ValidTableName, QueryOptions } from "./types";
 import { createErrorResponse, createSuccessResponse, applyFilters, applySorting, applyPagination } from "./utils";
@@ -9,8 +8,7 @@ export async function fetchData<TData extends Record<string, any>>(
   queryOptions?: QueryOptions
 ): Promise<ApiResponse<TData[]>> {
   try {
-    // Start with a basic query - use type assertion here at the beginning
-    // This prevents TypeScript from trying to deeply infer the type through chaining
+    // Start with a basic query and use type assertion to prevent deep type inference
     let query = supabase.from(table).select(queryOptions?.columns || '*') as any;
 
     // Apply query modifiers
@@ -22,7 +20,7 @@ export async function fetchData<TData extends Record<string, any>>(
 
     if (error) throw error;
 
-    // Explicitly cast the data to the expected type with extra type safety
+    // Cast the result to the expected type after the query is executed
     return createSuccessResponse(data as unknown as TData[]);
   } catch (error) {
     return createErrorResponse<TData[]>(error, `fetchData from ${table}`);
