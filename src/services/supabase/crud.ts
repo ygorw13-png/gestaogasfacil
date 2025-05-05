@@ -57,12 +57,14 @@ export async function updateData<TData extends Record<string, any>>(
   idColumn: string = 'id'
 ): Promise<ApiResponse<TData>> {
   try {
-    const { data: result, error } = await supabase
+    // Type assertion at the beginning of the chain to avoid deep type inference
+    const query = supabase
       .from(table)
       .update(data)
       .eq(idColumn, id)
-      .select()
-      .single();
+      .select() as any;
+      
+    const { data: result, error } = await query.single();
 
     if (error) throw error;
 
@@ -80,10 +82,13 @@ export async function deleteData(
   idColumn: string = 'id'
 ): Promise<ApiResponse<null>> {
   try {
-    const { error } = await supabase
+    // Type assertion to avoid deep inference
+    const query = supabase
       .from(table)
       .delete()
-      .eq(idColumn, id);
+      .eq(idColumn, id) as any;
+      
+    const { error } = await query;
 
     if (error) throw error;
 
