@@ -9,6 +9,7 @@ import { StockConfigHeader } from "./stock-config/StockConfigHeader";
 import { StockLevelInputs, StockSettings } from "./stock-config/StockLevelInputs";
 import { StockConfigActions } from "./stock-config/StockConfigActions";
 import { AlertBar } from "@/components/ui/AlertBar";
+import { fetchFromTable } from "@/services/supabaseSDK";
 
 export function StockConfiguration() {
   const { user } = useAuth();
@@ -35,7 +36,9 @@ export function StockConfiguration() {
     
     try {
       console.log("Buscando configurações de estoque...");
-      const response = await stockConfigTable.select();
+      
+      // Usando fetchFromTable diretamente para buscar as configurações
+      const response = await fetchFromTable('configuracoes_estoque', {});
       console.log("Resposta da busca:", response);
           
       if (response.error) {
@@ -91,22 +94,26 @@ export function StockConfiguration() {
     try {
       console.log("Iniciando atualização de configurações com valores:", storeSettings);
       
-      // Atualizações sequenciais com tratamento de erro adequado
-      const updateConfigs = [
+      // Usar Promise.allSettled em vez de Promise.all para capturar melhor os resultados
+      const updatePromises = [
         updateStockConfig('P13', storeSettings.p13Min, storeSettings.alertsEnabled),
         updateStockConfig('P20', storeSettings.p20Min, storeSettings.alertsEnabled),
         updateStockConfig('P45', storeSettings.p45Min, storeSettings.alertsEnabled),
         updateStockConfig('agua', storeSettings.aguaMin, storeSettings.alertsEnabled)
       ];
       
-      // Aguardar que todas as atualizações sejam concluídas
-      const results = await Promise.all(updateConfigs);
+      // Promise.allSettled permite ver o resultado de todas as promessas, mesmo que algumas falhem
+      const results = await Promise.allSettled(updatePromises);
       console.log("Resultados das atualizações:", results);
       
-      // Verificar se alguma atualização falhou
-      const errors = results.filter(r => r.error);
-      if (errors.length > 0) {
-        throw new Error(`Erro ao atualizar ${errors.length} configurações`);
+      // Verificar resultados - uma abordagem mais detalhada
+      const failedUpdates = results.filter(result => 
+        result.status === 'rejected' || (result.status === 'fulfilled' && result.value.error)
+      );
+      
+      if (failedUpdates.length > 0) {
+        console.error("Falhas nas atualizações:", failedUpdates);
+        throw new Error(`Erro ao atualizar ${failedUpdates.length} configurações`);
       }
       
       // Definir sucesso e mostrar toast
@@ -144,14 +151,23 @@ export function StockConfiguration() {
     
     console.log(`Atualizando configuração ${id} com estoque mínimo ${minStock}`);
     
-    return stockConfigTable.update({
-      id,
-      estoque_minimo: minStock,
-      alerta_ativo: alertEnabled,
-      atualizado_por: user.id || 'sistema',
-      atualizado_em: new Date().toISOString(),
-      produto: id.toLowerCase()
-    });
+    try {
+      // Usar diretamente a API do Supabase para maior confiabilidade
+      const result = await stockConfigTable.update({
+        id,
+        estoque_minimo: minStock,
+        alerta_ativo: alertEnabled,
+        atualizado_por: user.id || 'sistema',
+        atualizado_em: new Date().toISOString(),
+        produto: id.toLowerCase()
+      });
+      
+      console.log(`Resultado da atualização de ${id}:`, result);
+      return result;
+    } catch (err) {
+      console.error(`Erro ao atualizar configuração ${id}:`, err);
+      return { error: err instanceof Error ? err : new Error(String(err)), data: null };
+    }
   };
 
   return (

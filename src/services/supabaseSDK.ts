@@ -23,31 +23,31 @@ export async function fetchFromTable<T>(
     const { columns = '*', where, orderBy, limit, single } = options;
     
     // Start with a basic query - explicitly cast to any to avoid deep type instantiation
-    let baseQuery = supabase.from(tableName).select(columns) as any;
+    let query = supabase.from(tableName).select(columns) as any;
     
-    // Apply filters - use a separate variable to track the query state
+    // Apply filters
     if (where) {
       Object.entries(where).forEach(([key, value]) => {
         if (value !== undefined) {
-          baseQuery = baseQuery.eq(key, value);
+          query = query.eq(key, value);
         }
       });
     }
     
     // Apply ordering
     if (orderBy) {
-      baseQuery = baseQuery.order(orderBy.column, { ascending: orderBy.ascending ?? true });
+      query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
     }
     
     // Apply limit
     if (limit) {
-      baseQuery = baseQuery.limit(limit);
+      query = query.limit(limit);
     }
     
     // Execute query
     const result = single 
-      ? await baseQuery.single()
-      : await baseQuery;
+      ? await query.single()
+      : await query;
       
     return { 
       data: result.data as T, 

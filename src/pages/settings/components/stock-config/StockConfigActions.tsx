@@ -9,22 +9,25 @@ interface StockConfigActionsProps {
 
 export function StockConfigActions({ onSave, saving }: StockConfigActionsProps) {
   return (
-    <Button 
-      onClick={onSave} 
-      disabled={saving}
-      className="mt-4 w-full sm:w-auto"
-    >
-      {saving ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Salvando...
-        </>
-      ) : (
-        <>
-          <Save className="mr-2 h-4 w-4" />
-          Salvar Configurações
-        </>
-      )}
-    </Button>
+    <div className="flex justify-end mt-6">
+      <Button 
+        onClick={onSave} 
+        disabled={saving}
+        className="w-full sm:w-auto"
+        variant="default"
+      >
+        {saving ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Salvando...
+          </>
+        ) : (
+          <>
+            <Save className="mr-2 h-4 w-4" />
+            Salvar Configurações
+          </>
+        )}
+      </Button>
+    </div>
   );
 }
