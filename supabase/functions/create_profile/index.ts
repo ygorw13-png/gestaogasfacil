@@ -24,7 +24,7 @@ serve(async (req) => {
       }
     )
 
-    const { user_id, name, role, created_by_admin, organization_id } = await req.json()
+    const { user_id, name, created_by_admin, organization_id } = await req.json()
 
     if (!user_id || !name) {
       return new Response(
@@ -81,7 +81,7 @@ serve(async (req) => {
       userOrganizationId = org.id;
     }
 
-    // Sempre atribuir o papel de admin para novos usuários
+    // Sempre atribuir o papel de admin para todos os usuários - não há mais restrição por papéis
     const userRole = 'admin';
 
     // Insert the new profile

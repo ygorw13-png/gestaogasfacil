@@ -1,7 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { OverviewCards } from "./dashboard/components/OverviewCards";
@@ -20,7 +19,8 @@ export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState(overviewData);
   const [loading, setLoading] = useState(true);
 
-  const hasFullAccess = user?.role === 'admin' || user?.role === 'gerente';
+  // All users have full access now, no need for role checks
+  const hasFullAccess = true;
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -81,14 +81,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {!hasFullAccess && (
-        <Alert variant="warning" className="border-yellow-200 bg-yellow-50">
-          <AlertCircle className="h-4 w-4 text-yellow-600" />
-          <AlertDescription className="text-yellow-700">
-            Você tem acesso limitado ao dashboard. Algumas informações só estão disponíveis para usuários com perfis de Administrador ou Gerente.
-          </AlertDescription>
-        </Alert>
-      )}
+      {/* Remove the warning alert about limited access - all users have full access now */}
 
       {loading ? (
         <div className="space-y-4">
@@ -112,7 +105,8 @@ export default function Dashboard() {
               <TabsTrigger value="sales">Vendas</TabsTrigger>
               <TabsTrigger value="stock">Estoque</TabsTrigger>
               <TabsTrigger value="promissory">Promissórias</TabsTrigger>
-              {hasFullAccess && <TabsTrigger value="sellers">Vendedores</TabsTrigger>}
+              {/* Show sellers tab for all users */}
+              <TabsTrigger value="sellers">Vendedores</TabsTrigger>
             </TabsList>
             
             <TabsContent value="sales" className="space-y-4">
@@ -137,14 +131,14 @@ export default function Dashboard() {
               </div>
             </TabsContent>
             
-            {hasFullAccess && (
-              <TabsContent value="sellers" className="space-y-4">
-                <TopSellers sellers={topSellers} />
-              </TabsContent>
-            )}
+            {/* Make sellers tab available to all users */}
+            <TabsContent value="sellers" className="space-y-4">
+              <TopSellers sellers={topSellers} />
+            </TabsContent>
           </Tabs>
 
-          {user?.role === 'admin' && <AdminSection />}
+          {/* Show admin section for all users */}
+          <AdminSection />
         </>
       )}
     </div>

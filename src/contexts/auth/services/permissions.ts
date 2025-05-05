@@ -11,5 +11,5 @@ export const hasUserRole = (user: User | null, roles: string | string[]) => {
 export const getUserRole = (user: User | null): string => {
   if (!user) return 'anonymous';
   // All authenticated users will have full access
-  return 'authenticated';
+  return 'admin';
 };

@@ -78,13 +78,13 @@ serve(async (req) => {
         throw orgError
       }
       
-      // Criar o perfil do usuário
+      // Criar o perfil do usuário - sempre como admin
       const { data: newProfile, error: newProfileError } = await supabaseClient
         .from('profiles')
         .insert({
           id: user_id,
           name: userName,
-          role: 'admin',
+          role: 'admin', // Garantir que todos os perfis novos tenham 'admin'
           organization_id: org.id
         })
         .select('*, organizations(*)')
