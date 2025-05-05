@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestError } from "@supabase/supabase-js";
-import { ValidTableName } from "@/services/supabaseService";
+import { ValidTableName } from "@/services/supabase/types";
 
 export interface SupabaseResponse<T> {
   data: T | null;

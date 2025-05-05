@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { RealtimeChannel } from "@supabase/supabase-js";
-import { ValidTableName } from "@/services/supabaseService";
+import { ValidTableName } from "@/services/supabase/types";
 
 type EventType = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
