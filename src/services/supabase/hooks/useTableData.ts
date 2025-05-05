@@ -30,6 +30,7 @@ export function useTableData<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
+  // Simplified return type to avoid recursive type instantiation
   const fetchData = useCallback(async (queryOptions?: QueryOptions): Promise<ApiResponse<Record<string, any>[]>> => {
     setLoading(true);
     setError(null);
@@ -60,7 +61,7 @@ export function useTableData<T extends Record<string, any>>(
       
       const typedData = data as unknown as T[];
       setData(typedData);
-      return createSuccessResponse(data as unknown as Record<string, any>[]);
+      return createSuccessResponse(data as Record<string, any>[]);
     } catch (error) {
       setError(error instanceof Error ? error : new Error(String(error)));
       return createErrorResponse(

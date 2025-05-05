@@ -33,7 +33,7 @@ export function useTableCRUD<T extends Record<string, any>>(
   
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
 
-  // Using more explicit typing with unknown as intermediate step to avoid TS2589
+  // Simplified typing to avoid recursive type instantiation
   const getById = useCallback(async (id: string | number): Promise<ApiResponse<Record<string, any>>> => {
     setLoading(true);
     setError(null);
@@ -47,7 +47,7 @@ export function useTableCRUD<T extends Record<string, any>>(
       
       if (error) throw error;
       
-      return createSuccessResponse(data as unknown as Record<string, any>);
+      return createSuccessResponse(data as Record<string, any>);
     } catch (error) {
       setError(error instanceof Error ? error : new Error(String(error)));
       return createErrorResponse(
@@ -75,7 +75,7 @@ export function useTableCRUD<T extends Record<string, any>>(
       const successMsg = toastMessages.createSuccess || `${tableName} created successfully`;
       handleSuccess(successMsg);
       
-      return createSuccessResponse(data as unknown as Record<string, any>);
+      return createSuccessResponse(data as Record<string, any>);
     } catch (error) {
       setError(error instanceof Error ? error : new Error(String(error)));
       handleError(
@@ -117,7 +117,7 @@ export function useTableCRUD<T extends Record<string, any>>(
       const successMsg = toastMessages.updateSuccess || `${tableName} updated successfully`;
       handleSuccess(successMsg);
       
-      return createSuccessResponse(data as unknown as Record<string, any>);
+      return createSuccessResponse(data as Record<string, any>);
     } catch (error) {
       setError(error instanceof Error ? error : new Error(String(error)));
       handleError(
