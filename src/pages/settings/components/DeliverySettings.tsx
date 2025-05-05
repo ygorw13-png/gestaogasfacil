@@ -28,7 +28,8 @@ export function DeliverySettings() {
       try {
         const response = await getConfigEntrega(organization.id);
         
-        if (response.error) {
+        // Verificar se a resposta contém algum erro (maneira segura de verificar)
+        if (response && 'error' in response && response.error) {
           throw response.error;
         }
         
@@ -74,10 +75,11 @@ export function DeliverySettings() {
         atualizado_por: user.id
       };
       
-      const { error } = await upsertConfigEntrega(configData);
+      const result = await upsertConfigEntrega(configData);
       
-      if (error) {
-        throw error;
+      // Verificar se a resposta contém algum erro (maneira segura de verificar)
+      if (result && 'error' in result && result.error) {
+        throw result.error;
       }
       
       toast({

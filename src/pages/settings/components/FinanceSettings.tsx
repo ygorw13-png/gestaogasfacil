@@ -29,7 +29,8 @@ export function FinanceSettings() {
       try {
         const response = await getConfigFinanceira(organization.id);
         
-        if (response.error) {
+        // Verificar se a resposta contém algum erro (maneira segura de verificar)
+        if (response && 'error' in response && response.error) {
           throw response.error;
         }
         
@@ -81,10 +82,11 @@ export function FinanceSettings() {
         atualizado_por: user.id
       };
       
-      const { error } = await upsertConfigFinanceira(configData);
+      const result = await upsertConfigFinanceira(configData);
       
-      if (error) {
-        throw error;
+      // Verificar se a resposta contém algum erro (maneira segura de verificar)
+      if (result && 'error' in result && result.error) {
+        throw result.error;
       }
       
       toast({

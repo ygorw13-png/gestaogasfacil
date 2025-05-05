@@ -29,7 +29,8 @@ export function SecuritySettings() {
       try {
         const response = await getConfigSeguranca(organization.id);
         
-        if (response.error) {
+        // Verificar se a resposta contém algum erro (maneira segura de verificar)
+        if (response && 'error' in response && response.error) {
           throw response.error;
         }
         
@@ -75,10 +76,11 @@ export function SecuritySettings() {
         atualizado_por: user.id
       };
       
-      const { error } = await upsertConfigSeguranca(configData);
+      const result = await upsertConfigSeguranca(configData);
       
-      if (error) {
-        throw error;
+      // Verificar se a resposta contém algum erro (maneira segura de verificar)
+      if (result && 'error' in result && result.error) {
+        throw result.error;
       }
       
       toast({
