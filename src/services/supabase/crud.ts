@@ -49,15 +49,15 @@ export async function insertData<TData extends Record<string, any>>(
   }
 }
 
-// Simplified update function that avoids complex type instantiation
+// Fix for the TS2589 error - simplify return type and avoid complex type instantiation
 export async function updateData(
   table: ValidTableName,
   id: string,
   data: Record<string, any>,
   idColumn: string = 'id'
-): Promise<ApiResponse<any>> {
+): Promise<ApiResponse<Record<string, any>>> {
   try {
-    // First, perform the update operation - separate from the fetch
+    // First, perform the update operation
     const { error: updateError } = await supabase
       .from(table)
       .update(data)
@@ -78,7 +78,6 @@ export async function updateData(
       throw new Error(`Record not found after update: ${idColumn}=${id}`);
     }
     
-    // Return the result without complex type casting
     return createSuccessResponse(result);
   } catch (error) {
     return createErrorResponse(error, `updateData in ${table}`);
