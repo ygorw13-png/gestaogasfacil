@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestError } from "@supabase/supabase-js";
 
@@ -147,7 +148,7 @@ export async function deleteFromTable(
   }
 }
 
-// Simplified type for realtime payload to avoid recursive type issues
+// Simplificado para evitar tipos recursivos infinitos
 export interface RealtimePayload {
   new: Record<string, any>;
   old: Record<string, any>;
@@ -178,7 +179,7 @@ export function subscribeToTable(
         table: tableName,
         filter
       },
-      (payload: any) => callback(payload as RealtimePayload)
+      (payload) => callback(payload as RealtimePayload)
     )
     .subscribe();
   

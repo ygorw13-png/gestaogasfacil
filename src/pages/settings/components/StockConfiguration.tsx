@@ -7,8 +7,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchFromTable, updateInTable } from "@/services/supabaseSDK";
-import { StockConfig } from "@/types/supabaseTypes";
 import { Loader2 } from "lucide-react";
 import { stockConfigTable } from "@/integrations/supabase/tables/stockConfig";
 
@@ -40,7 +38,7 @@ export function StockConfiguration() {
   const fetchStockSettings = async () => {
     setLoading(true);
     try {
-      // Use the stock config table function for better type safety
+      // Usar a função da tabela de configurações de estoque para melhor segurança de tipos
       const response = await stockConfigTable.select();
           
       if (response.error) {
@@ -48,7 +46,7 @@ export function StockConfiguration() {
       }
       
       if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-        // Map configurations
+        // Mapear configurações
         const p13Setting = response.data.find(item => item.id === 'P13');
         const p20Setting = response.data.find(item => item.id === 'P20');
         const p45Setting = response.data.find(item => item.id === 'P45');
@@ -59,7 +57,7 @@ export function StockConfiguration() {
           p20Min: p20Setting?.estoque_minimo || 5,
           p45Min: p45Setting?.estoque_minimo || 5,
           aguaMin: aguaSetting?.estoque_minimo || 20,
-          alertsEnabled: p13Setting?.alerta_ativo !== false // Default to true if undefined
+          alertsEnabled: p13Setting?.alerta_ativo !== false // Default para true se indefinido
         });
       }
     } catch (error) {
@@ -78,7 +76,7 @@ export function StockConfiguration() {
     setSaving(true);
     
     try {
-      // Sequential updates with proper error handling
+      // Atualizações sequenciais com tratamento de erro adequado
       const updateConfigs = [
         updateStockConfig('P13', storeSettings.p13Min, storeSettings.alertsEnabled),
         updateStockConfig('P20', storeSettings.p20Min, storeSettings.alertsEnabled),
@@ -86,10 +84,10 @@ export function StockConfiguration() {
         updateStockConfig('agua', storeSettings.aguaMin, storeSettings.alertsEnabled)
       ];
       
-      // Wait for all updates to complete
+      // Aguardar que todas as atualizações sejam concluídas
       const results = await Promise.all(updateConfigs);
       
-      // Check if any updates failed
+      // Verificar se alguma atualização falhou
       const errors = results.filter(r => r.error);
       if (errors.length > 0) {
         throw new Error(`Erro ao atualizar ${errors.length} configurações`);
@@ -111,7 +109,7 @@ export function StockConfiguration() {
     }
   };
   
-  // Helper function to update a single stock config
+  // Função auxiliar para atualizar uma única configuração de estoque
   const updateStockConfig = async (id: string, minStock: number, alertEnabled: boolean) => {
     return stockConfigTable.update({
       id,
