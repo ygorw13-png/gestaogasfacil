@@ -4,13 +4,13 @@ import { ApiResponse, ValidTableName, QueryOptions } from "./types";
 import { createErrorResponse, createSuccessResponse, applyFilters, applySorting, applyPagination } from "./utils";
 
 // Generic fetch function with error handling
-export async function fetchData<TData extends Record<string, any>>(
+export async function fetchData(
   table: ValidTableName,
   queryOptions?: QueryOptions
-): Promise<ApiResponse<TData[]>> {
+): Promise<ApiResponse<Record<string, any>[]>> {
   try {
-    // Start with a basic query and use type assertion to prevent deep type inference
-    let query = supabase.from(table).select(queryOptions?.columns || '*') as any;
+    // Start with a basic query
+    let query = supabase.from(table).select(queryOptions?.columns || '*');
 
     // Apply query modifiers
     query = applyFilters(query, queryOptions?.filters);
@@ -21,18 +21,17 @@ export async function fetchData<TData extends Record<string, any>>(
 
     if (error) throw error;
 
-    // Cast the result to the expected type after the query is executed
-    return createSuccessResponse(data as unknown as TData[]);
+    return createSuccessResponse(data || []);
   } catch (error) {
-    return createErrorResponse<TData[]>(error, `fetchData from ${table}`);
+    return createErrorResponse(error, `fetchData from ${table}`);
   }
 }
 
 // Generic insert function with error handling
-export async function insertData<TData extends Record<string, any>>(
+export async function insertData(
   table: ValidTableName,
-  data: Partial<TData>
-): Promise<ApiResponse<TData>> {
+  data: Record<string, any>
+): Promise<ApiResponse<Record<string, any>>> {
   try {
     const { data: result, error } = await supabase
       .from(table)
@@ -42,14 +41,13 @@ export async function insertData<TData extends Record<string, any>>(
 
     if (error) throw error;
 
-    // Explicitly cast the result to the expected type
-    return createSuccessResponse(result as unknown as TData);
+    return createSuccessResponse(result);
   } catch (error) {
-    return createErrorResponse<TData>(error, `insertData into ${table}`);
+    return createErrorResponse(error, `insertData into ${table}`);
   }
 }
 
-// Simplified to avoid error TS2589
+// Simplified update function
 export async function updateData(
   table: ValidTableName,
   id: string,
@@ -100,6 +98,6 @@ export async function deleteData(
 
     return createSuccessResponse(null);
   } catch (error) {
-    return createErrorResponse<null>(error, `deleteData from ${table}`);
+    return createErrorResponse(error, `deleteData from ${table}`);
   }
 }

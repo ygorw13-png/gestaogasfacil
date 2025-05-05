@@ -8,7 +8,7 @@ import { createSuccessResponse, createErrorResponse } from "../utils";
 /**
  * Hook for performing CRUD operations on a table
  */
-export function useTableCRUD<T extends Record<string, any>>(
+export function useTableCRUD(
   tableName: ValidTableName,
   options: {
     idField?: string;
@@ -33,7 +33,7 @@ export function useTableCRUD<T extends Record<string, any>>(
   
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
 
-  // Fixed type to avoid recursive type instantiation
+  // Simplified return type to avoid recursive type instantiation
   const getById = useCallback(async (id: string | number): Promise<ApiResponse<Record<string, any>>> => {
     setLoading(true);
     setError(null);
@@ -47,7 +47,7 @@ export function useTableCRUD<T extends Record<string, any>>(
       
       if (error) throw error;
       
-      return createSuccessResponse(data as Record<string, any>);
+      return createSuccessResponse(data || null);
     } catch (error) {
       setError(error instanceof Error ? error : new Error(String(error)));
       return createErrorResponse(
@@ -59,7 +59,8 @@ export function useTableCRUD<T extends Record<string, any>>(
     }
   }, [tableName, idField, toastMessages.fetchItemError]);
 
-  const createRecord = useCallback(async (record: Omit<T, 'id'>): Promise<ApiResponse<Record<string, any>>> => {
+  // Simplified generic param to avoid recursive type instantiation
+  const createRecord = useCallback(async (record: Record<string, any>): Promise<ApiResponse<Record<string, any>>> => {
     setLoading(true);
     setError(null);
     
@@ -75,7 +76,7 @@ export function useTableCRUD<T extends Record<string, any>>(
       const successMsg = toastMessages.createSuccess || `${tableName} created successfully`;
       handleSuccess(successMsg);
       
-      return createSuccessResponse(data as Record<string, any>);
+      return createSuccessResponse(data || null);
     } catch (error) {
       setError(error instanceof Error ? error : new Error(String(error)));
       handleError(
@@ -88,7 +89,11 @@ export function useTableCRUD<T extends Record<string, any>>(
     }
   }, [tableName, toastMessages.createSuccess, toastMessages.createError, handleSuccess, handleError]);
 
-  const updateRecord = useCallback(async (id: string | number, updates: Partial<T>): Promise<ApiResponse<Record<string, any>>> => {
+  // Simplified to avoid recursive type instantiation
+  const updateRecord = useCallback(async (
+    id: string | number, 
+    updates: Record<string, any>
+  ): Promise<ApiResponse<Record<string, any>>> => {
     setLoading(true);
     setError(null);
     
@@ -117,7 +122,7 @@ export function useTableCRUD<T extends Record<string, any>>(
       const successMsg = toastMessages.updateSuccess || `${tableName} updated successfully`;
       handleSuccess(successMsg);
       
-      return createSuccessResponse(data as Record<string, any>);
+      return createSuccessResponse(data);
     } catch (error) {
       setError(error instanceof Error ? error : new Error(String(error)));
       handleError(

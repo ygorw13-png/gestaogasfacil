@@ -8,7 +8,7 @@ import { createSuccessResponse, createErrorResponse, applyFilters, applySorting,
 /**
  * Hook for basic data fetching and state management
  */
-export function useTableData<T extends Record<string, any>>(
+export function useTableData(
   tableName: ValidTableName,
   options: {
     fetchOnMount?: boolean;
@@ -24,13 +24,13 @@ export function useTableData<T extends Record<string, any>>(
     toastMessages = {}
   } = options;
 
-  const [data, setData] = useState<T[]>([]);
+  const [data, setData] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(fetchOnMount);
   const [error, setError] = useState<Error | null>(null);
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Fixed type to avoid recursive type instantiation
+  // Simplified return type to avoid recursive type instantiation
   const fetchData = useCallback(async (queryOptions?: QueryOptions): Promise<ApiResponse<Record<string, any>[]>> => {
     setLoading(true);
     setError(null);
@@ -59,9 +59,9 @@ export function useTableData<T extends Record<string, any>>(
       
       if (error) throw error;
       
-      const typedData = data as unknown as T[];
+      const typedData = data as Record<string, any>[];
       setData(typedData);
-      return createSuccessResponse(data as Record<string, any>[]);
+      return createSuccessResponse(typedData);
     } catch (error) {
       setError(error instanceof Error ? error : new Error(String(error)));
       return createErrorResponse(
