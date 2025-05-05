@@ -18,6 +18,65 @@ export type ValidTableName = 'cascos_emprestados' | 'clients' | 'colaboradores' 
   'configuracoes_notificacoes' | 'configuracoes_seguranca' | 'configuracoes_sistema' | 
   'dashboard_data' | 'orders' | 'profiles' | 'requisicoes_estoque';
 
+// Standard error response creator
+function createErrorResponse<T>(error: unknown, context: string): ApiResponse<T> {
+  console.error(`Error in ${context}:`, error);
+  return {
+    error: error instanceof PostgrestError ? error : new Error(String(error)),
+    status: 'error',
+    message: error instanceof Error ? error.message : String(error)
+  };
+}
+
+// Standard success response creator
+function createSuccessResponse<T>(data: T): ApiResponse<T> {
+  return {
+    data,
+    status: 'success'
+  };
+}
+
+// Apply filters to a query
+function applyFilters(query: any, filters?: Record<string, any>) {
+  if (!filters) return query;
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      if (Array.isArray(value)) {
+        query = query.in(key, value);
+      } else if (typeof value === 'object' && value !== null) {
+        // Handle range filters and other complex types
+        if ('gt' in value) query = query.gt(key, value.gt);
+        if ('gte' in value) query = query.gte(key, value.gte);
+        if ('lt' in value) query = query.lt(key, value.lt);
+        if ('lte' in value) query = query.lte(key, value.lte);
+        if ('like' in value) query = query.like(key, `%${value.like}%`);
+      } else {
+        query = query.eq(key, value);
+      }
+    }
+  });
+
+  return query;
+}
+
+// Apply sorting to a query
+function applySorting(query: any, orderBy?: { column: string; ascending?: boolean }) {
+  if (!orderBy) return query;
+  
+  return query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
+}
+
+// Apply pagination to a query
+function applyPagination(query: any, pagination?: { page: number; pageSize: number }) {
+  if (!pagination) return query;
+  
+  const { page, pageSize } = pagination;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  return query.range(from, to);
+}
+
 // Generic fetch function with error handling
 export async function fetchData<T>(
   table: ValidTableName,
@@ -32,57 +91,18 @@ export async function fetchData<T>(
   try {
     let query = supabase.from(table).select(queryOptions?.columns || '*');
 
-    // Apply filters
-    if (queryOptions?.filters) {
-      Object.entries(queryOptions.filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          if (Array.isArray(value)) {
-            query = query.in(key, value);
-          } else if (typeof value === 'object' && value !== null) {
-            // Handle range filters and other complex types
-            if ('gt' in value) query = query.gt(key, value.gt);
-            if ('gte' in value) query = query.gte(key, value.gte);
-            if ('lt' in value) query = query.lt(key, value.lt);
-            if ('lte' in value) query = query.lte(key, value.lte);
-            if ('like' in value) query = query.like(key, `%${value.like}%`);
-          } else {
-            query = query.eq(key, value);
-          }
-        }
-      });
-    }
-
-    // Apply ordering
-    if (queryOptions?.orderBy) {
-      const { column, ascending = true } = queryOptions.orderBy;
-      query = query.order(column, { ascending });
-    }
-
-    // Apply pagination
-    if (queryOptions?.pagination) {
-      const { page, pageSize } = queryOptions.pagination;
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-      query = query.range(from, to);
-    }
+    // Apply query modifiers
+    query = applyFilters(query, queryOptions?.filters);
+    query = applySorting(query, queryOptions?.orderBy);
+    query = applyPagination(query, queryOptions?.pagination);
 
     const { data, error } = await query;
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
-    return {
-      data: data as T[],
-      status: 'success'
-    };
+    return createSuccessResponse(data as T[]);
   } catch (error) {
-    console.error(`Error fetching data from ${table}:`, error);
-    return {
-      error: error as PostgrestError | Error,
-      status: 'error',
-      message: (error as Error).message
-    };
+    return createErrorResponse<T[]>(error, `fetchData from ${table}`);
   }
 }
 
@@ -98,21 +118,11 @@ export async function insertData<T>(
       .select()
       .single();
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
-    return {
-      data: result as T,
-      status: 'success'
-    };
+    return createSuccessResponse(result as T);
   } catch (error) {
-    console.error(`Error inserting data into ${table}:`, error);
-    return {
-      error: error as PostgrestError | Error,
-      status: 'error',
-      message: (error as Error).message
-    };
+    return createErrorResponse<T>(error, `insertData into ${table}`);
   }
 }
 
@@ -131,21 +141,11 @@ export async function updateData<T>(
       .select()
       .single();
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
-    return {
-      data: result as T,
-      status: 'success'
-    };
+    return createSuccessResponse(result as T);
   } catch (error) {
-    console.error(`Error updating data in ${table}:`, error);
-    return {
-      error: error as PostgrestError | Error,
-      status: 'error',
-      message: (error as Error).message
-    };
+    return createErrorResponse<T>(error, `updateData in ${table}`);
   }
 }
 
@@ -161,28 +161,19 @@ export async function deleteData(
       .delete()
       .eq(idColumn, id);
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
-    return {
-      status: 'success'
-    };
+    return createSuccessResponse(null);
   } catch (error) {
-    console.error(`Error deleting data from ${table}:`, error);
-    return {
-      error: error as PostgrestError | Error,
-      status: 'error',
-      message: (error as Error).message
-    };
+    return createErrorResponse<null>(error, `deleteData from ${table}`);
   }
 }
 
-// Define simple type for query function
+// Define type for query function
 export type QueryFunction<T> = () => Promise<T[]>;
 
-// Custom hooks for common Supabase operations
-export function useSupabaseTable<T>(tableName: ValidTableName) {
+// Factory for creating table-specific hooks
+export function useSupabaseTable<T extends Record<string, any>>(tableName: ValidTableName) {
   // Get data from a table with filtering options
   const useTableData = (options?: {
     columns?: string;
