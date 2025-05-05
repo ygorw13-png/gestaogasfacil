@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 
 interface StockConfigActionsProps {
   onSave: () => void;
@@ -12,7 +12,7 @@ export function StockConfigActions({ onSave, saving }: StockConfigActionsProps) 
     <Button 
       onClick={onSave} 
       disabled={saving}
-      className="mt-4"
+      className="mt-4 w-full sm:w-auto"
     >
       {saving ? (
         <>
@@ -20,7 +20,10 @@ export function StockConfigActions({ onSave, saving }: StockConfigActionsProps) 
           Salvando...
         </>
       ) : (
-        "Salvar Configurações"
+        <>
+          <Save className="mr-2 h-4 w-4" />
+          Salvar Configurações
+        </>
       )}
     </Button>
   );

@@ -8,12 +8,15 @@ import { stockConfigTable } from "@/integrations/supabase/tables/stockConfig";
 import { StockConfigHeader } from "./stock-config/StockConfigHeader";
 import { StockLevelInputs, StockSettings } from "./stock-config/StockLevelInputs";
 import { StockConfigActions } from "./stock-config/StockConfigActions";
+import { AlertBar } from "@/components/ui/AlertBar";
 
 export function StockConfiguration() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [storeSettings, setStoreSettings] = useState<StockSettings>({
     p13Min: 20,
     p20Min: 5,
@@ -53,6 +56,7 @@ export function StockConfiguration() {
       }
     } catch (error) {
       console.error("Erro ao carregar configurações de estoque:", error);
+      setError("Não foi possível carregar as configurações de estoque");
       toast({
         title: "Erro",
         description: "Não foi possível carregar as configurações de estoque",
@@ -64,7 +68,18 @@ export function StockConfiguration() {
   };
 
   const handleUpdateStockSettings = async () => {
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Usuário não autenticado",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setSaving(true);
+    setError(null);
+    setSuccess(false);
     
     try {
       // Atualizações sequenciais com tratamento de erro adequado
@@ -84,12 +99,18 @@ export function StockConfiguration() {
         throw new Error(`Erro ao atualizar ${errors.length} configurações`);
       }
       
+      // Definir sucesso e mostrar toast
+      setSuccess(true);
       toast({
         title: "Sucesso",
         description: "Configurações de estoque atualizadas com sucesso"
       });
+      
+      // Atualizar os dados após o salvamento bem-sucedido
+      await fetchStockSettings();
     } catch (error: any) {
       console.error("Erro ao atualizar configurações:", error);
+      setError(error.message || "Não foi possível atualizar as configurações");
       toast({
         title: "Erro",
         description: error.message || "Não foi possível atualizar as configurações",
@@ -97,16 +118,25 @@ export function StockConfiguration() {
       });
     } finally {
       setSaving(false);
+      
+      // Esconder mensagem de sucesso após 5 segundos
+      if (success) {
+        setTimeout(() => setSuccess(false), 5000);
+      }
     }
   };
   
   // Função auxiliar para atualizar uma única configuração de estoque
   const updateStockConfig = async (id: string, minStock: number, alertEnabled: boolean) => {
+    if (!user) {
+      return { error: new Error("Usuário não autenticado"), data: null };
+    }
+    
     return stockConfigTable.update({
       id,
       estoque_minimo: minStock,
       alerta_ativo: alertEnabled,
-      atualizado_por: user?.id || '',
+      atualizado_por: user.id || 'sistema',
       atualizado_em: new Date().toISOString(),
       produto: id.toLowerCase()
     });
@@ -116,6 +146,22 @@ export function StockConfiguration() {
     <Card>
       <StockConfigHeader />
       <CardContent className="space-y-4">
+        {success && (
+          <AlertBar
+            variant="success"
+            message="Configurações de estoque salvas com sucesso!"
+            hideAfter={5000}
+          />
+        )}
+        
+        {error && (
+          <AlertBar
+            variant="danger"
+            message={error}
+            onClose={() => setError(null)}
+          />
+        )}
+      
         {loading ? (
           <div className="flex justify-center p-4">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />

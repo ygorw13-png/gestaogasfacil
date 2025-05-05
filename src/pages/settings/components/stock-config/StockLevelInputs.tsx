@@ -23,9 +23,13 @@ export function StockLevelInputs({
   disabled = false 
 }: StockLevelInputsProps) {
   const handleNumberChange = (field: keyof Omit<StockSettings, 'alertsEnabled'>) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Converter explicitamente para número e garantir valor mínimo de 0
+    const value = parseInt(e.target.value, 10);
+    const numValue = isNaN(value) ? 0 : Math.max(0, value);
+    
     onSettingsChange({
       ...settings,
-      [field]: parseInt(e.target.value) || 0
+      [field]: numValue
     });
   };
 
