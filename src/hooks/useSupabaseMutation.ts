@@ -1,11 +1,11 @@
 
 import { useState, useCallback } from "react";
 import { useToast } from "./use-toast";
-import { PostgrestResponse, PostgrestError } from "@supabase/supabase-js";
+import { PostgrestError } from "@supabase/supabase-js";
 
 interface UseSupabaseMutationOptions<TData, TVariables> {
   mutationFn: (variables: TVariables) => Promise<TData>;
-  onSuccess?: (data: TData extends any[] ? TData : [TData]) => void;
+  onSuccess?: (data: TData) => void;
   onError?: (error: PostgrestError | Error) => void;
   successMessage?: string;
   errorMessage?: string;
@@ -51,9 +51,8 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
           });
         }
         
-        // Process the data to ensure it's in the expected format for onSuccess
-        const dataForCallback = Array.isArray(result) ? result : [result];
-        onSuccess?.(dataForCallback as any);
+        // Call onSuccess callback with the result
+        onSuccess?.(result);
         
         return { data: result, error: null };
         

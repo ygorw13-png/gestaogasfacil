@@ -190,7 +190,7 @@ export function useSupabaseTable<T>(tableName: ValidTableName) {
   }) => {
     const queryKey = options?.queryKey || [tableName];
     
-    return useSupabaseQuery<T[]>({
+    return useSupabaseQuery<T>({
       queryKey,
       queryFn: async () => {
         const { data, error } = await supabase
@@ -207,7 +207,7 @@ export function useSupabaseTable<T>(tableName: ValidTableName) {
 
   // Add an item to a table
   const useAddItem = (options?: {
-    onSuccess?: (data: T[]) => void;
+    onSuccess?: (data: T) => void;
     onError?: (error: PostgrestError | Error) => void;
     successMessage?: string;
   }) => {
@@ -230,7 +230,7 @@ export function useSupabaseTable<T>(tableName: ValidTableName) {
 
   // Update an item in a table
   const useUpdateItem = (options?: {
-    onSuccess?: (data: T[]) => void;
+    onSuccess?: (data: T) => void;
     onError?: (error: PostgrestError | Error) => void;
     successMessage?: string;
     idField?: string;
