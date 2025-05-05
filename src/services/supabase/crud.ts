@@ -57,23 +57,22 @@ export async function updateData<TData extends Record<string, any>>(
   idColumn: string = 'id'
 ): Promise<ApiResponse<TData>> {
   try {
-    // Use a completely separate approach to avoid deep type inference
-    // First perform the update operation
-    const updateResult = await supabase
+    // First perform the update operation without returning data
+    const { error: updateError } = await (supabase
       .from(table)
       .update(data)
-      .eq(idColumn, id);
+      .eq(idColumn, id) as any);
       
-    if (updateResult.error) throw updateResult.error;
+    if (updateError) throw updateError;
     
-    // Then fetch the updated record separately
-    const { data: result, error } = await supabase
+    // Then fetch the updated record in a completely separate query
+    const { data: result, error: fetchError } = await (supabase
       .from(table)
       .select('*')
       .eq(idColumn, id)
-      .single();
+      .single() as any);
 
-    if (error) throw error;
+    if (fetchError) throw fetchError;
 
     // Explicitly cast the result to the expected type
     return createSuccessResponse(result as unknown as TData);
@@ -89,13 +88,11 @@ export async function deleteData(
   idColumn: string = 'id'
 ): Promise<ApiResponse<null>> {
   try {
-    // Create the query without chaining to avoid deep type inference
-    const baseQuery = supabase.from(table);
-    const deleteQuery = baseQuery.delete();
-    const filteredQuery = deleteQuery.eq(idColumn, id);
-    
-    // Execute the query
-    const { error } = await filteredQuery;
+    // Execute the delete operation with type assertion to avoid deep inference
+    const { error } = await (supabase
+      .from(table)
+      .delete()
+      .eq(idColumn, id) as any);
 
     if (error) throw error;
 
