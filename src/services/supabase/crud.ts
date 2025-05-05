@@ -49,7 +49,7 @@ export async function insertData<TData extends Record<string, any>>(
   }
 }
 
-// Simplified update function with no complex type inference to avoid deep instantiation
+// Simplified update function that avoids complex type instantiation
 export async function updateData(
   table: ValidTableName,
   id: string,
