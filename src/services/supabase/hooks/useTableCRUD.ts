@@ -33,7 +33,7 @@ export function useTableCRUD<T extends Record<string, any>>(
   
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
 
-  // Simplified typing to avoid recursive type instantiation
+  // Fixed type to avoid recursive type instantiation
   const getById = useCallback(async (id: string | number): Promise<ApiResponse<Record<string, any>>> => {
     setLoading(true);
     setError(null);
