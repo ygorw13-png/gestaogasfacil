@@ -31,9 +31,12 @@ export function StockConfiguration() {
 
   const fetchStockSettings = async () => {
     setLoading(true);
+    setError(null);
+    
     try {
-      // Usar a função da tabela de configurações de estoque para melhor segurança de tipos
+      console.log("Buscando configurações de estoque...");
       const response = await stockConfigTable.select();
+      console.log("Resposta da busca:", response);
           
       if (response.error) {
         throw response.error;
@@ -46,6 +49,8 @@ export function StockConfiguration() {
         const p45Setting = response.data.find(item => item.id === 'P45');
         const aguaSetting = response.data.find(item => item.id === 'agua');
         
+        console.log("Configurações encontradas:", { p13Setting, p20Setting, p45Setting, aguaSetting });
+        
         setStoreSettings({
           p13Min: p13Setting?.estoque_minimo || 20,
           p20Min: p20Setting?.estoque_minimo || 5,
@@ -53,6 +58,8 @@ export function StockConfiguration() {
           aguaMin: aguaSetting?.estoque_minimo || 20,
           alertsEnabled: p13Setting?.alerta_ativo !== false // Default para true se indefinido
         });
+      } else {
+        console.log("Nenhuma configuração encontrada ou resposta vazia");
       }
     } catch (error) {
       console.error("Erro ao carregar configurações de estoque:", error);
@@ -82,6 +89,8 @@ export function StockConfiguration() {
     setSuccess(false);
     
     try {
+      console.log("Iniciando atualização de configurações com valores:", storeSettings);
+      
       // Atualizações sequenciais com tratamento de erro adequado
       const updateConfigs = [
         updateStockConfig('P13', storeSettings.p13Min, storeSettings.alertsEnabled),
@@ -92,6 +101,7 @@ export function StockConfiguration() {
       
       // Aguardar que todas as atualizações sejam concluídas
       const results = await Promise.all(updateConfigs);
+      console.log("Resultados das atualizações:", results);
       
       // Verificar se alguma atualização falhou
       const errors = results.filter(r => r.error);
@@ -131,6 +141,8 @@ export function StockConfiguration() {
     if (!user) {
       return { error: new Error("Usuário não autenticado"), data: null };
     }
+    
+    console.log(`Atualizando configuração ${id} com estoque mínimo ${minStock}`);
     
     return stockConfigTable.update({
       id,
