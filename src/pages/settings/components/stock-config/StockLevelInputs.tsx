@@ -93,7 +93,7 @@ export function StockLevelInputs({
           onCheckedChange={(checked) => onSettingsChange({...settings, alertsEnabled: checked})}
           disabled={disabled}
         />
-        <Label htmlFor="enableAlerts" className="font-medium">
+        <Label htmlFor="enableAlerts" className="font-medium cursor-pointer">
           Habilitar alertas de estoque mínimo
         </Label>
       </div>

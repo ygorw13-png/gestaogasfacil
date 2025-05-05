@@ -3,7 +3,7 @@ import { supabase } from "../client";
 import { StockConfig } from "@/types/supabaseTypes";
 import { PostgrestError } from "@supabase/supabase-js";
 
-// Definindo tipos de resposta para evitar problemas de instanciação profunda
+// Defining tipos de resposta para evitar problemas de instanciação profunda
 export interface StockConfigResponse {
   data: StockConfig[] | null;
   error: PostgrestError | null;
@@ -84,6 +84,35 @@ export const stockConfigTable = {
           ? error 
           : { 
               message: "Erro ao atualizar configuração",
+              details: String(error),
+              hint: "",
+              code: "custom_error"
+            } as PostgrestError
+      };
+    }
+  },
+  
+  // Novo método para upsert - cria se não existir, atualiza se existir
+  upsert: async (data: StockConfig): Promise<SingleStockConfigResponse> => {
+    try {
+      const response = await supabase
+        .from('configuracoes_estoque')
+        .upsert(data, { 
+          onConflict: 'id',
+          ignoreDuplicates: false
+        })
+        .select()
+        .single();
+      
+      return response;
+    } catch (error) {
+      console.error("Erro ao upsert configuração de estoque:", error);
+      return {
+        data: null,
+        error: error instanceof PostgrestError 
+          ? error 
+          : { 
+              message: "Erro ao criar/atualizar configuração",
               details: String(error),
               hint: "",
               code: "custom_error"

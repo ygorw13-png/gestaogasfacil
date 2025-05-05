@@ -94,29 +94,42 @@ export function StockConfiguration() {
     try {
       console.log("Iniciando atualização de configurações com valores:", storeSettings);
       
-      // Usar Promise.allSettled em vez de Promise.all para capturar melhor os resultados
-      const updatePromises = [
-        updateStockConfig('P13', storeSettings.p13Min, storeSettings.alertsEnabled),
-        updateStockConfig('P20', storeSettings.p20Min, storeSettings.alertsEnabled),
-        updateStockConfig('P45', storeSettings.p45Min, storeSettings.alertsEnabled),
-        updateStockConfig('agua', storeSettings.aguaMin, storeSettings.alertsEnabled)
-      ];
+      // Processar configurações uma por uma para obter erros individuais
+      const results = [];
+      const errors = [];
       
-      // Promise.allSettled permite ver o resultado de todas as promessas, mesmo que algumas falhem
-      const results = await Promise.allSettled(updatePromises);
-      console.log("Resultados das atualizações:", results);
+      // Atualizar P13
+      console.log("Atualizando P13 com estoque mínimo:", storeSettings.p13Min);
+      const p13Result = await upsertStockConfig('P13', 'p13', storeSettings.p13Min, storeSettings.alertsEnabled);
+      results.push(p13Result);
+      if (p13Result.error) errors.push(`P13: ${p13Result.error.message}`);
       
-      // Verificar resultados - uma abordagem mais detalhada
-      const failedUpdates = results.filter(result => 
-        result.status === 'rejected' || (result.status === 'fulfilled' && result.value.error)
-      );
+      // Atualizar P20
+      console.log("Atualizando P20 com estoque mínimo:", storeSettings.p20Min);
+      const p20Result = await upsertStockConfig('P20', 'p20', storeSettings.p20Min, storeSettings.alertsEnabled);
+      results.push(p20Result);
+      if (p20Result.error) errors.push(`P20: ${p20Result.error.message}`);
       
-      if (failedUpdates.length > 0) {
-        console.error("Falhas nas atualizações:", failedUpdates);
-        throw new Error(`Erro ao atualizar ${failedUpdates.length} configurações`);
+      // Atualizar P45
+      console.log("Atualizando P45 com estoque mínimo:", storeSettings.p45Min);
+      const p45Result = await upsertStockConfig('P45', 'p45', storeSettings.p45Min, storeSettings.alertsEnabled);
+      results.push(p45Result);
+      if (p45Result.error) errors.push(`P45: ${p45Result.error.message}`);
+      
+      // Atualizar Água
+      console.log("Atualizando Água com estoque mínimo:", storeSettings.aguaMin);
+      const aguaResult = await upsertStockConfig('agua', 'agua', storeSettings.aguaMin, storeSettings.alertsEnabled);
+      results.push(aguaResult);
+      if (aguaResult.error) errors.push(`Água: ${aguaResult.error.message}`);
+      
+      // Verificar se houve erros
+      if (errors.length > 0) {
+        console.error("Erros encontrados:", errors);
+        throw new Error(`Erro ao atualizar configurações: ${errors.join(', ')}`);
       }
       
       // Definir sucesso e mostrar toast
+      console.log("Todas as configurações foram atualizadas com sucesso!");
       setSuccess(true);
       toast({
         title: "Sucesso",
@@ -127,10 +140,14 @@ export function StockConfiguration() {
       await fetchStockSettings();
     } catch (error: any) {
       console.error("Erro ao atualizar configurações:", error);
-      setError(error.message || "Não foi possível atualizar as configurações");
+      
+      // Mensagem de erro mais detalhada
+      const errorMessage = error.message || "Não foi possível atualizar as configurações";
+      setError(errorMessage);
+      
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível atualizar as configurações",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -143,8 +160,8 @@ export function StockConfiguration() {
     }
   };
   
-  // Função auxiliar para atualizar uma única configuração de estoque
-  const updateStockConfig = async (id: string, minStock: number, alertEnabled: boolean) => {
+  // Função para upsert de configuração (cria se não existir, atualiza se existir)
+  const upsertStockConfig = async (id: string, produto: string, minStock: number, alertEnabled: boolean) => {
     if (!user) {
       return { error: new Error("Usuário não autenticado"), data: null };
     }
@@ -152,15 +169,18 @@ export function StockConfiguration() {
     console.log(`Atualizando configuração ${id} com estoque mínimo ${minStock}`);
     
     try {
-      // Usar diretamente a API do Supabase para maior confiabilidade
-      const result = await stockConfigTable.update({
+      // Preparar dados para upsert
+      const stockConfigData = {
         id,
+        produto: produto.toLowerCase(),
         estoque_minimo: minStock,
         alerta_ativo: alertEnabled,
         atualizado_por: user.id || 'sistema',
-        atualizado_em: new Date().toISOString(),
-        produto: id.toLowerCase()
-      });
+        atualizado_em: new Date().toISOString()
+      };
+      
+      // Usar o método upsert
+      const result = await stockConfigTable.upsert(stockConfigData);
       
       console.log(`Resultado da atualização de ${id}:`, result);
       return result;

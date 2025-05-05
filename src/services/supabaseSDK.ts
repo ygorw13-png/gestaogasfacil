@@ -22,13 +22,14 @@ export async function fetchFromTable<T>(
   try {
     const { columns = '*', where, orderBy, limit, single } = options;
     
-    // Start with a basic query - explicitly cast to any to avoid deep type instantiation
-    let query = supabase.from(tableName).select(columns) as any;
+    // Start with a basic query
+    let query = supabase.from(tableName).select(columns);
     
     // Apply filters
     if (where) {
       Object.entries(where).forEach(([key, value]) => {
         if (value !== undefined) {
+          // Use eq method for equality filters
           query = query.eq(key, value);
         }
       });
@@ -86,7 +87,7 @@ export function subscribeToTable(
   const channel = supabase
     .channel(`public-${tableName}-changes`)
     .on(
-      'postgres_changes' as any,
+      'postgres_changes',
       {
         event,
         schema: 'public',
