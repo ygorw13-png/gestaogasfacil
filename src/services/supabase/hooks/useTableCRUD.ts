@@ -59,7 +59,7 @@ export function useTableCRUD(
     }
   }, [tableName, idField, toastMessages.fetchItemError]);
 
-  // Simplified generic param to avoid recursive type instantiation
+  // Simplified type to avoid recursive type instantiation
   const createRecord = useCallback(async (record: Record<string, any>): Promise<ApiResponse<Record<string, any>>> => {
     setLoading(true);
     setError(null);
