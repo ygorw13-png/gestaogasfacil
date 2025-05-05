@@ -3,7 +3,7 @@
 // It's maintained for backward compatibility
 
 // Export types
-export { 
+export type { 
   ApiResponse,
   ValidTableName,
   QueryOptions

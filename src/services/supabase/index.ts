@@ -1,6 +1,6 @@
 
 // Export types
-export * from './types';
+export type * from './types';
 
 // Export utility functions
 export * from './utils';

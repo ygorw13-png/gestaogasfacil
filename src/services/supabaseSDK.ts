@@ -44,11 +44,14 @@ export async function fetchFromTable<T>(
     }
     
     // Execute query
-    const { data, error } = single 
+    const result = single 
       ? await query.single()
       : await query;
-    
-    return { data: data as unknown as T, error };
+      
+    return { 
+      data: result.data as unknown as T, 
+      error: result.error 
+    };
   } catch (error) {
     console.error(`Error fetching from ${tableName}:`, error);
     return { 
