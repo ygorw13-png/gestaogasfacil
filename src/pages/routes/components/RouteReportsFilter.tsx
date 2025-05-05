@@ -1,68 +1,70 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Download } from "lucide-react";
-import { DateRangeFilter } from "./reports/filters/DateRangeFilter";
-import { DriverFilter } from "./reports/filters/DriverFilter";
+import { Search } from "lucide-react";
+import { DateRangeFilter } from "./filters/DateRangeFilter";
+import { DriverFilter } from "./filters/DriverFilter";
 
 interface RouteReportsFilterProps {
-  startDate: string;
-  endDate: string;
-  driverId: string;
-  onStartDateChange: (date: string) => void;
-  onEndDateChange: (date: string) => void;
-  onDriverIdChange: (id: string) => void;
-  onGenerateReport: () => void;
-  isGeneratingReport?: boolean;
+  onFilterChange: (filters: {
+    startDate: string;
+    endDate: string;
+    driverId: string;
+  }) => void;
 }
 
-export function RouteReportsFilter({
-  startDate,
-  endDate,
-  driverId,
-  onStartDateChange,
-  onEndDateChange,
-  onDriverIdChange,
-  onGenerateReport,
-  isGeneratingReport = false
-}: RouteReportsFilterProps) {
+export function RouteReportsFilter({ onFilterChange }: RouteReportsFilterProps) {
+  const todayDate = new Date().toISOString().split('T')[0];
+  const [startDate, setStartDate] = useState(todayDate);
+  const [endDate, setEndDate] = useState(todayDate);
+  const [driverId, setDriverId] = useState("");
+
+  const handleApplyFilters = () => {
+    onFilterChange({
+      startDate,
+      endDate,
+      driverId
+    });
+  };
+
+  const handleResetFilters = () => {
+    setStartDate(todayDate);
+    setEndDate(todayDate);
+    setDriverId("");
+    
+    onFilterChange({
+      startDate: todayDate,
+      endDate: todayDate,
+      driverId: ""
+    });
+  };
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Gerar Relatório de Rotas</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <CardContent className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <DateRangeFilter
             startDate={startDate}
             endDate={endDate}
-            onStartDateChange={onStartDateChange}
-            onEndDateChange={onEndDateChange}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
           />
+          
           <DriverFilter
             driverId={driverId}
-            onDriverIdChange={onDriverIdChange}
+            onDriverIdChange={setDriverId}
           />
-        </div>
-        
-        <div className="flex justify-end">
-          <Button 
-            onClick={onGenerateReport}
-            disabled={isGeneratingReport}
-          >
-            {isGeneratingReport ? (
-              <>
-                <span className="animate-spin mr-2">⏳</span>
-                Gerando...
-              </>
-            ) : (
-              <>
-                <FileText className="h-4 w-4 mr-2" />
-                Gerar Relatório
-              </>
-            )}
-          </Button>
+          
+          <div className="flex flex-col justify-end space-y-2">
+            <Button onClick={handleApplyFilters}>
+              <Search className="w-4 h-4 mr-2" />
+              Aplicar Filtros
+            </Button>
+            <Button variant="outline" onClick={handleResetFilters}>
+              Redefinir Filtros
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

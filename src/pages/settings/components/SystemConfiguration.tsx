@@ -29,9 +29,9 @@ export function SystemConfiguration() {
       try {
         const response = await getConfigSistema(organization.id);
         
-        // Verificar se a resposta contém algum erro (maneira segura de verificar)
-        if (response && 'error' in response && response.error) {
-          throw response.error;
+        // Safely check for errors in the response
+        if (response && typeof response === 'object' && 'error' in response && response.error) {
+          throw new Error(response.error.message || 'Erro desconhecido');
         }
         
         if (response.data) {
@@ -80,9 +80,9 @@ export function SystemConfiguration() {
       
       const result = await upsertConfigSistema(configData);
       
-      // Verificar se a resposta contém algum erro (maneira segura de verificar)
-      if (result && 'error' in result && result.error) {
-        throw result.error;
+      // Safely check for errors in the result
+      if (result && typeof result === 'object' && 'error' in result && result.error) {
+        throw new Error(result.error.message || 'Erro desconhecido');
       }
       
       toast({
