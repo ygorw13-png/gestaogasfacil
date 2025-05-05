@@ -57,14 +57,21 @@ export async function updateData<TData extends Record<string, any>>(
   idColumn: string = 'id'
 ): Promise<ApiResponse<TData>> {
   try {
-    // Create the query without chaining to avoid deep type inference
-    const baseQuery = supabase.from(table);
-    const updateQuery = baseQuery.update(data);
-    const filteredQuery = updateQuery.eq(idColumn, id);
-    const selectQuery = filteredQuery.select();
+    // Use a completely separate approach to avoid deep type inference
+    // First perform the update operation
+    const updateResult = await supabase
+      .from(table)
+      .update(data)
+      .eq(idColumn, id);
+      
+    if (updateResult.error) throw updateResult.error;
     
-    // Execute the query separately
-    const { data: result, error } = await selectQuery.single();
+    // Then fetch the updated record separately
+    const { data: result, error } = await supabase
+      .from(table)
+      .select('*')
+      .eq(idColumn, id)
+      .single();
 
     if (error) throw error;
 
