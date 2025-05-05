@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestError } from "@supabase/supabase-js";
 import { ValidTableName } from "@/services/supabaseService";
@@ -57,91 +58,6 @@ export async function fetchFromTable<T>(
   }
 }
 
-// Generalized insert function
-export async function insertIntoTable<T>(
-  tableName: ValidTableName, 
-  data: Partial<T>,
-  options: {
-    returnData?: boolean;
-  } = {}
-): Promise<SupabaseResponse<T>> {
-  try {
-    const { returnData = true } = options;
-    
-    const query = supabase.from(tableName).insert(data);
-    
-    const { data: responseData, error } = returnData
-      ? await query.select().single()
-      : await query;
-    
-    return { data: responseData as unknown as T, error };
-  } catch (error) {
-    console.error(`Error inserting into ${tableName}:`, error);
-    return { 
-      data: null, 
-      error: error instanceof PostgrestError ? error : new Error(String(error))
-    };
-  }
-}
-
-// Generalized update function
-export async function updateInTable<T>(
-  tableName: ValidTableName, 
-  id: string,
-  data: Partial<T>,
-  options: {
-    idColumn?: string;
-    returnData?: boolean;
-  } = {}
-): Promise<SupabaseResponse<T>> {
-  try {
-    const { idColumn = 'id', returnData = true } = options;
-    
-    const query = supabase
-      .from(tableName)
-      .update(data)
-      .eq(idColumn, id);
-    
-    const { data: responseData, error } = returnData
-      ? await query.select().single()
-      : await query;
-    
-    return { data: responseData as unknown as T, error };
-  } catch (error) {
-    console.error(`Error updating in ${tableName}:`, error);
-    return { 
-      data: null, 
-      error: error instanceof PostgrestError ? error : new Error(String(error))
-    };
-  }
-}
-
-// Generalized delete function
-export async function deleteFromTable(
-  tableName: ValidTableName, 
-  id: string,
-  options: {
-    idColumn?: string;
-  } = {}
-): Promise<SupabaseResponse<null>> {
-  try {
-    const { idColumn = 'id' } = options;
-    
-    const { error } = await supabase
-      .from(tableName)
-      .delete()
-      .eq(idColumn, id);
-    
-    return { data: null, error };
-  } catch (error) {
-    console.error(`Error deleting from ${tableName}:`, error);
-    return { 
-      data: null, 
-      error: error instanceof PostgrestError ? error : new Error(String(error))
-    };
-  }
-}
-
 // Interface for realtime payload (simplified)
 export interface RealtimePayload {
   new: Record<string, any>;
@@ -166,7 +82,7 @@ export function subscribeToTable(
   const channel = supabase
     .channel(`public-${tableName}-changes`)
     .on(
-      'postgres_changes' as unknown as 'system',
+      'postgres_changes',
       {
         event,
         schema: 'public',
@@ -175,15 +91,15 @@ export function subscribeToTable(
       },
       (payload: any) => {
         // Access payload data safely
-        const newData = payload.new || (payload.payload && payload.payload.new) || {};
-        const oldData = payload.old || (payload.payload && payload.payload.old) || {};
-        const eventType = payload.eventType || payload.type || 'UPDATE';
+        const newData = payload.new || {};
+        const oldData = payload.old || {};
+        const eventType = payload.eventType || 'UPDATE';
         
         // Convert the payload to our simplified RealtimePayload type
         const typedPayload: RealtimePayload = {
           new: newData,
           old: oldData,
-          eventType: eventType,
+          eventType: eventType as 'INSERT' | 'UPDATE' | 'DELETE',
           table: tableName,
           schema: 'public'
         };

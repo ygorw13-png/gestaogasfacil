@@ -6,7 +6,7 @@ import { ValidTableName } from "@/services/supabaseService";
 
 type EventType = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 
-// Tipo simplificado para o payload de tempo real
+// Simplified type for realtime payload
 export interface RealtimePayload {
   new: Record<string, any>;
   old: Record<string, any>;
@@ -37,11 +37,11 @@ export function useSupabaseRealtime({
   useEffect(() => {
     const channelName = `${schema}-${table}-changes`;
     
-    // Criar o canal para ouvir mudanças
+    // Create channel to listen for changes
     const realtimeChannel = supabase
       .channel(channelName)
       .on(
-        'postgres_changes' as unknown as 'system',
+        'postgres_changes',
         {
           event,
           schema,
@@ -50,11 +50,11 @@ export function useSupabaseRealtime({
         },
         (payload: any) => {
           // Access payload data safely
-          const newData = payload.new || (payload.payload && payload.payload.new) || {};
-          const oldData = payload.old || (payload.payload && payload.payload.old) || {};
-          const eventType = payload.eventType || payload.type || 'UPDATE';
+          const newData = payload.new || {};
+          const oldData = payload.old || {};
+          const eventType = payload.eventType || 'UPDATE';
           
-          // Criar um payload tipado para nosso uso
+          // Create typed payload for our use
           const typedPayload: RealtimePayload = {
             new: newData,
             old: oldData,
@@ -73,7 +73,7 @@ export function useSupabaseRealtime({
 
     setChannel(realtimeChannel);
 
-    // Função de limpeza
+    // Cleanup function
     return () => {
       if (realtimeChannel) {
         supabase.removeChannel(realtimeChannel);
