@@ -159,7 +159,7 @@ export function subscribeToTable(
 ): () => void {
   const { event = '*', filter } = options;
   
-  // Use type assertion to bypass TypeScript error
+  // Use a string literal to avoid typescript issues with the realtime API
   const channel = supabase
     .channel(`public-${tableName}-changes`)
     .on(
