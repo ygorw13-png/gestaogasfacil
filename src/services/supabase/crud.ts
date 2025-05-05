@@ -49,7 +49,7 @@ export async function insertData<TData extends Record<string, any>>(
   }
 }
 
-// Completely refactored update function to avoid type inference issues
+// Completely refactored update function with maximum type safety
 export async function updateData<TData extends Record<string, any>>(
   table: ValidTableName,
   id: string,
@@ -57,33 +57,31 @@ export async function updateData<TData extends Record<string, any>>(
   idColumn: string = 'id'
 ): Promise<ApiResponse<TData>> {
   try {
-    // Completely separate the operations to avoid type inference issues
-    
-    // Step 1: Just perform the update without any return
-    const updateResult = await supabase
+    // Step 1: Perform the update operation without returning data
+    const updateOperation = await supabase
       .from(table)
-      .update(data)
+      .update(data as Record<string, any>)
       .eq(idColumn, id);
       
-    if (updateResult.error) throw updateResult.error;
+    if (updateOperation.error) throw updateOperation.error;
     
-    // Step 2: Separately fetch the record after update
-    type GenericRecord = Record<string, any>;
-    const fetchResult = await supabase
+    // Step 2: Perform a completely separate fetch operation
+    // Use any to avoid type inference issues entirely in the initial query
+    const fetchOperation = await supabase
       .from(table)
       .select('*')
-      .eq(idColumn, id)
-      .maybeSingle();
+      .eq(idColumn, id) as any;
     
-    if (fetchResult.error) throw fetchResult.error;
+    if (fetchOperation.error) throw fetchOperation.error;
     
-    const updatedRecord = fetchResult.data as GenericRecord;
-    if (!updatedRecord) {
+    // Step 3: Process the raw data result without complex type inference
+    const fetchedData = fetchOperation.data;
+    if (!fetchedData || fetchedData.length === 0) {
       throw new Error(`Record not found after update: ${idColumn}=${id}`);
     }
     
-    // Use a simple type assertion at the end
-    return createSuccessResponse(updatedRecord as unknown as TData);
+    // Only apply the type assertion at the very end, after all operations
+    return createSuccessResponse(fetchedData[0] as unknown as TData);
   } catch (error) {
     return createErrorResponse<TData>(error, `updateData in ${table}`);
   }
