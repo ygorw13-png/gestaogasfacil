@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestError } from "@supabase/supabase-js";
 
@@ -155,7 +154,6 @@ export interface RealtimePayload {
   eventType: 'INSERT' | 'UPDATE' | 'DELETE';
   table: string;
   schema: string;
-  [key: string]: any;
 }
 
 // Subscribe to real-time changes with simplified type handling
@@ -173,14 +171,13 @@ export function subscribeToTable(
   const channel = supabase
     .channel(`public-${tableName}-changes`)
     .on(
-      'postgres_changes' as any, // Type assertion to bypass type checking
+      'postgres_changes' as any,
       {
         event,
         schema: 'public',
         table: tableName,
         filter
       },
-      // Use type assertion to prevent deep type instantiation
       (payload: any) => callback(payload as RealtimePayload)
     )
     .subscribe();

@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { fetchFromTable, updateInTable } from "@/services/supabaseSDK";
 import { StockConfig } from "@/types/supabaseTypes";
 import { Loader2 } from "lucide-react";
+import { stockConfigTable } from "@/integrations/supabase/tables/stockConfig";
 
 interface StockSettings {
   p13Min: number;
@@ -39,25 +40,26 @@ export function StockConfiguration() {
   const fetchStockSettings = async () => {
     setLoading(true);
     try {
-      const { data, error } = await fetchFromTable<StockConfig[]>('configuracoes_estoque');
+      // Use the stock config table function for better type safety
+      const response = await stockConfigTable.select();
           
-      if (error) {
-        throw error;
+      if (response.error) {
+        throw response.error;
       }
       
-      if (data && Array.isArray(data) && data.length > 0) {
-        // Mapear configurações
-        const p13Setting = data.find(item => item.id === 'P13');
-        const p20Setting = data.find(item => item.id === 'P20');
-        const p45Setting = data.find(item => item.id === 'P45');
-        const aguaSetting = data.find(item => item.id === 'agua');
+      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+        // Map configurations
+        const p13Setting = response.data.find(item => item.id === 'P13');
+        const p20Setting = response.data.find(item => item.id === 'P20');
+        const p45Setting = response.data.find(item => item.id === 'P45');
+        const aguaSetting = response.data.find(item => item.id === 'agua');
         
         setStoreSettings({
           p13Min: p13Setting?.estoque_minimo || 20,
           p20Min: p20Setting?.estoque_minimo || 5,
           p45Min: p45Setting?.estoque_minimo || 5,
           aguaMin: aguaSetting?.estoque_minimo || 20,
-          alertsEnabled: p13Setting?.alerta_ativo !== false
+          alertsEnabled: p13Setting?.alerta_ativo !== false // Default to true if undefined
         });
       }
     } catch (error) {
@@ -74,62 +76,24 @@ export function StockConfiguration() {
 
   const handleUpdateStockSettings = async () => {
     setSaving(true);
+    
     try {
-      // Atualizar P13
-      await updateInTable<StockConfig>(
-        'configuracoes_estoque', 
-        'P13',
-        { 
-          estoque_minimo: storeSettings.p13Min,
-          alerta_ativo: storeSettings.alertsEnabled,
-          atualizado_por: user?.id || '',
-          atualizado_em: new Date().toISOString(),
-          produto: 'P13'
-        },
-        { idColumn: 'id' }
-      );
-        
-      // Atualizar P20
-      await updateInTable<StockConfig>(
-        'configuracoes_estoque', 
-        'P20',
-        { 
-          estoque_minimo: storeSettings.p20Min,
-          alerta_ativo: storeSettings.alertsEnabled,
-          atualizado_por: user?.id || '',
-          atualizado_em: new Date().toISOString(),
-          produto: 'P20'
-        },
-        { idColumn: 'id' }
-      );
-        
-      // Atualizar P45
-      await updateInTable<StockConfig>(
-        'configuracoes_estoque', 
-        'P45',
-        { 
-          estoque_minimo: storeSettings.p45Min,
-          alerta_ativo: storeSettings.alertsEnabled,
-          atualizado_por: user?.id || '',
-          atualizado_em: new Date().toISOString(),
-          produto: 'P45'
-        },
-        { idColumn: 'id' }
-      );
-        
-      // Atualizar Água
-      await updateInTable<StockConfig>(
-        'configuracoes_estoque', 
-        'agua',
-        { 
-          estoque_minimo: storeSettings.aguaMin,
-          alerta_ativo: storeSettings.alertsEnabled,
-          atualizado_por: user?.id || '',
-          atualizado_em: new Date().toISOString(),
-          produto: 'agua'
-        },
-        { idColumn: 'id' }
-      );
+      // Sequential updates with proper error handling
+      const updateConfigs = [
+        updateStockConfig('P13', storeSettings.p13Min, storeSettings.alertsEnabled),
+        updateStockConfig('P20', storeSettings.p20Min, storeSettings.alertsEnabled),
+        updateStockConfig('P45', storeSettings.p45Min, storeSettings.alertsEnabled),
+        updateStockConfig('agua', storeSettings.aguaMin, storeSettings.alertsEnabled)
+      ];
+      
+      // Wait for all updates to complete
+      const results = await Promise.all(updateConfigs);
+      
+      // Check if any updates failed
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        throw new Error(`Erro ao atualizar ${errors.length} configurações`);
+      }
       
       toast({
         title: "Sucesso",
@@ -139,12 +103,24 @@ export function StockConfiguration() {
       console.error("Erro ao atualizar configurações:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar as configurações",
+        description: error.message || "Não foi possível atualizar as configurações",
         variant: "destructive"
       });
     } finally {
       setSaving(false);
     }
+  };
+  
+  // Helper function to update a single stock config
+  const updateStockConfig = async (id: string, minStock: number, alertEnabled: boolean) => {
+    return stockConfigTable.update({
+      id,
+      estoque_minimo: minStock,
+      alerta_ativo: alertEnabled,
+      atualizado_por: user?.id || '',
+      atualizado_em: new Date().toISOString(),
+      produto: id.toLowerCase()
+    });
   };
 
   return (

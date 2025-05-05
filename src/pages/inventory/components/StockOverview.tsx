@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { fetchFromTable } from "@/services/supabaseSDK";
 import { StockConfig } from "@/types/supabaseTypes";
+import { stockConfigTable } from "@/integrations/supabase/tables/stockConfig";
 
 interface StockOverviewProps {
   currentStock: {
@@ -27,7 +27,7 @@ export function StockOverview({ currentStock }: StockOverviewProps) {
   useEffect(() => {
     const fetchStockConfig = async () => {
       try {
-        const { data, error } = await fetchFromTable<StockConfig[]>('configuracoes_estoque');
+        const { data, error } = await stockConfigTable.select();
         
         if (error) throw error;
         

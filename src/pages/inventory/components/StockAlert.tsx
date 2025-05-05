@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { StockConfig } from "@/types/supabaseTypes";
-import { fetchFromTable } from "@/services/supabaseSDK";
+import { stockConfigTable } from "@/integrations/supabase/tables/stockConfig";
 
 interface StockAlertProps {
   currentStock: {
@@ -22,7 +22,7 @@ export function StockAlert({ currentStock }: StockAlertProps) {
   useEffect(() => {
     const fetchStockConfigs = async () => {
       try {
-        const { data, error } = await fetchFromTable<StockConfig[]>('configuracoes_estoque');
+        const { data, error } = await stockConfigTable.select();
         
         if (error) throw error;
         
