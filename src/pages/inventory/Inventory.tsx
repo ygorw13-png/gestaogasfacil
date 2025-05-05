@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -13,12 +12,14 @@ import { StockOverview } from "./components/StockOverview";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { syncStockWithDashboard } from "@/pages/dashboard/data";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Inventory() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("inventory");
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [currentStock, setCurrentStock] = useState({
     p13: 0,
     p20: 0,
@@ -26,15 +27,55 @@ export default function Inventory() {
     water: 0
   });
 
-  // Mock function to get current stock - in a real app, this would come from your database
-  const fetchCurrentStock = () => {
-    // Simulando um estoque para teste dos alertas
-    setCurrentStock({
-      p13: 15, // Abaixo do mínimo configurado (20)
-      p20: 10,
-      p45: 3,  // Abaixo do mínimo configurado (5)
-      water: 25
-    });
+  // Função para buscar o estoque atual do dashboard
+  const fetchCurrentStock = async () => {
+    setLoading(true);
+    try {
+      // Buscar dados do dashboard
+      const { data, error } = await supabase
+        .from('dashboard_data')
+        .select('stock_data')
+        .maybeSingle();
+      
+      if (error) {
+        throw error;
+      }
+
+      if (data && data.stock_data) {
+        const stockData = data.stock_data;
+        setCurrentStock({
+          p13: stockData.p13 || 0,
+          p20: stockData.p20 || 0,
+          p45: stockData.p45 || 0,
+          water: stockData.water || 0
+        });
+      } else {
+        // Usar valores padrão se não houver dados
+        setCurrentStock({
+          p13: 15,
+          p20: 10,
+          p45: 3,
+          water: 25
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao buscar estoque:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os dados de estoque",
+        variant: "destructive"
+      });
+      
+      // Usar valores padrão em caso de erro
+      setCurrentStock({
+        p13: 15,
+        p20: 10,
+        p45: 3,
+        water: 25
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -54,20 +95,13 @@ export default function Inventory() {
       // Sincronizar com o dashboard
       await syncStockWithDashboard(newStock);
       
-      toast({
-        title: "Estoque atualizado",
-        description: "Os níveis de estoque foram atualizados com sucesso"
-      });
-      
       // Atualizar o contador para recarregar os dados
       setRefreshCounter(prev => prev + 1);
+      
+      return Promise.resolve();
     } catch (error) {
       console.error("Erro ao atualizar estoque:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar o estoque",
-        variant: "destructive"
-      });
+      return Promise.reject(error);
     }
   };
 

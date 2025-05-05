@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export const salesData = [];
@@ -70,79 +69,53 @@ export const getCurrentStock = async () => {
 };
 
 // Função para sincronizar os estoques entre a portaria e o dashboard
-export const syncStockWithDashboard = async (stock: { p13: number; p20: number; p45: number; water: number }) => {
+export async function syncStockWithDashboard(stockData: {
+  p13: number;
+  p20: number;
+  p45: number;
+  water: number;
+}) {
   try {
-    // Pegar o usuário atual
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user || !user.id) {
-      console.error("Usuário não autenticado");
-      return false;
-    }
-    
-    // Verifica se já existe um registro para o usuário atual
-    const { data: existingData, error: checkError } = await supabase
+    const { data: existingData, error: fetchError } = await supabase
       .from('dashboard_data')
       .select('id')
-      .eq('user_id', user.id)
-      .single();
-    
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error("Erro ao verificar dados do dashboard:", checkError);
-      return false;
+      .maybeSingle();
+
+    if (fetchError) {
+      throw fetchError;
     }
-    
+
     if (existingData) {
       // Atualiza o registro existente
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('dashboard_data')
         .update({
-          stock_data: {
-            p13: stock.p13,
-            p20: stock.p20,
-            p45: stock.p45,
-            water: stock.water
-          },
+          stock_data: stockData,
           updated_at: new Date().toISOString()
         })
         .eq('id', existingData.id);
-      
-      if (error) {
-        console.error("Erro ao atualizar estoque no dashboard:", error);
-        return false;
+
+      if (updateError) {
+        throw updateError;
       }
     } else {
-      // Cria um novo registro
-      const { error } = await supabase
+      // Cria um novo registro se não existir
+      const { error: insertError } = await supabase
         .from('dashboard_data')
         .insert({
-          user_id: user.id,
-          stock_data: {
-            p13: stock.p13,
-            p20: stock.p20,
-            p45: stock.p45,
-            water: stock.water
-          },
-          sales_data: []
+          stock_data: stockData,
+          sales_data: [],
+          user_id: 'system'
         });
-      
-      if (error) {
-        console.error("Erro ao criar registro de estoque no dashboard:", error);
-        return false;
+
+      if (insertError) {
+        throw insertError;
       }
     }
-    
-    // Atualiza o overviewData para refletir o novo estoque
-    overviewData.totalStock = {
-      gasP13: stock.p13,
-      gasP20: stock.p20, 
-      gasP45: stock.p45,
-      water: stock.water
-    };
-    
+
     return true;
   } catch (error) {
-    console.error("Erro ao sincronizar estoque com o dashboard:", error);
-    return false;
+    console.error('Erro ao sincronizar estoque com o dashboard:', error);
+    throw error;
   }
-};
+}

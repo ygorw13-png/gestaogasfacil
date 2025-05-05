@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { AlertBar } from "@/components/ui/AlertBar";
 
 interface StockUpdateFormProps {
   currentStock: {
@@ -27,6 +28,8 @@ export function StockUpdateForm({ currentStock, onUpdateStock }: StockUpdateForm
   const { toast } = useToast();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [stockValues, setStockValues] = useState({
     p13: currentStock.p13,
     p20: currentStock.p20,
@@ -54,8 +57,13 @@ export function StockUpdateForm({ currentStock, onUpdateStock }: StockUpdateForm
     }
 
     setIsLoading(true);
+    setSuccess(false);
+    setError(null);
+    
     try {
       await onUpdateStock(stockValues);
+      
+      setSuccess(true);
       
       toast({
         title: "Estoque atualizado",
@@ -64,6 +72,8 @@ export function StockUpdateForm({ currentStock, onUpdateStock }: StockUpdateForm
       
     } catch (error) {
       console.error("Erro ao atualizar estoque:", error);
+      setError("Não foi possível atualizar o estoque. Tente novamente.");
+      
       toast({
         title: "Erro",
         description: "Não foi possível atualizar o estoque",
@@ -80,6 +90,24 @@ export function StockUpdateForm({ currentStock, onUpdateStock }: StockUpdateForm
         <CardTitle>Atualização de Estoque</CardTitle>
       </CardHeader>
       <CardContent>
+        {success && (
+          <AlertBar
+            variant="success"
+            message="Estoque atualizado com sucesso!"
+            hideAfter={5000}
+            className="mb-4"
+          />
+        )}
+        
+        {error && (
+          <AlertBar
+            variant="danger"
+            message={error}
+            onClose={() => setError(null)}
+            className="mb-4"
+          />
+        )}
+        
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="space-y-2">
             <Label htmlFor="p13-stock">GLP P13</Label>
