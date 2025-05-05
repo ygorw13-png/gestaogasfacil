@@ -1,22 +1,13 @@
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import { stockConfigTable } from "@/integrations/supabase/tables/stockConfig";
-
-interface StockSettings {
-  p13Min: number;
-  p20Min: number;
-  p45Min: number;
-  aguaMin: number;
-  alertsEnabled: boolean;
-}
+import { StockConfigHeader } from "./stock-config/StockConfigHeader";
+import { StockLevelInputs, StockSettings } from "./stock-config/StockLevelInputs";
+import { StockConfigActions } from "./stock-config/StockConfigActions";
 
 export function StockConfiguration() {
   const { user } = useAuth();
@@ -123,12 +114,7 @@ export function StockConfiguration() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Configuração de Estoque</CardTitle>
-        <CardDescription>
-          Configure os níveis mínimos de estoque e alertas
-        </CardDescription>
-      </CardHeader>
+      <StockConfigHeader />
       <CardContent className="space-y-4">
         {loading ? (
           <div className="flex justify-center p-4">
@@ -136,70 +122,16 @@ export function StockConfiguration() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Estoque Mínimo P13</label>
-                <Input 
-                  type="number" 
-                  value={storeSettings.p13Min}
-                  onChange={(e) => setStoreSettings({...storeSettings, p13Min: parseInt(e.target.value) || 0})}
-                  min={0}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Estoque Mínimo P20</label>
-                <Input 
-                  type="number" 
-                  value={storeSettings.p20Min}
-                  onChange={(e) => setStoreSettings({...storeSettings, p20Min: parseInt(e.target.value) || 0})}
-                  min={0}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Estoque Mínimo P45</label>
-                <Input 
-                  type="number" 
-                  value={storeSettings.p45Min}
-                  onChange={(e) => setStoreSettings({...storeSettings, p45Min: parseInt(e.target.value) || 0})}
-                  min={0}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Estoque Mínimo Água</label>
-                <Input 
-                  type="number" 
-                  value={storeSettings.aguaMin}
-                  onChange={(e) => setStoreSettings({...storeSettings, aguaMin: parseInt(e.target.value) || 0})}
-                  min={0}
-                />
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Switch 
-                id="enableAlerts"
-                checked={storeSettings.alertsEnabled}
-                onCheckedChange={(checked) => setStoreSettings({...storeSettings, alertsEnabled: checked})}
-              />
-              <Label htmlFor="enableAlerts" className="text-sm font-medium">
-                Habilitar alertas de estoque mínimo
-              </Label>
-            </div>
-            
-            <Button 
-              onClick={handleUpdateStockSettings} 
+            <StockLevelInputs 
+              settings={storeSettings} 
+              onSettingsChange={setStoreSettings} 
               disabled={saving}
-              className="mt-4"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                "Salvar Configurações"
-              )}
-            </Button>
+            />
+            
+            <StockConfigActions 
+              onSave={handleUpdateStockSettings} 
+              saving={saving} 
+            />
           </>
         )}
       </CardContent>
