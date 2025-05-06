@@ -67,7 +67,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
     }
   }, [tableName, handleError]);
 
-  // Criar um novo registro
+  // Criar um novo registro - simplified return type to avoid recursion
   const create = useCallback(async (data: Record<string, any>, options?: { successMessage?: string }) => {
     setLoading(true);
     setError(null);
@@ -92,7 +92,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
     }
   }, [tableName, handleError, handleSuccess]);
 
-  // Atualizar um registro existente
+  // Atualizar um registro existente - simplified return type to avoid recursion
   const update = useCallback(async (
     id: string, 
     data: Record<string, any>, 
