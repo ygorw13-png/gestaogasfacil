@@ -30,7 +30,7 @@ export function useTableData(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Simplified return type to avoid recursive type instantiation
+  // Using simple return type to avoid recursive type instantiation
   const fetchData = useCallback(async (queryOptions?: QueryOptions): Promise<ApiResponse<Record<string, any>[]>> => {
     setLoading(true);
     setError(null);

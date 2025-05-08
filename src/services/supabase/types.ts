@@ -1,25 +1,33 @@
 
-import { PostgrestError } from "@supabase/supabase-js";
-
-// Interface for standardized API response
+// API Response
 export interface ApiResponse<T> {
-  data?: T;
-  error?: PostgrestError | Error;
   status: 'success' | 'error';
-  message?: string;
+  data: T | null;
+  error: {
+    message: string;
+    details?: string | undefined;
+  } | null;
 }
 
-// Valid table names
-export type ValidTableName = 'cascos_emprestados' | 'clients' | 'colaboradores' | 'organizations' | 
-  'configuracoes_entrega' | 'configuracoes_estoque' | 'configuracoes_financeiras' | 
-  'configuracoes_notificacoes' | 'configuracoes_seguranca' | 'configuracoes_sistema' | 
-  'dashboard_data' | 'orders' | 'profiles' | 'requisicoes_estoque';
+// Valid table names to use with our Supabase hooks
+export type ValidTableName = 
+  | 'configuracoes_estoque'
+  | 'orders'
+  | 'clients'
+  | 'dashboard_data'
+  | 'colaboradores'
+  | 'profiles';
 
-// Query options interface
-export interface QueryOptions<TFilter = Record<string, any>> {
+// Query options for data fetching
+export interface QueryOptions {
   columns?: string;
-  filters?: TFilter;
-  orderBy?: { column: string; ascending?: boolean };
-  pagination?: { page: number; pageSize: number };
-  relations?: string[];
+  filters?: Record<string, any>;
+  orderBy?: { 
+    column: string; 
+    ascending?: boolean 
+  };
+  pagination?: { 
+    page: number; 
+    pageSize: number 
+  };
 }

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useSupabaseTable } from '@/services/supabase/hooks';
 import { useSupabaseCRUD } from '@/hooks/useSupabaseCRUD';

@@ -33,7 +33,7 @@ export function useTableCRUD(
   
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
 
-  // Using simple Record<string, any> return type to avoid recursive type instantiation
+  // Using type Record<string, any> to avoid recursive type instantiation
   const getById = useCallback(async (id: string | number): Promise<ApiResponse<Record<string, any>>> => {
     setLoading(true);
     setError(null);
@@ -59,7 +59,7 @@ export function useTableCRUD(
     }
   }, [tableName, idField, toastMessages.fetchItemError]);
 
-  // Using simple Record<string, any> instead of generic type to avoid recursive type instantiation
+  // Using type Record<string, any> to avoid recursive type instantiation
   const createRecord = useCallback(async (record: Record<string, any>): Promise<ApiResponse<Record<string, any>>> => {
     setLoading(true);
     setError(null);
@@ -89,7 +89,7 @@ export function useTableCRUD(
     }
   }, [tableName, toastMessages.createSuccess, toastMessages.createError, handleSuccess, handleError]);
 
-  // Using simple Record<string, any> to avoid recursive type instantiation
+  // Using type Record<string, any> to avoid recursive type instantiation
   const updateRecord = useCallback(async (
     id: string | number, 
     updates: Record<string, any>
