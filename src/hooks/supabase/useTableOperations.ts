@@ -41,6 +41,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       if (error) throw error;
       
+      // Use proper type assertion with unknown as intermediate step
       return data as unknown as T;
     } catch (error) {
       const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
@@ -67,7 +68,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
         returnItem = true 
       } = options;
       
-      // Use any to avoid type issues with Supabase
+      // Use any type to avoid type issues with Supabase
       const query = supabase.from(tableName).insert(item as any);
       
       const { data, error } = returnItem
@@ -77,6 +78,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       if (error) throw error;
       
       handleSuccess(successMessage);
+      // Use proper type assertion with unknown as intermediate step
       return returnItem ? (data as unknown as T) : null;
     } catch (error) {
       handleError(error, `Error adding item to ${tableName}`);
@@ -126,6 +128,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
         }
         
         handleSuccess(successMessage);
+        // Use proper type assertion with unknown as intermediate step
         return data as unknown as T;
       } else {
         handleSuccess(successMessage);

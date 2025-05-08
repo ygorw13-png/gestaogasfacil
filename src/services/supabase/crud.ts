@@ -21,8 +21,8 @@ export async function fetchData(
 
     if (error) throw error;
 
-    // Cast data to ensure it's an array of objects
-    const safeData = (data || []) as Record<string, unknown>[];
+    // Cast data to ensure it's an array of objects and convert to unknown first
+    const safeData = (data || []) as unknown as Record<string, unknown>[];
 
     return createSuccessResponse(safeData);
   } catch (error) {
@@ -36,7 +36,7 @@ export async function insertData(
   data: Record<string, unknown>
 ): Promise<ApiResponse<Record<string, unknown>>> {
   try {
-    // Cast to any to prevent type recursion issues
+    // Use proper type assertion to avoid deep recursion
     const safeData = data as any;
     
     // Insert and return the record
@@ -48,8 +48,8 @@ export async function insertData(
     
     if (error) throw error;
 
-    // Simple casting to avoid type recursion
-    return createSuccessResponse(resultData as Record<string, unknown>);
+    // Cast to unknown first to break type recursion
+    return createSuccessResponse(resultData as unknown as Record<string, unknown>);
   } catch (error) {
     return createErrorResponse(error, `insertData into ${table}`);
   }
@@ -63,7 +63,7 @@ export async function updateData(
   idColumn: string = 'id'
 ): Promise<ApiResponse<Record<string, unknown>>> {
   try {
-    // Cast to any to prevent type recursion issues
+    // Use proper type assertion to avoid deep recursion
     const safeData = data as any;
     
     // First, perform the update operation
@@ -87,8 +87,8 @@ export async function updateData(
       throw new Error(`Record not found after update: ${idColumn}=${id}`);
     }
     
-    // Simple casting to avoid type recursion
-    return createSuccessResponse(resultData as Record<string, unknown>);
+    // Cast to unknown first to break type recursion
+    return createSuccessResponse(resultData as unknown as Record<string, unknown>);
   } catch (error) {
     return createErrorResponse(error, `updateData in ${table}`);
   }
