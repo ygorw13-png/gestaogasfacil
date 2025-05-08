@@ -1,11 +1,10 @@
 
 import React, { useState } from 'react';
-import { useSupabaseTable } from '@/services/supabase/hooks';
-import { useSupabaseCRUD } from '@/hooks/useSupabaseCRUD';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useSupabaseCRUD } from '@/hooks/useSupabaseCRUD';
 
 // Example type definition
 interface StockItem {
@@ -16,66 +15,97 @@ interface StockItem {
 }
 
 export function SupabaseHooksExample() {
-  // Example 1: Using useSupabaseTable for state management with useTableCRUD
-  // Import useTableCRUD directly from services when using it
+  // Example using useSupabaseCRUD hook
   const {
-    data: stockItems,
     loading: tableLoading,
     error: tableError,
-    addItem,
-    updateItem,
-    deleteItem
+    create,
+    update,
+    remove,
+    getAll
   } = useSupabaseCRUD('configuracoes_estoque');
 
-  // Component state
+  // State for data management
+  const [stockItems, setStockItems] = useState<Record<string, any>[]>([]);
   const [newItemName, setNewItemName] = useState('');
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<StockItem | null>(null);
 
+  // Fetch data on component mount
+  React.useEffect(() => {
+    const fetchStockItems = async () => {
+      const result = await getAll();
+      if (Array.isArray(result)) {
+        setStockItems(result);
+      }
+    };
+    
+    fetchStockItems();
+  }, [getAll]);
+
   // Example of creating an item
-  const handleCreateItem = () => {
+  const handleCreateItem = async () => {
     if (!newItemName) return;
     
-    addItem({
+    const newItem = {
       produto: newItemName,
       estoque_minimo: 10,
       alerta_ativo: true,
       atualizado_por: 'system',
       atualizado_em: new Date().toISOString()
-    });
+    };
     
-    setNewItemName('');
+    const result = await create(newItem);
+    
+    if (result && !(result instanceof Error)) {
+      setStockItems([...stockItems, result]);
+      setNewItemName('');
+    }
   };
 
   // Example of fetching a single item
   const handleFetchDetail = async (id: string) => {
-    const result = await useSupabaseCRUD('configuracoes_estoque').getById(id);
+    const result = await getAll({
+      filters: { id }
+    });
     
-    if (result && !(result instanceof Error)) {
-      setDetailItem(result as StockItem);
+    if (Array.isArray(result) && result.length > 0) {
+      setDetailItem(result[0] as StockItem);
       setSelectedItemId(id);
     }
   };
 
   // Example of updating an item
-  const handleToggleAlert = (id: string, currentStatus: boolean) => {
-    updateItem(id, { 
+  const handleToggleAlert = async (id: string, currentStatus: boolean) => {
+    const updateData = {
       alerta_ativo: !currentStatus,
       atualizado_por: 'system',
       atualizado_em: new Date().toISOString()
-    });
-  };
-
-  // Example of deleting an item
-  const handleDeleteItem = (id: string) => {
-    deleteItem(id);
-    if (selectedItemId === id) {
-      setSelectedItemId(null);
-      setDetailItem(null);
+    };
+    
+    const result = await update(id, updateData);
+    
+    if (result && !(result instanceof Error)) {
+      setStockItems(prevItems => 
+        prevItems.map(item => item.id === id ? result : item)
+      );
     }
   };
 
-  if (tableLoading) return <LoadingSpinner />;
+  // Example of deleting an item
+  const handleDeleteItem = async (id: string) => {
+    const success = await remove(id);
+    
+    if (success !== false) {
+      setStockItems(prevItems => prevItems.filter(item => item.id !== id));
+      if (selectedItemId === id) {
+        setSelectedItemId(null);
+        setDetailItem(null);
+      }
+    }
+  };
+
+  if (tableLoading && stockItems.length === 0) return <LoadingSpinner />;
   if (tableError) return <div>Error: {tableError.message}</div>;
 
   return (

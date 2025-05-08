@@ -33,7 +33,7 @@ export async function insertData(
   data: Record<string, any>
 ): Promise<ApiResponse<Record<string, any>>> {
   try {
-    // Use type assertion to bypass TypeScript's strict checking
+    // Use explicit any type to bypass TypeScript's strict checking
     const { data: result, error } = await supabase
       .from(table)
       .insert(data as any)
