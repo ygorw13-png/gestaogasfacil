@@ -1,14 +1,13 @@
 
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { PostgrestError } from "@supabase/supabase-js";
 import { ValidTableName } from "@/services/supabaseService";
 import { useSupabaseErrorHandler, buildSupabaseQuery } from "./useSupabaseHelpers";
 
 // Hook reutilizável para operações CRUD no Supabase com tratamento de erro padronizado
 export function useSupabaseCRUD(tableName: ValidTableName) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<PostgrestError | Error | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   
   // Use our shared error handler
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
@@ -67,8 +66,8 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
     }
   }, [tableName, handleError]);
 
-  // Criar um novo registro - simplified return type to avoid recursion
-  const create = useCallback(async (data: Record<string, any>, options?: { successMessage?: string }) => {
+  // Criar um novo registro
+  const create = useCallback(async (data: any, options?: { successMessage?: string }) => {
     setLoading(true);
     setError(null);
     
@@ -77,7 +76,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
       
       const { data: result, error } = await supabase
         .from(tableName)
-        .insert(data)
+        .insert(data as any)
         .select()
         .single();
       
@@ -92,7 +91,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
     }
   }, [tableName, handleError, handleSuccess]);
 
-  // Atualizar um registro existente - simplified return type to avoid recursion
+  // Atualizar um registro existente
   const update = useCallback(async (
     id: string, 
     data: Record<string, any>, 
@@ -113,7 +112,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
       // First update
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(data)
+        .update(data as any)
         .eq(idField, id);
       
       if (updateError) throw updateError;

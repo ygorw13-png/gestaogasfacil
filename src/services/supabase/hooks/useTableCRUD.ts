@@ -1,145 +1,150 @@
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
+import { ValidTableName } from "@/services/supabase/types";
+import { useSupabaseTable } from "./useSupabaseTable";
+import { createErrorResponse, createSuccessResponse } from "../utils";
 import { supabase } from "@/integrations/supabase/client";
-import { ApiResponse, ValidTableName } from "../types";
 import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
-import { createSuccessResponse, createErrorResponse } from "../utils";
 
 /**
- * Hook for performing CRUD operations on a table
+ * Combined hook that provides data state management and CRUD operations
  */
 export function useTableCRUD(
   tableName: ValidTableName,
   options: {
     idField?: string;
+    fetchOnMount?: boolean;
     toastMessages?: {
+      fetchError?: string;
       createSuccess?: string;
-      createError?: string;
       updateSuccess?: string;
-      updateError?: string;
       deleteSuccess?: string;
-      deleteError?: string;
       fetchItemError?: string;
     };
   } = {}
 ) {
   const {
     idField = 'id',
+    fetchOnMount = true,
     toastMessages = {}
   } = options;
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  
+  // Use our base table hook for data state management
+  const {
+    data,
+    loading: tableLoading,
+    error,
+    fetchData,
+    setData,
+    setError
+  } = useSupabaseTable(tableName, {
+    idField,
+    fetchOnMount,
+    toastMessages: {
+      fetchError: toastMessages.fetchError
+    }
+  });
+
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
-
-  // Using type Record<string, any> to avoid recursive type instantiation
-  const getById = useCallback(async (id: string | number): Promise<ApiResponse<Record<string, any>>> => {
-    setLoading(true);
-    setError(null);
-    
+  
+  // Create a new item
+  const createItem = useCallback(async (
+    item: any,
+    options: {
+      successMessage?: string;
+      returnItem?: boolean;
+    } = {}
+  ) => {
     try {
-      const { data, error } = await supabase
-        .from(tableName)
-        .select('*')
-        .eq(idField, id)
-        .maybeSingle();
+      const { 
+        successMessage = toastMessages.createSuccess || `Item added successfully`, 
+        returnItem = true 
+      } = options;
+      
+      const query = supabase.from(tableName).insert(item as any);
+      
+      const { data: result, error } = returnItem
+        ? await query.select().single()
+        : await query;
       
       if (error) throw error;
       
-      return createSuccessResponse(data || null);
+      if (returnItem && result) {
+        setData(prev => [...prev, result]);
+      }
+      
+      handleSuccess(successMessage);
+      return returnItem ? result : null;
     } catch (error) {
-      setError(error instanceof Error ? error : new Error(String(error)));
-      return createErrorResponse(
-        error, 
-        toastMessages.fetchItemError || `Error fetching ${tableName} with id ${id}`
-      );
-    } finally {
-      setLoading(false);
+      handleError(error, `Error adding item to ${tableName}`);
+      return null;
     }
-  }, [tableName, idField, toastMessages.fetchItemError]);
+  }, [tableName, handleSuccess, handleError, toastMessages.createSuccess, setData]);
 
-  // Using type Record<string, any> to avoid recursive type instantiation
-  const createRecord = useCallback(async (record: Record<string, any>): Promise<ApiResponse<Record<string, any>>> => {
-    setLoading(true);
-    setError(null);
-    
+  // Update an item
+  const updateItem = useCallback(async (
+    id: string,
+    updates: Record<string, any>,
+    options: {
+      successMessage?: string;
+      returnItem?: boolean;
+    } = {}
+  ) => {
     try {
-      const { data, error } = await supabase
-        .from(tableName)
-        .insert(record)
-        .select()
-        .single();
+      const { 
+        successMessage = toastMessages.updateSuccess || `Item updated successfully`, 
+        returnItem = true 
+      } = options;
       
-      if (error) throw error;
-      
-      const successMsg = toastMessages.createSuccess || `${tableName} created successfully`;
-      handleSuccess(successMsg);
-      
-      return createSuccessResponse(data || null);
-    } catch (error) {
-      setError(error instanceof Error ? error : new Error(String(error)));
-      handleError(
-        error, 
-        toastMessages.createError || `Error creating ${tableName}`
-      );
-      return createErrorResponse(error, `Error creating ${tableName}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [tableName, toastMessages.createSuccess, toastMessages.createError, handleSuccess, handleError]);
-
-  // Using type Record<string, any> to avoid recursive type instantiation
-  const updateRecord = useCallback(async (
-    id: string | number, 
-    updates: Record<string, any>
-  ): Promise<ApiResponse<Record<string, any>>> => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // First update
+      // First update the item
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(updates)
+        .update(updates as any)
         .eq(idField, id);
       
       if (updateError) throw updateError;
       
-      // Then fetch the updated record
-      const { data, error: fetchError } = await supabase
-        .from(tableName)
-        .select('*')
-        .eq(idField, id)
-        .maybeSingle();
+      // Then fetch the updated item if requested
+      if (returnItem) {
+        const { data: result, error: fetchError } = await supabase
+          .from(tableName)
+          .select('*')
+          .eq(idField, id)
+          .maybeSingle();
+          
+        if (fetchError) throw fetchError;
         
-      if (fetchError) throw fetchError;
-      
-      if (!data) {
-        throw new Error(`Record not found after update: ${idField}=${id}`);
+        if (!result) {
+          throw new Error(`Record not found after update: ${idField}=${id}`);
+        }
+        
+        // Update local state
+        setData(prev => prev.map(item => 
+          item[idField] === id ? result : item
+        ));
+        
+        handleSuccess(successMessage);
+        return result;
+      } else {
+        handleSuccess(successMessage);
+        return null;
       }
-      
-      const successMsg = toastMessages.updateSuccess || `${tableName} updated successfully`;
-      handleSuccess(successMsg);
-      
-      return createSuccessResponse(data);
     } catch (error) {
-      setError(error instanceof Error ? error : new Error(String(error)));
-      handleError(
-        error, 
-        toastMessages.updateError || `Error updating ${tableName}`
-      );
-      return createErrorResponse(error, `Error updating ${tableName}`);
-    } finally {
-      setLoading(false);
+      handleError(error, `Error updating item in ${tableName}`);
+      return null;
     }
-  }, [tableName, idField, toastMessages.updateSuccess, toastMessages.updateError, handleSuccess, handleError]);
+  }, [tableName, idField, handleSuccess, handleError, toastMessages.updateSuccess, setData]);
 
-  const deleteRecord = useCallback(async (id: string | number): Promise<ApiResponse<null>> => {
-    setLoading(true);
-    setError(null);
-    
+  // Delete an item
+  const deleteItem = useCallback(async (
+    id: string,
+    options: {
+      successMessage?: string;
+    } = {}
+  ) => {
     try {
+      const { successMessage = toastMessages.deleteSuccess || `Item deleted successfully` } = options;
+      
       const { error } = await supabase
         .from(tableName)
         .delete()
@@ -147,29 +152,52 @@ export function useTableCRUD(
       
       if (error) throw error;
       
-      const successMsg = toastMessages.deleteSuccess || `${tableName} deleted successfully`;
-      handleSuccess(successMsg);
+      // Update local state
+      setData(prev => prev.filter(item => item[idField] !== id));
       
-      return createSuccessResponse(null);
+      handleSuccess(successMessage);
+      return true;
     } catch (error) {
-      setError(error instanceof Error ? error : new Error(String(error)));
-      handleError(
-        error, 
-        toastMessages.deleteError || `Error deleting ${tableName}`
-      );
-      return createErrorResponse(error, `Error deleting ${tableName}`);
-    } finally {
-      setLoading(false);
+      handleError(error, `Error deleting item from ${tableName}`);
+      return false;
     }
-  }, [tableName, idField, toastMessages.deleteSuccess, toastMessages.deleteError, handleSuccess, handleError]);
+  }, [tableName, idField, handleSuccess, handleError, toastMessages.deleteSuccess, setData]);
+
+  // Get a single item by ID
+  const getById = useCallback(async (id: string) => {
+    try {
+      const { data: result, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq(idField, id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      return result;
+    } catch (error) {
+      const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
+      handleError(error, errorMsg);
+      return null;
+    }
+  }, [tableName, idField, handleError, toastMessages.fetchItemError]);
 
   return {
-    loading,
+    // Data state
+    data,
+    loading: tableLoading,
     error,
+    
+    // Base operations
+    fetchData,
     getById,
-    createRecord,
-    updateRecord,
-    deleteRecord,
-    resetError: () => setError(null)
+    
+    // CRUD operations
+    addItem: createItem,
+    updateItem,
+    deleteItem,
+    
+    // Alias for fetchData for compatibility
+    refresh: fetchData
   };
 }

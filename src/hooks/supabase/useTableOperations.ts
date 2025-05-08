@@ -1,7 +1,6 @@
 
-import { useCallback, useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { PostgrestError } from "@supabase/supabase-js";
 import { ValidTableName } from "@/services/supabase/types";
 import { useSupabaseErrorHandler } from "../useSupabaseHelpers";
 
@@ -42,7 +41,7 @@ export function useTableOperations<T extends Record<string, any>>(
       
       if (error) throw error;
       
-      return data as unknown as T | null;
+      return data as T | null;
     } catch (error) {
       const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
       handleError(error, errorMsg);
@@ -54,7 +53,7 @@ export function useTableOperations<T extends Record<string, any>>(
 
   // Create a new item
   const createItem = useCallback(async (
-    item: Omit<T, typeof idField>,
+    item: any, // Use any instead of Omit<T, typeof idField> to avoid TS error
     options: {
       successMessage?: string;
       returnItem?: boolean;
@@ -68,7 +67,7 @@ export function useTableOperations<T extends Record<string, any>>(
         returnItem = true 
       } = options;
       
-      const query = supabase.from(tableName).insert(item);
+      const query = supabase.from(tableName).insert(item as any);
       
       const { data, error } = returnItem
         ? await query.select().single()
@@ -77,7 +76,7 @@ export function useTableOperations<T extends Record<string, any>>(
       if (error) throw error;
       
       handleSuccess(successMessage);
-      return returnItem ? (data as unknown as T) : null;
+      return returnItem ? (data as T) : null;
     } catch (error) {
       handleError(error, `Error adding item to ${tableName}`);
       return null;
@@ -106,7 +105,7 @@ export function useTableOperations<T extends Record<string, any>>(
       // First update the item
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(updates)
+        .update(updates as any)
         .eq(idField, id);
       
       if (updateError) throw updateError;
@@ -126,7 +125,7 @@ export function useTableOperations<T extends Record<string, any>>(
         }
         
         handleSuccess(successMessage);
-        return data as unknown as T;
+        return data as T;
       } else {
         handleSuccess(successMessage);
         return null;

@@ -30,12 +30,12 @@ export async function fetchData(
 // Generic insert function with error handling
 export async function insertData(
   table: ValidTableName,
-  data: Record<string, any>
+  data: any
 ): Promise<ApiResponse<Record<string, any>>> {
   try {
     const { data: result, error } = await supabase
       .from(table)
-      .insert(data)
+      .insert(data as any)
       .select()
       .single();
 
@@ -58,7 +58,7 @@ export async function updateData(
     // First, perform the update operation
     const { error: updateError } = await supabase
       .from(table)
-      .update(data)
+      .update(data as any)
       .eq(idColumn, id);
     
     if (updateError) throw updateError;

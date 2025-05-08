@@ -1,123 +1,94 @@
 
-import { ValidTableName, QueryOptions } from "../types";
-import { useTableData } from "./useTableData";
-import { useTableCRUD } from "./useTableCRUD";
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { ApiResponse, ValidTableName, QueryOptions } from "../types";
+import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
+import { createSuccessResponse, createErrorResponse, applyFilters, applySorting, applyPagination } from "../utils";
 
 /**
- * Combined hook for data loading and CRUD operations
- * This is the main entry point for Supabase table operations
+ * Hook for basic data fetching and state management
  */
 export function useSupabaseTable(
   tableName: ValidTableName,
   options: {
-    fetchOnMount?: boolean;
     idField?: string;
+    fetchOnMount?: boolean;
     initialQueryOptions?: QueryOptions;
     toastMessages?: {
       fetchError?: string;
-      createSuccess?: string;
-      createError?: string;
-      updateSuccess?: string;
-      updateError?: string;
-      deleteSuccess?: string;
-      deleteError?: string;
     };
   } = {}
 ) {
   const {
-    fetchOnMount = true,
     idField = 'id',
+    fetchOnMount = true,
     initialQueryOptions,
     toastMessages = {}
   } = options;
 
-  // Get data loading functionality
-  const {
+  const [data, setData] = useState<Record<string, any>[]>([]);
+  const [loading, setLoading] = useState(fetchOnMount);
+  const [error, setError] = useState<Error | null>(null);
+  
+  const { handleError } = useSupabaseErrorHandler();
+
+  // Using simplified return type to avoid recursive type instantiation
+  const fetchData = useCallback(async (queryOptions?: QueryOptions): Promise<ApiResponse<Record<string, any>[]>> => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Merge with initial query options if provided
+      const mergedOptions = {
+        ...initialQueryOptions,
+        ...queryOptions,
+        filters: {
+          ...(initialQueryOptions?.filters || {}),
+          ...(queryOptions?.filters || {})
+        }
+      };
+
+      const { columns = '*' } = mergedOptions || {};
+      
+      let query = supabase.from(tableName).select(columns);
+      
+      // Apply filters, sorting, and pagination
+      query = applyFilters(query, mergedOptions.filters);
+      query = applySorting(query, mergedOptions.orderBy);
+      query = applyPagination(query, mergedOptions.pagination);
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      
+      const typedData = data as Record<string, any>[];
+      setData(typedData);
+      return createSuccessResponse(typedData);
+    } catch (error) {
+      setError(error instanceof Error ? error : new Error(String(error)));
+      return createErrorResponse(
+        error, 
+        toastMessages.fetchError || `Error fetching data from ${tableName}`
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [tableName, initialQueryOptions, toastMessages.fetchError]);
+
+  // Load data on component mount if enabled
+  useEffect(() => {
+    if (fetchOnMount) {
+      fetchData(initialQueryOptions);
+    }
+  }, [fetchOnMount, fetchData, initialQueryOptions]);
+
+  return {
     data,
-    loading: dataLoading,
+    loading,
     error,
     fetchData,
     setData,
-    refresh
-  } = useTableData(tableName, {
-    fetchOnMount,
-    initialQueryOptions,
-    toastMessages: {
-      fetchError: toastMessages.fetchError
-    }
-  });
-
-  // Get CRUD operations
-  const {
-    loading: crudLoading,
-    getById,
-    createRecord,
-    updateRecord,
-    deleteRecord
-  } = useTableCRUD(tableName, {
-    idField,
-    toastMessages: {
-      createSuccess: toastMessages.createSuccess,
-      createError: toastMessages.createError,
-      updateSuccess: toastMessages.updateSuccess,
-      updateError: toastMessages.updateError,
-      deleteSuccess: toastMessages.deleteSuccess,
-      deleteError: toastMessages.deleteError
-    }
-  });
-
-  // Create state-updating versions of the CRUD operations
-  const wrappedCreateRecord = async (record: Record<string, any>) => {
-    const result = await createRecord(record);
-    
-    if (result.status === 'success' && result.data) {
-      setData(prev => [...prev, result.data as Record<string, any>]);
-    }
-    
-    return result;
-  };
-
-  const wrappedUpdateRecord = async (id: string | number, updates: Record<string, any>) => {
-    const result = await updateRecord(id, updates);
-    
-    if (result.status === 'success' && result.data) {
-      setData(prev => 
-        prev.map(item => 
-          item[idField] === id ? (result.data as Record<string, any>) : item
-        )
-      );
-    }
-    
-    return result;
-  };
-
-  const wrappedDeleteRecord = async (id: string | number) => {
-    const result = await deleteRecord(id);
-    
-    if (result.status === 'success') {
-      setData(prev => prev.filter(item => item[idField] !== id));
-    }
-    
-    return result;
-  };
-
-  return {
-    // Data state
-    data,
-    loading: dataLoading || crudLoading,
-    error,
-    
-    // Basic operations
-    fetchData,
-    getById,
-    
-    // State-updating operations
-    createRecord: wrappedCreateRecord,
-    updateRecord: wrappedUpdateRecord,
-    deleteRecord: wrappedDeleteRecord,
-    
-    // Convenience methods
-    refresh,
-    setData
+    setError,
+    refresh: () => fetchData(initialQueryOptions)
   };
 }

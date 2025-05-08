@@ -15,5 +15,7 @@ export {
 
 // Export hooks
 export {
-  useSupabaseTable
+  useSupabaseTable,
+  useTableData,
+  useTableCRUD
 } from './hooks';
