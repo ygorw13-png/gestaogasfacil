@@ -96,7 +96,8 @@ export function SupabaseHooksExample() {
   const handleDeleteItem = async (id: string) => {
     const success = await remove(id);
     
-    if (success !== false) {
+    // Fixed: proper type checking for success value
+    if (success && !(success instanceof Error)) {
       setStockItems(prevItems => prevItems.filter(item => item.id !== id));
       if (selectedItemId === id) {
         setSelectedItemId(null);
