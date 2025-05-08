@@ -2,7 +2,6 @@
 import { useCallback } from "react";
 import { ValidTableName } from "@/services/supabase/types";
 import { useSupabaseTable } from "./useSupabaseTable";
-import { createErrorResponse, createSuccessResponse } from "../utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
 
@@ -48,33 +47,29 @@ export function useTableCRUD(
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
   
   // Create a new item
-  const createItem = useCallback(async (
-    item: any,
+  const addItem = useCallback(async (
+    item: Record<string, any>,
     options: {
       successMessage?: string;
-      returnItem?: boolean;
     } = {}
   ) => {
     try {
-      const { 
-        successMessage = toastMessages.createSuccess || `Item added successfully`, 
-        returnItem = true 
-      } = options;
+      const successMessage = options.successMessage || toastMessages.createSuccess || `Item added successfully`;
       
-      const query = supabase.from(tableName).insert(item as any);
-      
-      const { data: result, error } = returnItem
-        ? await query.select().single()
-        : await query;
+      const { data: result, error } = await supabase
+        .from(tableName)
+        .insert(item as any)
+        .select()
+        .single();
       
       if (error) throw error;
       
-      if (returnItem && result) {
+      if (result) {
         setData(prev => [...prev, result]);
       }
       
       handleSuccess(successMessage);
-      return returnItem ? result : null;
+      return result;
     } catch (error) {
       handleError(error, `Error adding item to ${tableName}`);
       return null;
@@ -87,14 +82,10 @@ export function useTableCRUD(
     updates: Record<string, any>,
     options: {
       successMessage?: string;
-      returnItem?: boolean;
     } = {}
   ) => {
     try {
-      const { 
-        successMessage = toastMessages.updateSuccess || `Item updated successfully`, 
-        returnItem = true 
-      } = options;
+      const successMessage = options.successMessage || toastMessages.updateSuccess || `Item updated successfully`;
       
       // First update the item
       const { error: updateError } = await supabase
@@ -104,31 +95,26 @@ export function useTableCRUD(
       
       if (updateError) throw updateError;
       
-      // Then fetch the updated item if requested
-      if (returnItem) {
-        const { data: result, error: fetchError } = await supabase
-          .from(tableName)
-          .select('*')
-          .eq(idField, id)
-          .maybeSingle();
+      // Then fetch the updated item
+      const { data: result, error: fetchError } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq(idField, id)
+        .maybeSingle();
           
-        if (fetchError) throw fetchError;
-        
-        if (!result) {
-          throw new Error(`Record not found after update: ${idField}=${id}`);
-        }
-        
-        // Update local state
-        setData(prev => prev.map(item => 
-          item[idField] === id ? result : item
-        ));
-        
-        handleSuccess(successMessage);
-        return result;
-      } else {
-        handleSuccess(successMessage);
-        return null;
+      if (fetchError) throw fetchError;
+      
+      if (!result) {
+        throw new Error(`Record not found after update: ${idField}=${id}`);
       }
+      
+      // Update local state
+      setData(prev => prev.map(item => 
+        item[idField] === id ? result : item
+      ));
+      
+      handleSuccess(successMessage);
+      return result;
     } catch (error) {
       handleError(error, `Error updating item in ${tableName}`);
       return null;
@@ -143,7 +129,7 @@ export function useTableCRUD(
     } = {}
   ) => {
     try {
-      const { successMessage = toastMessages.deleteSuccess || `Item deleted successfully` } = options;
+      const successMessage = options.successMessage || toastMessages.deleteSuccess || `Item deleted successfully`;
       
       const { error } = await supabase
         .from(tableName)
@@ -193,7 +179,7 @@ export function useTableCRUD(
     getById,
     
     // CRUD operations
-    addItem: createItem,
+    addItem,
     updateItem,
     deleteItem,
     

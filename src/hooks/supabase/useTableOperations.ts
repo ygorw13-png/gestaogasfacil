@@ -53,7 +53,7 @@ export function useTableOperations<T extends Record<string, any>>(
 
   // Create a new item
   const createItem = useCallback(async (
-    item: any, // Use any instead of Omit<T, typeof idField> to avoid TS error
+    item: any,
     options: {
       successMessage?: string;
       returnItem?: boolean;
@@ -76,7 +76,7 @@ export function useTableOperations<T extends Record<string, any>>(
       if (error) throw error;
       
       handleSuccess(successMessage);
-      return returnItem ? (data as T) : null;
+      return returnItem ? (data as unknown as T) : null;
     } catch (error) {
       handleError(error, `Error adding item to ${tableName}`);
       return null;
@@ -125,7 +125,7 @@ export function useTableOperations<T extends Record<string, any>>(
         }
         
         handleSuccess(successMessage);
-        return data as T;
+        return data as unknown as T;
       } else {
         handleSuccess(successMessage);
         return null;

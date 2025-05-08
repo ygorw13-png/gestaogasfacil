@@ -16,31 +16,15 @@ interface StockItem {
 }
 
 export function SupabaseHooksExample() {
-  // Example 1: Using useSupabaseTable for state management
+  // Example 1: Using useSupabaseTable for state management with useTableCRUD
+  // Import useTableCRUD directly from services when using it
   const {
     data: stockItems,
     loading: tableLoading,
     error: tableError,
-    createRecord,
-    updateRecord,
-    deleteRecord
-  } = useSupabaseTable('configuracoes_estoque', {
-    fetchOnMount: true,
-    toastMessages: {
-      createSuccess: 'Item adicionado com sucesso',
-      updateSuccess: 'Item atualizado com sucesso',
-      deleteSuccess: 'Item removido com sucesso'
-    }
-  });
-
-  // Example 2: Using useSupabaseCRUD for more direct control
-  const {
-    getAll,
-    getById,
-    create,
-    update,
-    remove,
-    loading: crudLoading
+    addItem,
+    updateItem,
+    deleteItem
   } = useSupabaseCRUD('configuracoes_estoque');
 
   // Component state
@@ -48,24 +32,25 @@ export function SupabaseHooksExample() {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<StockItem | null>(null);
 
-  // Example of creating an item with useSupabaseTable
+  // Example of creating an item
   const handleCreateItem = () => {
     if (!newItemName) return;
     
-    createRecord({
+    addItem({
       produto: newItemName,
       estoque_minimo: 10,
-      alerta_ativo: true
+      alerta_ativo: true,
+      atualizado_por: 'system',
+      atualizado_em: new Date().toISOString()
     });
     
     setNewItemName('');
   };
 
-  // Example of fetching a single item with useSupabaseCRUD
+  // Example of fetching a single item
   const handleFetchDetail = async (id: string) => {
-    const result = await getById(id);
+    const result = await useSupabaseCRUD('configuracoes_estoque').getById(id);
     
-    // Fixed error by checking if result is an Error before accessing data
     if (result && !(result instanceof Error)) {
       setDetailItem(result as StockItem);
       setSelectedItemId(id);
@@ -74,12 +59,16 @@ export function SupabaseHooksExample() {
 
   // Example of updating an item
   const handleToggleAlert = (id: string, currentStatus: boolean) => {
-    updateRecord(id, { alerta_ativo: !currentStatus });
+    updateItem(id, { 
+      alerta_ativo: !currentStatus,
+      atualizado_por: 'system',
+      atualizado_em: new Date().toISOString()
+    });
   };
 
   // Example of deleting an item
   const handleDeleteItem = (id: string) => {
-    deleteRecord(id);
+    deleteItem(id);
     if (selectedItemId === id) {
       setSelectedItemId(null);
       setDetailItem(null);
@@ -107,7 +96,7 @@ export function SupabaseHooksExample() {
 
           <div className="grid md:grid-cols-2 gap-4">
             <div className="border rounded-md p-4">
-              <h3 className="text-lg font-medium mb-4">Items (useSupabaseTable)</h3>
+              <h3 className="text-lg font-medium mb-4">Items</h3>
               {stockItems.length === 0 ? (
                 <p className="text-muted-foreground">Nenhum item encontrado</p>
               ) : (
@@ -145,7 +134,7 @@ export function SupabaseHooksExample() {
             </div>
 
             <div className="border rounded-md p-4">
-              <h3 className="text-lg font-medium mb-4">Detalhes (useSupabaseCRUD)</h3>
+              <h3 className="text-lg font-medium mb-4">Detalhes</h3>
               {detailItem ? (
                 <div className="space-y-3">
                   <p><strong>ID:</strong> {detailItem.id}</p>

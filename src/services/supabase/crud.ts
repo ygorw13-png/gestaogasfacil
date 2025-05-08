@@ -30,9 +30,10 @@ export async function fetchData(
 // Generic insert function with error handling
 export async function insertData(
   table: ValidTableName,
-  data: any
+  data: Record<string, any>
 ): Promise<ApiResponse<Record<string, any>>> {
   try {
+    // Use type assertion to bypass TypeScript's strict checking
     const { data: result, error } = await supabase
       .from(table)
       .insert(data as any)
