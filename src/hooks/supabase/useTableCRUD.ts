@@ -8,7 +8,7 @@ import { useTableOperations } from "./useTableOperations";
  * Combined hook that provides data state management and CRUD operations
  * This is a direct replacement for the original useBaseSupabaseTable
  */
-export function useTableCRUD<T extends Record<string, any>>(
+export function useTableCRUD<T extends Record<string, unknown>>(
   tableName: ValidTableName,
   options: {
     idField?: string;
@@ -63,7 +63,7 @@ export function useTableCRUD<T extends Record<string, any>>(
 
   // Create wrapped versions of CRUD operations that update local state
   const addItem = useCallback(async (
-    item: Omit<T, typeof idField>,
+    item: Record<string, unknown>,
     options: {
       successMessage?: string;
     } = {}
@@ -82,7 +82,7 @@ export function useTableCRUD<T extends Record<string, any>>(
 
   const updateItemWithState = useCallback(async (
     id: string,
-    updates: Partial<T>,
+    updates: Record<string, unknown>,
     options: {
       successMessage?: string;
     } = {}
@@ -94,7 +94,7 @@ export function useTableCRUD<T extends Record<string, any>>(
     
     if (result) {
       setData(prev => prev.map(item => 
-        item[idField as keyof T] === id ? result : item
+        (item[idField as keyof T] === id ? result : item)
       ));
     }
     

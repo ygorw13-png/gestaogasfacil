@@ -41,7 +41,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       if (error) throw error;
       
-      return data as T;
+      return data as unknown as T;
     } catch (error) {
       const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
       handleError(error, errorMsg);
@@ -53,7 +53,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
 
   // Create a new item
   const createItem = useCallback(async (
-    item: Partial<T>,
+    item: Record<string, unknown>,
     options: {
       successMessage?: string;
       returnItem?: boolean;
@@ -67,7 +67,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
         returnItem = true 
       } = options;
       
-      const query = supabase.from(tableName).insert(item);
+      // Use any to avoid type issues with Supabase
+      const query = supabase.from(tableName).insert(item as any);
       
       const { data, error } = returnItem
         ? await query.select().single()
@@ -76,7 +77,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       if (error) throw error;
       
       handleSuccess(successMessage);
-      return returnItem ? (data as T) : null;
+      return returnItem ? (data as unknown as T) : null;
     } catch (error) {
       handleError(error, `Error adding item to ${tableName}`);
       return null;
@@ -88,7 +89,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
   // Update an existing item
   const updateItem = useCallback(async (
     id: string,
-    updates: Partial<T>,
+    updates: Record<string, unknown>,
     options: {
       successMessage?: string;
       returnItem?: boolean;
@@ -105,7 +106,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       // First update the item
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(updates)
+        .update(updates as any)
         .eq(idField, id);
       
       if (updateError) throw updateError;
@@ -125,7 +126,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
         }
         
         handleSuccess(successMessage);
-        return data as T;
+        return data as unknown as T;
       } else {
         handleSuccess(successMessage);
         return null;

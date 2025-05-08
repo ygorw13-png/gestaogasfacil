@@ -21,7 +21,10 @@ export async function fetchData(
 
     if (error) throw error;
 
-    return createSuccessResponse(data || []);
+    // Cast data to ensure it's an array of objects
+    const safeData = (data || []) as Record<string, unknown>[];
+
+    return createSuccessResponse(safeData);
   } catch (error) {
     return createErrorResponse(error, `fetchData from ${table}`);
   }
@@ -33,10 +36,13 @@ export async function insertData(
   data: Record<string, unknown>
 ): Promise<ApiResponse<Record<string, unknown>>> {
   try {
-    // Use simple typing to avoid deep recursion
+    // Cast to any to prevent type recursion issues
+    const safeData = data as any;
+    
+    // Insert and return the record
     const { data: resultData, error } = await supabase
       .from(table)
-      .insert(data)
+      .insert(safeData)
       .select()
       .single();
     
@@ -57,10 +63,13 @@ export async function updateData(
   idColumn: string = 'id'
 ): Promise<ApiResponse<Record<string, unknown>>> {
   try {
+    // Cast to any to prevent type recursion issues
+    const safeData = data as any;
+    
     // First, perform the update operation
     const { error: updateError } = await supabase
       .from(table)
-      .update(data)
+      .update(safeData)
       .eq(idColumn, id);
     
     if (updateError) throw updateError;

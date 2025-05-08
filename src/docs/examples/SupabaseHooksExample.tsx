@@ -29,14 +29,14 @@ export function SupabaseHooksExample() {
   const [stockItems, setStockItems] = useState<Record<string, unknown>[]>([]);
   const [newItemName, setNewItemName] = useState('');
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  const [detailItem, setDetailItem] = useState<StockItem | null>(null);
+  const [detailItem, setDetailItem] = useState<Record<string, unknown> | null>(null);
 
   // Fetch data on component mount
   React.useEffect(() => {
     const fetchStockItems = async () => {
       const result = await getAll();
       if (Array.isArray(result)) {
-        setStockItems(result);
+        setStockItems(result as Record<string, unknown>[]);
       }
     };
     
@@ -58,7 +58,9 @@ export function SupabaseHooksExample() {
     const result = await create(newItem);
     
     if (result && typeof result === 'object') {
-      setStockItems([...stockItems, result]);
+      // Cast the result to ensure type safety
+      const safeResult = result as Record<string, unknown>;
+      setStockItems([...stockItems, safeResult]);
       setNewItemName('');
     }
   };
@@ -70,7 +72,9 @@ export function SupabaseHooksExample() {
     });
     
     if (Array.isArray(result) && result.length > 0) {
-      setDetailItem(result[0] as StockItem);
+      // Cast the first result to ensure type safety
+      const firstItem = result[0] as Record<string, unknown>;
+      setDetailItem(firstItem);
       setSelectedItemId(id);
     }
   };
@@ -86,8 +90,10 @@ export function SupabaseHooksExample() {
     const result = await update(id, updateData);
     
     if (result && typeof result === 'object') {
+      // Cast the result to ensure type safety
+      const safeResult = result as Record<string, unknown>;
       setStockItems(prevItems => 
-        prevItems.map(item => item.id === id ? result : item)
+        prevItems.map(item => item.id === id ? safeResult : item)
       );
     }
   };
@@ -132,28 +138,28 @@ export function SupabaseHooksExample() {
                 <p className="text-muted-foreground">Nenhum item encontrado</p>
               ) : (
                 <ul className="space-y-2">
-                  {stockItems.map((item: any) => (
-                    <li key={item.id} className="flex items-center justify-between">
-                      <span>{item.produto}</span>
+                  {stockItems.map((item: Record<string, unknown>) => (
+                    <li key={item.id as string} className="flex items-center justify-between">
+                      <span>{item.produto as string}</span>
                       <div className="flex gap-2">
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => handleFetchDetail(item.id)}
+                          onClick={() => handleFetchDetail(item.id as string)}
                         >
                           Detalhes
                         </Button>
                         <Button 
-                          variant={item.alerta_ativo ? "default" : "secondary"} 
+                          variant={(item.alerta_ativo as boolean) ? "default" : "secondary"} 
                           size="sm"
-                          onClick={() => handleToggleAlert(item.id, item.alerta_ativo)}
+                          onClick={() => handleToggleAlert(item.id as string, item.alerta_ativo as boolean)}
                         >
-                          {item.alerta_ativo ? 'Alerta On' : 'Alerta Off'}
+                          {(item.alerta_ativo as boolean) ? 'Alerta On' : 'Alerta Off'}
                         </Button>
                         <Button 
                           variant="destructive" 
                           size="sm"
-                          onClick={() => handleDeleteItem(item.id)}
+                          onClick={() => handleDeleteItem(item.id as string)}
                         >
                           Excluir
                         </Button>
@@ -168,10 +174,10 @@ export function SupabaseHooksExample() {
               <h3 className="text-lg font-medium mb-4">Detalhes</h3>
               {detailItem ? (
                 <div className="space-y-3">
-                  <p><strong>ID:</strong> {detailItem.id}</p>
-                  <p><strong>Produto:</strong> {detailItem.produto}</p>
-                  <p><strong>Estoque Mínimo:</strong> {detailItem.estoque_minimo}</p>
-                  <p><strong>Alerta Ativo:</strong> {detailItem.alerta_ativo ? 'Sim' : 'Não'}</p>
+                  <p><strong>ID:</strong> {detailItem.id as string}</p>
+                  <p><strong>Produto:</strong> {detailItem.produto as string}</p>
+                  <p><strong>Estoque Mínimo:</strong> {detailItem.estoque_minimo as number}</p>
+                  <p><strong>Alerta Ativo:</strong> {(detailItem.alerta_ativo as boolean) ? 'Sim' : 'Não'}</p>
                 </div>
               ) : (
                 <p className="text-muted-foreground">Selecione um item para ver os detalhes</p>
