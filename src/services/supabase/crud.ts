@@ -33,17 +33,16 @@ export async function insertData(
   data: Record<string, any>
 ): Promise<ApiResponse<Record<string, any>>> {
   try {
-    // Using explicit type casting to break the recursive type analysis
-    const { data: result, error } = await supabase
+    // Break the type recursion by using a more basic type annotation
+    const result = await supabase
       .from(table)
-      // Explicitly cast the data to avoid deep type analysis
       .insert(data as any)
       .select()
       .single();
+    
+    if (result.error) throw result.error;
 
-    if (error) throw error;
-
-    return createSuccessResponse(result);
+    return createSuccessResponse(result.data as Record<string, any>);
   } catch (error) {
     return createErrorResponse(error, `insertData into ${table}`);
   }
@@ -57,29 +56,28 @@ export async function updateData(
   idColumn: string = 'id'
 ): Promise<ApiResponse<Record<string, any>>> {
   try {
-    // First, perform the update operation
-    const { error: updateError } = await supabase
+    // First, perform the update operation without type recursion
+    const updateResult = await supabase
       .from(table)
-      // Use type casting to avoid deep type analysis
       .update(data as any)
       .eq(idColumn, id);
     
-    if (updateError) throw updateError;
+    if (updateResult.error) throw updateResult.error;
     
     // Then, fetch the updated record in a separate query
-    const { data: result, error: fetchError } = await supabase
+    const fetchResult = await supabase
       .from(table)
       .select('*')
       .eq(idColumn, id)
       .maybeSingle();
     
-    if (fetchError) throw fetchError;
+    if (fetchResult.error) throw fetchResult.error;
     
-    if (!result) {
+    if (!fetchResult.data) {
       throw new Error(`Record not found after update: ${idColumn}=${id}`);
     }
     
-    return createSuccessResponse(result);
+    return createSuccessResponse(fetchResult.data as Record<string, any>);
   } catch (error) {
     return createErrorResponse(error, `updateData in ${table}`);
   }
