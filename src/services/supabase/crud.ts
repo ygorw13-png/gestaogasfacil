@@ -7,7 +7,7 @@ import { createErrorResponse, createSuccessResponse, applyFilters, applySorting,
 export async function fetchData(
   table: ValidTableName,
   queryOptions?: QueryOptions
-): Promise<ApiResponse<Record<string, any>[]>> {
+): Promise<ApiResponse<Record<string, unknown>[]>> {
   try {
     // Start with a basic query
     let query = supabase.from(table).select(queryOptions?.columns || '*');
@@ -30,19 +30,20 @@ export async function fetchData(
 // Generic insert function with error handling
 export async function insertData(
   table: ValidTableName,
-  data: Record<string, any>
-): Promise<ApiResponse<Record<string, any>>> {
+  data: Record<string, unknown>
+): Promise<ApiResponse<Record<string, unknown>>> {
   try {
-    // Break the type recursion by using a more basic type annotation
-    const result = await supabase
+    // Use simple typing to avoid deep recursion
+    const { data: resultData, error } = await supabase
       .from(table)
-      .insert(data as any)
+      .insert(data)
       .select()
       .single();
     
-    if (result.error) throw result.error;
+    if (error) throw error;
 
-    return createSuccessResponse(result.data as Record<string, any>);
+    // Simple casting to avoid type recursion
+    return createSuccessResponse(resultData as Record<string, unknown>);
   } catch (error) {
     return createErrorResponse(error, `insertData into ${table}`);
   }
@@ -52,32 +53,33 @@ export async function insertData(
 export async function updateData(
   table: ValidTableName,
   id: string,
-  data: Record<string, any>,
+  data: Record<string, unknown>,
   idColumn: string = 'id'
-): Promise<ApiResponse<Record<string, any>>> {
+): Promise<ApiResponse<Record<string, unknown>>> {
   try {
-    // First, perform the update operation without type recursion
-    const updateResult = await supabase
+    // First, perform the update operation
+    const { error: updateError } = await supabase
       .from(table)
-      .update(data as any)
+      .update(data)
       .eq(idColumn, id);
     
-    if (updateResult.error) throw updateResult.error;
+    if (updateError) throw updateError;
     
     // Then, fetch the updated record in a separate query
-    const fetchResult = await supabase
+    const { data: resultData, error: fetchError } = await supabase
       .from(table)
       .select('*')
       .eq(idColumn, id)
       .maybeSingle();
     
-    if (fetchResult.error) throw fetchResult.error;
+    if (fetchError) throw fetchError;
     
-    if (!fetchResult.data) {
+    if (!resultData) {
       throw new Error(`Record not found after update: ${idColumn}=${id}`);
     }
     
-    return createSuccessResponse(fetchResult.data as Record<string, any>);
+    // Simple casting to avoid type recursion
+    return createSuccessResponse(resultData as Record<string, unknown>);
   } catch (error) {
     return createErrorResponse(error, `updateData in ${table}`);
   }

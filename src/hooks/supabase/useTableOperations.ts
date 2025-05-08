@@ -8,7 +8,7 @@ import { useSupabaseErrorHandler } from "../useSupabaseHelpers";
  * Hook for CRUD operations on a Supabase table
  * Can be used standalone or with useBaseTable
  */
-export function useTableOperations<T extends Record<string, any>>(
+export function useTableOperations<T extends Record<string, unknown>>(
   tableName: ValidTableName,
   options: {
     idField?: string;
@@ -41,8 +41,7 @@ export function useTableOperations<T extends Record<string, any>>(
       
       if (error) throw error;
       
-      // Use explicit type assertion with unknown as intermediate step to avoid TypeScript errors
-      return data as unknown as T;
+      return data as T;
     } catch (error) {
       const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
       handleError(error, errorMsg);
@@ -54,7 +53,7 @@ export function useTableOperations<T extends Record<string, any>>(
 
   // Create a new item
   const createItem = useCallback(async (
-    item: any,
+    item: Partial<T>,
     options: {
       successMessage?: string;
       returnItem?: boolean;
@@ -68,7 +67,7 @@ export function useTableOperations<T extends Record<string, any>>(
         returnItem = true 
       } = options;
       
-      const query = supabase.from(tableName).insert(item as any);
+      const query = supabase.from(tableName).insert(item);
       
       const { data, error } = returnItem
         ? await query.select().single()
@@ -77,8 +76,7 @@ export function useTableOperations<T extends Record<string, any>>(
       if (error) throw error;
       
       handleSuccess(successMessage);
-      // Use explicit type assertion with unknown as intermediate step
-      return returnItem ? (data as unknown as T) : null;
+      return returnItem ? (data as T) : null;
     } catch (error) {
       handleError(error, `Error adding item to ${tableName}`);
       return null;
@@ -107,7 +105,7 @@ export function useTableOperations<T extends Record<string, any>>(
       // First update the item
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(updates as any)
+        .update(updates)
         .eq(idField, id);
       
       if (updateError) throw updateError;
@@ -127,8 +125,7 @@ export function useTableOperations<T extends Record<string, any>>(
         }
         
         handleSuccess(successMessage);
-        // Use explicit type assertion with unknown as intermediate step
-        return data as unknown as T;
+        return data as T;
       } else {
         handleSuccess(successMessage);
         return null;

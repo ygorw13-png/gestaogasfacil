@@ -26,7 +26,7 @@ export function SupabaseHooksExample() {
   } = useSupabaseCRUD('configuracoes_estoque');
 
   // State for data management
-  const [stockItems, setStockItems] = useState<Record<string, any>[]>([]);
+  const [stockItems, setStockItems] = useState<Record<string, unknown>[]>([]);
   const [newItemName, setNewItemName] = useState('');
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<StockItem | null>(null);
@@ -57,7 +57,7 @@ export function SupabaseHooksExample() {
     
     const result = await create(newItem);
     
-    if (result && !(result instanceof Error)) {
+    if (result && typeof result === 'object') {
       setStockItems([...stockItems, result]);
       setNewItemName('');
     }
@@ -85,7 +85,7 @@ export function SupabaseHooksExample() {
     
     const result = await update(id, updateData);
     
-    if (result && !(result instanceof Error)) {
+    if (result && typeof result === 'object') {
       setStockItems(prevItems => 
         prevItems.map(item => item.id === id ? result : item)
       );
@@ -96,8 +96,8 @@ export function SupabaseHooksExample() {
   const handleDeleteItem = async (id: string) => {
     const success = await remove(id);
     
-    // Fixed: proper type checking for success value
-    if (success && !(success instanceof Error)) {
+    // Proper type checking for success value
+    if (success === true) {
       setStockItems(prevItems => prevItems.filter(item => item.id !== id));
       if (selectedItemId === id) {
         setSelectedItemId(null);
@@ -132,7 +132,7 @@ export function SupabaseHooksExample() {
                 <p className="text-muted-foreground">Nenhum item encontrado</p>
               ) : (
                 <ul className="space-y-2">
-                  {stockItems.map((item) => (
+                  {stockItems.map((item: any) => (
                     <li key={item.id} className="flex items-center justify-between">
                       <span>{item.produto}</span>
                       <div className="flex gap-2">

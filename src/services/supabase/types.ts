@@ -21,7 +21,7 @@ export type ValidTableName =
 // Query options for data fetching
 export interface QueryOptions {
   columns?: string;
-  filters?: Record<string, any>;
+  filters?: Record<string, unknown>;
   orderBy?: { 
     column: string; 
     ascending?: boolean 
