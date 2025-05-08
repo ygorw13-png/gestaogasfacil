@@ -41,7 +41,7 @@ export function useTableOperations<T extends Record<string, any>>(
       
       if (error) throw error;
       
-      // Fixed: Use explicit type assertion instead of direct conversion
+      // Use explicit type assertion with unknown as intermediate step to avoid TypeScript errors
       return data as unknown as T;
     } catch (error) {
       const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
@@ -77,7 +77,7 @@ export function useTableOperations<T extends Record<string, any>>(
       if (error) throw error;
       
       handleSuccess(successMessage);
-      // Fixed: Use explicit type assertion
+      // Use explicit type assertion with unknown as intermediate step
       return returnItem ? (data as unknown as T) : null;
     } catch (error) {
       handleError(error, `Error adding item to ${tableName}`);
@@ -127,7 +127,7 @@ export function useTableOperations<T extends Record<string, any>>(
         }
         
         handleSuccess(successMessage);
-        // Fixed: Use explicit type assertion
+        // Use explicit type assertion with unknown as intermediate step
         return data as unknown as T;
       } else {
         handleSuccess(successMessage);

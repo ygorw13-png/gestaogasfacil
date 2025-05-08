@@ -33,9 +33,10 @@ export async function insertData(
   data: Record<string, any>
 ): Promise<ApiResponse<Record<string, any>>> {
   try {
-    // Use explicit any type to bypass TypeScript's strict checking
+    // Using explicit type casting to break the recursive type analysis
     const { data: result, error } = await supabase
       .from(table)
+      // Explicitly cast the data to avoid deep type analysis
       .insert(data as any)
       .select()
       .single();
@@ -59,6 +60,7 @@ export async function updateData(
     // First, perform the update operation
     const { error: updateError } = await supabase
       .from(table)
+      // Use type casting to avoid deep type analysis
       .update(data as any)
       .eq(idColumn, id);
     
