@@ -4,23 +4,26 @@ import { ValidTableName } from "@/services/supabase/types";
 import { useBaseTable } from "./useBaseTable";
 import { useTableOperations } from "./useTableOperations";
 
+// Options interface for improved readability
+interface TableCRUDOptions {
+  idField?: string;
+  fetchOnMount?: boolean;
+  toastMessages?: {
+    fetchError?: string;
+    createSuccess?: string;
+    updateSuccess?: string;
+    deleteSuccess?: string;
+    fetchItemError?: string;
+  };
+}
+
 /**
  * Combined hook that provides data state management and CRUD operations
  * This is a direct replacement for the original useBaseSupabaseTable
  */
 export function useTableCRUD<T extends Record<string, unknown>>(
   tableName: ValidTableName,
-  options: {
-    idField?: string;
-    fetchOnMount?: boolean;
-    toastMessages?: {
-      fetchError?: string;
-      createSuccess?: string;
-      updateSuccess?: string;
-      deleteSuccess?: string;
-      fetchItemError?: string;
-    };
-  } = {}
+  options: TableCRUDOptions = {}
 ) {
   const {
     idField = 'id',
@@ -74,7 +77,8 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     });
     
     if (result) {
-      setData(prev => [...prev, result]);
+      // Use a simpler type approach to avoid deep recursion
+      setData(prev => [...prev, result as T]);
     }
     
     return result;
@@ -94,7 +98,8 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     
     if (result) {
       setData(prev => prev.map(item => 
-        (item[idField as keyof T] === id ? result : item)
+        // Simple comparison instead of complex type mapping
+        (item as any)[idField] === id ? (result as T) : item
       ));
     }
     
@@ -110,7 +115,7 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     const success = await deleteItem(id, options);
     
     if (success) {
-      setData(prev => prev.filter(item => item[idField as keyof T] !== id));
+      setData(prev => prev.filter(item => (item as any)[idField] !== id));
     }
     
     return success;

@@ -8,7 +8,7 @@ import { render } from '@testing-library/react';
 // Re-export everything from @testing-library/react
 export * from '@testing-library/react';
 
-// Explicitly define missing exports using proper imports
+// Explicitly define missing exports using proper direct imports
 export const screen = require('@testing-library/react').screen;
 export const fireEvent = require('@testing-library/react').fireEvent;
 export const waitFor = require('@testing-library/react').waitFor;
