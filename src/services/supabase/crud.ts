@@ -3,10 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "@/services/supabase/types";
 import { Database } from "@/integrations/supabase/types";
 
-// Create a type that represents all valid table names from Database type
+// Cast the string table name to a type-safe table name
 type TableNames = keyof Database['public']['Tables'];
 
-export async function fetchData<T = Record<string, any>>(
+/**
+ * Fetches data from a specified table with optional filtering, ordering, and pagination
+ */
+export async function fetchData<T = any>(
   tableName: ValidTableName,
   options?: {
     columns?: string;
@@ -16,9 +19,11 @@ export async function fetchData<T = Record<string, any>>(
   }
 ) {
   try {
-    // Cast tableName to TableNames for type safety
+    // Cast tableName to table name type for type safety
     const table = tableName as TableNames;
-    let query = supabase.from(table).select(options?.columns || '*');
+    
+    // Start building the query - use any to avoid deep type instantiation
+    let query: any = supabase.from(table).select(options?.columns || '*');
 
     // Apply filters if provided
     if (options?.filters) {
@@ -39,16 +44,15 @@ export async function fetchData<T = Record<string, any>>(
       query = query.range(from, to);
     }
 
-    // Explicitly type the result to avoid deep type instantiation
-    const result = await query;
-    const { data, error } = result;
+    // Execute query
+    const { data, error } = await query;
 
     if (error) {
       console.error(`Error fetching from ${tableName}:`, error);
       return { data: null, error };
     }
 
-    // Use a simple type assertion to avoid complex type recursion
+    // Return the data with a basic type assertion
     return { data: data as T[], error: null };
   } catch (error) {
     console.error(`Error in fetchData for ${tableName}:`, error);
@@ -59,18 +63,20 @@ export async function fetchData<T = Record<string, any>>(
   }
 }
 
-export async function updateData<T = Record<string, any>>(tableName: ValidTableName, id: string, data: Partial<T>) {
+/**
+ * Updates a record in the specified table
+ */
+export async function updateData(tableName: ValidTableName, id: string, data: Record<string, any>) {
   try {
-    // Cast tableName to TableNames for type safety
+    // Cast tableName to table name type for type safety
     const table = tableName as TableNames;
-    // Use a simple, non-generic approach for the update operation
-    const result = await supabase
+    
+    // Execute update operation with explicit any typing
+    const { error } = await supabase
       .from(table)
       .update(data as any)
       .eq('id', id);
     
-    const { error } = result;
-
     if (error) {
       console.error(`Error updating ${tableName} with id ${id}:`, error);
       return { error };
@@ -83,17 +89,19 @@ export async function updateData<T = Record<string, any>>(tableName: ValidTableN
   }
 }
 
-export async function insertData<T = Record<string, any>>(tableName: ValidTableName, data: Partial<T>) {
+/**
+ * Inserts a new record into the specified table
+ */
+export async function insertData(tableName: ValidTableName, data: Record<string, any>) {
   try {
-    // Cast tableName to TableNames for type safety
+    // Cast tableName to table name type for type safety
     const table = tableName as TableNames;
-    // Use a simple approach for the insert operation
-    const result = await supabase
+    
+    // Execute insert operation with explicit any typing
+    const { error } = await supabase
       .from(table)
       .insert(data as any);
     
-    const { error } = result;
-
     if (error) {
       console.error(`Error inserting into ${tableName}:`, error);
       return { error };
@@ -106,17 +114,20 @@ export async function insertData<T = Record<string, any>>(tableName: ValidTableN
   }
 }
 
+/**
+ * Deletes a record from the specified table
+ */
 export async function deleteData(tableName: ValidTableName, id: string) {
   try {
-    // Cast tableName to TableNames for type safety
+    // Cast tableName to table name type for type safety
     const table = tableName as TableNames;
-    const result = await supabase
+    
+    // Execute delete operation
+    const { error } = await supabase
       .from(table)
       .delete()
       .eq('id', id);
     
-    const { error } = result;
-
     if (error) {
       console.error(`Error deleting from ${tableName} with id ${id}:`, error);
       return { error };
