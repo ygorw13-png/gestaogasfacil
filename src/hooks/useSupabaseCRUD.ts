@@ -123,15 +123,15 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
         idField = 'id'
       } = options || {};
       
-      // First update
+      // First update with simplified type handling
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(data as any)
+        .update(data)
         .eq(idField, id);
       
       if (updateError) throw updateError;
       
-      // Then fetch the updated record
+      // Then fetch the updated record with simplified handling
       const { data: result, error: fetchError } = await supabase
         .from(tableName)
         .select('*')
@@ -145,8 +145,8 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       }
       
       handleSuccess(successMessage);
-      // Break the deep type instantiation by using any as an intermediate step
-      return result as any as T;
+      // Simplify type casting to avoid deep instantiation
+      return result as any;
     } catch (error) {
       return handleError(error, `Não foi possível atualizar o item em ${tableName}`);
     } finally {
