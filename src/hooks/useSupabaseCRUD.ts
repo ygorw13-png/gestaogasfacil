@@ -17,6 +17,13 @@ interface SupabaseOperationOptions {
   idField?: string;
 }
 
+// Interface para resultado de operações para evitar recursão infinita
+interface OperationResult<T> {
+  success: boolean;
+  data: T | null;
+  error?: Error | null;
+}
+
 /**
  * Hook para operações CRUD no Supabase com tratamento de erro padronizado
  */
@@ -28,6 +35,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
 
   // Função comum para manipular o início e fim de cada operação
+  // Usamos um tipo explícito de retorno para evitar inferência recursiva
   const performOperation = useCallback(async <R>(
     operation: () => Promise<R | null>,
     errorMessage: string
@@ -46,7 +54,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
   }, [handleError]);
 
   // Get all records
-  const getAll = useCallback(async (options?: SupabaseCRUDOptions) => {
+  const getAll = useCallback(async (options?: SupabaseCRUDOptions): Promise<T[] | null> => {
     return performOperation<T[]>(async () => {
       const { columns = '*' } = options || {};
       
@@ -66,8 +74,12 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     }, `Não foi possível carregar dados de ${tableName}`);
   }, [tableName, performOperation]);
 
-  // Get a record by ID - usando tipo explícito para evitar recursão infinita
-  const getById = useCallback(async (id: string, options?: { columns?: string; idField?: string }) => {
+  // Get a record by ID
+  // Definimos explicitamente o tipo de retorno para evitar recursão infinita
+  const getById = useCallback(async (
+    id: string, 
+    options?: { columns?: string; idField?: string }
+  ): Promise<T | null> => {
     return performOperation<T>(async () => {
       const { columns = '*', idField = 'id' } = options || {};
       
@@ -79,20 +91,19 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       
       if (error) throw error;
       
-      if (!data) return null;
-      
-      return data as T;
+      return data as T | null;
     }, `Não foi possível carregar o item de ${tableName}`);
   }, [tableName, performOperation]);
 
   // Create a new record
   const create = useCallback(async (
-    data: Record<string, any>, 
+    data: Partial<T>,
     options?: SupabaseOperationOptions
-  ) => {
+  ): Promise<T | null> => {
     return performOperation<T>(async () => {
       const { successMessage = "Item criado com sucesso" } = options || {};
       
+      // Usamos 'as any' apenas na interface com o Supabase para evitar problemas de tipo
       const { data: result, error } = await supabase
         .from(tableName)
         .insert(data as any)
@@ -109,16 +120,16 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
   // Update an existing record
   const update = useCallback(async (
     id: string, 
-    data: Record<string, any>, 
+    data: Partial<T>, 
     options?: SupabaseOperationOptions
-  ) => {
+  ): Promise<T | null> => {
     return performOperation<T>(async () => {
       const { 
         successMessage = "Item atualizado com sucesso",
         idField = 'id'
       } = options || {};
       
-      // First update - using any to bypass type checking
+      // Usamos 'as any' apenas na interface com o Supabase
       const { error: updateError } = await supabase
         .from(tableName)
         .update(data as any)
@@ -149,7 +160,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
   const remove = useCallback(async (
     id: string, 
     options?: SupabaseOperationOptions
-  ) => {
+  ): Promise<boolean> => {
     return performOperation<boolean>(async () => {
       const { 
         successMessage = "Item excluído com sucesso",
