@@ -1,8 +1,7 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { customTables } from "@/integrations/supabase/customClient";
 import { CylinderLoan } from "@/types/supabaseTypes";
 import { CylinderLoanForm } from "./cylinder-control/CylinderLoanForm";
@@ -12,6 +11,7 @@ import { Client, CylinderLoanFormData } from "./cylinder-control/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
+import { fetchData } from "@/services/supabase/crud";
 
 export function CylinderControl() {
   const { user } = useAuth();
@@ -24,7 +24,7 @@ export function CylinderControl() {
   const { handleError } = useErrorHandler();
 
   // Função para carregar empréstimos
-  const fetchLoans = async () => {
+  const fetchLoans = useCallback(async () => {
     setDataLoading(true);
     try {
       const { data, error: loansError } = await customTables.cylinderLoans.select();
@@ -41,7 +41,32 @@ export function CylinderControl() {
     } finally {
       setDataLoading(false);
     }
-  };
+  }, []);
+
+  // Função para buscar clientes do banco de dados
+  const fetchClients = useCallback(async () => {
+    try {
+      const response = await fetchData('clients', {
+        columns: 'id,name'
+      });
+      
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      
+      // Transformar os dados de clientes no formato esperado
+      const clientsData = response.data?.map(client => ({
+        id: client.id as string,
+        name: client.name as string
+      })) || [];
+      
+      setClients(clientsData);
+    } catch (err: any) {
+      console.error("Erro ao buscar clientes:", err);
+      setError(prev => prev || "Erro ao carregar lista de clientes");
+      handleError(err, "Erro ao carregar lista de clientes");
+    }
+  }, [handleError]);
 
   // Carregar dados iniciais: empréstimos e clientes
   useEffect(() => {
@@ -49,23 +74,8 @@ export function CylinderControl() {
     fetchLoans();
     
     // Buscar clientes
-    const fetchClients = async () => {
-      try {
-        const { data, error: clientsError } = await supabase.from('clients').select('id, name');
-        
-        if (clientsError) {
-          throw clientsError;
-        }
-        
-        setClients(data || []);
-      } catch (err: any) {
-        console.error("Erro ao buscar clientes:", err);
-        setError(prev => prev || "Erro ao carregar lista de clientes");
-      }
-    };
-    
     fetchClients();
-  }, []);
+  }, [fetchLoans, fetchClients]);
 
   const handleRegisterLoan = async (data: CylinderLoanFormData) => {
     setLoading(true);

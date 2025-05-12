@@ -1,10 +1,11 @@
 
-import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { StockConfig } from "@/types/supabaseTypes";
-import { stockConfigTable } from "@/integrations/supabase/tables/stockConfig";
+import { Card, CardContent } from "@/components/ui/card";
+import { 
+  Archive, 
+  DropletHalf, 
+  Archive as ArchiveIcon20, 
+  Archive as ArchiveIcon45 
+} from "lucide-react";
 
 interface StockOverviewProps {
   currentStock: {
@@ -13,105 +14,63 @@ interface StockOverviewProps {
     p45: number;
     water: number;
   };
+  minStock?: {
+    p13: number;
+    p20: number;
+    p45: number;
+    water: number;
+  };
 }
 
-export function StockOverview({ currentStock }: StockOverviewProps) {
-  const [loading, setLoading] = useState(true);
-  const [minStock, setMinStock] = useState({
-    p13: 20,
-    p20: 5,
-    p45: 5,
-    water: 20
-  });
-
-  useEffect(() => {
-    const fetchStockConfig = async () => {
-      try {
-        const { data, error } = await stockConfigTable.select();
-        
-        if (error) throw error;
-        
-        if (data && Array.isArray(data)) {
-          const p13Config = data.find(item => item.id === 'P13');
-          const p20Config = data.find(item => item.id === 'P20');
-          const p45Config = data.find(item => item.id === 'P45');
-          const aguaConfig = data.find(item => item.id === 'agua');
-          
-          setMinStock({
-            p13: p13Config?.estoque_minimo || 20,
-            p20: p20Config?.estoque_minimo || 5,
-            p45: p45Config?.estoque_minimo || 5,
-            water: aguaConfig?.estoque_minimo || 20
-          });
-        }
-      } catch (error) {
-        console.error("Erro ao buscar configurações de estoque:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStockConfig();
-  }, []);
-  
-  const getStockStatus = (current: number, min: number) => {
-    if (current <= 0) return { status: 'critical', color: 'bg-red-500' };
-    if (current < min) return { status: 'low', color: 'bg-yellow-500' };
-    return { status: 'ok', color: 'bg-green-500' };
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center p-4">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
-  }
-
+export function StockOverview({ 
+  currentStock,
+  minStock = { p13: 20, p20: 5, p45: 5, water: 20 }
+}: StockOverviewProps) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      <TooltipProvider>
-        {[
-          { name: 'GLP P13', value: currentStock.p13, min: minStock.p13 },
-          { name: 'GLP P20', value: currentStock.p20, min: minStock.p20 },
-          { name: 'GLP P45', value: currentStock.p45, min: minStock.p45 },
-          { name: 'Água 20L', value: currentStock.water, min: minStock.water }
-        ].map((item) => {
-          const { status, color } = getStockStatus(item.value, item.min);
-          return (
-            <Tooltip key={item.name}>
-              <TooltipTrigger asChild>
-                <Card className="p-4 relative overflow-hidden">
-                  <div className={`absolute bottom-0 left-0 right-0 h-1 ${color}`}></div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">{item.name}</span>
-                    {status === 'ok' ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <AlertCircle className={`h-5 w-5 ${status === 'low' ? 'text-yellow-500' : 'text-red-500'}`} />
-                    )}
-                  </div>
-                  <div className="mt-2">
-                    <div className="text-3xl font-bold">{item.value}</div>
-                    <div className="text-xs text-muted-foreground">
-                      Mínimo: {item.min}
-                    </div>
-                  </div>
-                </Card>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  {status === 'ok' 
-                    ? 'Estoque adequado' 
-                    : status === 'low' 
-                      ? 'Estoque baixo, considere reabastecer' 
-                      : 'Estoque crítico!'}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          );
-        })}
-      </TooltipProvider>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <Card className={currentStock.p13 < minStock.p13 ? "border-red-500" : "border-gray-200"}>
+        <CardContent className="pt-6 px-4 flex items-center justify-between">
+          <div>
+            <div className="text-3xl font-bold">{currentStock.p13}</div>
+            <p className="text-sm text-muted-foreground">Estoque GLP P13</p>
+            <p className="text-xs text-gray-500">Mínimo: {minStock.p13}</p>
+          </div>
+          <Archive className="h-10 w-10 text-blue-600 opacity-80" />
+        </CardContent>
+      </Card>
+      
+      <Card className={currentStock.p20 < minStock.p20 ? "border-red-500" : "border-gray-200"}>
+        <CardContent className="pt-6 px-4 flex items-center justify-between">
+          <div>
+            <div className="text-3xl font-bold">{currentStock.p20}</div>
+            <p className="text-sm text-muted-foreground">Estoque GLP P20</p>
+            <p className="text-xs text-gray-500">Mínimo: {minStock.p20}</p>
+          </div>
+          <ArchiveIcon20 className="h-10 w-10 text-green-600 opacity-80" />
+        </CardContent>
+      </Card>
+      
+      <Card className={currentStock.p45 < minStock.p45 ? "border-red-500" : "border-gray-200"}>
+        <CardContent className="pt-6 px-4 flex items-center justify-between">
+          <div>
+            <div className="text-3xl font-bold">{currentStock.p45}</div>
+            <p className="text-sm text-muted-foreground">Estoque GLP P45</p>
+            <p className="text-xs text-gray-500">Mínimo: {minStock.p45}</p>
+          </div>
+          <ArchiveIcon45 className="h-10 w-10 text-indigo-600 opacity-80" />
+        </CardContent>
+      </Card>
+      
+      <Card className={currentStock.water < minStock.water ? "border-red-500" : "border-gray-200"}>
+        <CardContent className="pt-6 px-4 flex items-center justify-between">
+          <div>
+            <div className="text-3xl font-bold">{currentStock.water}</div>
+            <p className="text-sm text-muted-foreground">Estoque Água 20L</p>
+            <p className="text-xs text-gray-500">Mínimo: {minStock.water}</p>
+          </div>
+          <DropletHalf className="h-10 w-10 text-cyan-600 opacity-80" />
+        </CardContent>
+      </Card>
     </div>
   );
 }

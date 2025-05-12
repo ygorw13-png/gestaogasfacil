@@ -1,10 +1,6 @@
 
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, Loader2 } from "lucide-react";
-import { StockConfig } from "@/types/supabaseTypes";
-import { stockConfigTable } from "@/integrations/supabase/tables/stockConfig";
+import { AlertOctagon } from "lucide-react";
 
 interface StockAlertProps {
   currentStock: {
@@ -13,114 +9,51 @@ interface StockAlertProps {
     p45: number;
     water: number;
   };
+  minStock?: {
+    p13: number;
+    p20: number;
+    p45: number;
+    water: number;
+  };
 }
 
-export function StockAlert({ currentStock }: StockAlertProps) {
-  const [stockConfigs, setStockConfigs] = useState<StockConfig[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStockConfigs = async () => {
-      try {
-        const { data, error } = await stockConfigTable.select();
-        
-        if (error) throw error;
-        
-        if (data && Array.isArray(data)) {
-          setStockConfigs(data);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar configurações de estoque:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStockConfigs();
-  }, []);
-
-  const getAlerts = () => {
-    if (loading || stockConfigs.length === 0) return [];
-    
-    const alerts = [];
-    
-    const p13Config = stockConfigs.find(config => config.id === 'P13');
-    if (p13Config && p13Config.alerta_ativo && currentStock.p13 < p13Config.estoque_minimo) {
-      alerts.push({
-        product: "GLP P13",
-        current: currentStock.p13,
-        minimum: p13Config.estoque_minimo
-      });
-    }
-    
-    const p20Config = stockConfigs.find(config => config.id === 'P20');
-    if (p20Config && p20Config.alerta_ativo && currentStock.p20 < p20Config.estoque_minimo) {
-      alerts.push({
-        product: "GLP P20",
-        current: currentStock.p20,
-        minimum: p20Config.estoque_minimo
-      });
-    }
-    
-    const p45Config = stockConfigs.find(config => config.id === 'P45');
-    if (p45Config && p45Config.alerta_ativo && currentStock.p45 < p45Config.estoque_minimo) {
-      alerts.push({
-        product: "GLP P45",
-        current: currentStock.p45,
-        minimum: p45Config.estoque_minimo
-      });
-    }
-    
-    const aguaConfig = stockConfigs.find(config => config.id === 'agua');
-    if (aguaConfig && aguaConfig.alerta_ativo && currentStock.water < aguaConfig.estoque_minimo) {
-      alerts.push({
-        product: "Água 20L",
-        current: currentStock.water,
-        minimum: aguaConfig.estoque_minimo
-      });
-    }
-    
-    return alerts;
+export function StockAlert({ 
+  currentStock, 
+  minStock = { p13: 20, p20: 5, p45: 5, water: 20 } 
+}: StockAlertProps) {
+  // Verificar se algum produto está com estoque baixo
+  const lowStock = {
+    p13: currentStock.p13 < minStock.p13,
+    p20: currentStock.p20 < minStock.p20,
+    p45: currentStock.p45 < minStock.p45,
+    water: currentStock.water < minStock.water
   };
 
-  const alerts = getAlerts();
-  
-  if (loading) {
-    return (
-      <Card className="border-orange-200 bg-orange-50">
-        <CardContent className="p-4 flex justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-orange-700" />
-        </CardContent>
-      </Card>
-    );
-  }
-  
-  if (alerts.length === 0) {
-    return null;
-  }
+  const hasLowStock = lowStock.p13 || lowStock.p20 || lowStock.p45 || lowStock.water;
+
+  if (!hasLowStock) return null;
 
   return (
-    <Card className="border-orange-200 bg-orange-50">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg text-orange-700 flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5" /> 
-          Alertas de Estoque Mínimo
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          {alerts.map((alert, index) => (
-            <Alert key={index} variant="destructive" className="bg-white border-orange-300">
-              <AlertTitle className="text-orange-800">{alert.product}</AlertTitle>
-              <AlertDescription className="text-orange-700">
-                Estoque atual: <strong>{alert.current}</strong> unidades
-                <br/>
-                Estoque mínimo recomendado: <strong>{alert.minimum}</strong> unidades
-              </AlertDescription>
-            </Alert>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <Alert variant="warning">
+      <AlertOctagon className="h-4 w-4" />
+      <AlertTitle>Atenção ao estoque!</AlertTitle>
+      <AlertDescription>
+        <p>Os seguintes produtos estão com estoque abaixo do mínimo recomendado:</p>
+        <ul className="list-disc list-inside mt-2">
+          {lowStock.p13 && (
+            <li>GLP P13: {currentStock.p13} unidades (mínimo: {minStock.p13})</li>
+          )}
+          {lowStock.p20 && (
+            <li>GLP P20: {currentStock.p20} unidades (mínimo: {minStock.p20})</li>
+          )}
+          {lowStock.p45 && (
+            <li>GLP P45: {currentStock.p45} unidades (mínimo: {minStock.p45})</li>
+          )}
+          {lowStock.water && (
+            <li>Água 20L: {currentStock.water} unidades (mínimo: {minStock.water})</li>
+          )}
+        </ul>
+      </AlertDescription>
+    </Alert>
   );
 }

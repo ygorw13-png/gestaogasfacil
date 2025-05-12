@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,8 @@ import { Loader2, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertBar } from "@/components/ui/AlertBar";
+import { supabase } from "@/integrations/supabase/client";
+import { fetchData, updateData } from "@/services/supabase/crud"; 
 
 interface StockUpdateFormProps {
   currentStock: {
@@ -36,6 +38,16 @@ export function StockUpdateForm({ currentStock, onUpdateStock }: StockUpdateForm
     p45: currentStock.p45,
     water: currentStock.water
   });
+  
+  // Atualiza os valores do formulário quando currentStock mudar
+  useEffect(() => {
+    setStockValues({
+      p13: currentStock.p13,
+      p20: currentStock.p20,
+      p45: currentStock.p45,
+      water: currentStock.water
+    });
+  }, [currentStock]);
 
   const handleInputChange = (field: keyof typeof stockValues, value: string) => {
     const numValue = parseInt(value, 10) || 0;
@@ -61,6 +73,31 @@ export function StockUpdateForm({ currentStock, onUpdateStock }: StockUpdateForm
     setError(null);
     
     try {
+      // Atualizar o estoque no dashboard_data
+      const { data: dashboardData } = await supabase
+        .from('dashboard_data')
+        .select('id')
+        .maybeSingle();
+      
+      if (dashboardData?.id) {
+        const stockData = {
+          stock_data: {
+            p13: stockValues.p13,
+            p20: stockValues.p20,
+            p45: stockValues.p45,
+            water: stockValues.water
+          },
+          updated_at: new Date().toISOString()
+        };
+        
+        const updateResult = await updateData('dashboard_data', dashboardData.id, stockData);
+        
+        if (updateResult.error) {
+          throw new Error(updateResult.error.message);
+        }
+      }
+      
+      // Chamar a função fornecida para atualizar o estado no componente pai
       await onUpdateStock(stockValues);
       
       setSuccess(true);

@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -9,10 +10,12 @@ import { StockRequestsList } from "./components/StockRequestsList";
 import { CylinderControl } from "./components/CylinderControl";
 import { StockUpdateForm } from "./components/StockUpdateForm";
 import { StockOverview } from "./components/StockOverview";
+import { InventoryApp } from "./components/inventory";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { syncStockWithDashboard } from "@/pages/dashboard/data";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchData } from "@/services/supabase/crud";
 
 // Define a stock data interface for proper typing
 interface StockData {
@@ -34,24 +37,23 @@ export default function Inventory() {
     p45: 0,
     water: 0
   });
-
+  
   // Função para buscar o estoque atual do dashboard
-  const fetchCurrentStock = async () => {
+  const fetchCurrentStock = useCallback(async () => {
     setLoading(true);
     try {
       // Buscar dados do dashboard
-      const { data, error } = await supabase
-        .from('dashboard_data')
-        .select('stock_data')
-        .maybeSingle();
+      const response = await fetchData('dashboard_data', {
+        columns: 'stock_data'
+      });
       
-      if (error) {
-        throw error;
+      if (response.error) {
+        throw new Error(response.error.message);
       }
-
-      if (data && data.stock_data) {
+      
+      if (response.data && response.data.length > 0 && response.data[0].stock_data) {
         // First cast to unknown, then to our expected type to avoid TypeScript errors
-        const stockData = data.stock_data as unknown as Record<string, number>;
+        const stockData = response.data[0].stock_data as unknown as Record<string, number>;
         setCurrentStock({
           p13: stockData.p13 || 0,
           p20: stockData.p20 || 0,
@@ -85,11 +87,12 @@ export default function Inventory() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
+  // Buscar estoque atual ao carregar o componente ou quando refreshCounter mudar
   useEffect(() => {
     fetchCurrentStock();
-  }, [refreshCounter]);
+  }, [fetchCurrentStock, refreshCounter]);
 
   const handleRequestCreated = () => {
     setRefreshCounter(prev => prev + 1);
@@ -114,6 +117,46 @@ export default function Inventory() {
     }
   };
 
+  // Buscar as configurações de estoque mínimo
+  const [minStock, setMinStock] = useState({
+    p13: 20,
+    p20: 5,
+    p45: 5,
+    water: 20
+  });
+
+  // Função para buscar os níveis mínimos de estoque
+  const fetchMinStockLevels = useCallback(async () => {
+    try {
+      const response = await fetchData('configuracoes_estoque');
+      
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      
+      if (response.data && response.data.length > 0) {
+        const p13Config = response.data.find((config: any) => config.id === 'P13');
+        const p20Config = response.data.find((config: any) => config.id === 'P20');
+        const p45Config = response.data.find((config: any) => config.id === 'P45');
+        const aguaConfig = response.data.find((config: any) => config.id === 'agua');
+        
+        setMinStock({
+          p13: p13Config?.estoque_minimo || 20,
+          p20: p20Config?.estoque_minimo || 5,
+          p45: p45Config?.estoque_minimo || 5,
+          water: aguaConfig?.estoque_minimo || 20
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao buscar níveis mínimos de estoque:", error);
+    }
+  }, []);
+
+  // Buscar níveis mínimos de estoque ao carregar o componente
+  useEffect(() => {
+    fetchMinStockLevels();
+  }, [fetchMinStockLevels]);
+
   // Prepare inventory table props with complete properties matching the interface
   const inventoryData: InventoryItem[] = [
     { 
@@ -121,8 +164,8 @@ export default function Inventory() {
       product: "GLP P13", 
       stock: currentStock.p13, 
       category: "GLP", 
-      min_stock: 20,
-      status: "Disponível",
+      min_stock: minStock.p13,
+      status: currentStock.p13 >= minStock.p13 ? "Disponível" : "Estoque Baixo",
       location: "Estoque",
       quantity: currentStock.p13,
       type: "GLP",
@@ -133,8 +176,8 @@ export default function Inventory() {
       product: "GLP P20", 
       stock: currentStock.p20, 
       category: "GLP", 
-      min_stock: 5,
-      status: "Disponível",
+      min_stock: minStock.p20,
+      status: currentStock.p20 >= minStock.p20 ? "Disponível" : "Estoque Baixo",
       location: "Estoque",
       quantity: currentStock.p20,
       type: "GLP",
@@ -145,8 +188,8 @@ export default function Inventory() {
       product: "GLP P45", 
       stock: currentStock.p45, 
       category: "GLP", 
-      min_stock: 5,
-      status: "Disponível",
+      min_stock: minStock.p45,
+      status: currentStock.p45 >= minStock.p45 ? "Disponível" : "Estoque Baixo",
       location: "Estoque",
       quantity: currentStock.p45,
       type: "GLP",
@@ -157,8 +200,8 @@ export default function Inventory() {
       product: "Água 20L", 
       stock: currentStock.water, 
       category: "Água", 
-      min_stock: 20,
-      status: "Disponível",
+      min_stock: minStock.water,
+      status: currentStock.water >= minStock.water ? "Disponível" : "Estoque Baixo",
       location: "Estoque",
       quantity: currentStock.water,
       type: "Água",
@@ -184,9 +227,9 @@ export default function Inventory() {
       </div>
 
       {/* Stock overview boxes */}
-      <StockOverview currentStock={currentStock} />
+      <StockOverview currentStock={currentStock} minStock={minStock} />
 
-      <StockAlert currentStock={currentStock} />
+      <StockAlert currentStock={currentStock} minStock={minStock} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5">
@@ -198,12 +241,7 @@ export default function Inventory() {
         </TabsList>
         
         <TabsContent value="inventory" className="space-y-4">
-          <div className="space-y-4 mt-4">
-            <InventoryTable 
-              data={inventoryData} 
-              filterText="" 
-            />
-          </div>
+          <InventoryApp />
         </TabsContent>
         
         <TabsContent value="requests" className="space-y-4">
