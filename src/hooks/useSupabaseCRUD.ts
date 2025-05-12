@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "@/services/supabaseService";
 import { useSupabaseErrorHandler, buildSupabaseQuery } from "./useSupabaseHelpers";
+import { PostgrestError } from "@supabase/supabase-js";
 
 interface SupabaseCRUDOptions {
   columns?: string;
@@ -37,7 +38,9 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     try {
       return await operation();
     } catch (error) {
-      return handleError(error, errorMessage);
+      // Corrigindo o retorno do handleError para null explicitamente
+      handleError(error, errorMessage);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -60,7 +63,8 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       
       if (error) throw error;
       
-      return data as any[];
+      // Simplificado para evitar problemas de tipo
+      return data as T[];
     }, `Não foi possível carregar dados de ${tableName}`);
   }, [tableName, performOperation]);
 
@@ -77,7 +81,8 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       
       if (error) throw error;
       
-      return data;
+      // Usando type assertion mais simples
+      return data as T;
     }, `Não foi possível carregar o item de ${tableName}`);
   }, [tableName, performOperation]);
 
@@ -89,17 +94,18 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     return performOperation(async () => {
       const { successMessage = "Item criado com sucesso" } = options || {};
       
+      // Usar any para evitar problemas de tipo com o Supabase
       const { data: result, error } = await supabase
         .from(tableName)
-        .insert(data)
+        .insert(data as any)
         .select()
         .single();
       
       if (error) throw error;
       
       handleSuccess(successMessage);
-      // Use simplificado para evitar recursão de tipo
-      return result;
+      // Type assertion simplificada
+      return result as T;
     }, `Não foi possível criar o item em ${tableName}`);
   }, [tableName, handleSuccess, performOperation]);
 
@@ -115,10 +121,10 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
         idField = 'id'
       } = options || {};
       
-      // First update
+      // First update - using any to bypass type checking
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(data)
+        .update(data as any)
         .eq(idField, id);
       
       if (updateError) throw updateError;
@@ -138,8 +144,8 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       
       handleSuccess(successMessage);
       
-      // Simplificar o retorno para evitar problemas de tipo
-      return result;
+      // Type assertion simplificada
+      return result as T;
     }, `Não foi possível atualizar o item em ${tableName}`);
   }, [tableName, handleSuccess, performOperation]);
 
