@@ -48,7 +48,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
 
   // Get all records
   const getAll = useCallback(async (options?: SupabaseCRUDOptions) => {
-    return performOperation(async () => {
+    return performOperation<T[]>(async () => {
       const { columns = '*' } = options || {};
       
       // Create base query
@@ -68,9 +68,9 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     }, `Não foi possível carregar dados de ${tableName}`);
   }, [tableName, performOperation]);
 
-  // Get a record by ID
+  // Get a record by ID - simplificamos o tipo para evitar recursão profunda
   const getById = useCallback(async (id: string, options?: { columns?: string; idField?: string }) => {
-    return performOperation(async () => {
+    return performOperation<T | null>(async () => {
       const { columns = '*', idField = 'id' } = options || {};
       
       const { data, error } = await supabase
@@ -80,6 +80,8 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
         .maybeSingle();
       
       if (error) throw error;
+      
+      if (!data) return null;
       
       // Usando type assertion mais simples
       return data as T;
@@ -91,7 +93,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     data: Record<string, any>, 
     options?: SupabaseOperationOptions
   ) => {
-    return performOperation(async () => {
+    return performOperation<T>(async () => {
       const { successMessage = "Item criado com sucesso" } = options || {};
       
       // Usar any para evitar problemas de tipo com o Supabase
@@ -115,7 +117,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     data: Record<string, any>, 
     options?: SupabaseOperationOptions
   ) => {
-    return performOperation(async () => {
+    return performOperation<T>(async () => {
       const { 
         successMessage = "Item atualizado com sucesso",
         idField = 'id'
@@ -154,7 +156,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     id: string, 
     options?: SupabaseOperationOptions
   ) => {
-    return performOperation(async () => {
+    return performOperation<boolean>(async () => {
       const { 
         successMessage = "Item excluído com sucesso",
         idField = 'id'
