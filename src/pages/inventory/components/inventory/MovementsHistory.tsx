@@ -11,17 +11,21 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { InventoryMovement } from "@/hooks/supabase/useInventory";
+import { useMemo } from "react";
 
 interface MovementsHistoryProps {
   movements: InventoryMovement[];
 }
 
 export function MovementsHistory({ movements }: MovementsHistoryProps) {
-  const sortedMovements = [...movements].sort((a, b) => {
-    const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-    const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-    return dateB - dateA; // Ordenar da mais recente para a mais antiga
-  });
+  // Memorizar o sorting para evitar recalcular em cada renderização
+  const sortedMovements = useMemo(() => {
+    return [...movements].sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateB - dateA; // Ordenar da mais recente para a mais antiga
+    });
+  }, [movements]);
 
   return (
     <div className="border rounded-md">
@@ -69,6 +73,7 @@ export function MovementsHistory({ movements }: MovementsHistoryProps) {
   );
 }
 
+// Função helper para determinar a variante do Badge com base no tipo
 function getVariantByType(type: string): "default" | "secondary" | "destructive" {
   switch (type) {
     case "entrada":
@@ -79,3 +84,6 @@ function getVariantByType(type: string): "default" | "secondary" | "destructive"
       return "secondary";
   }
 }
+
+// Exportar o componente memorizado para evitar renderizações desnecessárias
+export default React.memo(MovementsHistory);

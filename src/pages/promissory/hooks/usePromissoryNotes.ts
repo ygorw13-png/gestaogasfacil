@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { PromissoryNote, PromissoryStatus } from "../types";
 import { overviewData } from "@/pages/dashboard/data";
@@ -17,7 +17,7 @@ export function usePromissoryNotes() {
     fetchPromissoryNotes();
   }, []);
 
-  const fetchPromissoryNotes = async (): Promise<void> => {
+  const fetchPromissoryNotes = useCallback(async (): Promise<void> => {
     try {
       // Por enquanto vamos continuar com os dados mocados
       // Em uma implementação real, aqui faríamos uma chamada ao Supabase
@@ -34,36 +34,48 @@ export function usePromissoryNotes() {
       console.error("Erro ao buscar promissórias:", error);
       setLoading(false);
     }
-  };
+  }, []);
   
   // Atualizar dados do dashboard com base nas promissórias
-  const updateDashboardData = (notes: PromissoryNote[]): void => {
+  const updateDashboardData = useCallback((notes: PromissoryNote[]): void => {
     const pendingNotes = notes.filter(note => note.status === "pending" || note.status === "overdue");
     const pendingValue = pendingNotes.reduce((sum, note) => sum + note.value, 0);
     
     // Atualizar os dados do dashboard
     overviewData.promissoryNotes = pendingNotes.length;
     overviewData.promissoryValue = `R$ ${pendingValue.toFixed(2).replace('.', ',')}`;
-  };
+  }, []);
 
-  // Filtrar notas com base no status e cliente selecionados
-  const filteredNotes = promissoryNotes.filter(note => {
-    const statusMatch = selectedStatus === 'all' || note.status === selectedStatus;
-    const clientMatch = selectedClient === 'all' || note.clientName === selectedClient;
-    return statusMatch && clientMatch;
-  });
+  // Filtrar notas com base no status e cliente selecionados - usando useMemo para otimização
+  const filteredNotes = useMemo(() => {
+    return promissoryNotes.filter(note => {
+      const statusMatch = selectedStatus === 'all' || note.status === selectedStatus;
+      const clientMatch = selectedClient === 'all' || note.clientName === selectedClient;
+      return statusMatch && clientMatch;
+    });
+  }, [promissoryNotes, selectedStatus, selectedClient]);
 
-  // Separar as notas por status
-  const pendingNotes = filteredNotes.filter(
-    note => note.status === "pending" || note.status === "overdue"
-  );
-  const assignedNotes = filteredNotes.filter(note => note.status === "assigned");
-  const paidNotes = filteredNotes.filter(note => note.status === "paid");
+  // Separar as notas por status - usando useMemo para evitar recálculos
+  const pendingNotes = useMemo(() => {
+    return filteredNotes.filter(
+      note => note.status === "pending" || note.status === "overdue"
+    );
+  }, [filteredNotes]);
+  
+  const assignedNotes = useMemo(() => {
+    return filteredNotes.filter(note => note.status === "assigned");
+  }, [filteredNotes]);
+  
+  const paidNotes = useMemo(() => {
+    return filteredNotes.filter(note => note.status === "paid");
+  }, [filteredNotes]);
 
-  // Extrair lista única de clientes para o filtro
-  const clients = [...new Set(promissoryNotes.map(note => note.clientName))];
+  // Extrair lista única de clientes para o filtro - usando useMemo
+  const clients = useMemo(() => {
+    return [...new Set(promissoryNotes.map(note => note.clientName))];
+  }, [promissoryNotes]);
 
-  const addPromissoryNote = (note: Omit<PromissoryNote, 'id' | 'createdAt'>): void => {
+  const addPromissoryNote = useCallback((note: Omit<PromissoryNote, 'id' | 'createdAt'>): void => {
     const newNote: PromissoryNote = {
       id: (Math.random() * 1000).toFixed(0),
       clientName: note.clientName,
@@ -74,67 +86,72 @@ export function usePromissoryNotes() {
       assignedTo: note.assignedTo
     };
 
-    const updatedNotes = [newNote, ...promissoryNotes];
-    setPromissoryNotes(updatedNotes);
-    
-    // Atualizar dados do dashboard
-    updateDashboardData(updatedNotes);
+    setPromissoryNotes(prevNotes => {
+      const updatedNotes = [newNote, ...prevNotes];
+      // Atualizar dados do dashboard
+      updateDashboardData(updatedNotes);
+      return updatedNotes;
+    });
     
     toast({
       title: "Promissória Adicionada",
       description: `Promissória de R$ ${note.value.toFixed(2)} para ${note.clientName} registrada com sucesso.`
     });
-  };
+  }, [toast, updateDashboardData]);
 
-  const handleAssign = (collector: string): void => {
+  const handleAssign = useCallback((collector: string): void => {
     if (selectedNoteId) {
-      const updatedNotes = promissoryNotes.map((note) => {
-        if (note.id === selectedNoteId) {
-          return {
-            ...note,
-            status: 'assigned' as PromissoryStatus,
-            assignedTo: collector,
-          };
-        }
-        return note;
+      setPromissoryNotes(prevNotes => {
+        const updatedNotes = prevNotes.map((note) => {
+          if (note.id === selectedNoteId) {
+            return {
+              ...note,
+              status: 'assigned' as PromissoryStatus,
+              assignedTo: collector,
+            };
+          }
+          return note;
+        });
+        
+        // Atualizar dados do dashboard
+        updateDashboardData(updatedNotes);
+        
+        return updatedNotes;
       });
-      
-      setPromissoryNotes(updatedNotes);
-      
-      // Atualizar dados do dashboard
-      updateDashboardData(updatedNotes);
 
       toast({
         title: "Promissória Atribuída",
         description: `Promissória atribuída a ${collector} com sucesso.`
       });
     }
-  };
+  }, [selectedNoteId, toast, updateDashboardData]);
 
-  const handlePayment = (amount: number, method: string): void => {
+  const handlePayment = useCallback((amount: number, method: string): void => {
     if (selectedNoteId) {
-      const updatedNotes = promissoryNotes.map((note) => {
-        if (note.id === selectedNoteId) {
-          return {
-            ...note,
-            status: 'paid' as PromissoryStatus,
-            paidAt: new Date()
-          };
-        }
-        return note;
+      setPromissoryNotes(prevNotes => {
+        const updatedNotes = prevNotes.map((note) => {
+          if (note.id === selectedNoteId) {
+            return {
+              ...note,
+              status: 'paid' as PromissoryStatus,
+              paidAt: new Date()
+            };
+          }
+          return note;
+        });
+        
+        // Atualizar dados do dashboard
+        updateDashboardData(updatedNotes);
+        
+        return updatedNotes;
       });
-      
-      setPromissoryNotes(updatedNotes);
-      
-      // Atualizar dados do dashboard
-      updateDashboardData(updatedNotes);
 
       toast({
         title: "Promissória Paga",
         description: "Promissória marcada como paga com sucesso."
       });
     }
-  };
+  }, [selectedNoteId, toast, updateDashboardData]);
 
   interface NewPromissoryData {
     clientName: string;
@@ -143,7 +160,7 @@ export function usePromissoryNotes() {
     collector: string | null;
   }
 
-  const handleNewPromissory = (data: NewPromissoryData): void => {
+  const handleNewPromissory = useCallback((data: NewPromissoryData): void => {
     addPromissoryNote({
       clientName: data.clientName,
       value: data.value,
@@ -151,20 +168,20 @@ export function usePromissoryNotes() {
       status: data.collector ? 'assigned' : 'pending',
       assignedTo: data.collector || undefined
     });
-  };
+  }, [addPromissoryNote]);
 
   return {
     promissoryNotes,
     loading,
     addPromissoryNote,
-    assignPromissoryNote: (id: string, collector: string) => {
+    assignPromissoryNote: useCallback((id: string, collector: string) => {
       setSelectedNoteId(id);
       handleAssign(collector);
-    },
-    markPromissoryAsPaid: (id: string) => {
+    }, [setSelectedNoteId, handleAssign]),
+    markPromissoryAsPaid: useCallback((id: string) => {
       setSelectedNoteId(id);
       handlePayment(0, "");
-    },
+    }, [setSelectedNoteId, handlePayment]),
     notes: promissoryNotes,
     filteredNotes,
     pendingNotes,

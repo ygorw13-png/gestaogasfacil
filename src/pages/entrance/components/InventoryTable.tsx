@@ -28,12 +28,12 @@ export const InventoryTable = React.memo(({ data, inventoryMovements }: Inventor
     }
   }, [inventoryMovements]);
 
+  // Memoize the calculation function to avoid recalculating on each render
   const calculateExpectedFinal = useMemo(() => {
     return (item: any) => {
       const loanValue = loans[item.product] || 0;
       const returnValue = returns[item.product] || 0;
-      const expected = item.initial + item.additions - item.sales - loanValue + returnValue;
-      return expected;
+      return item.initial + item.additions - item.sales - loanValue + returnValue;
     };
   }, [loans, returns]);
 
@@ -90,3 +90,6 @@ export const InventoryTable = React.memo(({ data, inventoryMovements }: Inventor
     </div>
   );
 });
+
+// Garantir que o displayName seja definido para melhor depuração
+InventoryTable.displayName = 'InventoryTable';

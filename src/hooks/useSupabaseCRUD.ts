@@ -38,7 +38,6 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     try {
       return await operation();
     } catch (error) {
-      // Corrigindo o retorno do handleError para null explicitamente
       handleError(error, errorMessage);
       return null;
     } finally {
@@ -63,12 +62,11 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       
       if (error) throw error;
       
-      // Simplificado para evitar problemas de tipo
       return data as T[];
     }, `Não foi possível carregar dados de ${tableName}`);
   }, [tableName, performOperation]);
 
-  // Get a record by ID - simplificamos o tipo para evitar recursão profunda
+  // Get a record by ID - usando tipo explícito para evitar recursão infinita
   const getById = useCallback(async (id: string, options?: { columns?: string; idField?: string }) => {
     return performOperation<T | null>(async () => {
       const { columns = '*', idField = 'id' } = options || {};
@@ -83,7 +81,6 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       
       if (!data) return null;
       
-      // Usando type assertion mais simples
       return data as T;
     }, `Não foi possível carregar o item de ${tableName}`);
   }, [tableName, performOperation]);
@@ -96,7 +93,6 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     return performOperation<T>(async () => {
       const { successMessage = "Item criado com sucesso" } = options || {};
       
-      // Usar any para evitar problemas de tipo com o Supabase
       const { data: result, error } = await supabase
         .from(tableName)
         .insert(data as any)
@@ -106,7 +102,6 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       if (error) throw error;
       
       handleSuccess(successMessage);
-      // Type assertion simplificada
       return result as T;
     }, `Não foi possível criar o item em ${tableName}`);
   }, [tableName, handleSuccess, performOperation]);
@@ -146,7 +141,6 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       
       handleSuccess(successMessage);
       
-      // Type assertion simplificada
       return result as T;
     }, `Não foi possível atualizar o item em ${tableName}`);
   }, [tableName, handleSuccess, performOperation]);
