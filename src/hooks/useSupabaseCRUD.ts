@@ -15,7 +15,7 @@ interface SupabaseOperationOptions {
   successMessage?: string;
 }
 
-// Hook reutilizável para operações CRUD no Supabase com tratamento de erro padronizado
+// Hook for CRUD operations on Supabase with standardized error handling
 export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableName) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -23,7 +23,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
   // Use our shared error handler
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
 
-  // Buscar todos os registros
+  // Get all records
   const getAll = useCallback(async (options?: SupabaseCRUDOptions) => {
     setLoading(true);
     setError(null);
@@ -32,10 +32,12 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       const { columns = '*' } = options || {};
       
       // Create base query
-      let query = supabase.from(tableName).select(columns);
+      let query: any = supabase.from(tableName).select(columns);
       
       // Use shared query builder
-      query = buildSupabaseQuery(query, options);
+      if (options) {
+        query = buildSupabaseQuery(query, options);
+      }
       
       const { data, error } = await query;
       
@@ -49,7 +51,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     }
   }, [tableName, handleError]);
 
-  // Buscar um registro pelo ID
+  // Get a record by ID
   const getById = useCallback(async (id: string, options?: { columns?: string }) => {
     setLoading(true);
     setError(null);
@@ -73,9 +75,9 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     }
   }, [tableName, handleError]);
 
-  // Criar um novo registro
+  // Create a new record
   const create = useCallback(async (
-    data: Partial<T>, 
+    data: Record<string, any>, 
     options?: SupabaseOperationOptions
   ) => {
     setLoading(true);
@@ -84,8 +86,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     try {
       const { successMessage = "Item criado com sucesso" } = options || {};
       
-      // Cast data to any to bypass strict type checking on insert
-      // This is necessary because Supabase's types are very specific to each table
+      // Use explicit any type to bypass complex type checking
       const { data: result, error } = await supabase
         .from(tableName)
         .insert(data as any)
@@ -95,7 +96,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       if (error) throw error;
       
       handleSuccess(successMessage);
-      return result as T;
+      return result as unknown as T;
     } catch (error) {
       return handleError(error, `Não foi possível criar o item em ${tableName}`);
     } finally {
@@ -103,10 +104,10 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     }
   }, [tableName, handleError, handleSuccess]);
 
-  // Atualizar um registro existente
+  // Update an existing record
   const update = useCallback(async (
     id: string, 
-    data: Partial<T>, 
+    data: Record<string, any>, 
     options?: { 
       successMessage?: string;
       idField?: string;
@@ -143,7 +144,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       }
       
       handleSuccess(successMessage);
-      return result as T;
+      return result as unknown as T;
     } catch (error) {
       return handleError(error, `Não foi possível atualizar o item em ${tableName}`);
     } finally {
@@ -151,7 +152,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
     }
   }, [tableName, handleError, handleSuccess]);
 
-  // Excluir um registro
+  // Delete a record
   const remove = useCallback(async (
     id: string, 
     options?: { 
