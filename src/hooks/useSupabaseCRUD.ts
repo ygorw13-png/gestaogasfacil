@@ -96,7 +96,8 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       if (error) throw error;
       
       handleSuccess(successMessage);
-      return result as unknown as T;
+      // Use a simpler approach for type casting
+      return result as any as T;
     } catch (error) {
       return handleError(error, `Não foi possível criar o item em ${tableName}`);
     } finally {
@@ -144,7 +145,8 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       }
       
       handleSuccess(successMessage);
-      return result as unknown as T;
+      // Break the deep type instantiation by using any as an intermediate step
+      return result as any as T;
     } catch (error) {
       return handleError(error, `Não foi possível atualizar o item em ${tableName}`);
     } finally {
