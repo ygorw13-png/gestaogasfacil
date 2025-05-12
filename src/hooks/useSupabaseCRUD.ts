@@ -10,8 +10,13 @@ interface SupabaseCRUDOptions {
   orderBy?: { column: string; ascending?: boolean };
 }
 
+// Type for insertion and update operations
+interface SupabaseOperationOptions {
+  successMessage?: string;
+}
+
 // Hook reutilizável para operações CRUD no Supabase com tratamento de erro padronizado
-export function useSupabaseCRUD(tableName: ValidTableName) {
+export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableName) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   
@@ -36,7 +41,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
       
       if (error) throw error;
       
-      return data as Record<string, any>[];
+      return data as T[];
     } catch (error) {
       return handleError(error, `Não foi possível carregar dados de ${tableName}`);
     } finally {
@@ -60,7 +65,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
       
       if (error) throw error;
       
-      return data as Record<string, any> | null;
+      return data as T | null;
     } catch (error) {
       return handleError(error, `Não foi possível carregar o item de ${tableName}`);
     } finally {
@@ -70,8 +75,8 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
 
   // Criar um novo registro
   const create = useCallback(async (
-    data: Record<string, any>, 
-    options?: { successMessage?: string }
+    data: Partial<T>, 
+    options?: SupabaseOperationOptions
   ) => {
     setLoading(true);
     setError(null);
@@ -79,16 +84,18 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
     try {
       const { successMessage = "Item criado com sucesso" } = options || {};
       
+      // Cast data to any to bypass strict type checking on insert
+      // This is necessary because Supabase's types are very specific to each table
       const { data: result, error } = await supabase
         .from(tableName)
-        .insert(data)
+        .insert(data as any)
         .select()
         .single();
       
       if (error) throw error;
       
       handleSuccess(successMessage);
-      return result as Record<string, any>;
+      return result as T;
     } catch (error) {
       return handleError(error, `Não foi possível criar o item em ${tableName}`);
     } finally {
@@ -99,7 +106,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
   // Atualizar um registro existente
   const update = useCallback(async (
     id: string, 
-    data: Record<string, any>, 
+    data: Partial<T>, 
     options?: { 
       successMessage?: string;
       idField?: string;
@@ -117,7 +124,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
       // First update
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(data)
+        .update(data as any)
         .eq(idField, id);
       
       if (updateError) throw updateError;
@@ -136,7 +143,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
       }
       
       handleSuccess(successMessage);
-      return result as Record<string, any>;
+      return result as T;
     } catch (error) {
       return handleError(error, `Não foi possível atualizar o item em ${tableName}`);
     } finally {
