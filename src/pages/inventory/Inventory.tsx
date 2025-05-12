@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -52,8 +51,9 @@ export default function Inventory() {
       }
       
       if (response.data && response.data.length > 0 && response.data[0].stock_data) {
-        // First cast to unknown, then to our expected type to avoid TypeScript errors
-        const stockData = response.data[0].stock_data as unknown as Record<string, number>;
+        // Cast the data to our expected type with proper typing
+        const stockData = response.data[0].stock_data as unknown as StockData;
+        
         setCurrentStock({
           p13: stockData.p13 || 0,
           p20: stockData.p20 || 0,

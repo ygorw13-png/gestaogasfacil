@@ -1,115 +1,105 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { ApiResponse, ValidTableName, QueryOptions } from "./types";
-import { createErrorResponse, createSuccessResponse, applyFilters, applySorting, applyPagination } from "./utils";
 
-// Generic fetch function with error handling
 export async function fetchData(
-  table: ValidTableName,
-  queryOptions?: QueryOptions
-): Promise<ApiResponse<Record<string, unknown>[]>> {
+  tableName: string,
+  options?: {
+    columns?: string;
+    filters?: Record<string, any>;
+    range?: { from: number; to: number };
+    orderBy?: { column: string; ascending: boolean };
+  }
+) {
   try {
-    // Start with a basic query
-    let query = supabase.from(table).select(queryOptions?.columns || '*');
+    let query = supabase.from(tableName).select(options?.columns || '*');
 
-    // Apply query modifiers
-    query = applyFilters(query, queryOptions?.filters);
-    query = applySorting(query, queryOptions?.orderBy);
-    query = applyPagination(query, queryOptions?.pagination);
+    // Apply filters if provided
+    if (options?.filters) {
+      for (const [key, value] of Object.entries(options.filters)) {
+        query = query.eq(key, value);
+      }
+    }
+
+    // Apply ordering if provided
+    if (options?.orderBy) {
+      const { column, ascending } = options.orderBy;
+      query = query.order(column, { ascending });
+    }
+
+    // Apply range if provided
+    if (options?.range) {
+      const { from, to } = options.range;
+      query = query.range(from, to);
+    }
 
     const { data, error } = await query;
 
-    if (error) throw error;
-
-    // Cast data to ensure it's an array of objects and convert to unknown first
-    const safeData = (data || []) as unknown as Record<string, unknown>[];
-
-    return createSuccessResponse(safeData);
-  } catch (error) {
-    return createErrorResponse(error, `fetchData from ${table}`);
-  }
-}
-
-// Generic insert function with error handling
-export async function insertData(
-  table: ValidTableName,
-  data: Record<string, unknown>
-): Promise<ApiResponse<Record<string, unknown>>> {
-  try {
-    // Use proper type assertion to avoid deep recursion
-    const safeData = data as any;
-    
-    // Insert and return the record
-    const { data: resultData, error } = await supabase
-      .from(table)
-      .insert(safeData)
-      .select()
-      .single();
-    
-    if (error) throw error;
-
-    // Cast to unknown first to break type recursion
-    return createSuccessResponse(resultData as unknown as Record<string, unknown>);
-  } catch (error) {
-    return createErrorResponse(error, `insertData into ${table}`);
-  }
-}
-
-// Simplified update function
-export async function updateData(
-  table: ValidTableName,
-  id: string,
-  data: Record<string, unknown>,
-  idColumn: string = 'id'
-): Promise<ApiResponse<Record<string, unknown>>> {
-  try {
-    // Use proper type assertion to avoid deep recursion
-    const safeData = data as any;
-    
-    // First, perform the update operation
-    const { error: updateError } = await supabase
-      .from(table)
-      .update(safeData)
-      .eq(idColumn, id);
-    
-    if (updateError) throw updateError;
-    
-    // Then, fetch the updated record in a separate query
-    const { data: resultData, error: fetchError } = await supabase
-      .from(table)
-      .select('*')
-      .eq(idColumn, id)
-      .maybeSingle();
-    
-    if (fetchError) throw fetchError;
-    
-    if (!resultData) {
-      throw new Error(`Record not found after update: ${idColumn}=${id}`);
+    if (error) {
+      console.error(`Error fetching from ${tableName}:`, error);
+      return { data: null, error };
     }
-    
-    // Cast to unknown first to break type recursion
-    return createSuccessResponse(resultData as unknown as Record<string, unknown>);
+
+    return { data, error: null };
   } catch (error) {
-    return createErrorResponse(error, `updateData in ${table}`);
+    console.error(`Error in fetchData for ${tableName}:`, error);
+    return { 
+      data: null, 
+      error: { message: `Failed to fetch data from ${tableName}` } 
+    };
   }
 }
 
-// Generic delete function with error handling
-export async function deleteData(
-  table: ValidTableName,
-  id: string,
-  idColumn: string = 'id'
-): Promise<ApiResponse<null>> {
+export async function updateData(tableName: string, id: string, data: any) {
   try {
     const { error } = await supabase
-      .from(table)
-      .delete()
-      .eq(idColumn, id);
+      .from(tableName)
+      .update(data)
+      .eq('id', id);
 
-    if (error) throw error;
+    if (error) {
+      console.error(`Error updating ${tableName} with id ${id}:`, error);
+      return { error };
+    }
 
-    return createSuccessResponse(null);
+    return { error: null };
   } catch (error) {
-    return createErrorResponse(error, `deleteData from ${table}`);
+    console.error(`Error in updateData for ${tableName} with id ${id}:`, error);
+    return { error: { message: `Failed to update data in ${tableName}` } };
+  }
+}
+
+export async function insertData(tableName: string, data: any) {
+  try {
+    const { error } = await supabase
+      .from(tableName)
+      .insert(data);
+
+    if (error) {
+      console.error(`Error inserting into ${tableName}:`, error);
+      return { error };
+    }
+
+    return { error: null };
+  } catch (error) {
+    console.error(`Error in insertData for ${tableName}:`, error);
+    return { error: { message: `Failed to insert data into ${tableName}` } };
+  }
+}
+
+export async function deleteData(tableName: string, id: string) {
+  try {
+    const { error } = await supabase
+      .from(tableName)
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error(`Error deleting from ${tableName} with id ${id}:`, error);
+      return { error };
+    }
+
+    return { error: null };
+  } catch (error) {
+    console.error(`Error in deleteData for ${tableName} with id ${id}:`, error);
+    return { error: { message: `Failed to delete data from ${tableName}` } };
   }
 }

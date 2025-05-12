@@ -1,5 +1,5 @@
 
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor } from '@/test/setup-react-testing';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useSupabaseQuery } from './useSupabaseQuery';
 import { useToast } from './use-toast';

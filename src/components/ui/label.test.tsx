@@ -1,5 +1,5 @@
 
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test/setup-react-testing';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Label } from './label';
 

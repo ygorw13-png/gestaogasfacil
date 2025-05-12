@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Json } from "@/integrations/supabase/types";
 
 export interface InventoryItem {
   id: string;
@@ -24,6 +25,14 @@ export interface InventoryMovement {
   created_by?: string;
 }
 
+interface StockData {
+  p13: number;
+  p20: number;
+  p45: number;
+  water: number;
+  [key: string]: number;
+}
+
 export function useInventory() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
@@ -41,12 +50,15 @@ export function useInventory() {
         .maybeSingle();
 
       if (stockData?.stock_data) {
+        // Explicitly cast to our StockData interface
+        const stockValues = stockData.stock_data as unknown as StockData;
+        
         const stocks = [
           {
             id: 'p13',
             product: 'GLP P13',
             category: 'GLP',
-            quantity: stockData.stock_data.p13 || 0,
+            quantity: stockValues.p13 || 0,
             last_update: new Date().toISOString(),
             updated_by: 'sistema'
           },
@@ -54,7 +66,7 @@ export function useInventory() {
             id: 'p20',
             product: 'GLP P20',
             category: 'GLP',
-            quantity: stockData.stock_data.p20 || 0,
+            quantity: stockValues.p20 || 0,
             last_update: new Date().toISOString(),
             updated_by: 'sistema'
           },
@@ -62,7 +74,7 @@ export function useInventory() {
             id: 'p45',
             product: 'GLP P45',
             category: 'GLP',
-            quantity: stockData.stock_data.p45 || 0,
+            quantity: stockValues.p45 || 0,
             last_update: new Date().toISOString(),
             updated_by: 'sistema'
           },
@@ -70,7 +82,7 @@ export function useInventory() {
             id: 'water',
             product: 'Água 20L',
             category: 'Água',
-            quantity: stockData.stock_data.water || 0,
+            quantity: stockValues.water || 0,
             last_update: new Date().toISOString(),
             updated_by: 'sistema'
           }
@@ -133,11 +145,13 @@ export function useInventory() {
         throw new Error("Não foi possível encontrar os dados de estoque");
       }
       
+      const stockValues = stockData.stock_data as unknown as StockData;
+      
       const productKey = product.includes('P13') ? 'p13' : 
                          product.includes('P20') ? 'p20' : 
                          product.includes('P45') ? 'p45' : 'water';
       
-      const currentQuantity = stockData.stock_data[productKey] || 0;
+      const currentQuantity = stockValues[productKey] || 0;
       
       // Calcular nova quantidade
       let newQuantity = currentQuantity;
@@ -154,7 +168,7 @@ export function useInventory() {
       }
       
       // Atualizar estoque
-      const newStockData = { ...stockData.stock_data, [productKey]: newQuantity };
+      const newStockData = { ...stockValues, [productKey]: newQuantity };
       
       const { error: updateError } = await supabase
         .from('dashboard_data')

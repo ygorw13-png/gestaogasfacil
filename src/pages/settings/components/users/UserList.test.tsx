@@ -1,5 +1,5 @@
 
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '@/test/setup-react-testing';
 import { describe, it, expect, vi } from 'vitest';
 import { UserList } from './UserList';
 import { UserRole } from '@/types/userTypes';

@@ -1,11 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Archive, 
-  DropletHalf, 
-  Archive as ArchiveIcon20, 
-  Archive as ArchiveIcon45 
-} from "lucide-react";
+import { Archive, Droplet, Archive as ArchiveIcon20, Archive as ArchiveIcon45 } from "lucide-react";
 
 interface StockOverviewProps {
   currentStock: {
@@ -68,7 +63,7 @@ export function StockOverview({
             <p className="text-sm text-muted-foreground">Estoque Água 20L</p>
             <p className="text-xs text-gray-500">Mínimo: {minStock.water}</p>
           </div>
-          <DropletHalf className="h-10 w-10 text-cyan-600 opacity-80" />
+          <Droplet className="h-10 w-10 text-cyan-600 opacity-80" />
         </CardContent>
       </Card>
     </div>
