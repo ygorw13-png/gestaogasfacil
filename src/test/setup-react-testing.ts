@@ -2,13 +2,17 @@
 // This file provides proper re-exports for React Testing Library
 // to fix the import issues across test files
 
-import * as rtl from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { render } from '@testing-library/react';
 
 // Re-export everything from @testing-library/react
 export * from '@testing-library/react';
 
-// Explicitly define missing exports to avoid TypeScript errors
-export const screen = rtl.screen;
-export const fireEvent = rtl.fireEvent;
-export const waitFor = rtl.waitFor;
-export const act = rtl.act;
+// Explicitly define missing exports using proper imports
+export const screen = require('@testing-library/react').screen;
+export const fireEvent = require('@testing-library/react').fireEvent;
+export const waitFor = require('@testing-library/react').waitFor;
+export const act = require('@testing-library/react').act;
+
+// Custom render function (can be extended as needed)
+export { render };

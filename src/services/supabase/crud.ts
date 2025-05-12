@@ -1,7 +1,13 @@
-import { supabase } from "@/integrations/supabase/client";
 
-export async function fetchData(
-  tableName: string,
+import { supabase } from "@/integrations/supabase/client";
+import { ValidTableName } from "@/services/supabase/types";
+import { Database } from "@/integrations/supabase/types";
+
+// Create a type that represents all valid table names from Database type
+type TableNames = keyof Database['public']['Tables'];
+
+export async function fetchData<T = any>(
+  tableName: ValidTableName,
   options?: {
     columns?: string;
     filters?: Record<string, any>;
@@ -10,7 +16,9 @@ export async function fetchData(
   }
 ) {
   try {
-    let query = supabase.from(tableName).select(options?.columns || '*');
+    // Cast tableName to TableNames to ensure type safety
+    const table = tableName as TableNames;
+    let query = supabase.from(table).select(options?.columns || '*');
 
     // Apply filters if provided
     if (options?.filters) {
@@ -48,10 +56,12 @@ export async function fetchData(
   }
 }
 
-export async function updateData(tableName: string, id: string, data: any) {
+export async function updateData(tableName: ValidTableName, id: string, data: any) {
   try {
+    // Cast tableName to TableNames to ensure type safety
+    const table = tableName as TableNames;
     const { error } = await supabase
-      .from(tableName)
+      .from(table)
       .update(data)
       .eq('id', id);
 
@@ -67,10 +77,12 @@ export async function updateData(tableName: string, id: string, data: any) {
   }
 }
 
-export async function insertData(tableName: string, data: any) {
+export async function insertData(tableName: ValidTableName, data: any) {
   try {
+    // Cast tableName to TableNames to ensure type safety
+    const table = tableName as TableNames;
     const { error } = await supabase
-      .from(tableName)
+      .from(table)
       .insert(data);
 
     if (error) {
@@ -85,10 +97,12 @@ export async function insertData(tableName: string, data: any) {
   }
 }
 
-export async function deleteData(tableName: string, id: string) {
+export async function deleteData(tableName: ValidTableName, id: string) {
   try {
+    // Cast tableName to TableNames to ensure type safety
+    const table = tableName as TableNames;
     const { error } = await supabase
-      .from(tableName)
+      .from(table)
       .delete()
       .eq('id', id);
 

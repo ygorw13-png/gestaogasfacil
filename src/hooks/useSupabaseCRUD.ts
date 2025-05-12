@@ -4,6 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "@/services/supabaseService";
 import { useSupabaseErrorHandler, buildSupabaseQuery } from "./useSupabaseHelpers";
 
+interface SupabaseCRUDOptions {
+  columns?: string;
+  filters?: Record<string, any>;
+  orderBy?: { column: string; ascending?: boolean };
+}
+
 // Hook reutilizável para operações CRUD no Supabase com tratamento de erro padronizado
 export function useSupabaseCRUD(tableName: ValidTableName) {
   const [loading, setLoading] = useState(false);
@@ -13,11 +19,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
 
   // Buscar todos os registros
-  const getAll = useCallback(async (options?: {
-    columns?: string;
-    filters?: Record<string, any>;
-    orderBy?: { column: string; ascending?: boolean };
-  }) => {
+  const getAll = useCallback(async (options?: SupabaseCRUDOptions) => {
     setLoading(true);
     setError(null);
     
@@ -58,7 +60,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
       
       if (error) throw error;
       
-      return data as Record<string, any>;
+      return data as Record<string, any> | null;
     } catch (error) {
       return handleError(error, `Não foi possível carregar o item de ${tableName}`);
     } finally {
@@ -67,7 +69,10 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
   }, [tableName, handleError]);
 
   // Criar um novo registro
-  const create = useCallback(async (data: any, options?: { successMessage?: string }) => {
+  const create = useCallback(async (
+    data: Record<string, any>, 
+    options?: { successMessage?: string }
+  ) => {
     setLoading(true);
     setError(null);
     
@@ -76,7 +81,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
       
       const { data: result, error } = await supabase
         .from(tableName)
-        .insert(data as any)
+        .insert(data)
         .select()
         .single();
       
@@ -112,7 +117,7 @@ export function useSupabaseCRUD(tableName: ValidTableName) {
       // First update
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(data as any)
+        .update(data)
         .eq(idField, id);
       
       if (updateError) throw updateError;
