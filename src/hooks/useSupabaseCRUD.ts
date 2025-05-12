@@ -29,7 +29,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
 
   // Função comum para manipular o início e fim de cada operação
   const performOperation = useCallback(async <R>(
-    operation: () => Promise<R>,
+    operation: () => Promise<R | null>,
     errorMessage: string
   ): Promise<R | null> => {
     setLoading(true);
@@ -68,7 +68,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
 
   // Get a record by ID - usando tipo explícito para evitar recursão infinita
   const getById = useCallback(async (id: string, options?: { columns?: string; idField?: string }) => {
-    return performOperation<T | null>(async () => {
+    return performOperation<T>(async () => {
       const { columns = '*', idField = 'id' } = options || {};
       
       const { data, error } = await supabase
