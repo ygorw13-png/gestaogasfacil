@@ -13,9 +13,12 @@ interface SupabaseCRUDOptions {
 // Type for insertion and update operations
 interface SupabaseOperationOptions {
   successMessage?: string;
+  idField?: string;
 }
 
-// Hook for CRUD operations on Supabase with standardized error handling
+/**
+ * Hook para operações CRUD no Supabase com tratamento de erro padronizado
+ */
 export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableName) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -23,18 +26,32 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
   // Use our shared error handler
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
 
-  // Get all records
-  const getAll = useCallback(async (options?: SupabaseCRUDOptions) => {
+  // Função comum para manipular o início e fim de cada operação
+  const performOperation = useCallback(async <R>(
+    operation: () => Promise<R>,
+    errorMessage: string
+  ): Promise<R | null> => {
     setLoading(true);
     setError(null);
     
     try {
+      return await operation();
+    } catch (error) {
+      return handleError(error, errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [handleError]);
+
+  // Get all records
+  const getAll = useCallback(async (options?: SupabaseCRUDOptions) => {
+    return performOperation(async () => {
       const { columns = '*' } = options || {};
       
       // Create base query
-      let query: any = supabase.from(tableName).select(columns);
+      let query = supabase.from(tableName).select(columns);
       
-      // Use shared query builder
+      // Apply filters and ordering
       if (options) {
         query = buildSupabaseQuery(query, options);
       }
@@ -43,87 +60,62 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       
       if (error) throw error;
       
-      return data as T[];
-    } catch (error) {
-      return handleError(error, `Não foi possível carregar dados de ${tableName}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [tableName, handleError]);
+      return data as any[];
+    }, `Não foi possível carregar dados de ${tableName}`);
+  }, [tableName, performOperation]);
 
   // Get a record by ID
-  const getById = useCallback(async (id: string, options?: { columns?: string }) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const { columns = '*' } = options || {};
+  const getById = useCallback(async (id: string, options?: { columns?: string; idField?: string }) => {
+    return performOperation(async () => {
+      const { columns = '*', idField = 'id' } = options || {};
       
       const { data, error } = await supabase
         .from(tableName)
         .select(columns)
-        .eq('id', id)
+        .eq(idField, id)
         .maybeSingle();
       
       if (error) throw error;
       
-      return data as T | null;
-    } catch (error) {
-      return handleError(error, `Não foi possível carregar o item de ${tableName}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [tableName, handleError]);
+      return data;
+    }, `Não foi possível carregar o item de ${tableName}`);
+  }, [tableName, performOperation]);
 
   // Create a new record
   const create = useCallback(async (
     data: Record<string, any>, 
     options?: SupabaseOperationOptions
   ) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
+    return performOperation(async () => {
       const { successMessage = "Item criado com sucesso" } = options || {};
       
-      // Use explicit any type to bypass complex type checking
       const { data: result, error } = await supabase
         .from(tableName)
-        .insert(data as any)
+        .insert(data)
         .select()
         .single();
       
       if (error) throw error;
       
       handleSuccess(successMessage);
-      // Use a simpler approach for type casting
-      return result as any as T;
-    } catch (error) {
-      return handleError(error, `Não foi possível criar o item em ${tableName}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [tableName, handleError, handleSuccess]);
+      // Use simplificado para evitar recursão de tipo
+      return result;
+    }, `Não foi possível criar o item em ${tableName}`);
+  }, [tableName, handleSuccess, performOperation]);
 
   // Update an existing record
   const update = useCallback(async (
     id: string, 
     data: Record<string, any>, 
-    options?: { 
-      successMessage?: string;
-      idField?: string;
-    }
+    options?: SupabaseOperationOptions
   ) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
+    return performOperation(async () => {
       const { 
         successMessage = "Item atualizado com sucesso",
         idField = 'id'
       } = options || {};
       
-      // First update with simplified type handling
+      // First update
       const { error: updateError } = await supabase
         .from(tableName)
         .update(data)
@@ -131,7 +123,7 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       
       if (updateError) throw updateError;
       
-      // Then fetch the updated record with simplified handling
+      // Then fetch the updated record
       const { data: result, error: fetchError } = await supabase
         .from(tableName)
         .select('*')
@@ -145,27 +137,18 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       }
       
       handleSuccess(successMessage);
-      // Simplify type casting to avoid deep instantiation
-      return result as any;
-    } catch (error) {
-      return handleError(error, `Não foi possível atualizar o item em ${tableName}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [tableName, handleError, handleSuccess]);
+      
+      // Simplificar o retorno para evitar problemas de tipo
+      return result;
+    }, `Não foi possível atualizar o item em ${tableName}`);
+  }, [tableName, handleSuccess, performOperation]);
 
   // Delete a record
   const remove = useCallback(async (
     id: string, 
-    options?: { 
-      successMessage?: string;
-      idField?: string;
-    }
+    options?: SupabaseOperationOptions
   ) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
+    return performOperation(async () => {
       const { 
         successMessage = "Item excluído com sucesso",
         idField = 'id'
@@ -180,12 +163,8 @@ export function useSupabaseCRUD<T = Record<string, any>>(tableName: ValidTableNa
       
       handleSuccess(successMessage);
       return true;
-    } catch (error) {
-      return handleError(error, `Não foi possível excluir o item de ${tableName}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [tableName, handleError, handleSuccess]);
+    }, `Não foi possível excluir o item de ${tableName}`);
+  }, [tableName, handleSuccess, performOperation]);
 
   return {
     loading,
