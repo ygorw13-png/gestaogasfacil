@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PostgrestError } from "@supabase/supabase-js";
 import { ValidTableName } from "../types";
 import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
 
@@ -29,19 +30,26 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Using a simplified function signature to avoid recursive type issues
-  const fetchData = useCallback(async (options?: any) => {
+  // Using a simplified approach to avoid recursive type issues
+  const fetchData = useCallback(async (options?: {
+    columns?: string;
+    filters?: Record<string, any>;
+    orderBy?: { column: string; ascending?: boolean };
+  }) => {
     setLoading(true);
     setError(null);
     
     try {
+      // Destructure with defaults to avoid nested access
       const columns = options?.columns || '*';
+      const filters = options?.filters;
+      const orderBy = options?.orderBy;
       
       let query = supabase.from(tableName).select(columns);
       
       // Apply filters if provided
-      if (options?.filters) {
-        Object.entries(options.filters).forEach(([key, value]) => {
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
             query = query.eq(key, value);
           }
@@ -49,22 +57,22 @@ export function useBaseTable<T extends Record<string, any>>(
       }
       
       // Apply ordering if provided
-      if (options?.orderBy) {
-        query = query.order(options.orderBy.column, { 
-          ascending: options.orderBy.ascending ?? true 
+      if (orderBy) {
+        query = query.order(orderBy.column, { 
+          ascending: orderBy.ascending ?? true 
         });
       }
       
+      // Execute the query
       const { data: rawData, error: responseError } = await query;
       
       if (responseError) throw responseError;
       
-      // Use explicit type assertion to completely break the recursion
-      const result = [] as T[];
-      if (Array.isArray(rawData)) {
-        rawData.forEach(item => result.push(item as T));
-      }
+      // Break the type recursion by using an intermediate any[] type
+      const safeData: any[] = Array.isArray(rawData) ? rawData : [];
       
+      // Cast the result to T[] after breaking the recursion
+      const result = safeData as T[];
       setData(result);
       return result;
     } catch (error) {
