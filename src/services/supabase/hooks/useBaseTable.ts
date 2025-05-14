@@ -30,62 +30,65 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Break the recursion by providing a concrete return type
-  const fetchData = useCallback(async (
-    queryOptions?: {
-      columns?: string;
-      filters?: Record<string, any>;
-      orderBy?: { column: string; ascending?: boolean };
-    }
-  ): Promise<T[]> => {
-    setLoading(true);
-    setError(null);
+  // Explicitly define return type to break recursive type inference
+  const fetchData = useCallback(
+    // Clearly define the return type to prevent excessive type instantiation
+    async function fetchData(
+      queryOptions?: {
+        columns?: string;
+        filters?: Record<string, any>;
+        orderBy?: { column: string; ascending?: boolean };
+      }
+    ): Promise<T[]> {
+      setLoading(true);
+      setError(null);
     
-    try {
-      // Use destructuring with default values
-      const columns = queryOptions?.columns || '*';
-      const filters = queryOptions?.filters;
-      const orderBy = queryOptions?.orderBy;
-      
-      let query = supabase.from(tableName).select(columns);
-      
-      // Apply filters if provided
-      if (filters) {
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            query = query.eq(key, value);
-          }
-        });
+      try {
+        // Use destructuring with default values
+        const columns = queryOptions?.columns || '*';
+        const filters = queryOptions?.filters;
+        const orderBy = queryOptions?.orderBy;
+        
+        let query = supabase.from(tableName).select(columns);
+        
+        // Apply filters if provided
+        if (filters) {
+          Object.entries(filters).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+              query = query.eq(key, value);
+            }
+          });
+        }
+        
+        // Apply ordering if provided
+        if (orderBy) {
+          query = query.order(orderBy.column, { 
+            ascending: orderBy.ascending ?? true 
+          });
+        }
+        
+        // Execute the query
+        const { data, error: queryError } = await query;
+        
+        if (queryError) throw queryError;
+        
+        // Use explicit double casting to break type inference chain
+        // First cast to unknown, then to the target type
+        const result = (data || []) as unknown as T[];
+        
+        setData(result);
+        return result;
+      } catch (error) {
+        const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
+        handleError(error, errorMsg);
+        setError(error instanceof Error ? error : new Error(String(error)));
+        return [] as T[];
+      } finally {
+        setLoading(false);
       }
-      
-      // Apply ordering if provided
-      if (orderBy) {
-        query = query.order(orderBy.column, { 
-          ascending: orderBy.ascending ?? true 
-        });
-      }
-      
-      // Execute the query
-      const { data: responseData, error: queryError } = await query;
-      
-      if (queryError) throw queryError;
-      
-      // Use a more direct casting approach to break recursive type analysis
-      // First get a raw array, then apply the type
-      const rawData: any[] = responseData || [];
-      const result = rawData as T[];
-      
-      setData(result);
-      return result;
-    } catch (error) {
-      const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
-      handleError(error, errorMsg);
-      setError(error instanceof Error ? error : new Error(String(error)));
-      return [] as T[];
-    } finally {
-      setLoading(false);
-    }
-  }, [tableName, toastMessages.fetchError, handleError]);
+    },
+    [tableName, toastMessages.fetchError, handleError]
+  );
 
   // Load data on component mount if enabled
   useEffect(() => {
