@@ -77,7 +77,7 @@ export function useTableCRUD<T>(
     });
     
     if (result) {
-      // Use a simpler approach without recursive type parameters
+      // Use a simpler approach for type casting
       setData(prev => [...prev, result as T]);
     }
     

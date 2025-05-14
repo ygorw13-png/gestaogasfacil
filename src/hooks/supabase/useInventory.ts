@@ -3,8 +3,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useTableCRUD } from "@/services/supabase/hooks/useTableCRUD";
 import { toast } from "@/components/ui/use-toast";
 
-// Define inventory item type
-export interface InventoryItem {
+// Define inventory item type with index signature
+export interface InventoryItem extends Record<string, unknown> {
   id: string;
   product: string;
   category: string;
@@ -13,8 +13,8 @@ export interface InventoryItem {
   min_quantity?: number;
 }
 
-// Define movement type
-export interface InventoryMovement {
+// Define movement type with index signature
+export interface InventoryMovement extends Record<string, unknown> {
   id?: string;
   product: string;
   type: string;
@@ -32,7 +32,7 @@ export function useInventoryData() {
     fetchData: fetchItems,
     addItem,
     updateItem
-  } = useTableCRUD("configuracoes_estoque", {
+  } = useTableCRUD<InventoryItem>("configuracoes_estoque", {
     toastMessages: {
       fetchError: "Erro ao carregar dados do inventário",
       createSuccess: "Item adicionado com sucesso",
@@ -47,7 +47,7 @@ export function useInventoryData() {
     error: movementsError,
     fetchData: fetchMovements,
     addItem: addMovement
-  } = useTableCRUD("requisicoes_estoque", {
+  } = useTableCRUD<InventoryMovement>("requisicoes_estoque", {
     toastMessages: {
       fetchError: "Erro ao carregar movimentações",
       createSuccess: "Movimentação registrada com sucesso"
@@ -84,7 +84,7 @@ export function useInventoryData() {
             category: "Geral", // Default category
             quantity: movement.quantity,
             last_update: new Date().toISOString()
-          } as InventoryItem);
+          });
         } else {
           toast({
             title: "Erro na movimentação",
