@@ -3,7 +3,6 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "@/services/supabaseService";
 import { useSupabaseErrorHandler, buildSupabaseQuery } from "./useSupabaseHelpers";
-import { PostgrestError } from "@supabase/supabase-js";
 
 interface SupabaseCRUDOptions {
   columns?: string;
@@ -28,6 +27,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
 
   // Function to set the loading state and perform an operation with error handling
+  // Simplified with explicit return type to avoid deep type instantiation
   const performOperation = useCallback(async <R>(
     operation: () => Promise<R>,
     errorMessage: string
@@ -47,7 +47,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
     }
   }, [handleError]);
 
-  // Get all records
+  // Get all records with explicit return type
   const getAll = useCallback(async (options?: SupabaseCRUDOptions): Promise<T[]> => {
     const { columns = '*' } = options || {};
     
@@ -59,24 +59,24 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       query = buildSupabaseQuery(query, options);
     }
     
-    const result = await performOperation<any[]>(async () => {
+    const result = await performOperation<unknown[]>(async () => {
       const { data, error } = await query;
       if (error) throw error;
       return data || [];
     }, `Não foi possível carregar dados de ${tableName}`);
     
-    // Safe conversion from unknown to T[]
+    // Explicit type assertion to avoid deep type instantiation
     return (result || []) as T[];
   }, [tableName, performOperation]);
 
-  // Get a record by ID
+  // Get a record by ID with explicit return type
   const getById = useCallback(async (
     id: string, 
     options?: { columns?: string; idField?: string }
   ): Promise<T | null> => {
     const { columns = '*', idField = 'id' } = options || {};
     
-    const result = await performOperation<any>(async () => {
+    const result = await performOperation<unknown>(async () => {
       const { data, error } = await supabase
         .from(tableName)
         .select(columns)
@@ -87,18 +87,18 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       return data;
     }, `Não foi possível carregar o item de ${tableName}`);
     
-    // Safe conversion from unknown to T or null
+    // Explicit type assertion to avoid deep type instantiation
     return result as T | null;
   }, [tableName, performOperation]);
 
-  // Create a new record
+  // Create a new record with explicit return type
   const create = useCallback(async (
     data: Partial<T>,
     options?: SupabaseOperationOptions
   ): Promise<T | null> => {
     const { successMessage = "Item criado com sucesso" } = options || {};
     
-    const result = await performOperation<any>(async () => {
+    const result = await performOperation<unknown>(async () => {
       const { data: result, error } = await supabase
         .from(tableName)
         .insert(data as any)
@@ -111,11 +111,11 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       return result;
     }, `Não foi possível criar o item em ${tableName}`);
     
-    // Safe conversion from unknown to T or null
+    // Explicit type assertion to avoid deep type instantiation
     return result as T | null;
   }, [tableName, handleSuccess, performOperation]);
 
-  // Update an existing record
+  // Update an existing record with explicit return type
   const update = useCallback(async (
     id: string, 
     data: Partial<T>, 
@@ -126,7 +126,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       idField = 'id'
     } = options || {};
     
-    const result = await performOperation<any>(async () => {
+    const result = await performOperation<unknown>(async () => {
       // Executar a atualização
       const { error: updateError } = await supabase
         .from(tableName)
@@ -152,7 +152,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       return updatedData;
     }, `Não foi possível atualizar o item em ${tableName}`);
     
-    // Safe conversion from unknown to T or null
+    // Explicit type assertion to avoid deep type instantiation
     return result as T | null;
   }, [tableName, handleSuccess, performOperation]);
 

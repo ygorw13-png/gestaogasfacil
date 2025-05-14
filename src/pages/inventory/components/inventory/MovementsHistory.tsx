@@ -1,4 +1,3 @@
-
 import React, { useMemo } from "react";
 import {
   Table,
@@ -85,5 +84,5 @@ function getVariantByType(type: string): "default" | "secondary" | "destructive"
   }
 }
 
-// Exportar o componente memorizado para evitar renderizações desnecessárias
+// Export the component memorized for better performance
 export default React.memo(MovementsHistory);
