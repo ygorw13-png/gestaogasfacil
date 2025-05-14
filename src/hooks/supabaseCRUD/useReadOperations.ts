@@ -8,7 +8,7 @@ import { useErrorHandling } from "./useErrorHandling";
 /**
  * Hook providing read operations for a Supabase table
  */
-export function useReadOperations<T extends Record<string, any>>(tableName: ValidTableName) {
+export function useReadOperations<T>(tableName: ValidTableName) {
   const { safeExecute } = useErrorHandling();
 
   // Get all records with simpler type casting
@@ -33,13 +33,13 @@ export function useReadOperations<T extends Record<string, any>>(tableName: Vali
       query = query.order(column, { ascending });
     }
     
-    const result = await safeExecute<any[]>(async () => {
+    const result = await safeExecute<unknown[]>(async () => {
       const { data, error } = await query;
       if (error) throw error;
       return data || [];
     }, `Não foi possível carregar dados de ${tableName}`);
     
-    // Use a simple type assertion
+    // Use a simple type assertion without generic parameter
     return (result || []) as T[];
   }, [tableName, safeExecute]);
 
@@ -50,7 +50,7 @@ export function useReadOperations<T extends Record<string, any>>(tableName: Vali
   ): Promise<T | null> => {
     const { columns = '*', idField = 'id' } = options || {};
     
-    const result = await safeExecute<any>(async () => {
+    const result = await safeExecute<unknown>(async () => {
       const { data, error } = await supabase
         .from(tableName)
         .select(columns)
