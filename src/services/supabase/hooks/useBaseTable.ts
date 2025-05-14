@@ -30,16 +30,14 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Define standalone type aliases to break recursive type inference
-  type Filters = Record<string, any>;
-  type SortOptions = { column: string; ascending?: boolean };
-  
-  // Define the fetchData function with explicit return type
-  const fetchData = useCallback(async (options?: {
+  // Break recursive type inference with explicit function type
+  type FetchDataFunction = (options?: {
     columns?: string;
-    filters?: Filters;
-    orderBy?: SortOptions;
-  }): Promise<T[]> => {
+    filters?: Record<string, any>;
+    orderBy?: { column: string; ascending?: boolean };
+  }) => Promise<T[]>;
+
+  const fetchData: FetchDataFunction = useCallback(async (options) => {
     setLoading(true);
     setError(null);
   
@@ -72,18 +70,24 @@ export function useBaseTable<T extends Record<string, any>>(
       
       if (queryError) throw queryError;
       
-      // Break the type recursion with a two-step casting approach
-      const intermediateData: any[] = rawData || [];
-      const typedData = intermediateData as T[];
+      // Break type recursion with explicit typing rather than inference
+      const result: T[] = [];
       
-      setData(typedData);
-      return typedData;
+      if (rawData) {
+        for (const item of rawData) {
+          // Use type assertion to break recursive inference
+          result.push(item as T);
+        }
+      }
+      
+      setData(result);
+      return result;
     } catch (error) {
       const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
       handleError(error, errorMsg);
       setError(error instanceof Error ? error : new Error(String(error)));
       
-      // Return empty array with explicit type
+      // Return empty array 
       return [] as T[];
     } finally {
       setLoading(false);
