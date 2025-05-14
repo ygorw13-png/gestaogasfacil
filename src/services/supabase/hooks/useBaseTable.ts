@@ -30,15 +30,15 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Define explicit input and output types to avoid recursive type inference
-  interface QueryOptions {
+  // Define a standalone type for query options to break type recursion
+  type BaseQueryOptions = {
     columns?: string;
     filters?: Record<string, any>;
     orderBy?: { column: string; ascending?: boolean };
-  }
+  };
 
-  // Use explicit non-generic function signature
-  const fetchData = useCallback(async (options?: QueryOptions): Promise<T[]> => {
+  // Use explicit function signature with simple input and output types
+  const fetchData = useCallback(async (options?: BaseQueryOptions) => {
     setLoading(true);
     setError(null);
   
@@ -71,9 +71,10 @@ export function useBaseTable<T extends Record<string, any>>(
       
       if (queryError) throw queryError;
       
-      // Safely convert rawData to T[] using a temporary unknown type
-      // This breaks the recursive type inference chain
-      const result = (rawData || []) as unknown as T[];
+      // First cast to any[] to break the recursive type inference chain
+      const intermediateResult = rawData || [];
+      // Then cast to the final type
+      const result = intermediateResult as unknown as T[];
       
       setData(result);
       return result;
@@ -82,8 +83,8 @@ export function useBaseTable<T extends Record<string, any>>(
       handleError(error, errorMsg);
       setError(error instanceof Error ? error : new Error(String(error)));
       
-      // Return empty array with proper type casting
-      return [] as unknown as T[];
+      // Return empty array using two-step casting to break the chain
+      return ([] as unknown) as T[];
     } finally {
       setLoading(false);
     }
