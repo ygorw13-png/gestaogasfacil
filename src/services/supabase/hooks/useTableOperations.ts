@@ -41,7 +41,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       if (error) throw error;
       
-      // Use proper type assertion
+      // Break type recursion with intermediate unknown type
       return data as unknown as T;
     } catch (error) {
       const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
@@ -68,8 +68,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
         returnItem = true 
       } = options;
       
-      // Use type assertion for the database operation
-      // Force casting with 'as any' to bypass TypeScript's strong typing for Supabase tables
+      // Use type assertion with any for Supabase
       const query = supabase.from(tableName).insert(item as any);
       
       const { data, error } = returnItem
@@ -79,6 +78,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       if (error) throw error;
       
       handleSuccess(successMessage);
+      // Break type recursion with unknown
       return returnItem ? (data as unknown as T) : null;
     } catch (error) {
       handleError(error, `Error adding item to ${tableName}`);
@@ -105,7 +105,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
         returnItem = true 
       } = options;
       
-      // First update the item using type assertion
+      // First update the item
       const { error: updateError } = await supabase
         .from(tableName)
         .update(updates as any)
@@ -128,6 +128,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
         }
         
         handleSuccess(successMessage);
+        // Break type recursion with unknown
         return data as unknown as T;
       } else {
         handleSuccess(successMessage);

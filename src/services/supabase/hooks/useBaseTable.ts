@@ -63,9 +63,10 @@ export function useBaseTable<T extends Record<string, any>>(
       
       if (error) throw error;
       
-      // Use explicit type assertion to avoid recursive type instantiation
-      setData(data as unknown as T[]);
-      return data as unknown as T[];
+      // Break the type recursion by using unknown as intermediate step
+      const typedData = data as unknown as T[];
+      setData(typedData);
+      return typedData;
     } catch (error) {
       const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
       handleError(error, errorMsg);

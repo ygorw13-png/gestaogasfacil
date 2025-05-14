@@ -21,7 +21,7 @@ interface TableCRUDOptions {
  * Combined hook that provides data state management and CRUD operations
  * This is a direct replacement for the original useBaseSupabaseTable
  */
-export function useTableCRUD<T>(
+export function useTableCRUD<T extends Record<string, unknown>>(
   tableName: ValidTableName,
   options: TableCRUDOptions = {}
 ) {
@@ -77,8 +77,8 @@ export function useTableCRUD<T>(
     });
     
     if (result) {
-      // Use a simpler approach for type casting
-      setData(prev => [...prev, result as T]);
+      // Use a simpler approach with proper typing
+      setData(prev => [...prev, result]);
     }
     
     return result;
@@ -97,9 +97,9 @@ export function useTableCRUD<T>(
     });
     
     if (result) {
-      // Simple comparison instead of complex type mapping
+      // Simple comparison with type-safe approach
       setData(prev => prev.map(item => 
-        (item as any)[idField] === id ? result as T : item
+        (item as any)[idField] === id ? result : item
       ));
     }
     
