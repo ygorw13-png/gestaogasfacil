@@ -30,17 +30,17 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  type QueryOptions = {
+  // Define types separately to break recursive type inference
+  type FilterType = Record<string, any>;
+  type OrderByType = { column: string; ascending?: boolean };
+  type QueryOptionsType = {
     columns?: string;
-    filters?: Record<string, any>;
-    orderBy?: { column: string; ascending?: boolean };
+    filters?: FilterType;
+    orderBy?: OrderByType;
   };
 
-  // Define a standalone function type to break the recursion
-  type FetchDataFunction = (options?: QueryOptions) => Promise<T[]>;
-  
-  // Implement the function with explicit typing
-  const fetchData: FetchDataFunction = useCallback(async (options?: QueryOptions) => {
+  // Use arrow function with explicit return type to avoid TypeScript recursion
+  const fetchData = useCallback(async (options?: QueryOptionsType): Promise<T[]> => {
     setLoading(true);
     setError(null);
   
@@ -73,15 +73,18 @@ export function useBaseTable<T extends Record<string, any>>(
       
       if (queryError) throw queryError;
       
-      // Use type assertion with any as intermediate step to break recursion
-      const typedData = (rawData || []) as any[];
+      // Break the type recursion by using an explicit cast through 'unknown'
+      // This avoids TypeScript trying to infinitely resolve the types
+      const typedData = rawData as unknown as T[];
       
-      setData(typedData as T[]);
-      return typedData as T[];
+      setData(typedData);
+      return typedData;
     } catch (error) {
       const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
       handleError(error, errorMsg);
       setError(error instanceof Error ? error : new Error(String(error)));
+      
+      // Return empty array with explicit type
       return [] as T[];
     } finally {
       setLoading(false);
