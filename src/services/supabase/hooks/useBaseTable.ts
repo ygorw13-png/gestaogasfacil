@@ -2,12 +2,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestError } from "@supabase/supabase-js";
-import { ValidTableName } from "@/services/supabase/types";
+import { ValidTableName } from "../types";
 import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
 
 /**
- * A foundational hook for interacting with Supabase tables
- * Provides state management and data fetching
+ * Hook for basic data fetching and state management
  */
 export function useBaseTable<T extends Record<string, any>>(
   tableName: ValidTableName,
@@ -27,27 +26,29 @@ export function useBaseTable<T extends Record<string, any>>(
 
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(fetchOnMount);
-  const [error, setError] = useState<Error | PostgrestError | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Fetch data with optional filtering and sorting
-  const fetchData = useCallback(async (options: {
+  // Using a simplified return type to avoid recursive type instantiation
+  const fetchData = useCallback(async (queryOptions?: {
     columns?: string;
     filters?: Record<string, any>;
     orderBy?: { column: string; ascending?: boolean };
-  } = {}) => {
+  }) => {
     setLoading(true);
     setError(null);
     
     try {
-      const { columns = '*', filters, orderBy } = options;
+      // Merge with initial query options if provided
+      const mergedOptions = queryOptions || {};
+      const { columns = '*' } = mergedOptions;
       
       let query = supabase.from(tableName).select(columns);
       
       // Apply filters
-      if (filters) {
-        Object.entries(filters).forEach(([key, value]) => {
+      if (mergedOptions.filters) {
+        Object.entries(mergedOptions.filters).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
             query = query.eq(key, value);
           }
@@ -55,18 +56,20 @@ export function useBaseTable<T extends Record<string, any>>(
       }
       
       // Apply ordering
-      if (orderBy) {
-        query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
+      if (mergedOptions.orderBy) {
+        query = query.order(mergedOptions.orderBy.column, { 
+          ascending: mergedOptions.orderBy.ascending ?? true 
+        });
       }
       
-      // Break the recursive type chain by using a simpler approach
-      const { data: responseData, error } = await query;
+      // Use a two-step casting approach to break the recursive type chain
+      const { data: responseData, error: responseError } = await query;
       
-      if (error) throw error;
-
-      // First cast to any[] to break the recursive type instantiation
-      // Then cast to T[] for type safety
-      const typedData: T[] = responseData as any[];
+      if (responseError) throw responseError;
+      
+      // First cast to unknown to break the recursive type chain
+      // Then cast to T[] to ensure type safety for consumers
+      const typedData = responseData as unknown as T[];
       setData(typedData);
       return typedData;
     } catch (error) {
@@ -77,7 +80,7 @@ export function useBaseTable<T extends Record<string, any>>(
     } finally {
       setLoading(false);
     }
-  }, [tableName, handleError, toastMessages.fetchError]);
+  }, [tableName, toastMessages.fetchError]);
 
   // Load data on component mount if enabled
   useEffect(() => {
@@ -92,6 +95,7 @@ export function useBaseTable<T extends Record<string, any>>(
     error,
     fetchData,
     setData,
-    setError
+    setError,
+    refresh: () => fetchData()
   };
 }
