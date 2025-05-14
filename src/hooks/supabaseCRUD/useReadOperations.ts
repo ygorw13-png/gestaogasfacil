@@ -11,7 +11,7 @@ import { useErrorHandling } from "./useErrorHandling";
 export function useReadOperations<T>(tableName: ValidTableName) {
   const { safeExecute } = useErrorHandling();
 
-  // Get all records with simpler type casting
+  // Get all records with simplified typing
   const getAll = useCallback(async (options?: SupabaseCRUDOptions): Promise<T[]> => {
     const { columns = '*' } = options || {};
     
@@ -39,11 +39,11 @@ export function useReadOperations<T>(tableName: ValidTableName) {
       return data || [];
     }, `Não foi possível carregar dados de ${tableName}`);
     
-    // Use a direct type assertion to avoid excessive type instantiation
+    // Use cast via unknown para evitar a recursão de tipos
     return (result || []) as unknown as T[];
   }, [tableName, safeExecute]);
 
-  // Get a record by ID
+  // Get a record by ID with simplified typing
   const getById = useCallback(async (
     id: string, 
     options?: { columns?: string; idField?: string }
@@ -61,6 +61,7 @@ export function useReadOperations<T>(tableName: ValidTableName) {
       return data;
     }, `Não foi possível carregar o item de ${tableName}`);
     
+    // Use cast via unknown para evitar a recursão de tipos
     return result as unknown as T | null;
   }, [tableName, safeExecute]);
 
