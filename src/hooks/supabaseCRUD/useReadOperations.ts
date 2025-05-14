@@ -33,7 +33,7 @@ export function useReadOperations<T>(tableName: ValidTableName) {
       query = query.order(column, { ascending });
     }
     
-    const result = await safeExecute<unknown[]>(async () => {
+    const result = await safeExecute(async () => {
       const { data, error } = await query;
       if (error) throw error;
       return data || [];
@@ -50,7 +50,7 @@ export function useReadOperations<T>(tableName: ValidTableName) {
   ): Promise<T | null> => {
     const { columns = '*', idField = 'id' } = options || {};
     
-    const result = await safeExecute<unknown>(async () => {
+    const result = await safeExecute(async () => {
       const { data, error } = await supabase
         .from(tableName)
         .select(columns)
