@@ -30,7 +30,7 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Fix: Define explicit return type and simplify type handling
+  // Define a concrete return type to avoid recursive type resolution
   const fetchData = useCallback(async (
     queryOptions?: {
       columns?: string;
@@ -66,14 +66,16 @@ export function useBaseTable<T extends Record<string, any>>(
       }
       
       // Execute the query
-      const { data: result, error: queryError } = await query;
+      const { data, error: queryError } = await query;
       
       if (queryError) throw queryError;
       
-      // Fix: Break the recursive type chain using simple type assertions
-      // First cast to unknown, then to T[]
-      setData(result as unknown as T[]);
-      return result as unknown as T[];
+      // Break the recursive type chain by using a type assertion
+      // Cast through 'any' to avoid TypeScript analyzing the conversion too deeply
+      const typedData = data as any as T[];
+      
+      setData(typedData);
+      return typedData;
     } catch (error) {
       const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
       handleError(error, errorMsg);
