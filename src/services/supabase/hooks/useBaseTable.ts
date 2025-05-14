@@ -30,12 +30,12 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Using a simplified approach to avoid recursive type issues
+  // Breaking the type recursion with a simple function return type
   const fetchData = useCallback(async (options?: {
     columns?: string;
     filters?: Record<string, any>;
     orderBy?: { column: string; ascending?: boolean };
-  }) => {
+  }): Promise<T[]> => {
     setLoading(true);
     setError(null);
     
@@ -68,11 +68,13 @@ export function useBaseTable<T extends Record<string, any>>(
       
       if (responseError) throw responseError;
       
-      // Break the type recursion by using an intermediate any[] type
-      const safeData: any[] = Array.isArray(rawData) ? rawData : [];
+      // Use a simple approach that avoids complex type interactions
+      // 1. First make sure we have an array (or empty array)
+      const arrayData = Array.isArray(rawData) ? rawData : [];
       
-      // Cast the result to T[] after breaking the recursion
-      const result = safeData as T[];
+      // 2. Then cast using unknown as intermediary to break the type chain
+      const result = arrayData as unknown as T[];
+      
       setData(result);
       return result;
     } catch (error) {
