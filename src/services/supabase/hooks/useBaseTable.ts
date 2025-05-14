@@ -30,17 +30,19 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Explicitly typing the return value to break recursive type references
-  const fetchData = useCallback(async (queryOptions?: {
-    columns?: string;
-    filters?: Record<string, any>;
-    orderBy?: { column: string; ascending?: boolean };
-  }): Promise<T[]> => {
+  // Breaking the recursive type chain with explicit return type
+  const fetchData = useCallback(async (
+    queryOptions?: {
+      columns?: string;
+      filters?: Record<string, any>;
+      orderBy?: { column: string; ascending?: boolean };
+    }
+  ): Promise<T[]> => {
     setLoading(true);
     setError(null);
     
     try {
-      // Destructure with defaults to avoid nested access
+      // Use destructuring with default values
       const columns = queryOptions?.columns || '*';
       const filters = queryOptions?.filters;
       const orderBy = queryOptions?.orderBy;
@@ -64,14 +66,14 @@ export function useBaseTable<T extends Record<string, any>>(
       }
       
       // Execute the query
-      const { data: rawData, error: responseError } = await query;
+      const { data: fetchedData, error: queryError } = await query;
       
-      if (responseError) throw responseError;
+      if (queryError) throw queryError;
       
-      // Simple type conversion that avoids recursion
-      const resultData = Array.isArray(rawData) ? rawData : [];
-      // Use type assertion to break recursive type chain
-      const typedData = resultData as unknown as T[];
+      // First convert to raw array, then cast to T[]
+      // This breaks the recursive type chain
+      const rawArray = fetchedData as any[];
+      const typedData = rawArray as T[];
       
       setData(typedData);
       return typedData;
