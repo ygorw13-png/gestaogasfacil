@@ -30,61 +30,61 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Breaking the type recursion with a simple function return type
-  const fetchData = useCallback(async (options?: {
+  // Define a simplified type signature that avoids recursion
+  const fetchData = useCallback(async (queryOptions?: {
     columns?: string;
     filters?: Record<string, any>;
     orderBy?: { column: string; ascending?: boolean };
-  }): Promise<T[]> => {
-    setLoading(true);
-    setError(null);
+  }) => {
+    type QueryResult = T[];
+    const result: Promise<QueryResult> = (async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Destructure with defaults to avoid nested access
+        const columns = queryOptions?.columns || '*';
+        const filters = queryOptions?.filters;
+        const orderBy = queryOptions?.orderBy;
+        
+        let query = supabase.from(tableName).select(columns);
+        
+        // Apply filters if provided
+        if (filters) {
+          Object.entries(filters).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+              query = query.eq(key, value);
+            }
+          });
+        }
+        
+        // Apply ordering if provided
+        if (orderBy) {
+          query = query.order(orderBy.column, { 
+            ascending: orderBy.ascending ?? true 
+          });
+        }
+        
+        // Execute the query
+        const { data: rawData, error: responseError } = await query;
+        
+        if (responseError) throw responseError;
+        
+        // Handle the data without complex typing
+        const resultData = ((Array.isArray(rawData) ? rawData : []) as any) as T[];
+        setData(resultData);
+        return resultData;
+      } catch (error) {
+        const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
+        handleError(error, errorMsg);
+        setError(error instanceof Error ? error : new Error(String(error)));
+        return [] as T[];
+      } finally {
+        setLoading(false);
+      }
+    })();
     
-    try {
-      // Destructure with defaults to avoid nested access
-      const columns = options?.columns || '*';
-      const filters = options?.filters;
-      const orderBy = options?.orderBy;
-      
-      let query = supabase.from(tableName).select(columns);
-      
-      // Apply filters if provided
-      if (filters) {
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            query = query.eq(key, value);
-          }
-        });
-      }
-      
-      // Apply ordering if provided
-      if (orderBy) {
-        query = query.order(orderBy.column, { 
-          ascending: orderBy.ascending ?? true 
-        });
-      }
-      
-      // Execute the query
-      const { data: rawData, error: responseError } = await query;
-      
-      if (responseError) throw responseError;
-      
-      // Use a simple approach that avoids complex type interactions
-      // 1. First make sure we have an array (or empty array)
-      const arrayData = Array.isArray(rawData) ? rawData : [];
-      
-      // 2. Then cast using unknown as intermediary to break the type chain
-      const result = arrayData as unknown as T[];
-      
-      setData(result);
-      return result;
-    } catch (error) {
-      const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
-      handleError(error, errorMsg);
-      setError(error instanceof Error ? error : new Error(String(error)));
-      return [] as T[];
-    } finally {
-      setLoading(false);
-    }
+    return result;
   }, [tableName, toastMessages.fetchError, handleError]);
 
   // Load data on component mount if enabled
