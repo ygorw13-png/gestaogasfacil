@@ -1,7 +1,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { PostgrestError } from "@supabase/supabase-js";
 import { ValidTableName } from "../types";
 import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
 
@@ -30,7 +29,7 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Using a simplified return type to avoid recursive type instantiation
+  // Using a callback with simpler types to avoid recursive type instantiation
   const fetchData = useCallback(async (queryOptions?: {
     columns?: string;
     filters?: Record<string, any>;
@@ -62,14 +61,13 @@ export function useBaseTable<T extends Record<string, any>>(
         });
       }
       
-      // Use a two-step casting approach to break the recursive type chain
-      const { data: responseData, error: responseError } = await query;
+      const { data: rawData, error: responseError } = await query;
       
       if (responseError) throw responseError;
       
-      // First cast to unknown to break the recursive type chain
-      // Then cast to T[] to ensure type safety for consumers
-      const typedData = responseData as unknown as T[];
+      // Cast to any[] first, completely breaking the recursive type chain
+      // Then cast to the expected type T[]
+      const typedData = (rawData as any[]) as T[];
       setData(typedData);
       return typedData;
     } catch (error) {
@@ -80,7 +78,7 @@ export function useBaseTable<T extends Record<string, any>>(
     } finally {
       setLoading(false);
     }
-  }, [tableName, toastMessages.fetchError]);
+  }, [tableName, toastMessages.fetchError, handleError]);
 
   // Load data on component mount if enabled
   useEffect(() => {
