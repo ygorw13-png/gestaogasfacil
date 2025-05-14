@@ -32,7 +32,7 @@ export function useInventoryData() {
     fetchData: fetchItems,
     addItem,
     updateItem
-  } = useTableCRUD<InventoryItem>("configuracoes_estoque", {
+  } = useTableCRUD("configuracoes_estoque", {
     toastMessages: {
       fetchError: "Erro ao carregar dados do inventário",
       createSuccess: "Item adicionado com sucesso",
@@ -47,7 +47,7 @@ export function useInventoryData() {
     error: movementsError,
     fetchData: fetchMovements,
     addItem: addMovement
-  } = useTableCRUD<InventoryMovement>("requisicoes_estoque", {
+  } = useTableCRUD("requisicoes_estoque", {
     toastMessages: {
       fetchError: "Erro ao carregar movimentações",
       createSuccess: "Movimentação registrada com sucesso"

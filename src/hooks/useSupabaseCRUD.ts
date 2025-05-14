@@ -101,7 +101,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
 
   // Create a new record with more explicit typing
   const create = useCallback(async (
-    data: Record<string, any>,
+    data: any,
     options?: SupabaseOperationOptions
   ): Promise<T | null> => {
     const { successMessage = "Item criado com sucesso" } = options || {};
@@ -125,7 +125,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
   // Update an existing record
   const update = useCallback(async (
     id: string, 
-    data: Record<string, any>, 
+    data: any, 
     options?: SupabaseOperationOptions
   ): Promise<T | null> => {
     const { 

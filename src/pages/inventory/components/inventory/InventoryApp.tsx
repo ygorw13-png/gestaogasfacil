@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { InventoryItemsTable } from './table';
-import { MovementsHistory } from './MovementsHistory';
+import { MovementsHistory } from './movements';
 import { StockMovementForm } from './stock-movement';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useInventoryData } from '@/hooks/supabase/useInventory';
