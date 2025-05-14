@@ -59,15 +59,16 @@ export function useBaseTable<T extends Record<string, any>>(
         query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
       }
       
+      // Break the recursive type chain by using a simpler approach
       const { data: responseData, error } = await query;
       
       if (error) throw error;
 
-      // Use a double cast through unknown to safely convert the data
-      // This breaks the recursive type instantiation chain
-      const safeData = (responseData as unknown) as T[];
-      setData(safeData);
-      return safeData;
+      // First cast to any[] to break the recursive type instantiation
+      // Then cast to T[] for type safety
+      const typedData: T[] = responseData as any[];
+      setData(typedData);
+      return typedData;
     } catch (error) {
       const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
       handleError(error, errorMsg);
