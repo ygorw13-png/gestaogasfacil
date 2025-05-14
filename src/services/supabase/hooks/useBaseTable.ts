@@ -30,21 +30,24 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Define a standalone type for query options to break type recursion
-  type BaseQueryOptions = {
-    columns?: string;
-    filters?: Record<string, any>;
-    orderBy?: { column: string; ascending?: boolean };
-  };
-
-  // Use explicit function signature with simple input and output types
-  const fetchData = useCallback(async (options?: BaseQueryOptions) => {
+  // Define specific types for the function parameters and return value
+  type QueryFilters = Record<string, any>;
+  type QueryOrderBy = { column: string; ascending?: boolean };
+  
+  // Explicitly type the function to avoid recursive type inference
+  const fetchData = useCallback(async (
+    options?: { 
+      columns?: string; 
+      filters?: QueryFilters;
+      orderBy?: QueryOrderBy;
+    }
+  ): Promise<T[]> => {
     setLoading(true);
     setError(null);
   
     try {
-      // Simple destructuring with defaults
-      const columns = options?.columns || '*';
+      // Destructure with defaults to simplify
+      const columns = options?.columns ?? '*';
       const filters = options?.filters;
       const orderBy = options?.orderBy;
       
@@ -71,10 +74,10 @@ export function useBaseTable<T extends Record<string, any>>(
       
       if (queryError) throw queryError;
       
-      // First cast to any[] to break the recursive type inference chain
-      const intermediateResult = rawData || [];
-      // Then cast to the final type
-      const result = intermediateResult as unknown as T[];
+      // Safe casting approach - avoid nested type inference
+      const result = rawData ? 
+        (rawData as any[]).map(item => item as T) : 
+        [];
       
       setData(result);
       return result;
@@ -83,8 +86,8 @@ export function useBaseTable<T extends Record<string, any>>(
       handleError(error, errorMsg);
       setError(error instanceof Error ? error : new Error(String(error)));
       
-      // Return empty array using two-step casting to break the chain
-      return ([] as unknown) as T[];
+      // Return empty array with simpler casting
+      return [] as T[];
     } finally {
       setLoading(false);
     }
