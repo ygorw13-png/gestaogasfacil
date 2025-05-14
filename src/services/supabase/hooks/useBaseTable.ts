@@ -30,7 +30,7 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Define a concrete return type to avoid recursive type resolution
+  // Explicitly define return type to break recursive type inference
   const fetchData = useCallback(async (
     queryOptions?: {
       columns?: string;
@@ -70,9 +70,10 @@ export function useBaseTable<T extends Record<string, any>>(
       
       if (queryError) throw queryError;
       
-      // Break the recursive type chain by using a type assertion
-      // Cast through 'any' to avoid TypeScript analyzing the conversion too deeply
-      const typedData = data as any as T[];
+      // Use a simpler approach - first cast to a plain array with any type
+      // then cast to the desired type T[] to break recursive type resolution
+      const plainArray: any[] = data || [];
+      const typedData: T[] = plainArray as T[];
       
       setData(typedData);
       return typedData;
