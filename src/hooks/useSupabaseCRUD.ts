@@ -46,7 +46,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
     }
   }, [handleError]);
 
-  // Get all records
+  // Get all records with simpler type casting
   const getAll = useCallback(async (options?: SupabaseCRUDOptions): Promise<T[]> => {
     const { columns = '*' } = options || {};
     
@@ -74,7 +74,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       return data || [];
     }, `Não foi possível carregar dados de ${tableName}`);
     
-    // Safely convert to T[]
+    // Use a simple type assertion
     return (result || []) as T[];
   }, [tableName, safeExecute]);
 
@@ -99,9 +99,9 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
     return result as T | null;
   }, [tableName, safeExecute]);
 
-  // Create a new record
+  // Create a new record with more explicit typing
   const create = useCallback(async (
-    data: Partial<T>,
+    data: Record<string, any>,
     options?: SupabaseOperationOptions
   ): Promise<T | null> => {
     const { successMessage = "Item criado com sucesso" } = options || {};
@@ -125,7 +125,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
   // Update an existing record
   const update = useCallback(async (
     id: string, 
-    data: Partial<T>, 
+    data: Record<string, any>, 
     options?: SupabaseOperationOptions
   ): Promise<T | null> => {
     const { 

@@ -1,4 +1,5 @@
 
 import { InventoryApp } from "./InventoryApp";
+import { InventoryItemsTable } from "./table";
 
-export { InventoryApp };
+export { InventoryApp, InventoryItemsTable };

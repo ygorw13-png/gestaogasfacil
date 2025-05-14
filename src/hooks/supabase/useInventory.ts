@@ -84,7 +84,7 @@ export function useInventoryData() {
             category: "Geral", // Default category
             quantity: movement.quantity,
             last_update: new Date().toISOString()
-          });
+          } as InventoryItem);
         } else {
           toast({
             title: "Erro na movimentação",
@@ -118,8 +118,8 @@ export function useInventoryData() {
   }, [fetchItems, fetchMovements]);
 
   return {
-    items,
-    movements,
+    items: items as InventoryItem[],
+    movements: movements as InventoryMovement[],
     loading: itemsLoading || movementsLoading,
     error: itemsError || movementsError,
     registerMovement,
