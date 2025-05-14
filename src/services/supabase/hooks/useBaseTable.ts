@@ -30,17 +30,16 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Define types separately to break recursive type inference
-  type FilterType = Record<string, any>;
-  type OrderByType = { column: string; ascending?: boolean };
-  type QueryOptionsType = {
+  // Define standalone type aliases to break recursive type inference
+  type Filters = Record<string, any>;
+  type SortOptions = { column: string; ascending?: boolean };
+  
+  // Define the fetchData function with explicit return type
+  const fetchData = useCallback(async (options?: {
     columns?: string;
-    filters?: FilterType;
-    orderBy?: OrderByType;
-  };
-
-  // Use arrow function with explicit return type to avoid TypeScript recursion
-  const fetchData = useCallback(async (options?: QueryOptionsType): Promise<T[]> => {
+    filters?: Filters;
+    orderBy?: SortOptions;
+  }): Promise<T[]> => {
     setLoading(true);
     setError(null);
   
@@ -73,9 +72,9 @@ export function useBaseTable<T extends Record<string, any>>(
       
       if (queryError) throw queryError;
       
-      // Break the type recursion by using an explicit cast through 'unknown'
-      // This avoids TypeScript trying to infinitely resolve the types
-      const typedData = rawData as unknown as T[];
+      // Break the type recursion with a two-step casting approach
+      const intermediateData: any[] = rawData || [];
+      const typedData = intermediateData as T[];
       
       setData(typedData);
       return typedData;
