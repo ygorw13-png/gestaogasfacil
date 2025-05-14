@@ -59,15 +59,14 @@ export function useBaseTable<T extends Record<string, any>>(
         query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
       }
       
-      const { data, error } = await query;
+      const { data: responseData, error } = await query;
       
       if (error) throw error;
 
-      // Use a non-generic intermediate type to avoid recursion
-      // Then cast to the desired type without using T in a complex type expression
-      const rawData = data as any[];
-      setData(rawData as T[]); 
-      return rawData as T[];
+      // Using a simple array type first, then casting to the specific type
+      // This avoids the deep recursive type instantiation
+      setData(responseData as T[]);
+      return responseData as T[];
     } catch (error) {
       const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
       handleError(error, errorMsg);
