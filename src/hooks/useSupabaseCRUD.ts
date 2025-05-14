@@ -2,7 +2,7 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "@/services/supabaseService";
-import { useSupabaseErrorHandler, buildSupabaseQuery } from "./useSupabaseHelpers";
+import { useSupabaseErrorHandler } from "./useSupabaseHelpers";
 
 interface SupabaseCRUDOptions {
   columns?: string;
@@ -26,9 +26,8 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
   // Use our shared error handler
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
 
-  // Function to set the loading state and perform an operation with error handling
-  // Simplified with explicit return type to avoid deep type instantiation
-  const performOperation = useCallback(async <R>(
+  // Simple operation executor with error handling
+  const safeExecute = useCallback(async <R>(
     operation: () => Promise<R>,
     errorMessage: string
   ): Promise<R | null> => {
@@ -47,36 +46,46 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
     }
   }, [handleError]);
 
-  // Get all records with explicit return type
+  // Get all records
   const getAll = useCallback(async (options?: SupabaseCRUDOptions): Promise<T[]> => {
     const { columns = '*' } = options || {};
     
     // Create base query
     let query = supabase.from(tableName).select(columns);
     
-    // Apply filters and ordering
-    if (options) {
-      query = buildSupabaseQuery(query, options);
+    // Apply filters if provided
+    if (options?.filters) {
+      Object.entries(options.filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          query = query.eq(key, value);
+        }
+      });
     }
     
-    const result = await performOperation<unknown[]>(async () => {
+    // Apply ordering if provided
+    if (options?.orderBy) {
+      const { column, ascending = true } = options.orderBy;
+      query = query.order(column, { ascending });
+    }
+    
+    const result = await safeExecute<any[]>(async () => {
       const { data, error } = await query;
       if (error) throw error;
       return data || [];
     }, `Não foi possível carregar dados de ${tableName}`);
     
-    // Explicit type assertion to avoid deep type instantiation
+    // Safely convert to T[]
     return (result || []) as T[];
-  }, [tableName, performOperation]);
+  }, [tableName, safeExecute]);
 
-  // Get a record by ID with explicit return type
+  // Get a record by ID
   const getById = useCallback(async (
     id: string, 
     options?: { columns?: string; idField?: string }
   ): Promise<T | null> => {
     const { columns = '*', idField = 'id' } = options || {};
     
-    const result = await performOperation<unknown>(async () => {
+    const result = await safeExecute<any>(async () => {
       const { data, error } = await supabase
         .from(tableName)
         .select(columns)
@@ -87,21 +96,20 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       return data;
     }, `Não foi possível carregar o item de ${tableName}`);
     
-    // Explicit type assertion to avoid deep type instantiation
     return result as T | null;
-  }, [tableName, performOperation]);
+  }, [tableName, safeExecute]);
 
-  // Create a new record with explicit return type
+  // Create a new record
   const create = useCallback(async (
     data: Partial<T>,
     options?: SupabaseOperationOptions
   ): Promise<T | null> => {
     const { successMessage = "Item criado com sucesso" } = options || {};
     
-    const result = await performOperation<unknown>(async () => {
+    const result = await safeExecute<any>(async () => {
       const { data: result, error } = await supabase
         .from(tableName)
-        .insert(data as any)
+        .insert(data)
         .select()
         .single();
       
@@ -111,11 +119,10 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       return result;
     }, `Não foi possível criar o item em ${tableName}`);
     
-    // Explicit type assertion to avoid deep type instantiation
     return result as T | null;
-  }, [tableName, handleSuccess, performOperation]);
+  }, [tableName, handleSuccess, safeExecute]);
 
-  // Update an existing record with explicit return type
+  // Update an existing record
   const update = useCallback(async (
     id: string, 
     data: Partial<T>, 
@@ -126,11 +133,11 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       idField = 'id'
     } = options || {};
     
-    const result = await performOperation<unknown>(async () => {
+    const result = await safeExecute<any>(async () => {
       // Executar a atualização
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(data as any)
+        .update(data)
         .eq(idField, id);
       
       if (updateError) throw updateError;
@@ -152,9 +159,8 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       return updatedData;
     }, `Não foi possível atualizar o item em ${tableName}`);
     
-    // Explicit type assertion to avoid deep type instantiation
     return result as T | null;
-  }, [tableName, handleSuccess, performOperation]);
+  }, [tableName, handleSuccess, safeExecute]);
 
   // Delete a record
   const remove = useCallback(async (
@@ -166,7 +172,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
       idField = 'id'
     } = options || {};
     
-    const success = await performOperation<boolean>(async () => {
+    const success = await safeExecute<boolean>(async () => {
       const { error } = await supabase
         .from(tableName)
         .delete()
@@ -179,7 +185,7 @@ export function useSupabaseCRUD<T extends Record<string, any>>(tableName: ValidT
     }, `Não foi possível excluir o item de ${tableName}`);
     
     return success ?? false;
-  }, [tableName, handleSuccess, performOperation]);
+  }, [tableName, handleSuccess, safeExecute]);
 
   return {
     loading,

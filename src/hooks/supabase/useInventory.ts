@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from "react";
-import { useTableCRUD } from "@/services/supabase/hooks";
+import { useTableCRUD } from "@/services/supabase/hooks/useTableCRUD";
 import { toast } from "@/components/ui/use-toast";
 
 // Define inventory item type
