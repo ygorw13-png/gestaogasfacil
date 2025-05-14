@@ -39,8 +39,8 @@ export function useReadOperations<T>(tableName: ValidTableName) {
       return data || [];
     }, `Não foi possível carregar dados de ${tableName}`);
     
-    // Use a simple type assertion without generic parameter
-    return (result || []) as T[];
+    // Use a direct type assertion to avoid excessive type instantiation
+    return (result || []) as unknown as T[];
   }, [tableName, safeExecute]);
 
   // Get a record by ID
@@ -61,7 +61,7 @@ export function useReadOperations<T>(tableName: ValidTableName) {
       return data;
     }, `Não foi possível carregar o item de ${tableName}`);
     
-    return result as T | null;
+    return result as unknown as T | null;
   }, [tableName, safeExecute]);
 
   return {

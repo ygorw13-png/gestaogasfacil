@@ -8,7 +8,7 @@ import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
  * Hook for CRUD operations on a Supabase table
  * Can be used standalone or with useBaseTable
  */
-export function useTableOperations<T>(
+export function useTableOperations<T extends Record<string, unknown>>(
   tableName: ValidTableName,
   options: {
     idField?: string;
@@ -41,7 +41,8 @@ export function useTableOperations<T>(
       
       if (error) throw error;
       
-      return data as T | null;
+      // Use proper type assertion
+      return data as unknown as T;
     } catch (error) {
       const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
       handleError(error, errorMsg);
@@ -67,7 +68,9 @@ export function useTableOperations<T>(
         returnItem = true 
       } = options;
       
-      const query = supabase.from(tableName).insert(item);
+      // Use type assertion for the database operation
+      // Force casting with 'as any' to bypass TypeScript's strong typing for Supabase tables
+      const query = supabase.from(tableName).insert(item as any);
       
       const { data, error } = returnItem
         ? await query.select().single()
@@ -76,7 +79,7 @@ export function useTableOperations<T>(
       if (error) throw error;
       
       handleSuccess(successMessage);
-      return returnItem ? data as T : null;
+      return returnItem ? (data as unknown as T) : null;
     } catch (error) {
       handleError(error, `Error adding item to ${tableName}`);
       return null;
@@ -102,10 +105,10 @@ export function useTableOperations<T>(
         returnItem = true 
       } = options;
       
-      // First update the item
+      // First update the item using type assertion
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(updates)
+        .update(updates as any)
         .eq(idField, id);
       
       if (updateError) throw updateError;
@@ -125,7 +128,7 @@ export function useTableOperations<T>(
         }
         
         handleSuccess(successMessage);
-        return data as T;
+        return data as unknown as T;
       } else {
         handleSuccess(successMessage);
         return null;

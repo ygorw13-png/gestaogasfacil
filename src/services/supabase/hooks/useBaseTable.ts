@@ -9,7 +9,7 @@ import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
  * A foundational hook for interacting with Supabase tables
  * Provides state management and data fetching
  */
-export function useBaseTable<T>(
+export function useBaseTable<T extends Record<string, any>>(
   tableName: ValidTableName,
   options: {
     idField?: string;
@@ -63,8 +63,9 @@ export function useBaseTable<T>(
       
       if (error) throw error;
       
-      setData(data as T[]);
-      return data as T[];
+      // Use explicit type assertion to avoid recursive type instantiation
+      setData(data as unknown as T[]);
+      return data as unknown as T[];
     } catch (error) {
       const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
       handleError(error, errorMsg);
