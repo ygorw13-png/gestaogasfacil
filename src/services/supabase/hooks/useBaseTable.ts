@@ -63,10 +63,11 @@ export function useBaseTable<T extends Record<string, any>>(
       
       if (error) throw error;
 
-      // Using a simple array type first, then casting to the specific type
-      // This avoids the deep recursive type instantiation
-      setData(responseData as T[]);
-      return responseData as T[];
+      // Use a double cast through unknown to safely convert the data
+      // This breaks the recursive type instantiation chain
+      const safeData = (responseData as unknown) as T[];
+      setData(safeData);
+      return safeData;
     } catch (error) {
       const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
       handleError(error, errorMsg);
