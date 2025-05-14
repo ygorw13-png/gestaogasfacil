@@ -30,65 +30,63 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Explicitly define return type to break recursive type inference
-  const fetchData = useCallback(
-    // Clearly define the return type to prevent excessive type instantiation
-    async function fetchData(
-      queryOptions?: {
-        columns?: string;
-        filters?: Record<string, any>;
-        orderBy?: { column: string; ascending?: boolean };
+  type QueryOptions = {
+    columns?: string;
+    filters?: Record<string, any>;
+    orderBy?: { column: string; ascending?: boolean };
+  };
+
+  // Define a standalone function type to break the recursion
+  type FetchDataFunction = (options?: QueryOptions) => Promise<T[]>;
+  
+  // Implement the function with explicit typing
+  const fetchData: FetchDataFunction = useCallback(async (options?: QueryOptions) => {
+    setLoading(true);
+    setError(null);
+  
+    try {
+      // Simple destructuring with defaults
+      const columns = options?.columns || '*';
+      const filters = options?.filters;
+      const orderBy = options?.orderBy;
+      
+      let query = supabase.from(tableName).select(columns);
+      
+      // Apply filters if provided
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            query = query.eq(key, value);
+          }
+        });
       }
-    ): Promise<T[]> {
-      setLoading(true);
-      setError(null);
-    
-      try {
-        // Use destructuring with default values
-        const columns = queryOptions?.columns || '*';
-        const filters = queryOptions?.filters;
-        const orderBy = queryOptions?.orderBy;
-        
-        let query = supabase.from(tableName).select(columns);
-        
-        // Apply filters if provided
-        if (filters) {
-          Object.entries(filters).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-              query = query.eq(key, value);
-            }
-          });
-        }
-        
-        // Apply ordering if provided
-        if (orderBy) {
-          query = query.order(orderBy.column, { 
-            ascending: orderBy.ascending ?? true 
-          });
-        }
-        
-        // Execute the query
-        const { data, error: queryError } = await query;
-        
-        if (queryError) throw queryError;
-        
-        // Use explicit double casting to break type inference chain
-        // First cast to unknown, then to the target type
-        const result = (data || []) as unknown as T[];
-        
-        setData(result);
-        return result;
-      } catch (error) {
-        const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
-        handleError(error, errorMsg);
-        setError(error instanceof Error ? error : new Error(String(error)));
-        return [] as T[];
-      } finally {
-        setLoading(false);
+      
+      // Apply ordering if provided
+      if (orderBy) {
+        query = query.order(orderBy.column, { 
+          ascending: orderBy.ascending ?? true 
+        });
       }
-    },
-    [tableName, toastMessages.fetchError, handleError]
-  );
+      
+      // Execute the query
+      const { data: rawData, error: queryError } = await query;
+      
+      if (queryError) throw queryError;
+      
+      // Use type assertion with any as intermediate step to break recursion
+      const typedData = (rawData || []) as any[];
+      
+      setData(typedData as T[]);
+      return typedData as T[];
+    } catch (error) {
+      const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
+      handleError(error, errorMsg);
+      setError(error instanceof Error ? error : new Error(String(error)));
+      return [] as T[];
+    } finally {
+      setLoading(false);
+    }
+  }, [tableName, toastMessages.fetchError, handleError]);
 
   // Load data on component mount if enabled
   useEffect(() => {
