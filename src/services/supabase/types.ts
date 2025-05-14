@@ -16,7 +16,8 @@ export type ValidTableName =
   | 'clients'
   | 'dashboard_data'
   | 'colaboradores'
-  | 'profiles';
+  | 'profiles'
+  | 'requisicoes_estoque';
 
 // Query options for data fetching
 export interface QueryOptions {
