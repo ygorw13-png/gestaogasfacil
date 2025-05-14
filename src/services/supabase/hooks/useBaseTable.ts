@@ -29,35 +29,29 @@ export function useBaseTable<T extends Record<string, any>>(
   
   const { handleError } = useSupabaseErrorHandler();
 
-  // Using a callback with simpler types to avoid recursive type instantiation
-  const fetchData = useCallback(async (queryOptions?: {
-    columns?: string;
-    filters?: Record<string, any>;
-    orderBy?: { column: string; ascending?: boolean };
-  }) => {
+  // Using a simplified function signature to avoid recursive type issues
+  const fetchData = useCallback(async (options?: any) => {
     setLoading(true);
     setError(null);
     
     try {
-      // Merge with initial query options if provided
-      const mergedOptions = queryOptions || {};
-      const { columns = '*' } = mergedOptions;
+      const columns = options?.columns || '*';
       
       let query = supabase.from(tableName).select(columns);
       
-      // Apply filters
-      if (mergedOptions.filters) {
-        Object.entries(mergedOptions.filters).forEach(([key, value]) => {
+      // Apply filters if provided
+      if (options?.filters) {
+        Object.entries(options.filters).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
             query = query.eq(key, value);
           }
         });
       }
       
-      // Apply ordering
-      if (mergedOptions.orderBy) {
-        query = query.order(mergedOptions.orderBy.column, { 
-          ascending: mergedOptions.orderBy.ascending ?? true 
+      // Apply ordering if provided
+      if (options?.orderBy) {
+        query = query.order(options.orderBy.column, { 
+          ascending: options.orderBy.ascending ?? true 
         });
       }
       
@@ -65,11 +59,14 @@ export function useBaseTable<T extends Record<string, any>>(
       
       if (responseError) throw responseError;
       
-      // Cast to any[] first, completely breaking the recursive type chain
-      // Then cast to the expected type T[]
-      const typedData = (rawData as any[]) as T[];
-      setData(typedData);
-      return typedData;
+      // Use explicit type assertion to completely break the recursion
+      const result = [] as T[];
+      if (Array.isArray(rawData)) {
+        rawData.forEach(item => result.push(item as T));
+      }
+      
+      setData(result);
+      return result;
     } catch (error) {
       const errorMsg = toastMessages.fetchError || `Error loading data from ${tableName}`;
       handleError(error, errorMsg);
