@@ -1,23 +1,23 @@
 
-import { useCallback } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ValidTableName } from "@/services/supabase/types";
+import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
-import { safeTypeConversion } from "../utils/typeConversions";
+import { QueryOptions } from "../utils/queryBuilder";
 
 /**
- * Hook for CRUD operations on a Supabase table
- * Can be used standalone or with useBaseTable
+ * Hook for basic table operations with standardized error handling
+ * Breaking the deep recursive type chain by being more explicit with our types
  */
-export function useTableOperations<T extends Record<string, unknown>>(
+export function useTableOperations<T extends Record<string, any>>(
   tableName: ValidTableName,
   options: {
     idField?: string;
     toastMessages?: {
-      createSuccess?: string;
-      updateSuccess?: string;
-      deleteSuccess?: string;
-      fetchItemError?: string;
+      fetchError?: string;
+      createError?: string;
+      updateError?: string;
+      deleteError?: string;
     };
   } = {}
 ) {
@@ -25,134 +25,81 @@ export function useTableOperations<T extends Record<string, unknown>>(
     idField = 'id',
     toastMessages = {}
   } = options;
+
+  const [loading, setLoading] = useState(false);
+  const { error, handleError, safeExecute } = useErrorHandler();
   
-  const { loading, setLoading, handleError, handleSuccess, safeExecute } = useErrorHandler();
+  // Safely convert response data to the generic type
+  const safeConvert = <R>(data: any): R => {
+    if (!data) return null as unknown as R;
+    return data as unknown as R;
+  };
 
-  // Get a single item by ID
-  const getById = useCallback(async (id: string) => {
-    // Break recursive typing with explicit type assertion
-    return await safeExecute(async () => {
-      const { data, error } = await supabase
+  // Create operation with proper typing
+  const create = useCallback(async (data: Partial<T>): Promise<T | null> => {
+    setLoading(true);
+    try {
+      const { data: createdData, error } = await supabase
         .from(tableName)
-        .select('*')
+        .insert(data)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return safeConvert<T>(createdData);
+    } catch (err: any) {
+      handleError(err, toastMessages.createError || `Error creating record in ${tableName}`);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [tableName, handleError, toastMessages.createError]);
+
+  // Update operation with proper typing
+  const update = useCallback(async (id: string, data: Partial<T>): Promise<T | null> => {
+    setLoading(true);
+    try {
+      const { data: updatedData, error } = await supabase
+        .from(tableName)
+        .update(data)
         .eq(idField, id)
-        .maybeSingle();
+        .select()
+        .single();
       
       if (error) throw error;
-      return data;
-    }, toastMessages.fetchItemError || `Error fetching item from ${tableName}`)
-    .then(result => result ? safeTypeConversion<T>(result) : null);
-  }, [tableName, idField, safeExecute, toastMessages.fetchItemError]);
+      return safeConvert<T>(updatedData);
+    } catch (err: any) {
+      handleError(err, toastMessages.updateError || `Error updating record in ${tableName}`);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [tableName, idField, handleError, toastMessages.updateError]);
 
-  // Create a new item with explicitly typed return to break recursion
-  const createItem = useCallback(async (
-    item: Record<string, unknown>,
-    options: {
-      successMessage?: string;
-      returnItem?: boolean;
-    } = {}
-  ) => {
-    const { 
-      successMessage = toastMessages.createSuccess || `Item added successfully`, 
-      returnItem = true 
-    } = options;
-    
-    // Use safe execute with explicit typing
-    const result = await safeExecute(async () => {
-      const query = supabase.from(tableName).insert(item as any);
-      
-      const { data, error } = returnItem
-        ? await query.select().single()
-        : await query;
-      
-      if (error) throw error;
-      
-      handleSuccess(successMessage);
-      return returnItem ? data : null;
-    }, `Error adding item to ${tableName}`);
-    
-    // Break recursive typing with explicit return type
-    return returnItem ? safeTypeConversion<T>(result) : null;
-  }, [tableName, handleSuccess, safeExecute, toastMessages.createSuccess]);
-
-  // Update an existing item
-  const updateItem = useCallback(async (
-    id: string,
-    updates: Record<string, unknown>,
-    options: {
-      successMessage?: string;
-      returnItem?: boolean;
-    } = {}
-  ) => {
-    const { 
-      successMessage = toastMessages.updateSuccess || `Item updated successfully`, 
-      returnItem = true 
-    } = options;
-    
-    const result = await safeExecute(async () => {
-      // First update the item
-      const { error: updateError } = await supabase
-        .from(tableName)
-        .update(updates as any)
-        .eq(idField, id);
-      
-      if (updateError) throw updateError;
-      
-      // Then fetch the updated item if requested
-      if (returnItem) {
-        const { data, error: fetchError } = await supabase
-          .from(tableName)
-          .select('*')
-          .eq(idField, id)
-          .maybeSingle();
-          
-        if (fetchError) throw fetchError;
-        
-        if (!data) {
-          throw new Error(`Record not found after update: ${idField}=${id}`);
-        }
-        
-        handleSuccess(successMessage);
-        return data;
-      } else {
-        handleSuccess(successMessage);
-        return null;
-      }
-    }, `Error updating item in ${tableName}`);
-    
-    // Break recursive typing with explicit return type
-    return returnItem ? safeTypeConversion<T>(result) : null;
-  }, [tableName, idField, handleSuccess, safeExecute, toastMessages.updateSuccess]);
-
-  // Delete an item
-  const deleteItem = useCallback(async (
-    id: string,
-    options: {
-      successMessage?: string;
-    } = {}
-  ) => {
-    const { successMessage = toastMessages.deleteSuccess || `Item deleted successfully` } = options;
-    
-    const success = await safeExecute(async () => {
+  // Remove operation with proper typing
+  const remove = useCallback(async (id: string): Promise<boolean> => {
+    setLoading(true);
+    try {
       const { error } = await supabase
         .from(tableName)
         .delete()
         .eq(idField, id);
       
       if (error) throw error;
-      
-      handleSuccess(successMessage);
       return true;
-    }, `Error deleting item from ${tableName}`);
-    
-    return success || false;
-  }, [tableName, idField, handleSuccess, safeExecute, toastMessages.deleteSuccess]);
+    } catch (err: any) {
+      handleError(err, toastMessages.deleteError || `Error deleting record from ${tableName}`);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [tableName, idField, handleError, toastMessages.deleteError]);
 
   return {
     loading,
-    getById,
-    createItem,
-    updateItem,
-    deleteItem
+    error,
+    create,
+    update,
+    remove
   };
 }

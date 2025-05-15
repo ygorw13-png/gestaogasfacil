@@ -1,10 +1,7 @@
-// This file would need to be created or updated to fix the type errors
-// Since we don't see the complete file in the provided code, I'll create a basic structure
-// showing proper type usage instead of the incorrect id property in the QueryFilters
-
 import React, { useEffect, useState } from 'react';
 import { useSupabaseCRUD } from '@/hooks/supabaseCRUD';
 import type { QueryOptions, QueryFilters } from '@/hooks/supabaseCRUD/types';
+import { ValidTableName } from '@/services/supabase/types';
 
 // Define proper interfaces for your data types
 interface TodoItem {
@@ -26,7 +23,7 @@ export const SupabaseHooksExample: React.FC = () => {
     remove,
     loading, 
     error 
-  } = useSupabaseCRUD<TodoItem>('todos');
+  } = useSupabaseCRUD<TodoItem>('todos' as ValidTableName);
   
   useEffect(() => {
     // Example of fetching data with proper filters

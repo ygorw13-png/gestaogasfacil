@@ -1,6 +1,7 @@
 
 import { SupabaseClient } from "@supabase/supabase-js";
-import type { PostgrestFilterBuilder } from "@supabase/postgrest-js";
+// Remove the direct import from postgrest-js since it's already available through supabase-js
+// The types we need are already exposed through the SupabaseClient
 
 export interface QueryOptions {
   columns?: string;
@@ -27,9 +28,9 @@ export interface QueryOrderBy {
  * Extracts this logic to a utility function for reuse
  */
 export function applyQueryOptions<T>(
-  query: PostgrestFilterBuilder<any, any, T[]>,
+  query: any,
   options?: QueryOptions
-): PostgrestFilterBuilder<any, any, T[]> {
+): any {
   let modifiedQuery = query;
 
   if (!options) return modifiedQuery;
@@ -92,8 +93,8 @@ export function applyQueryOptions<T>(
 
 // Add explicit buildQuery function to resolve import error
 export function buildQuery<T>(
-  baseQuery: PostgrestFilterBuilder<any, any, T[]>,
+  baseQuery: any,
   options?: QueryOptions
-): PostgrestFilterBuilder<any, any, T[]> {
+): any {
   return applyQueryOptions(baseQuery, options);
 }
