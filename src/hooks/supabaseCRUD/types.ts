@@ -7,8 +7,26 @@ export interface SupabaseOperationOptions {
   idField?: string;
 }
 
-// Reuse the QueryOptions from our shared utility but with proper type export
-export type { QueryOptions as SupabaseCRUDOptions } from "@/services/supabase/utils/queryBuilder";
+// Use proper type definitions for QueryOptions instead of importing
+export interface QueryOptions {
+  columns?: string;
+  filters?: QueryFilters[];
+  orderBy?: QueryOrderBy;
+  limit?: number;
+  foreignTable?: string;
+  idField?: string;
+}
+
+export interface QueryFilters {
+  field: string;
+  operator: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "like" | "ilike" | "in" | "is";
+  value: any;
+}
+
+export interface QueryOrderBy {
+  column: string;
+  ascending?: boolean;
+}
 
 // Return type for the CRUD hook
 export interface SupabaseCRUDReturn<T> {
@@ -21,6 +39,3 @@ export interface SupabaseCRUDReturn<T> {
   remove: (id: string, options?: SupabaseOperationOptions) => Promise<boolean>;
   resetError: () => void;
 }
-
-// Re-export the QueryOptions interface
-import type { QueryOptions } from "@/services/supabase/utils/queryBuilder";

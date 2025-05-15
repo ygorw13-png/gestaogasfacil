@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "@/services/supabase/types";
 import { useErrorHandling } from "./useErrorHandling";
-import { buildQuery, QueryOptions } from "@/services/supabase/utils/queryBuilder";
+import { applyQueryOptions, QueryOptions } from "@/services/supabase/utils/queryBuilder";
 import { safeTypeConversion, safeArrayConversion } from "@/services/supabase/utils/typeConversions";
 
 /**
@@ -20,7 +20,7 @@ export function useReadOperations<T>(tableName: ValidTableName) {
     const baseQuery = supabase.from(tableName).select(columns);
     
     // Apply filters, ordering, etc. with our shared query builder
-    const query = buildQuery(baseQuery, options);
+    const query = applyQueryOptions(baseQuery, options);
     
     const result = await safeExecute(async () => {
       const { data, error } = await query;

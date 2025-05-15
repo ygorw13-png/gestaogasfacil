@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
-import { QueryOptions, buildQuery } from "../utils/queryBuilder";
+import { QueryOptions, applyQueryOptions } from "../utils/queryBuilder";
 import { safeArrayConversion } from "../utils/typeConversions";
 
 /**
@@ -38,7 +38,7 @@ export function useBaseTable<T extends Record<string, any>>(
     const baseQuery = supabase.from(tableName).select(columns);
     
     // Use shared query builder to apply filters, ordering, etc.
-    const query = buildQuery(baseQuery, options);
+    const query = applyQueryOptions(baseQuery, options);
     
     // Execute the query with error handling
     const result = await safeExecute(async () => {

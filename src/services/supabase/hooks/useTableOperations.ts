@@ -30,7 +30,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
 
   // Get a single item by ID
   const getById = useCallback(async (id: string) => {
-    // Use safe type conversion to break recursive typing
+    // Break recursive typing with explicit type assertion
     return await safeExecute(async () => {
       const { data, error } = await supabase
         .from(tableName)
@@ -41,10 +41,10 @@ export function useTableOperations<T extends Record<string, unknown>>(
       if (error) throw error;
       return data;
     }, toastMessages.fetchItemError || `Error fetching item from ${tableName}`)
-    .then(result => result ? (result as unknown as T) : null);
+    .then(result => result ? safeTypeConversion<T>(result) : null);
   }, [tableName, idField, safeExecute, toastMessages.fetchItemError]);
 
-  // Create a new item
+  // Create a new item with explicitly typed return to break recursion
   const createItem = useCallback(async (
     item: Record<string, unknown>,
     options: {
@@ -57,6 +57,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       returnItem = true 
     } = options;
     
+    // Use safe execute with explicit typing
     const result = await safeExecute(async () => {
       const query = supabase.from(tableName).insert(item as any);
       
@@ -70,8 +71,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       return returnItem ? data : null;
     }, `Error adding item to ${tableName}`);
     
-    // Use safe type conversion to break recursive typing
-    return returnItem ? (result ? (result as unknown as T) : null) : null;
+    // Break recursive typing with explicit return type
+    return returnItem ? safeTypeConversion<T>(result) : null;
   }, [tableName, handleSuccess, safeExecute, toastMessages.createSuccess]);
 
   // Update an existing item
@@ -119,8 +120,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       }
     }, `Error updating item in ${tableName}`);
     
-    // Use safe type conversion to break recursive typing
-    return returnItem ? (result ? (result as unknown as T) : null) : null;
+    // Break recursive typing with explicit return type
+    return returnItem ? safeTypeConversion<T>(result) : null;
   }, [tableName, idField, handleSuccess, safeExecute, toastMessages.updateSuccess]);
 
   // Delete an item

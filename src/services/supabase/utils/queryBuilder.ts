@@ -1,6 +1,6 @@
 
 import { SupabaseClient } from "@supabase/supabase-js";
-import type { PostgrestFilterBuilder } from "@supabase/supabase-js";
+import type { PostgrestFilterBuilder } from "@supabase/postgrest-js";
 
 export interface QueryOptions {
   columns?: string;
@@ -88,4 +88,12 @@ export function applyQueryOptions<T>(
   }
 
   return modifiedQuery;
+}
+
+// Add explicit buildQuery function to resolve import error
+export function buildQuery<T>(
+  baseQuery: PostgrestFilterBuilder<any, any, T[]>,
+  options?: QueryOptions
+): PostgrestFilterBuilder<any, any, T[]> {
+  return applyQueryOptions(baseQuery, options);
 }
