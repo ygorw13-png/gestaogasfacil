@@ -1,8 +1,9 @@
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "@/services/supabase/types";
-import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
+import { useErrorHandler } from "../utils/errorHandling";
+import { safeTypeConversion } from "../utils/typeConversions";
 
 /**
  * Hook for CRUD operations on a Supabase table
@@ -25,14 +26,11 @@ export function useTableOperations<T extends Record<string, unknown>>(
     toastMessages = {}
   } = options;
   
-  const [loading, setLoading] = useState(false);
-  const { handleError, handleSuccess } = useSupabaseErrorHandler();
+  const { loading, setLoading, handleError, handleSuccess, safeExecute } = useErrorHandler();
 
   // Get a single item by ID
   const getById = useCallback(async (id: string) => {
-    setLoading(true);
-    
-    try {
+    const result = await safeExecute(async () => {
       const { data, error } = await supabase
         .from(tableName)
         .select('*')
@@ -40,17 +38,11 @@ export function useTableOperations<T extends Record<string, unknown>>(
         .maybeSingle();
       
       if (error) throw error;
-      
-      // Break type recursion with intermediate unknown type
-      return data as unknown as T;
-    } catch (error) {
-      const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
-      handleError(error, errorMsg);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [tableName, idField, handleError, toastMessages.fetchItemError]);
+      return data;
+    }, toastMessages.fetchItemError || `Error fetching item from ${tableName}`);
+    
+    return safeTypeConversion<T>(result);
+  }, [tableName, idField, safeExecute, toastMessages.fetchItemError]);
 
   // Create a new item
   const createItem = useCallback(async (
@@ -60,15 +52,12 @@ export function useTableOperations<T extends Record<string, unknown>>(
       returnItem?: boolean;
     } = {}
   ) => {
-    setLoading(true);
+    const { 
+      successMessage = toastMessages.createSuccess || `Item added successfully`, 
+      returnItem = true 
+    } = options;
     
-    try {
-      const { 
-        successMessage = toastMessages.createSuccess || `Item added successfully`, 
-        returnItem = true 
-      } = options;
-      
-      // Use type assertion with any for Supabase
+    const result = await safeExecute(async () => {
       const query = supabase.from(tableName).insert(item as any);
       
       const { data, error } = returnItem
@@ -78,15 +67,11 @@ export function useTableOperations<T extends Record<string, unknown>>(
       if (error) throw error;
       
       handleSuccess(successMessage);
-      // Break type recursion with unknown
-      return returnItem ? (data as unknown as T) : null;
-    } catch (error) {
-      handleError(error, `Error adding item to ${tableName}`);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [tableName, handleError, handleSuccess, toastMessages.createSuccess]);
+      return returnItem ? data : null;
+    }, `Error adding item to ${tableName}`);
+    
+    return returnItem ? safeTypeConversion<T>(result) : null;
+  }, [tableName, handleSuccess, safeExecute, toastMessages.createSuccess]);
 
   // Update an existing item
   const updateItem = useCallback(async (
@@ -97,14 +82,12 @@ export function useTableOperations<T extends Record<string, unknown>>(
       returnItem?: boolean;
     } = {}
   ) => {
-    setLoading(true);
+    const { 
+      successMessage = toastMessages.updateSuccess || `Item updated successfully`, 
+      returnItem = true 
+    } = options;
     
-    try {
-      const { 
-        successMessage = toastMessages.updateSuccess || `Item updated successfully`, 
-        returnItem = true 
-      } = options;
-      
+    const result = await safeExecute(async () => {
       // First update the item
       const { error: updateError } = await supabase
         .from(tableName)
@@ -128,19 +111,15 @@ export function useTableOperations<T extends Record<string, unknown>>(
         }
         
         handleSuccess(successMessage);
-        // Break type recursion with unknown
-        return data as unknown as T;
+        return data;
       } else {
         handleSuccess(successMessage);
         return null;
       }
-    } catch (error) {
-      handleError(error, `Error updating item in ${tableName}`);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [tableName, idField, handleError, handleSuccess, toastMessages.updateSuccess]);
+    }, `Error updating item in ${tableName}`);
+    
+    return returnItem ? safeTypeConversion<T>(result) : null;
+  }, [tableName, idField, handleSuccess, safeExecute, toastMessages.updateSuccess]);
 
   // Delete an item
   const deleteItem = useCallback(async (
@@ -149,11 +128,9 @@ export function useTableOperations<T extends Record<string, unknown>>(
       successMessage?: string;
     } = {}
   ) => {
-    setLoading(true);
+    const { successMessage = toastMessages.deleteSuccess || `Item deleted successfully` } = options;
     
-    try {
-      const { successMessage = toastMessages.deleteSuccess || `Item deleted successfully` } = options;
-      
+    const success = await safeExecute(async () => {
       const { error } = await supabase
         .from(tableName)
         .delete()
@@ -163,13 +140,10 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       handleSuccess(successMessage);
       return true;
-    } catch (error) {
-      handleError(error, `Error deleting item from ${tableName}`);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [tableName, idField, handleError, handleSuccess, toastMessages.deleteSuccess]);
+    }, `Error deleting item from ${tableName}`);
+    
+    return success || false;
+  }, [tableName, idField, handleSuccess, safeExecute, toastMessages.deleteSuccess]);
 
   return {
     loading,

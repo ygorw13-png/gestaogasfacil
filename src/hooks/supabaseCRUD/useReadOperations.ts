@@ -2,8 +2,9 @@
 import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "@/services/supabase/types";
-import { SupabaseCRUDOptions } from "./types";
 import { useErrorHandling } from "./useErrorHandling";
+import { buildQuery, QueryOptions } from "@/services/supabase/utils/queryBuilder";
+import { safeTypeConversion, safeArrayConversion } from "@/services/supabase/utils/typeConversions";
 
 /**
  * Hook providing read operations for a Supabase table
@@ -12,26 +13,14 @@ export function useReadOperations<T>(tableName: ValidTableName) {
   const { safeExecute } = useErrorHandling();
 
   // Get all records with simplified typing
-  const getAll = useCallback(async (options?: SupabaseCRUDOptions): Promise<T[]> => {
+  const getAll = useCallback(async (options?: QueryOptions): Promise<T[]> => {
     const { columns = '*' } = options || {};
     
     // Create base query
-    let query = supabase.from(tableName).select(columns);
+    const baseQuery = supabase.from(tableName).select(columns);
     
-    // Apply filters if provided
-    if (options?.filters) {
-      Object.entries(options.filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          query = query.eq(key, value);
-        }
-      });
-    }
-    
-    // Apply ordering if provided
-    if (options?.orderBy) {
-      const { column, ascending = true } = options.orderBy;
-      query = query.order(column, { ascending });
-    }
+    // Apply filters, ordering, etc. with our shared query builder
+    const query = buildQuery(baseQuery, options);
     
     const result = await safeExecute(async () => {
       const { data, error } = await query;
@@ -39,8 +28,8 @@ export function useReadOperations<T>(tableName: ValidTableName) {
       return data || [];
     }, `Não foi possível carregar dados de ${tableName}`);
     
-    // Use cast via unknown para evitar a recursão de tipos
-    return (result || []) as unknown as T[];
+    // Use our shared type conversion utility to avoid recursive types
+    return safeArrayConversion<T>(result || []);
   }, [tableName, safeExecute]);
 
   // Get a record by ID with simplified typing
@@ -61,8 +50,8 @@ export function useReadOperations<T>(tableName: ValidTableName) {
       return data;
     }, `Não foi possível carregar o item de ${tableName}`);
     
-    // Use cast via unknown para evitar a recursão de tipos
-    return result as unknown as T | null;
+    // Use shared type conversion utility
+    return safeTypeConversion<T>(result);
   }, [tableName, safeExecute]);
 
   return {

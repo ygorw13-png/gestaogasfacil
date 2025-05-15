@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { ValidTableName } from "@/services/supabase/types";
 import { useBaseTable } from "./useBaseTable";
 import { useTableOperations } from "./useTableOperations";
+import { updateItemInArray, addItemToArray, removeItemFromArray } from "../utils/typeConversions";
 
 // Options interface for improved readability
 interface TableCRUDOptions {
@@ -37,8 +38,7 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     loading: tableLoading,
     error,
     fetchData,
-    setData,
-    setError
+    setData
   } = useBaseTable<T>(tableName, {
     idField,
     fetchOnMount,
@@ -77,8 +77,8 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     });
     
     if (result) {
-      // Use a simpler approach with proper typing
-      setData(prev => [...prev, result]);
+      // Use our shared array utility
+      setData(prev => addItemToArray(prev, result as T));
     }
     
     return result;
@@ -97,10 +97,8 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     });
     
     if (result) {
-      // Simple comparison with type-safe approach
-      setData(prev => prev.map(item => 
-        (item as any)[idField] === id ? result : item
-      ));
+      // Use our shared array utility
+      setData(prev => updateItemInArray(prev, result as T, idField));
     }
     
     return result;
@@ -115,7 +113,8 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     const success = await deleteItem(id, options);
     
     if (success) {
-      setData(prev => prev.filter(item => (item as any)[idField] !== id));
+      // Use our shared array utility
+      setData(prev => removeItemFromArray(prev, id, idField));
     }
     
     return success;

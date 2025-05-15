@@ -1,5 +1,5 @@
 
-import { ValidTableName } from "@/services/supabaseService";
+import { ValidTableName } from "@/services/supabase/types";
 import { useSupabaseCRUD as useSupabaseCRUDImplementation } from "./supabaseCRUD";
 
 /**

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "@/services/supabase/types";
 import { SupabaseOperationOptions } from "./types";
 import { useErrorHandling } from "./useErrorHandling";
+import { safeTypeConversion } from "@/services/supabase/utils/typeConversions";
 
 /**
  * Hook providing write operations for a Supabase table
@@ -19,12 +20,12 @@ export function useWriteOperations<T>(tableName: ValidTableName) {
     const { successMessage = `Item adicionado com sucesso`, idField = 'id' } = options || {};
     
     const result = await safeExecute(async () => {
-      // Primeiro faz o insert
+      // Use type assertion to prevent TypeScript errors with Supabase
       const { data: insertedData, error } = await supabase
         .from(tableName)
-        .insert(data)
-        .select() // Seleciona o item inserido
-        .single();  // Esperamos apenas um resultado
+        .insert(data as any)
+        .select() // Select the item inserted
+        .single();  // We expect only one result
       
       if (error) throw error;
       
@@ -32,8 +33,8 @@ export function useWriteOperations<T>(tableName: ValidTableName) {
       return insertedData;
     }, `Não foi possível adicionar o item em ${tableName}`);
     
-    // Use cast via unknown para evitar a recursão de tipos
-    return result as unknown as T | null;
+    // Use shared type conversion utility
+    return safeTypeConversion<T>(result);
   }, [tableName, safeExecute, handleSuccess]);
 
   // Update a record with explicit typing
@@ -45,15 +46,15 @@ export function useWriteOperations<T>(tableName: ValidTableName) {
     const { successMessage = `Item atualizado com sucesso`, idField = 'id' } = options || {};
     
     const result = await safeExecute(async () => {
-      // Primeiro faz o update
+      // First do the update
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(data)
+        .update(data as any)
         .eq(idField, id);
       
       if (updateError) throw updateError;
       
-      // Depois busca o item atualizado
+      // Then fetch the updated item
       const { data: updatedData, error: fetchError } = await supabase
         .from(tableName)
         .select('*')
@@ -67,8 +68,8 @@ export function useWriteOperations<T>(tableName: ValidTableName) {
       return updatedData;
     }, `Não foi possível atualizar o item em ${tableName}`);
     
-    // Use cast via unknown para evitar a recursão de tipos
-    return result as unknown as T | null;
+    // Use shared type conversion utility
+    return safeTypeConversion<T>(result);
   }, [tableName, safeExecute, handleSuccess]);
 
   // Delete a record

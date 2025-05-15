@@ -1,42 +1,36 @@
 
-import { useState } from 'react';
-import { useSupabaseErrorHandler } from "../useSupabaseHelpers";
+import { useState, useCallback } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useErrorHandler } from "@/services/supabase/utils/errorHandling";
 
 /**
- * Hook for managing error states and loading indicators in Supabase operations
+ * Hook providing standardized error handling for Supabase CRUD operations
+ * This is now a wrapper around the shared error handler for backward compatibility
  */
-export function useErrorHandling() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const { handleError, handleSuccess } = useSupabaseErrorHandler();
-
-  // Simple operation executor with error handling
-  const safeExecute = async <R>(
-    operation: () => Promise<R>,
-    errorMessage: string
-  ): Promise<R | null> => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const result = await operation();
-      return result;
-    } catch (err) {
-      handleError(err, errorMessage);
-      setError(err instanceof Error ? err : new Error(String(err)));
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
+export function useErrorHandling(options: {
+  defaultErrorMessage?: string;
+  showToasts?: boolean;
+} = {}) {
+  const { 
+    error, 
+    loading, 
+    setLoading, 
+    handleError, 
+    handleSuccess, 
+    resetError,
+    safeExecute
+  } = useErrorHandler({
+    defaultErrorMessage: options.defaultErrorMessage || "Ocorreu um erro na operação",
+    showToasts: options.showToasts !== false
+  });
 
   return {
-    loading,
     error,
-    setError,
-    resetError: () => setError(null),
-    safeExecute,
+    loading,
+    setLoading,
+    handleError,
     handleSuccess,
-    handleError
+    resetError,
+    safeExecute
   };
 }
