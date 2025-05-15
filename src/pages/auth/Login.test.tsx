@@ -6,16 +6,9 @@ import { useAuth } from '@/contexts/auth';
 import { useToast } from '@/hooks/use-toast';
 import Login from './Login';
 
-// Mock dos hooks
-vi.mock('@/contexts/AuthContext');
+// Mock the essential hooks only
+vi.mock('@/contexts/auth');
 vi.mock('@/hooks/use-toast');
-vi.mock('@/hooks/useErrorHandler', () => ({
-  useErrorHandler: () => ({
-    error: null,
-    handleError: vi.fn(),
-    clearError: vi.fn()
-  })
-}));
 vi.mock('@/utils/csrfProtection', () => ({
   useCsrfProtection: () => ({
     csrfToken: 'test-csrf-token',
@@ -47,7 +40,7 @@ describe('Login Page', () => {
       refresh: vi.fn(),
       organization: null,
       hasRole: vi.fn().mockReturnValue(false),
-      getUserCurrentRole: vi.fn().mockReturnValue('anonymous')  // Adicionando o mock para getUserCurrentRole
+      getUserCurrentRole: vi.fn().mockReturnValue('anonymous')
     });
     
     // Mock para useToast
@@ -81,7 +74,7 @@ describe('Login Page', () => {
       refresh: vi.fn(),
       organization: null,
       hasRole: vi.fn().mockReturnValue(false),
-      getUserCurrentRole: vi.fn().mockReturnValue('authenticated')  // Adicionando o mock para getUserCurrentRole
+      getUserCurrentRole: vi.fn().mockReturnValue('authenticated')
     });
     
     const { container } = render(

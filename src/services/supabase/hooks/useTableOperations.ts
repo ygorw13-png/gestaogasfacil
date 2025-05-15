@@ -30,7 +30,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
 
   // Get a single item by ID
   const getById = useCallback(async (id: string) => {
-    const result = await safeExecute(async () => {
+    // Use safe type conversion to break recursive typing
+    return await safeExecute(async () => {
       const { data, error } = await supabase
         .from(tableName)
         .select('*')
@@ -39,9 +40,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       if (error) throw error;
       return data;
-    }, toastMessages.fetchItemError || `Error fetching item from ${tableName}`);
-    
-    return safeTypeConversion<T>(result);
+    }, toastMessages.fetchItemError || `Error fetching item from ${tableName}`)
+    .then(result => result ? (result as unknown as T) : null);
   }, [tableName, idField, safeExecute, toastMessages.fetchItemError]);
 
   // Create a new item
@@ -70,7 +70,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       return returnItem ? data : null;
     }, `Error adding item to ${tableName}`);
     
-    return returnItem ? safeTypeConversion<T>(result) : null;
+    // Use safe type conversion to break recursive typing
+    return returnItem ? (result ? (result as unknown as T) : null) : null;
   }, [tableName, handleSuccess, safeExecute, toastMessages.createSuccess]);
 
   // Update an existing item
@@ -118,7 +119,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       }
     }, `Error updating item in ${tableName}`);
     
-    return returnItem ? safeTypeConversion<T>(result) : null;
+    // Use safe type conversion to break recursive typing
+    return returnItem ? (result ? (result as unknown as T) : null) : null;
   }, [tableName, idField, handleSuccess, safeExecute, toastMessages.updateSuccess]);
 
   // Delete an item

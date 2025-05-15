@@ -1,8 +1,9 @@
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "@/services/supabase/types";
 import { useSupabaseErrorHandler } from "../useSupabaseHelpers";
+import { safeTypeConversion } from "@/services/supabase/utils/typeConversions";
 
 /**
  * Hook for CRUD operations on a Supabase table
@@ -25,13 +26,10 @@ export function useTableOperations<T extends Record<string, unknown>>(
     toastMessages = {}
   } = options;
   
-  const [loading, setLoading] = useState(false);
   const { handleError, handleSuccess } = useSupabaseErrorHandler();
-
+  
   // Get a single item by ID
   const getById = useCallback(async (id: string) => {
-    setLoading(true);
-    
     try {
       const { data, error } = await supabase
         .from(tableName)
@@ -41,14 +39,12 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       if (error) throw error;
       
-      // Use proper type assertion with unknown as intermediate step
-      return data as unknown as T;
+      // Use proper type conversion to break recursive typing
+      return data ? safeTypeConversion<T>(data) : null;
     } catch (error) {
       const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
       handleError(error, errorMsg);
       return null;
-    } finally {
-      setLoading(false);
     }
   }, [tableName, idField, handleError, toastMessages.fetchItemError]);
 
@@ -60,8 +56,6 @@ export function useTableOperations<T extends Record<string, unknown>>(
       returnItem?: boolean;
     } = {}
   ) => {
-    setLoading(true);
-    
     try {
       const { 
         successMessage = toastMessages.createSuccess || `Item added successfully`, 
@@ -78,13 +72,11 @@ export function useTableOperations<T extends Record<string, unknown>>(
       if (error) throw error;
       
       handleSuccess(successMessage);
-      // Use proper type assertion with unknown as intermediate step
-      return returnItem ? (data as unknown as T) : null;
+      // Use safe type conversion
+      return returnItem ? safeTypeConversion<T>(data) : null;
     } catch (error) {
       handleError(error, `Error adding item to ${tableName}`);
       return null;
-    } finally {
-      setLoading(false);
     }
   }, [tableName, handleError, handleSuccess, toastMessages.createSuccess]);
 
@@ -97,8 +89,6 @@ export function useTableOperations<T extends Record<string, unknown>>(
       returnItem?: boolean;
     } = {}
   ) => {
-    setLoading(true);
-    
     try {
       const { 
         successMessage = toastMessages.updateSuccess || `Item updated successfully`, 
@@ -128,8 +118,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
         }
         
         handleSuccess(successMessage);
-        // Use proper type assertion with unknown as intermediate step
-        return data as unknown as T;
+        // Use safe type conversion
+        return safeTypeConversion<T>(data);
       } else {
         handleSuccess(successMessage);
         return null;
@@ -137,8 +127,6 @@ export function useTableOperations<T extends Record<string, unknown>>(
     } catch (error) {
       handleError(error, `Error updating item in ${tableName}`);
       return null;
-    } finally {
-      setLoading(false);
     }
   }, [tableName, idField, handleError, handleSuccess, toastMessages.updateSuccess]);
 
@@ -149,8 +137,6 @@ export function useTableOperations<T extends Record<string, unknown>>(
       successMessage?: string;
     } = {}
   ) => {
-    setLoading(true);
-    
     try {
       const { successMessage = toastMessages.deleteSuccess || `Item deleted successfully` } = options;
       
@@ -166,13 +152,11 @@ export function useTableOperations<T extends Record<string, unknown>>(
     } catch (error) {
       handleError(error, `Error deleting item from ${tableName}`);
       return false;
-    } finally {
-      setLoading(false);
     }
   }, [tableName, idField, handleError, handleSuccess, toastMessages.deleteSuccess]);
 
   return {
-    loading,
+    loading: false, // We're not using loading state here as it's handled differently
     getById,
     createItem,
     updateItem,

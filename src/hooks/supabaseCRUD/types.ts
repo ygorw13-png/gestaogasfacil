@@ -1,6 +1,5 @@
 
 import { ValidTableName } from "@/services/supabase/types";
-import { QueryOptions } from "@/services/supabase/utils/queryBuilder";
 
 // Options for operations that modify data
 export interface SupabaseOperationOptions {
@@ -8,8 +7,8 @@ export interface SupabaseOperationOptions {
   idField?: string;
 }
 
-// Reuse the QueryOptions from our shared utility
-export { QueryOptions as SupabaseCRUDOptions };
+// Reuse the QueryOptions from our shared utility but with proper type export
+export type { QueryOptions as SupabaseCRUDOptions } from "@/services/supabase/utils/queryBuilder";
 
 // Return type for the CRUD hook
 export interface SupabaseCRUDReturn<T> {
@@ -22,3 +21,6 @@ export interface SupabaseCRUDReturn<T> {
   remove: (id: string, options?: SupabaseOperationOptions) => Promise<boolean>;
   resetError: () => void;
 }
+
+// Re-export the QueryOptions interface
+import type { QueryOptions } from "@/services/supabase/utils/queryBuilder";

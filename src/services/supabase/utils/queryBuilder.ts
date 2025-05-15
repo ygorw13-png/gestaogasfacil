@@ -1,8 +1,20 @@
 
-import { PostgrestFilterBuilder } from "@supabase/supabase-js";
+import { SupabaseClient } from "@supabase/supabase-js";
+import type { PostgrestFilterBuilder } from "@supabase/supabase-js";
+
+export interface QueryOptions {
+  columns?: string;
+  filters?: QueryFilters[];
+  orderBy?: QueryOrderBy;
+  limit?: number;
+  foreignTable?: string;
+  idField?: string;
+}
 
 export interface QueryFilters {
-  [key: string]: any;
+  field: string;
+  operator: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "like" | "ilike" | "in" | "is";
+  value: any;
 }
 
 export interface QueryOrderBy {
@@ -10,57 +22,70 @@ export interface QueryOrderBy {
   ascending?: boolean;
 }
 
-export interface QueryPagination {
-  page: number;
-  pageSize: number;
-}
-
-export interface QueryOptions {
-  columns?: string;
-  filters?: QueryFilters;
-  orderBy?: QueryOrderBy;
-  pagination?: QueryPagination;
-}
-
 /**
- * Builds a Supabase query with common operations like filtering, ordering, and pagination
- * This eliminates duplicate query building code across different hooks
+ * Applies query options to a Supabase query
+ * Extracts this logic to a utility function for reuse
  */
-export function buildQuery<T>(
-  baseQuery: PostgrestFilterBuilder<any, any, any>,
-  options: QueryOptions = {}
-): PostgrestFilterBuilder<any, any, any> {
-  const { filters, orderBy, pagination, columns } = options;
-  let query = baseQuery;
-  
-  // Select specific columns if provided
-  if (columns) {
-    // Already handled by the initial select call
-  }
-  
+export function applyQueryOptions<T>(
+  query: PostgrestFilterBuilder<any, any, T[]>,
+  options?: QueryOptions
+): PostgrestFilterBuilder<any, any, T[]> {
+  let modifiedQuery = query;
+
+  if (!options) return modifiedQuery;
+
   // Apply filters if provided
-  if (filters) {
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        query = query.eq(key, value);
+  if (options.filters && options.filters.length > 0) {
+    options.filters.forEach(filter => {
+      switch (filter.operator) {
+        case "eq":
+          modifiedQuery = modifiedQuery.eq(filter.field, filter.value);
+          break;
+        case "neq":
+          modifiedQuery = modifiedQuery.neq(filter.field, filter.value);
+          break;
+        case "gt":
+          modifiedQuery = modifiedQuery.gt(filter.field, filter.value);
+          break;
+        case "gte":
+          modifiedQuery = modifiedQuery.gte(filter.field, filter.value);
+          break;
+        case "lt":
+          modifiedQuery = modifiedQuery.lt(filter.field, filter.value);
+          break;
+        case "lte":
+          modifiedQuery = modifiedQuery.lte(filter.field, filter.value);
+          break;
+        case "like":
+          modifiedQuery = modifiedQuery.like(filter.field, filter.value);
+          break;
+        case "ilike":
+          modifiedQuery = modifiedQuery.ilike(filter.field, filter.value);
+          break;
+        case "in":
+          modifiedQuery = modifiedQuery.in(filter.field, filter.value);
+          break;
+        case "is":
+          modifiedQuery = modifiedQuery.is(filter.field, filter.value);
+          break;
+        default:
+          break;
       }
     });
   }
-  
+
   // Apply ordering if provided
-  if (orderBy) {
-    query = query.order(orderBy.column, { 
-      ascending: orderBy.ascending ?? true 
-    });
+  if (options.orderBy) {
+    modifiedQuery = modifiedQuery.order(
+      options.orderBy.column, 
+      { ascending: options.orderBy.ascending !== false }
+    );
   }
-  
-  // Apply pagination if provided
-  if (pagination) {
-    const { page, pageSize } = pagination;
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
-    query = query.range(from, to);
+
+  // Apply limit if provided
+  if (options.limit) {
+    modifiedQuery = modifiedQuery.limit(options.limit);
   }
-  
-  return query;
+
+  return modifiedQuery;
 }
