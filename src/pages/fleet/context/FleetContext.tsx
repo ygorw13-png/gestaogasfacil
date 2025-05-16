@@ -40,11 +40,12 @@ interface FleetContextType {
 const FleetContext = createContext<FleetContextType | undefined>(undefined);
 
 export const FleetProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles as Vehicle[]);
-  const [maintenances, setMaintenances] = useState<MaintenanceItem[]>(mockMaintenances as MaintenanceItem[]);
-  const [expenses, setExpenses] = useState<VehicleExpense[]>(mockVehicleExpenses as VehicleExpense[]);
-  const [fuelEntries, setFuelEntries] = useState<FuelEntry[]>(mockFuelEntries as FuelEntry[]);
-  const [assignments, setAssignments] = useState<VehicleAssignment[]>(mockAssignments as VehicleAssignment[]);
+  // Use explicit type casting to match the required types
+  const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles as unknown as Vehicle[]);
+  const [maintenances, setMaintenances] = useState<MaintenanceItem[]>(mockMaintenances as unknown as MaintenanceItem[]);
+  const [expenses, setExpenses] = useState<VehicleExpense[]>(mockVehicleExpenses as unknown as VehicleExpense[]);
+  const [fuelEntries, setFuelEntries] = useState<FuelEntry[]>(mockFuelEntries as unknown as FuelEntry[]);
+  const [assignments, setAssignments] = useState<VehicleAssignment[]>(mockAssignments as unknown as VehicleAssignment[]);
   
   const { toast } = useToast();
 

@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
 
-// Simple type for returned data to avoid deep recursion
-type GenericRecord = Record<string, any>;
+// Generic table record type
+interface GenericRecord {
+  [key: string]: any;
+}
 
 /**
  * Hook for basic table operations with standardized error handling
@@ -28,20 +30,22 @@ export function useTableOperations<T extends GenericRecord>(
   } = options;
 
   const [loading, setLoading] = useState(false);
-  const { error, handleError, safeExecute } = useErrorHandler();
+  const { error, handleError } = useErrorHandler();
   
   // Create operation with proper typing
   const create = useCallback(async (data: Partial<T>): Promise<T | null> => {
     setLoading(true);
     try {
+      // Cast the data to any to bypass the strict type checking
+      // since Supabase's types are complex and specific to each table
       const { data: createdData, error } = await supabase
         .from(tableName)
-        .insert(data)
+        .insert(data as any)
         .select()
         .single();
       
       if (error) throw error;
-      return createdData as unknown as T;
+      return createdData as T;
     } catch (err: any) {
       handleError(err, toastMessages.createError || `Error creating record in ${tableName}`);
       return null;
@@ -54,15 +58,16 @@ export function useTableOperations<T extends GenericRecord>(
   const update = useCallback(async (id: string, data: Partial<T>): Promise<T | null> => {
     setLoading(true);
     try {
+      // Cast to any to bypass strict type checking
       const { data: updatedData, error } = await supabase
         .from(tableName)
-        .update(data)
+        .update(data as any)
         .eq(idField, id)
         .select()
         .single();
       
       if (error) throw error;
-      return updatedData as unknown as T;
+      return updatedData as T;
     } catch (err: any) {
       handleError(err, toastMessages.updateError || `Error updating record in ${tableName}`);
       return null;
