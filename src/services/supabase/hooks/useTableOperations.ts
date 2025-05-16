@@ -4,15 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
 
-// Generic table record type
-interface GenericRecord {
-  [key: string]: any;
-}
-
 /**
  * Hook for basic table operations with standardized error handling
  */
-export function useTableOperations<T extends GenericRecord>(
+export function useTableOperations<T extends Record<string, any>>(
   tableName: ValidTableName,
   options: {
     idField?: string;
@@ -36,16 +31,19 @@ export function useTableOperations<T extends GenericRecord>(
   const create = useCallback(async (data: Partial<T>): Promise<T | null> => {
     setLoading(true);
     try {
-      // Cast the data to any to bypass the strict type checking
-      // since Supabase's types are complex and specific to each table
       const { data: createdData, error } = await supabase
         .from(tableName)
         .insert(data as any)
-        .select()
-        .single();
+        .select();
       
       if (error) throw error;
-      return createdData as T;
+      
+      // Handle the case when data is returned as an array (which is typical with Supabase)
+      if (Array.isArray(createdData) && createdData.length > 0) {
+        return createdData[0] as unknown as T;
+      }
+      
+      return createdData as unknown as T;
     } catch (err: any) {
       handleError(err, toastMessages.createError || `Error creating record in ${tableName}`);
       return null;
@@ -58,16 +56,20 @@ export function useTableOperations<T extends GenericRecord>(
   const update = useCallback(async (id: string, data: Partial<T>): Promise<T | null> => {
     setLoading(true);
     try {
-      // Cast to any to bypass strict type checking
       const { data: updatedData, error } = await supabase
         .from(tableName)
         .update(data as any)
         .eq(idField, id)
-        .select()
-        .single();
+        .select();
       
       if (error) throw error;
-      return updatedData as T;
+      
+      // Handle the case when data is returned as an array
+      if (Array.isArray(updatedData) && updatedData.length > 0) {
+        return updatedData[0] as unknown as T;
+      }
+      
+      return updatedData as unknown as T;
     } catch (err: any) {
       handleError(err, toastMessages.updateError || `Error updating record in ${tableName}`);
       return null;

@@ -40,12 +40,42 @@ interface FleetContextType {
 const FleetContext = createContext<FleetContextType | undefined>(undefined);
 
 export const FleetProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Use explicit type casting to match the required types
-  const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles as unknown as Vehicle[]);
-  const [maintenances, setMaintenances] = useState<MaintenanceItem[]>(mockMaintenances as unknown as MaintenanceItem[]);
-  const [expenses, setExpenses] = useState<VehicleExpense[]>(mockVehicleExpenses as unknown as VehicleExpense[]);
-  const [fuelEntries, setFuelEntries] = useState<FuelEntry[]>(mockFuelEntries as unknown as FuelEntry[]);
-  const [assignments, setAssignments] = useState<VehicleAssignment[]>(mockAssignments as unknown as VehicleAssignment[]);
+  // Convert Date objects to strings when initializing state from mock data
+  const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles as Vehicle[]);
+  
+  // Convert Date objects to ISO strings for maintenances
+  const [maintenances, setMaintenances] = useState<MaintenanceItem[]>(
+    mockMaintenances.map(item => ({
+      ...item,
+      scheduledDate: item.scheduledDate instanceof Date ? item.scheduledDate.toISOString() : item.scheduledDate,
+      completionDate: item.completionDate instanceof Date ? item.completionDate.toISOString() : item.completionDate
+    })) as MaintenanceItem[]
+  );
+  
+  // Convert Date objects to ISO strings for expenses
+  const [expenses, setExpenses] = useState<VehicleExpense[]>(
+    mockVehicleExpenses.map(expense => ({
+      ...expense,
+      date: expense.date instanceof Date ? expense.date.toISOString() : expense.date
+    })) as VehicleExpense[]
+  );
+  
+  // Convert Date objects to ISO strings for fuel entries
+  const [fuelEntries, setFuelEntries] = useState<FuelEntry[]>(
+    mockFuelEntries.map(entry => ({
+      ...entry,
+      date: entry.date instanceof Date ? entry.date.toISOString() : entry.date
+    })) as FuelEntry[]
+  );
+  
+  // Convert Date objects to ISO strings for assignments
+  const [assignments, setAssignments] = useState<VehicleAssignment[]>(
+    mockAssignments.map(assignment => ({
+      ...assignment,
+      startDate: assignment.startDate instanceof Date ? assignment.startDate.toISOString() : assignment.startDate,
+      endDate: assignment.endDate instanceof Date ? assignment.endDate.toISOString() : assignment.endDate
+    })) as VehicleAssignment[]
+  );
   
   const { toast } = useToast();
 
