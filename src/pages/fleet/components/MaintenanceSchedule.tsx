@@ -6,23 +6,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { mockMaintenances } from "../data";
 import NewMaintenanceForm from "./forms/NewMaintenanceForm";
 import UpcomingMaintenance from "./maintenance/UpcomingMaintenance";
 import CompletedMaintenance from "./maintenance/CompletedMaintenance";
 import MaintenanceHistory from "./maintenance/MaintenanceHistory";
+import { useFleet } from "../context/FleetContext";
 
 export default function MaintenanceSchedule() {
   const [open, setOpen] = useState(false);
-  const [maintenances, setMaintenances] = useState(mockMaintenances);
-  const { toast } = useToast();
+  const { maintenances, addMaintenance } = useFleet();
   
   const handleMaintenanceSuccess = () => {
     setOpen(false);
-    toast({
-      title: "Manutenção agendada",
-      description: "A manutenção foi agendada com sucesso."
-    });
   };
 
   return (
@@ -54,7 +49,9 @@ export default function MaintenanceSchedule() {
         <TabsContent value="upcoming">
           <Card>
             <CardContent className="pt-6">
-              <UpcomingMaintenance maintenances={maintenances} />
+              <UpcomingMaintenance maintenances={maintenances.filter(m => 
+                m.status === "scheduled" || m.status === "in-progress"
+              )} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -62,7 +59,9 @@ export default function MaintenanceSchedule() {
         <TabsContent value="completed">
           <Card>
             <CardContent className="pt-6">
-              <CompletedMaintenance maintenances={maintenances} />
+              <CompletedMaintenance maintenances={maintenances.filter(m => 
+                m.status === "completed"
+              )} />
             </CardContent>
           </Card>
         </TabsContent>

@@ -39,9 +39,10 @@ export function useTableOperations<T extends Record<string, any>>(
   const create = useCallback(async (data: Partial<T>): Promise<T | null> => {
     setLoading(true);
     try {
+      // Use any type to avoid deep recursive type issues with Supabase
       const { data: createdData, error } = await supabase
         .from(tableName)
-        .insert(data)
+        .insert(data as any)
         .select()
         .single();
       
@@ -59,9 +60,10 @@ export function useTableOperations<T extends Record<string, any>>(
   const update = useCallback(async (id: string, data: Partial<T>): Promise<T | null> => {
     setLoading(true);
     try {
+      // Use any type to avoid deep recursive type issues with Supabase
       const { data: updatedData, error } = await supabase
         .from(tableName)
-        .update(data)
+        .update(data as any)
         .eq(idField, id)
         .select()
         .single();

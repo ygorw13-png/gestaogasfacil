@@ -50,17 +50,15 @@ export function useTableCRUD<T extends Record<string, unknown>>(
   // Use our operations hook for CRUD operations
   const {
     loading: operationsLoading,
-    getById,
-    createItem,
-    updateItem,
-    deleteItem
+    create,
+    update,
+    remove
   } = useTableOperations<T>(tableName, {
     idField,
     toastMessages: {
-      createSuccess: toastMessages.createSuccess,
-      updateSuccess: toastMessages.updateSuccess,
-      deleteSuccess: toastMessages.deleteSuccess,
-      fetchItemError: toastMessages.fetchItemError
+      createError: toastMessages.createSuccess,
+      updateError: toastMessages.updateSuccess,
+      deleteError: toastMessages.deleteSuccess
     }
   });
 
@@ -71,10 +69,7 @@ export function useTableCRUD<T extends Record<string, unknown>>(
       successMessage?: string;
     } = {}
   ) => {
-    const result = await createItem(item, {
-      successMessage: options.successMessage,
-      returnItem: true
-    });
+    const result = await create(item as Partial<T>);
     
     if (result) {
       // Use our shared array utility
@@ -82,7 +77,7 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     }
     
     return result;
-  }, [createItem, setData]);
+  }, [create, setData]);
 
   const updateItemWithState = useCallback(async (
     id: string,
@@ -91,10 +86,7 @@ export function useTableCRUD<T extends Record<string, unknown>>(
       successMessage?: string;
     } = {}
   ) => {
-    const result = await updateItem(id, updates, {
-      successMessage: options.successMessage,
-      returnItem: true
-    });
+    const result = await update(id, updates as Partial<T>);
     
     if (result) {
       // Use our shared array utility
@@ -102,7 +94,7 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     }
     
     return result;
-  }, [updateItem, setData, idField]);
+  }, [update, setData, idField]);
 
   const deleteItemWithState = useCallback(async (
     id: string,
@@ -110,7 +102,7 @@ export function useTableCRUD<T extends Record<string, unknown>>(
       successMessage?: string;
     } = {}
   ) => {
-    const success = await deleteItem(id, options);
+    const success = await remove(id);
     
     if (success) {
       // Use our shared array utility
@@ -118,7 +110,7 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     }
     
     return success;
-  }, [deleteItem, setData, idField]);
+  }, [remove, setData, idField]);
 
   return {
     // Data state
@@ -128,7 +120,12 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     
     // Base operations
     fetchData,
-    getById,
+    getAll: fetchData,
+    
+    // Create, Update, Delete operations
+    create,
+    update,
+    remove,
     
     // State-updating operations
     addItem,
