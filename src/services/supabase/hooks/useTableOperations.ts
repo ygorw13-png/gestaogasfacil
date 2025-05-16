@@ -43,7 +43,7 @@ export function useTableOperations<T extends Record<string, any>>(
         return createdData[0] as unknown as T;
       }
       
-      return createdData as unknown as T;
+      return (createdData || null) as unknown as T;
     } catch (err: any) {
       handleError(err, toastMessages.createError || `Error creating record in ${tableName}`);
       return null;
@@ -69,7 +69,7 @@ export function useTableOperations<T extends Record<string, any>>(
         return updatedData[0] as unknown as T;
       }
       
-      return updatedData as unknown as T;
+      return (updatedData || null) as unknown as T;
     } catch (err: any) {
       handleError(err, toastMessages.updateError || `Error updating record in ${tableName}`);
       return null;
