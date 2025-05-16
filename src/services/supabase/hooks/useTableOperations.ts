@@ -27,23 +27,22 @@ export function useTableOperations<T extends Record<string, any>>(
   const [loading, setLoading] = useState(false);
   const { error, handleError } = useErrorHandler();
   
-  // Create operation with proper typing
-  const create = useCallback(async (data: Partial<T>): Promise<T | null> => {
+  // Create operation with simplified typing
+  const create = useCallback(async (data: Record<string, any>): Promise<T | null> => {
     setLoading(true);
     try {
       const { data: createdData, error } = await supabase
         .from(tableName)
-        .insert(data as any)
+        .insert(data)
         .select();
       
       if (error) throw error;
       
-      // Handle the case when data is returned as an array (which is typical with Supabase)
       if (Array.isArray(createdData) && createdData.length > 0) {
-        return createdData[0] as unknown as T;
+        return createdData[0] as T;
       }
       
-      return (createdData || null) as unknown as T;
+      return (createdData || null) as T;
     } catch (err: any) {
       handleError(err, toastMessages.createError || `Error creating record in ${tableName}`);
       return null;
@@ -52,24 +51,23 @@ export function useTableOperations<T extends Record<string, any>>(
     }
   }, [tableName, handleError, toastMessages.createError]);
 
-  // Update operation with proper typing
-  const update = useCallback(async (id: string, data: Partial<T>): Promise<T | null> => {
+  // Update operation with simplified typing
+  const update = useCallback(async (id: string, data: Record<string, any>): Promise<T | null> => {
     setLoading(true);
     try {
       const { data: updatedData, error } = await supabase
         .from(tableName)
-        .update(data as any)
+        .update(data)
         .eq(idField, id)
         .select();
       
       if (error) throw error;
       
-      // Handle the case when data is returned as an array
       if (Array.isArray(updatedData) && updatedData.length > 0) {
-        return updatedData[0] as unknown as T;
+        return updatedData[0] as T;
       }
       
-      return (updatedData || null) as unknown as T;
+      return (updatedData || null) as T;
     } catch (err: any) {
       handleError(err, toastMessages.updateError || `Error updating record in ${tableName}`);
       return null;
@@ -78,7 +76,7 @@ export function useTableOperations<T extends Record<string, any>>(
     }
   }, [tableName, idField, handleError, toastMessages.updateError]);
 
-  // Remove operation
+  // Remove operation with explicit boolean return
   const remove = useCallback(async (id: string): Promise<boolean> => {
     setLoading(true);
     try {
