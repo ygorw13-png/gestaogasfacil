@@ -12,16 +12,19 @@ export function usePromissoryNotes() {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    console.log("Fetching promissory notes...");
-    fetchPromissoryNotes();
+  // Update dashboard data with promissory notes - defined outside of other functions
+  const updateDashboardData = useCallback((notes: PromissoryNote[]): void => {
+    const pendingNotes = notes.filter(note => note.status === "pending" || note.status === "overdue");
+    const pendingValue = pendingNotes.reduce((sum, note) => sum + note.value, 0);
+    
+    // Atualizar os dados do dashboard
+    overviewData.promissoryNotes = pendingNotes.length;
+    overviewData.promissoryValue = `R$ ${pendingValue.toFixed(2).replace('.', ',')}`;
   }, []);
 
+  // Fetch promissory notes with proper dependency
   const fetchPromissoryNotes = useCallback(async (): Promise<void> => {
     try {
-      // Por enquanto vamos continuar com os dados mocados
-      // Em uma implementação real, aqui faríamos uma chamada ao Supabase
-      // Quando a tabela de promissórias for criada
       console.log("Loading mock promissory note data");
       const { mockPromissoryNotes } = await import('../data/mockData');
       setPromissoryNotes(mockPromissoryNotes);
@@ -34,18 +37,13 @@ export function usePromissoryNotes() {
       console.error("Erro ao buscar promissórias:", error);
       setLoading(false);
     }
-  }, []);
-  
-  // Atualizar dados do dashboard com base nas promissórias
-  const updateDashboardData = useCallback((notes: PromissoryNote[]): void => {
-    const pendingNotes = notes.filter(note => note.status === "pending" || note.status === "overdue");
-    const pendingValue = pendingNotes.reduce((sum, note) => sum + note.value, 0);
-    
-    // Atualizar os dados do dashboard
-    overviewData.promissoryNotes = pendingNotes.length;
-    overviewData.promissoryValue = `R$ ${pendingValue.toFixed(2).replace('.', ',')}`;
-  }, []);
+  }, [updateDashboardData]);
 
+  useEffect(() => {
+    console.log("Fetching promissory notes...");
+    fetchPromissoryNotes();
+  }, [fetchPromissoryNotes]);
+  
   // Filtrar notas com base no status e cliente selecionados - usando useMemo para otimização
   const filteredNotes = useMemo(() => {
     return promissoryNotes.filter(note => {
@@ -170,18 +168,23 @@ export function usePromissoryNotes() {
     });
   }, [addPromissoryNote]);
 
+  // Create memoized functions to avoid recreating them on each render
+  const assignPromissoryNote = useCallback((id: string, collector: string) => {
+    setSelectedNoteId(id);
+    handleAssign(collector);
+  }, [setSelectedNoteId, handleAssign]);
+
+  const markPromissoryAsPaid = useCallback((id: string) => {
+    setSelectedNoteId(id);
+    handlePayment(0, "");
+  }, [setSelectedNoteId, handlePayment]);
+
   return {
     promissoryNotes,
     loading,
     addPromissoryNote,
-    assignPromissoryNote: useCallback((id: string, collector: string) => {
-      setSelectedNoteId(id);
-      handleAssign(collector);
-    }, [setSelectedNoteId, handleAssign]),
-    markPromissoryAsPaid: useCallback((id: string) => {
-      setSelectedNoteId(id);
-      handlePayment(0, "");
-    }, [setSelectedNoteId, handlePayment]),
+    assignPromissoryNote,
+    markPromissoryAsPaid,
     notes: promissoryNotes,
     filteredNotes,
     pendingNotes,

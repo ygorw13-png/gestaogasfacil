@@ -1,6 +1,6 @@
 
 import { ReactNode, createContext, useContext, useState } from 'react';
-import { useTableCRUD } from './supabaseCRUD';
+import { useSupabaseCRUD } from './supabaseCRUD';
 import { ValidTableName } from '@/services/supabase/types';
 
 interface TableCRUDProviderProps<T extends Record<string, any>> {
@@ -31,7 +31,7 @@ export function TableCRUDProvider<T extends Record<string, any>>({
     remove,
     loading,
     error
-  } = useTableCRUD<T>(tableName);
+  } = useSupabaseCRUD<T>(tableName);
 
   const [data, setData] = useState<T[]>([]);
 

@@ -1,33 +1,121 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useReducer, useCallback } from "react";
 import type { Sale } from "../types/saleTypes";
 import type { Reseller } from "../../resellers/types";
 
-export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open: boolean) => void) => {
-  const [saleType, setSaleType] = useState<"regular" | "reseller">("regular");
-  const [selectedClient, setSelectedClient] = useState<any | null>(null);
-  const [selectedReseller, setSelectedReseller] = useState<Reseller | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [product, setProduct] = useState("");
-  const [quantity, setQuantity] = useState(1);
-  const [unitPrice, setUnitPrice] = useState(120);
-  const [loanGas, setLoanGas] = useState(false);
-  const [cylinderMovement, setCylinderMovement] = useState<'none' | 'loan' | 'return'>('none');
-  const [movementQuantity, setMovementQuantity] = useState(1);
+// Define action types
+type SaleFormAction =
+  | { type: 'SET_SALE_TYPE', payload: 'regular' | 'reseller' }
+  | { type: 'SET_CLIENT', payload: any | null }
+  | { type: 'SET_RESELLER', payload: Reseller | null }
+  | { type: 'SET_PAYMENT_METHOD', payload: string }
+  | { type: 'SET_PRODUCT', payload: string }
+  | { type: 'SET_QUANTITY', payload: number }
+  | { type: 'SET_UNIT_PRICE', payload: number }
+  | { type: 'SET_LOAN_GAS', payload: boolean }
+  | { type: 'SET_CYLINDER_MOVEMENT', payload: 'none' | 'loan' | 'return' }
+  | { type: 'SET_MOVEMENT_QUANTITY', payload: number }
+  | { type: 'RESET_FORM' };
 
-  // Atualizar preço quando reseller ou produto mudam
-  useEffect(() => {
-    if (saleType === "reseller" && selectedReseller && product) {
+// Define state type
+interface SaleFormState {
+  saleType: 'regular' | 'reseller';
+  selectedClient: any | null;
+  selectedReseller: Reseller | null;
+  paymentMethod: string;
+  product: string;
+  quantity: number;
+  unitPrice: number;
+  loanGas: boolean;
+  cylinderMovement: 'none' | 'loan' | 'return';
+  movementQuantity: number;
+}
+
+// Initial state
+const initialState: SaleFormState = {
+  saleType: "regular",
+  selectedClient: null,
+  selectedReseller: null,
+  paymentMethod: "",
+  product: "",
+  quantity: 1,
+  unitPrice: 120,
+  loanGas: false,
+  cylinderMovement: 'none',
+  movementQuantity: 1
+};
+
+// Reducer function
+function saleFormReducer(state: SaleFormState, action: SaleFormAction): SaleFormState {
+  switch (action.type) {
+    case 'SET_SALE_TYPE':
+      return { ...state, saleType: action.payload };
+    case 'SET_CLIENT':
+      return { ...state, selectedClient: action.payload };
+    case 'SET_RESELLER':
+      return { ...state, selectedReseller: action.payload };
+    case 'SET_PAYMENT_METHOD':
+      return { ...state, paymentMethod: action.payload };
+    case 'SET_PRODUCT':
+      return { ...state, product: action.payload };
+    case 'SET_QUANTITY':
+      return { ...state, quantity: action.payload };
+    case 'SET_UNIT_PRICE':
+      return { ...state, unitPrice: action.payload };
+    case 'SET_LOAN_GAS':
+      return { ...state, loanGas: action.payload };
+    case 'SET_CYLINDER_MOVEMENT':
+      return { ...state, cylinderMovement: action.payload };
+    case 'SET_MOVEMENT_QUANTITY':
+      return { ...state, movementQuantity: action.payload };
+    case 'RESET_FORM':
+      return initialState;
+    default:
+      return state;
+  }
+}
+
+// Custom hook
+export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open: boolean) => void) => {
+  const [state, dispatch] = useReducer(saleFormReducer, initialState);
+  
+  // Effect to update price when reseller or product changes
+  // Since we're using a reducer, we can handle this in the reducer
+  // or via a separate useEffect if needed
+  
+  // Handle product change with appropriate price updates
+  const setProduct = useCallback((product: string) => {
+    dispatch({ type: 'SET_PRODUCT', payload: product });
+    
+    // Update price based on product and reseller
+    if (state.saleType === "reseller" && state.selectedReseller && product) {
       const prices: Record<string, number> = {
-        p13: selectedReseller.priceP13,
-        p20: selectedReseller.priceP20,
-        p45: selectedReseller.priceP45,
-        water: selectedReseller.priceWater,
+        p13: state.selectedReseller.priceP13,
+        p20: state.selectedReseller.priceP20,
+        p45: state.selectedReseller.priceP45,
+        water: state.selectedReseller.priceWater,
       };
       
-      setUnitPrice(prices[product] || 120);
+      dispatch({ type: 'SET_UNIT_PRICE', payload: prices[product] || 120 });
     }
-  }, [saleType, selectedReseller, product]);
+  }, [state.saleType, state.selectedReseller]);
+
+  // Handle reseller change with price updates
+  const setSelectedReseller = useCallback((reseller: Reseller | null) => {
+    dispatch({ type: 'SET_RESELLER', payload: reseller });
+    
+    // Update price if product is selected
+    if (reseller && state.product) {
+      const prices: Record<string, number> = {
+        p13: reseller.priceP13,
+        p20: reseller.priceP20,
+        p45: reseller.priceP45,
+        water: reseller.priceWater,
+      };
+      
+      dispatch({ type: 'SET_UNIT_PRICE', payload: prices[state.product] || 120 });
+    }
+  }, [state.product]);
 
   // Função para lidar com o envio do formulário
   const handleSubmit = useCallback((e: React.FormEvent) => {
@@ -36,79 +124,62 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
     const newSale: Sale = {
       id: Date.now(),
       time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      client: selectedClient ? selectedClient.name : "Venda Avulsa",
-      product: product === 'p13' ? 'GLP P13' : 
-               product === 'p20' ? 'GLP P20' :
-               product === 'p45' ? 'GLP P45' : 'Água 20L',
-      quantity,
-      payment: paymentMethod === 'cash' ? 'Dinheiro' :
-               paymentMethod === 'credit' ? 'Crédito' :
-               paymentMethod === 'debit' ? 'Débito' :
-               paymentMethod === 'pix' ? 'PIX' :
-               paymentMethod === 'promissory' ? 'Promissória' :
-               paymentMethod === 'gasVoucher' ? 'Vale Gás' : 'Convênio',
-      amount: quantity * unitPrice
+      client: state.selectedClient ? state.selectedClient.name : "Venda Avulsa",
+      product: state.product === 'p13' ? 'GLP P13' : 
+              state.product === 'p20' ? 'GLP P20' :
+              state.product === 'p45' ? 'GLP P45' : 'Água 20L',
+      quantity: state.quantity,
+      payment: state.paymentMethod === 'cash' ? 'Dinheiro' :
+              state.paymentMethod === 'credit' ? 'Crédito' :
+              state.paymentMethod === 'debit' ? 'Débito' :
+              state.paymentMethod === 'pix' ? 'PIX' :
+              state.paymentMethod === 'promissory' ? 'Promissória' :
+              state.paymentMethod === 'gasVoucher' ? 'Vale Gás' : 'Convênio',
+      amount: state.quantity * state.unitPrice
     };
 
-    // Limpar o formulário
-    setSelectedClient(null);
-    setSelectedReseller(null);
-    setSaleType("regular");
-    setPaymentMethod("");
-    setProduct("");
-    setQuantity(1);
-    setUnitPrice(120);
-    setLoanGas(false);
-    setCylinderMovement('none');
-    setMovementQuantity(1);
-
+    // Reset the form
+    dispatch({ type: 'RESET_FORM' });
     onSubmit(newSale);
     onOpenChange(false);
   }, [
-    selectedClient,
-    paymentMethod,
-    product,
-    quantity,
-    unitPrice,
+    state,
     onSubmit,
     onOpenChange
   ]);
 
-  // Função para resetar o formulário
+  // Reset form function
   const resetForm = useCallback(() => {
-    setSelectedClient(null);
-    setSelectedReseller(null);
-    setSaleType("regular");
-    setPaymentMethod("");
-    setProduct("");
-    setQuantity(1);
-    setUnitPrice(120);
-    setLoanGas(false);
-    setCylinderMovement('none');
-    setMovementQuantity(1);
+    dispatch({ type: 'RESET_FORM' });
   }, []);
 
   return {
-    saleType,
-    setSaleType,
-    selectedClient,
-    setSelectedClient,
-    selectedReseller,
+    // State values
+    saleType: state.saleType,
+    selectedClient: state.selectedClient,
+    selectedReseller: state.selectedReseller,
+    paymentMethod: state.paymentMethod,
+    product: state.product, 
+    quantity: state.quantity,
+    unitPrice: state.unitPrice,
+    loanGas: state.loanGas,
+    cylinderMovement: state.cylinderMovement,
+    movementQuantity: state.movementQuantity,
+    
+    // State setters
+    setSaleType: (type: 'regular' | 'reseller') => dispatch({ type: 'SET_SALE_TYPE', payload: type }),
+    setSelectedClient: (client: any) => dispatch({ type: 'SET_CLIENT', payload: client }),
     setSelectedReseller,
-    paymentMethod,
-    setPaymentMethod,
-    product,
+    setPaymentMethod: (method: string) => dispatch({ type: 'SET_PAYMENT_METHOD', payload: method }),
     setProduct,
-    quantity,
-    setQuantity,
-    unitPrice,
-    setUnitPrice,
-    loanGas,
-    setLoanGas,
-    cylinderMovement,
-    setCylinderMovement,
-    movementQuantity,
-    setMovementQuantity,
+    setQuantity: (qty: number) => dispatch({ type: 'SET_QUANTITY', payload: qty }),
+    setUnitPrice: (price: number) => dispatch({ type: 'SET_UNIT_PRICE', payload: price }),
+    setLoanGas: (loan: boolean) => dispatch({ type: 'SET_LOAN_GAS', payload: loan }),
+    setCylinderMovement: (movement: 'none' | 'loan' | 'return') => 
+      dispatch({ type: 'SET_CYLINDER_MOVEMENT', payload: movement }),
+    setMovementQuantity: (qty: number) => dispatch({ type: 'SET_MOVEMENT_QUANTITY', payload: qty }),
+    
+    // Actions
     handleSubmit,
     resetForm
   };

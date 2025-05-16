@@ -9,6 +9,7 @@ export interface MovementResults {
   water: { loan: number, return: number, net: number };
 }
 
+// Move the calculation function outside the component to avoid recreating on each render
 export function calculateNetMovements(inventoryMovements: InventoryMovement[]): MovementResults {
   const result = {
     P13: { loan: 0, return: 0, net: 0 },

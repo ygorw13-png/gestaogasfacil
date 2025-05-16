@@ -3,13 +3,14 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
-import { QueryOptions } from "../utils/queryBuilder";
+
+// Simple type for returned data to avoid deep recursion
+type GenericRecord = Record<string, any>;
 
 /**
  * Hook for basic table operations with standardized error handling
- * Breaking the deep recursive type chain by being more explicit with our types
  */
-export function useTableOperations<T extends Record<string, any>>(
+export function useTableOperations<T extends GenericRecord>(
   tableName: ValidTableName,
   options: {
     idField?: string;
@@ -29,25 +30,18 @@ export function useTableOperations<T extends Record<string, any>>(
   const [loading, setLoading] = useState(false);
   const { error, handleError, safeExecute } = useErrorHandler();
   
-  // Safely convert response data to the generic type
-  const safeConvert = <R>(data: any): R => {
-    if (!data) return null as unknown as R;
-    return data as unknown as R;
-  };
-
   // Create operation with proper typing
   const create = useCallback(async (data: Partial<T>): Promise<T | null> => {
     setLoading(true);
     try {
-      // Use any type to avoid deep recursive type issues with Supabase
       const { data: createdData, error } = await supabase
         .from(tableName)
-        .insert(data as any)
+        .insert(data)
         .select()
         .single();
       
       if (error) throw error;
-      return safeConvert<T>(createdData);
+      return createdData as unknown as T;
     } catch (err: any) {
       handleError(err, toastMessages.createError || `Error creating record in ${tableName}`);
       return null;
@@ -60,16 +54,15 @@ export function useTableOperations<T extends Record<string, any>>(
   const update = useCallback(async (id: string, data: Partial<T>): Promise<T | null> => {
     setLoading(true);
     try {
-      // Use any type to avoid deep recursive type issues with Supabase
       const { data: updatedData, error } = await supabase
         .from(tableName)
-        .update(data as any)
+        .update(data)
         .eq(idField, id)
         .select()
         .single();
       
       if (error) throw error;
-      return safeConvert<T>(updatedData);
+      return updatedData as unknown as T;
     } catch (err: any) {
       handleError(err, toastMessages.updateError || `Error updating record in ${tableName}`);
       return null;
@@ -78,7 +71,7 @@ export function useTableOperations<T extends Record<string, any>>(
     }
   }, [tableName, idField, handleError, toastMessages.updateError]);
 
-  // Remove operation with proper typing
+  // Remove operation
   const remove = useCallback(async (id: string): Promise<boolean> => {
     setLoading(true);
     try {
