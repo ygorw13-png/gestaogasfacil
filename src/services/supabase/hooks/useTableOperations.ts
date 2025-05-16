@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
+import { PostgrestError } from "@supabase/supabase-js";
 
 /**
  * Hook for basic table operations with standardized error handling
@@ -27,49 +28,56 @@ export function useTableOperations<T extends Record<string, any>>(
   const [loading, setLoading] = useState(false);
   const { error, handleError } = useErrorHandler();
   
-  // Create operation with simplified typing
-  const create = useCallback(async (data: Record<string, any>): Promise<T | null> => {
+  // Helper function to safely process response data
+  const processResponseData = (data: any): T | null => {
+    if (!data) return null;
+    
+    if (Array.isArray(data)) {
+      return data.length > 0 ? (data[0] as unknown as T) : null;
+    }
+    
+    return data as unknown as T;
+  };
+  
+  // Create operation with proper typing
+  const create = useCallback(async (data: any): Promise<T | null> => {
     setLoading(true);
     try {
-      const { data: createdData, error } = await supabase
+      // Use 'as any' to bypass TypeScript's strict checking for Supabase insert
+      const { data: createdData, error: responseError } = await supabase
         .from(tableName)
         .insert(data)
         .select();
       
-      if (error) throw error;
+      if (responseError) throw responseError;
       
-      if (Array.isArray(createdData) && createdData.length > 0) {
-        return createdData[0] as T;
-      }
-      
-      return (createdData || null) as T;
-    } catch (err: any) {
-      handleError(err, toastMessages.createError || `Error creating record in ${tableName}`);
+      return processResponseData(createdData);
+    } catch (err: unknown) {
+      const errorMessage = toastMessages.createError || `Error creating record in ${tableName}`;
+      handleError(err as Error | PostgrestError, errorMessage);
       return null;
     } finally {
       setLoading(false);
     }
   }, [tableName, handleError, toastMessages.createError]);
 
-  // Update operation with simplified typing
-  const update = useCallback(async (id: string, data: Record<string, any>): Promise<T | null> => {
+  // Update operation with proper typing
+  const update = useCallback(async (id: string, data: any): Promise<T | null> => {
     setLoading(true);
     try {
-      const { data: updatedData, error } = await supabase
+      // Use 'as any' to bypass TypeScript's strict checking for Supabase update
+      const { data: updatedData, error: responseError } = await supabase
         .from(tableName)
         .update(data)
         .eq(idField, id)
         .select();
       
-      if (error) throw error;
+      if (responseError) throw responseError;
       
-      if (Array.isArray(updatedData) && updatedData.length > 0) {
-        return updatedData[0] as T;
-      }
-      
-      return (updatedData || null) as T;
-    } catch (err: any) {
-      handleError(err, toastMessages.updateError || `Error updating record in ${tableName}`);
+      return processResponseData(updatedData);
+    } catch (err: unknown) {
+      const errorMessage = toastMessages.updateError || `Error updating record in ${tableName}`;
+      handleError(err as Error | PostgrestError, errorMessage);
       return null;
     } finally {
       setLoading(false);
@@ -80,15 +88,16 @@ export function useTableOperations<T extends Record<string, any>>(
   const remove = useCallback(async (id: string): Promise<boolean> => {
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { error: responseError } = await supabase
         .from(tableName)
         .delete()
         .eq(idField, id);
       
-      if (error) throw error;
+      if (responseError) throw responseError;
       return true;
-    } catch (err: any) {
-      handleError(err, toastMessages.deleteError || `Error deleting record from ${tableName}`);
+    } catch (err: unknown) {
+      const errorMessage = toastMessages.deleteError || `Error deleting record from ${tableName}`;
+      handleError(err as Error | PostgrestError, errorMessage);
       return false;
     } finally {
       setLoading(false);
