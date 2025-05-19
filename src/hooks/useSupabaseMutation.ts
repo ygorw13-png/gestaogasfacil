@@ -3,8 +3,8 @@ import { useState, useCallback } from "react";
 import { useToast } from "./use-toast";
 import { PostgrestError } from "@supabase/supabase-js";
 
-interface UseSupabaseMutationOptions<TData, TVariables> {
-  mutationFn: (variables: TVariables) => Promise<TData>;
+interface UseSupabaseMutationOptions<TData> {
+  mutationFn: (variables: any) => Promise<TData>;
   onSuccess?: (data: TData) => void;
   onError?: (error: PostgrestError | Error) => void;
   successMessage?: string;
@@ -19,7 +19,7 @@ interface MutationResult<TData> {
   error: PostgrestError | Error | null;
 }
 
-export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
+export function useSupabaseMutation<TData = unknown>({
   mutationFn,
   onSuccess,
   onError,
@@ -28,12 +28,13 @@ export function useSupabaseMutation<TData = unknown, TVariables = unknown>({
   showToast = true,
   retryEnabled = false,
   retryCount = 1
-}: UseSupabaseMutationOptions<TData, TVariables>) {
+}: UseSupabaseMutationOptions<TData>) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<PostgrestError | Error | null>(null);
   const { toast } = useToast();
 
-  const mutate = useCallback(async (variables: TVariables): Promise<MutationResult<TData>> => {
+  // Simplified type handling - variables can be any type
+  const mutate = useCallback(async (variables: any): Promise<MutationResult<TData>> => {
     setLoading(true);
     setError(null);
     

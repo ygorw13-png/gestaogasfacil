@@ -69,7 +69,7 @@ export function useTableCRUD<T extends Record<string, unknown>>(
       successMessage?: string;
     } = {}
   ) => {
-    const result = await create(item as Partial<T>);
+    const result = await create(item);
     
     if (result) {
       // Use our shared array utility
@@ -86,7 +86,7 @@ export function useTableCRUD<T extends Record<string, unknown>>(
       successMessage?: string;
     } = {}
   ) => {
-    const result = await update(id, updates as Partial<T>);
+    const result = await update(id, updates);
     
     if (result) {
       // Use our shared array utility

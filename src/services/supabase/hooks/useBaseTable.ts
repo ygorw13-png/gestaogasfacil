@@ -35,7 +35,7 @@ export function useBaseTable<T extends Record<string, unknown>>(
   const fetchData = useCallback(async (options?: QueryOptions): Promise<T[]> => {
     const columns = options?.columns ?? '*';
     
-    // Create base query
+    // Create base query - use type assertion here to stop excessive type inference
     const baseQuery = supabase.from(tableName).select(columns);
     
     // Use shared query builder to apply filters, ordering, etc.

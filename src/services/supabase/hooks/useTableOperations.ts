@@ -34,14 +34,17 @@ export function useTableOperations<T extends Record<string, unknown>>(
   const create = useCallback(async (data: Record<string, unknown>): Promise<T | null> => {
     setLoading(true);
     try {
+      // Use type assertion here to avoid deep inference
+      const insertData = data as any; 
+      
       const { data: createdData, error: responseError } = await supabase
         .from(tableName)
-        .insert(data as any) // Cast to any to handle Supabase's typing constraints
+        .insert(insertData)
         .select();
       
       if (responseError) throw responseError;
       
-      // Process the response
+      // Process the response with simplified type handling
       if (Array.isArray(createdData) && createdData.length > 0) {
         return safeTypeConversion<T>(createdData[0]);
       } else if (createdData) {
@@ -62,15 +65,18 @@ export function useTableOperations<T extends Record<string, unknown>>(
   const update = useCallback(async (id: string, data: Record<string, unknown>): Promise<T | null> => {
     setLoading(true);
     try {
+      // Use type assertion here to avoid deep inference
+      const updateData = data as any;
+      
       const { data: updatedData, error: responseError } = await supabase
         .from(tableName)
-        .update(data as any) // Cast to any to handle Supabase's typing constraints
+        .update(updateData)
         .eq(idField, id)
         .select();
       
       if (responseError) throw responseError;
       
-      // Process the response
+      // Process the response with simplified type handling
       if (Array.isArray(updatedData) && updatedData.length > 0) {
         return safeTypeConversion<T>(updatedData[0]);
       } else if (updatedData) {
