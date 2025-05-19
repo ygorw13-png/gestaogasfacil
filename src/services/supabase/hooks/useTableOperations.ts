@@ -34,24 +34,20 @@ export function useTableOperations<T extends Record<string, unknown>>(
   const create = useCallback(async (data: Record<string, unknown>): Promise<T | null> => {
     setLoading(true);
     try {
-      // Use type assertion here to avoid deep inference
-      const insertData = data as any; 
-      
+      // Break the type recursion by using a simple any type
       const { data: createdData, error: responseError } = await supabase
         .from(tableName)
-        .insert(insertData)
+        .insert(data as any)
         .select();
       
       if (responseError) throw responseError;
       
       // Process the response with simplified type handling
-      if (Array.isArray(createdData) && createdData.length > 0) {
-        return safeTypeConversion<T>(createdData[0]);
-      } else if (createdData) {
-        return safeTypeConversion<T>(createdData);
-      }
+      const result = Array.isArray(createdData) && createdData.length > 0 
+        ? createdData[0] 
+        : createdData;
       
-      return null;
+      return result ? (result as unknown as T) : null;
     } catch (err) {
       const errorMessage = toastMessages.createError || `Error creating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
@@ -65,25 +61,21 @@ export function useTableOperations<T extends Record<string, unknown>>(
   const update = useCallback(async (id: string, data: Record<string, unknown>): Promise<T | null> => {
     setLoading(true);
     try {
-      // Use type assertion here to avoid deep inference
-      const updateData = data as any;
-      
+      // Break the type recursion by using a simple any type
       const { data: updatedData, error: responseError } = await supabase
         .from(tableName)
-        .update(updateData)
+        .update(data as any)
         .eq(idField, id)
         .select();
       
       if (responseError) throw responseError;
       
       // Process the response with simplified type handling
-      if (Array.isArray(updatedData) && updatedData.length > 0) {
-        return safeTypeConversion<T>(updatedData[0]);
-      } else if (updatedData) {
-        return safeTypeConversion<T>(updatedData);
-      }
+      const result = Array.isArray(updatedData) && updatedData.length > 0 
+        ? updatedData[0] 
+        : updatedData;
       
-      return null;
+      return result ? (result as unknown as T) : null;
     } catch (err) {
       const errorMessage = toastMessages.updateError || `Error updating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
