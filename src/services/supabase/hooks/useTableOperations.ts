@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
 import { PostgrestError } from "@supabase/supabase-js";
-import { safeTypeConversion } from "../utils/typeConversions";
 
 /**
  * Hook for basic table operations with standardized error handling
@@ -30,14 +29,14 @@ export function useTableOperations<T extends Record<string, unknown>>(
   const [loading, setLoading] = useState(false);
   const { error, handleError } = useErrorHandler();
 
-  // Create operation - simplified type handling with direct any casting
+  // Create operation with simplified typing to prevent infinite type instantiation
   const create = useCallback(async (data: Record<string, unknown>) => {
     setLoading(true);
     try {
-      // Use any type to break the deep type chain
+      // Break type chain by using Record<string, unknown> instead of generic T
       const response = await supabase
         .from(tableName)
-        .insert(data as any)
+        .insert(data as Record<string, unknown>)
         .select();
       
       if (response.error) throw response.error;
@@ -48,8 +47,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
         ? createdData[0] 
         : createdData;
       
-      // Simple casting to break type chain
-      return result as any;
+      // Use unknown as intermediate to break type chain
+      return result as unknown as T;
     } catch (err) {
       const errorMessage = toastMessages.createError || `Error creating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
@@ -59,14 +58,14 @@ export function useTableOperations<T extends Record<string, unknown>>(
     }
   }, [tableName, handleError, toastMessages.createError]);
 
-  // Update operation - simplified type handling with direct any casting
+  // Update operation with simplified typing to prevent infinite type instantiation
   const update = useCallback(async (id: string, data: Record<string, unknown>) => {
     setLoading(true);
     try {
-      // Use any type to break the deep type chain
+      // Break type chain by using Record<string, unknown>
       const response = await supabase
         .from(tableName)
-        .update(data as any)
+        .update(data as Record<string, unknown>)
         .eq(idField, id)
         .select();
       
@@ -78,8 +77,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
         ? updatedData[0] 
         : updatedData;
       
-      // Simple casting to break type chain
-      return result as any;
+      // Use unknown as intermediate to break type chain
+      return result as unknown as T;
     } catch (err) {
       const errorMessage = toastMessages.updateError || `Error updating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);

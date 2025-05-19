@@ -15,7 +15,7 @@ const FireAnimation: React.FC = () => {
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
     
-    // Particle class for the fire effect
+    // Particle class for the blue fire effect
     class Particle {
       x: number;
       y: number;
@@ -28,24 +28,36 @@ const FireAnimation: React.FC = () => {
       constructor(x: number, y: number) {
         this.x = x;
         this.y = y;
-        this.radius = Math.random() * 3 + 2;
-        this.color = `rgb(${Math.floor(Math.random() * 55) + 200}, ${Math.floor(Math.random() * 100)}, 10)`;
+        this.radius = Math.random() * 4 + 2;
+        
+        // More realistic blue fire colors with variation
+        const blueBase = Math.floor(Math.random() * 55) + 200; // High blue value
+        const greenValue = Math.floor(Math.random() * 100) + 100; // Medium green for light blue tint
+        const redValue = Math.floor(Math.random() * 30) + 10; // Low red for deeper blue
+        
+        this.color = `rgb(${redValue}, ${greenValue}, ${blueBase})`;
+        
+        // More natural flame movement
         this.velocity = {
-          x: (Math.random() - 0.5) * 2,
-          y: Math.random() * -3 - 1
+          x: (Math.random() - 0.5) * 1.5,
+          y: Math.random() * -4 - 1.5
         };
-        this.life = Math.random() * 20 + 40;
+        this.life = Math.random() * 40 + 60; // Longer life for more visible flames
         this.opacity = 1;
       }
       
       update() {
-        this.x += this.velocity.x;
+        // More natural flame movement with oscillation
+        this.x += this.velocity.x + (Math.random() - 0.5) * 0.3;
         this.y += this.velocity.y;
-        this.life--;
-        this.opacity = this.life / 60;
         
-        if (this.radius > 0.2) {
-          this.radius -= 0.05;
+        // More gradual fade
+        this.life -= 0.8;
+        this.opacity = Math.min(1, this.life / 60);
+        
+        // Particles get smaller as they rise
+        if (this.radius > 0.3) {
+          this.radius -= 0.03 + Math.random() * 0.03;
         }
       }
       
@@ -56,28 +68,33 @@ const FireAnimation: React.FC = () => {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fillStyle = this.color;
+        
+        // Add glow effect for more realistic fire
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = 'rgba(30, 144, 255, 0.5)';
+        
         ctx.fill();
         ctx.restore();
       }
     }
     
     const particles: Particle[] = [];
-    const particlesPerFrame = 5;
+    const particlesPerFrame = 8; // More particles for denser flame
     
     // Animation loop
     function animate() {
-      // Clear the canvas
-      ctx.fillStyle = 'rgba(30, 30, 30, 0.1)';
+      // Clear the canvas with slight persistence for trail effect
+      ctx.fillStyle = 'rgba(10, 10, 30, 0.2)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Create new particles
+      // Create new particles with variation in origin for wider flame base
       const originX = canvas.width / 2;
       const originY = canvas.height;
       
       for (let i = 0; i < particlesPerFrame; i++) {
         particles.push(new Particle(
-          originX + Math.random() * 20 - 10,
-          originY
+          originX + Math.random() * 30 - 15, // Wider base
+          originY + Math.random() * 5
         ));
       }
       
