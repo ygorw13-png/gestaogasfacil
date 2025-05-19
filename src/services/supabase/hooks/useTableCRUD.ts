@@ -73,7 +73,7 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     
     if (result) {
       // Use our shared array utility
-      setData(prev => addItemToArray(prev, result as T));
+      setData(prev => addItemToArray(prev, result));
     }
     
     return result;
@@ -90,7 +90,7 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     
     if (result) {
       // Use our shared array utility
-      setData(prev => updateItemInArray(prev, result as T, idField));
+      setData(prev => updateItemInArray(prev, result, idField));
     }
     
     return result;

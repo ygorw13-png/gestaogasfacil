@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
 import { QueryOptions, applyQueryOptions } from "../utils/queryBuilder";
+import { safeArrayConversion } from "../utils/typeConversions";
 
 /**
  * Hook for basic data fetching and state management
@@ -47,8 +48,8 @@ export function useBaseTable<T extends Record<string, unknown>>(
       return rawData || [];
     });
     
-    // Convert result to appropriate type
-    const typedResults = (result || []) as unknown as T[];
+    // Use our simplified type conversion helper
+    const typedResults = safeArrayConversion<T>(result || []);
     setData(typedResults);
     return typedResults;
   }, [tableName, safeExecute]);

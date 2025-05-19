@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
 import { PostgrestError } from "@supabase/supabase-js";
+import { safeTypeConversion } from "../utils/typeConversions";
 
 /**
  * Hook for basic table operations with standardized error handling
@@ -42,9 +43,9 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       // Process the response
       if (Array.isArray(createdData) && createdData.length > 0) {
-        return createdData[0] as unknown as T;
+        return safeTypeConversion<T>(createdData[0]);
       } else if (createdData) {
-        return createdData as unknown as T;
+        return safeTypeConversion<T>(createdData);
       }
       
       return null;
@@ -71,9 +72,9 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       // Process the response
       if (Array.isArray(updatedData) && updatedData.length > 0) {
-        return updatedData[0] as unknown as T;
+        return safeTypeConversion<T>(updatedData[0]);
       } else if (updatedData) {
-        return updatedData as unknown as T;
+        return safeTypeConversion<T>(updatedData);
       }
       
       return null;
