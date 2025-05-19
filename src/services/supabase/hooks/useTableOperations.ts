@@ -34,20 +34,21 @@ export function useTableOperations<T extends Record<string, unknown>>(
   const create = useCallback(async (data: Record<string, unknown>): Promise<T | null> => {
     setLoading(true);
     try {
-      // Break the type recursion by using a simple any type
+      // Completely break the type chain by using any
       const { data: createdData, error: responseError } = await supabase
         .from(tableName)
         .insert(data as any)
-        .select();
+        .select() as any;
       
       if (responseError) throw responseError;
       
-      // Process the response with simplified type handling
+      // Simple processing with direct type assertion
       const result = Array.isArray(createdData) && createdData.length > 0 
         ? createdData[0] 
         : createdData;
       
-      return result ? (result as unknown as T) : null;
+      // Use direct type casting to prevent deep instantiation
+      return result ? (result as any) : null;
     } catch (err) {
       const errorMessage = toastMessages.createError || `Error creating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
@@ -61,21 +62,23 @@ export function useTableOperations<T extends Record<string, unknown>>(
   const update = useCallback(async (id: string, data: Record<string, unknown>): Promise<T | null> => {
     setLoading(true);
     try {
-      // Break the type recursion by using a simple any type
-      const { data: updatedData, error: responseError } = await supabase
+      // Use type assertion with 'any' throughout to prevent deep inference
+      const response = await supabase
         .from(tableName)
         .update(data as any)
         .eq(idField, id)
-        .select();
+        .select() as any;
       
-      if (responseError) throw responseError;
+      if (response.error) throw response.error;
       
-      // Process the response with simplified type handling
+      // Simple direct type casting of response data
+      const updatedData = response.data;
       const result = Array.isArray(updatedData) && updatedData.length > 0 
         ? updatedData[0] 
         : updatedData;
       
-      return result ? (result as unknown as T) : null;
+      // Direct casting to any to break type recursion
+      return result ? (result as any) : null;
     } catch (err) {
       const errorMessage = toastMessages.updateError || `Error updating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
