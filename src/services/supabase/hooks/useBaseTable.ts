@@ -4,12 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
 import { QueryOptions, applyQueryOptions } from "../utils/queryBuilder";
-import { safeArrayConversion } from "../utils/typeConversions";
 
 /**
  * Hook for basic data fetching and state management
+ * Uses improved type handling to prevent excessive type recursion
  */
-export function useBaseTable<T extends Record<string, any>>(
+export function useBaseTable<T extends Record<string, unknown>>(
   tableName: ValidTableName,
   options: {
     idField?: string;
@@ -47,8 +47,8 @@ export function useBaseTable<T extends Record<string, any>>(
       return rawData || [];
     });
     
-    // Use safe conversion and update state
-    const typedResults = safeArrayConversion<T>(result || []);
+    // Convert result to appropriate type
+    const typedResults = (result || []) as unknown as T[];
     setData(typedResults);
     return typedResults;
   }, [tableName, safeExecute]);

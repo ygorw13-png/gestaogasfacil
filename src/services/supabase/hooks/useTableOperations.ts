@@ -7,8 +7,9 @@ import { PostgrestError } from "@supabase/supabase-js";
 
 /**
  * Hook for basic table operations with standardized error handling
+ * Uses simplified type handling to prevent excessive type instantiation
  */
-export function useTableOperations<T>(
+export function useTableOperations<T extends Record<string, unknown>>(
   tableName: ValidTableName,
   options: {
     idField?: string;
@@ -28,29 +29,25 @@ export function useTableOperations<T>(
   const [loading, setLoading] = useState(false);
   const { error, handleError } = useErrorHandler();
 
-  // Helper to safely convert data to the generic type T
-  const safeConvert = (data: any): T | null => {
-    if (!data) return null;
-    return data as unknown as T;
-  };
-
   // Create operation
-  const create = useCallback(async (data: any): Promise<T | null> => {
+  const create = useCallback(async (data: Record<string, unknown>): Promise<T | null> => {
     setLoading(true);
     try {
       const { data: createdData, error: responseError } = await supabase
         .from(tableName)
-        .insert(data)
+        .insert(data as any) // Cast to any to handle Supabase's typing constraints
         .select();
       
       if (responseError) throw responseError;
       
-      // Process the response based on whether it's an array or single object
-      if (Array.isArray(createdData)) {
-        return createdData.length > 0 ? safeConvert(createdData[0]) : null;
+      // Process the response
+      if (Array.isArray(createdData) && createdData.length > 0) {
+        return createdData[0] as unknown as T;
+      } else if (createdData) {
+        return createdData as unknown as T;
       }
       
-      return safeConvert(createdData);
+      return null;
     } catch (err) {
       const errorMessage = toastMessages.createError || `Error creating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
@@ -61,23 +58,25 @@ export function useTableOperations<T>(
   }, [tableName, handleError, toastMessages.createError]);
 
   // Update operation
-  const update = useCallback(async (id: string, data: any): Promise<T | null> => {
+  const update = useCallback(async (id: string, data: Record<string, unknown>): Promise<T | null> => {
     setLoading(true);
     try {
       const { data: updatedData, error: responseError } = await supabase
         .from(tableName)
-        .update(data)
+        .update(data as any) // Cast to any to handle Supabase's typing constraints
         .eq(idField, id)
         .select();
       
       if (responseError) throw responseError;
       
-      // Process the response based on whether it's an array or single object
-      if (Array.isArray(updatedData)) {
-        return updatedData.length > 0 ? safeConvert(updatedData[0]) : null;
+      // Process the response
+      if (Array.isArray(updatedData) && updatedData.length > 0) {
+        return updatedData[0] as unknown as T;
+      } else if (updatedData) {
+        return updatedData as unknown as T;
       }
       
-      return safeConvert(updatedData);
+      return null;
     } catch (err) {
       const errorMessage = toastMessages.updateError || `Error updating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
