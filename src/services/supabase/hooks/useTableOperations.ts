@@ -30,25 +30,26 @@ export function useTableOperations<T extends Record<string, unknown>>(
   const [loading, setLoading] = useState(false);
   const { error, handleError } = useErrorHandler();
 
-  // Create operation
-  const create = useCallback(async (data: Record<string, unknown>): Promise<T | null> => {
+  // Create operation - simplified type handling with direct any casting
+  const create = useCallback(async (data: Record<string, unknown>) => {
     setLoading(true);
     try {
-      // Completely break the type chain by using any
-      const { data: createdData, error: responseError } = await supabase
+      // Use any type to break the deep type chain
+      const response = await supabase
         .from(tableName)
         .insert(data as any)
-        .select() as any;
+        .select();
       
-      if (responseError) throw responseError;
+      if (response.error) throw response.error;
       
-      // Simple processing with direct type assertion
+      // Simple result extraction
+      const createdData = response.data;
       const result = Array.isArray(createdData) && createdData.length > 0 
         ? createdData[0] 
         : createdData;
       
-      // Use direct type casting to prevent deep instantiation
-      return result ? (result as any) : null;
+      // Simple casting to break type chain
+      return result as any;
     } catch (err) {
       const errorMessage = toastMessages.createError || `Error creating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
@@ -58,27 +59,27 @@ export function useTableOperations<T extends Record<string, unknown>>(
     }
   }, [tableName, handleError, toastMessages.createError]);
 
-  // Update operation
-  const update = useCallback(async (id: string, data: Record<string, unknown>): Promise<T | null> => {
+  // Update operation - simplified type handling with direct any casting
+  const update = useCallback(async (id: string, data: Record<string, unknown>) => {
     setLoading(true);
     try {
-      // Use type assertion with 'any' throughout to prevent deep inference
+      // Use any type to break the deep type chain
       const response = await supabase
         .from(tableName)
         .update(data as any)
         .eq(idField, id)
-        .select() as any;
+        .select();
       
       if (response.error) throw response.error;
       
-      // Simple direct type casting of response data
+      // Simple result extraction
       const updatedData = response.data;
       const result = Array.isArray(updatedData) && updatedData.length > 0 
         ? updatedData[0] 
         : updatedData;
       
-      // Direct casting to any to break type recursion
-      return result ? (result as any) : null;
+      // Simple casting to break type chain
+      return result as any;
     } catch (err) {
       const errorMessage = toastMessages.updateError || `Error updating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);

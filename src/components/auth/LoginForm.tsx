@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,7 @@ interface LoginFormProps {
   onSubmit: (email: string, password: string) => Promise<void>;
   loading: boolean;
   error: string | null;
-  csrfToken?: string; // Adicionando a propriedade csrfToken como opcional
+  csrfToken?: string;
 }
 
 export default function LoginForm({ onSubmit, loading, error, csrfToken }: LoginFormProps) {
@@ -74,85 +75,80 @@ export default function LoginForm({ onSubmit, loading, error, csrfToken }: Login
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-lg border-green-100">
-      <CardHeader className="space-y-2 text-center">
-        <CardTitle className="text-2xl font-bold text-green-800">GasFlow Aqua</CardTitle>
-        <p className="text-sm text-gray-600">Faça login para acessar o sistema</p>
-      </CardHeader>
+    <div className="w-full max-w-md mx-auto">
+      {error && (
+        <Alert variant="destructive" className="mb-4 bg-red-900/50 border-red-800 text-white backdrop-blur-sm">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       
-      <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        <form onSubmit={handleSubmit} className="space-y-4" aria-label="Formulário de login">
-          <div className="space-y-2">
-            <Label htmlFor="email">E-mail</Label>
-            <Input 
-              id="email"
-              type="email" 
-              placeholder="E-mail" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={`border-green-100 focus:border-green-500 ${validationErrors.email ? 'border-red-500' : ''}`}
-              disabled={loading}
-              required 
-              aria-invalid={!!validationErrors.email}
-              aria-describedby={validationErrors.email ? "email-error" : undefined}
-            />
-            {validationErrors.email && (
-              <p className="text-sm text-red-500 mt-1" id="email-error">{validationErrors.email}</p>
-            )}
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
-            <Input 
-              id="password"
-              type="password" 
-              placeholder="Senha" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`border-green-100 focus:border-green-500 ${validationErrors.password ? 'border-red-500' : ''}`}
-              disabled={loading}
-              required 
-              minLength={6}
-              aria-invalid={!!validationErrors.password}
-              aria-describedby={validationErrors.password ? "password-error" : undefined}
-            />
-            {validationErrors.password && (
-              <p className="text-sm text-red-500 mt-1" id="password-error">{validationErrors.password}</p>
-            )}
-          </div>
-
-          <Button 
-            type="submit" 
-            className="w-full bg-green-600 hover:bg-green-700 text-white" 
+      <form onSubmit={handleSubmit} className="space-y-4" aria-label="Formulário de login">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-white">E-mail</Label>
+          <Input 
+            id="email"
+            type="email" 
+            placeholder="E-mail" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={`bg-white/10 border-white/20 text-white placeholder:text-gray-400 
+              focus:border-orange-500 focus:ring-orange-500 ${validationErrors.email ? 'border-red-500' : ''}`}
             disabled={loading}
-            aria-busy={loading}
-          >
-            {loading ? "Entrando..." : "Entrar"}
-          </Button>
-        </form>
-      </CardContent>
+            required 
+            aria-invalid={!!validationErrors.email}
+            aria-describedby={validationErrors.email ? "email-error" : undefined}
+          />
+          {validationErrors.email && (
+            <p className="text-sm text-red-400 mt-1" id="email-error">{validationErrors.email}</p>
+          )}
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-white">Senha</Label>
+          <Input 
+            id="password"
+            type="password" 
+            placeholder="Senha" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={`bg-white/10 border-white/20 text-white placeholder:text-gray-400 
+              focus:border-orange-500 focus:ring-orange-500 ${validationErrors.password ? 'border-red-500' : ''}`}
+            disabled={loading}
+            required 
+            minLength={6}
+            aria-invalid={!!validationErrors.password}
+            aria-describedby={validationErrors.password ? "password-error" : undefined}
+          />
+          {validationErrors.password && (
+            <p className="text-sm text-red-400 mt-1" id="password-error">{validationErrors.password}</p>
+          )}
+        </div>
 
-      <CardFooter className="flex flex-col space-y-2 text-center">
-        <p className="text-sm text-gray-600">
-          Não tem uma conta?{' '}
-          <Link to="/register" className="text-green-600 hover:text-green-700 hover:underline">
-            Cadastre-se
-          </Link>
-        </p>
-        <Link 
-          to="/reset-password" 
-          className="text-sm text-gray-600 hover:text-green-600 hover:underline"
+        <Button 
+          type="submit" 
+          className="w-full bg-orange-600 hover:bg-orange-700 text-white" 
+          disabled={loading}
+          aria-busy={loading}
         >
-          Esqueceu sua senha?
-        </Link>
-      </CardFooter>
-    </Card>
+          {loading ? "Entrando..." : "Entrar"}
+        </Button>
+        
+        <div className="flex flex-col space-y-2 text-center mt-4">
+          <p className="text-sm text-gray-300">
+            Não tem uma conta?{' '}
+            <Link to="/register" className="text-orange-400 hover:text-orange-300 hover:underline">
+              Cadastre-se
+            </Link>
+          </p>
+          <Link 
+            to="/reset-password" 
+            className="text-sm text-gray-300 hover:text-orange-400 hover:underline"
+          >
+            Esqueceu sua senha?
+          </Link>
+        </div>
+      </form>
+    </div>
   );
 }

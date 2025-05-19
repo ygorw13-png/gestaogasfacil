@@ -5,6 +5,8 @@ import { useLoginForm } from '@/hooks/useLoginForm';
 import { validateEmail } from '@/utils/inputValidation';
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import FireAnimation from '@/components/animations/FireAnimation';
+import GasCylinderIcon from '@/components/icons/GasCylinderIcon';
 
 export default function Login() {
   const { loading, error, user, handleSubmit } = useLoginForm();
@@ -37,13 +39,30 @@ export default function Login() {
   if (user) return null;
 
   return (
-    <div className="flex min-h-screen w-full bg-gradient-to-b from-green-50 to-white">
-      <div className="m-auto w-full max-w-md px-4 py-8 sm:px-0">
+    <div className="flex min-h-screen w-full bg-gradient-to-b from-gray-900 to-gray-800 relative overflow-hidden">
+      {/* Fire animation as background */}
+      <div className="absolute inset-0 opacity-50">
+        <FireAnimation />
+      </div>
+      
+      <div className="m-auto w-full max-w-md px-4 py-8 sm:px-0 z-10">
         <div className="flex flex-col items-center justify-center">
-          <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
+          {/* Gas cylinder icon */}
+          <div className="mb-6 relative">
+            <GasCylinderIcon className="w-24 h-24" />
+            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-12 h-6">
+              <FireAnimation />
+            </div>
+          </div>
+          
+          <h1 className="text-3xl font-bold text-center text-white mb-2">
             GasFlow Aqua Manager
           </h1>
-          <div className="w-full bg-white shadow-md rounded-lg p-6 border border-gray-100">
+          <p className="text-gray-300 mb-6 text-center">
+            Sistema de gestão para distribuição de gás
+          </p>
+          
+          <div className="w-full bg-white/10 backdrop-blur-md shadow-xl rounded-lg p-6 border border-white/20">
             <LoginForm 
               onSubmit={handleFormSubmit}
               loading={loading}
