@@ -84,11 +84,16 @@ export function useTableOperations<T>(
       
       // Simple result extraction with minimal type manipulation
       const result = response.data;
-      const finalResult = Array.isArray(result) && result.length > 0 
-        ? result[0] 
-        : result;
+      // Use as any to completely break the type chain
+      let finalResult: any = null;
       
-      // Break type chain completely with double casting
+      if (Array.isArray(result) && result.length > 0) {
+        finalResult = result[0];
+      } else {
+        finalResult = result;
+      }
+      
+      // Return with explicit cast to requested type
       return finalResult as unknown as T;
     } catch (err) {
       const errorMessage = toastMessages.updateError || `Error updating record in ${tableName}`;
