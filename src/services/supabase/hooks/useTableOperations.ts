@@ -41,7 +41,7 @@ export function useTableOperations<T>(
   const { error, handleError } = useErrorHandler();
 
   // Create operation with simplified type handling
-  const create = useCallback(async (data: Record<string, unknown>): Promise<T | null> => {
+  const create = useCallback(async (data: Record<string, unknown>) => {
     setLoading(true);
     try {
       // Pass data as any to bypass TypeScript checking for Supabase insert
@@ -54,12 +54,13 @@ export function useTableOperations<T>(
       
       // Simple result extraction
       const result = response.data;
-      const finalResult = Array.isArray(result) && result.length > 0 
-        ? result[0] 
-        : result;
       
       // Break type chain completely with double casting
-      return finalResult as unknown as T;
+      if (Array.isArray(result) && result.length > 0) {
+        return result[0] as unknown as T;
+      }
+      
+      return result as unknown as T;
     } catch (err) {
       const errorMessage = toastMessages.createError || `Error creating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
@@ -70,11 +71,11 @@ export function useTableOperations<T>(
   }, [tableName, handleError, toastMessages.createError]);
 
   // Update operation with simplified type handling
-  const update = useCallback(async (id: string, data: Record<string, unknown>): Promise<T | null> => {
+  const update = useCallback(async (id: string, data: Record<string, unknown>) => {
     setLoading(true);
     try {
-      // Pass data as any to bypass TypeScript checking for Supabase update
-      const response = await supabase
+      // Use any explicitly to avoid TypeScript's deep type instantiation
+      const response: any = await supabase
         .from(tableName)
         .update(data as any)
         .eq(idField, id)
@@ -82,9 +83,10 @@ export function useTableOperations<T>(
       
       if (response.error) throw response.error;
       
-      // Simple result extraction with minimal type manipulation
+      // Complete breakdown of type chains to prevent recursive type instantiation
       const result = response.data;
-      // Use as any to completely break the type chain
+      
+      // Use explicit any typing here to break the chain
       let finalResult: any = null;
       
       if (Array.isArray(result) && result.length > 0) {
@@ -93,7 +95,7 @@ export function useTableOperations<T>(
         finalResult = result;
       }
       
-      // Return with explicit cast to requested type
+      // Cast directly to unknown first, then to T
       return finalResult as unknown as T;
     } catch (err) {
       const errorMessage = toastMessages.updateError || `Error updating record in ${tableName}`;
@@ -108,12 +110,13 @@ export function useTableOperations<T>(
   const remove = useCallback(async (id: string): Promise<boolean> => {
     setLoading(true);
     try {
-      const { error: responseError } = await supabase
+      // Use explicit any typing for response
+      const response: any = await supabase
         .from(tableName)
         .delete()
         .eq(idField, id);
       
-      if (responseError) throw responseError;
+      if (response.error) throw response.error;
       return true;
     } catch (err) {
       const errorMessage = toastMessages.deleteError || `Error deleting record from ${tableName}`;
@@ -124,7 +127,7 @@ export function useTableOperations<T>(
     }
   }, [tableName, idField, handleError, toastMessages.deleteError]);
 
-  // Return a simplified, explicitly typed result object
+  // Return with explicit typing to prevent deep instantiation
   return {
     loading,
     error,
