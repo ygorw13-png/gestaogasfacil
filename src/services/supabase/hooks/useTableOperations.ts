@@ -48,8 +48,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
         ? createdData[0] 
         : createdData;
       
-      // Use type assertion to convert the result to the expected type
-      return result as T;
+      // Use unknown as an intermediate type to break the type chain and avoid TS2352 error
+      return result as unknown as T;
     } catch (err) {
       const errorMessage = toastMessages.createError || `Error creating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
@@ -78,8 +78,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
         ? updatedData[0] 
         : updatedData;
       
-      // Use type assertion to convert the result to the expected type
-      return result as T;
+      // Use unknown as an intermediate type to break the type chain and avoid TS2352 error
+      return result as unknown as T;
     } catch (err) {
       const errorMessage = toastMessages.updateError || `Error updating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
