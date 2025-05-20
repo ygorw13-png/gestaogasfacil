@@ -5,7 +5,7 @@ import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
 import { PostgrestError } from "@supabase/supabase-js";
 
-// Define simplified interfaces to break circular type dependencies
+// Define simple options interface
 interface TableOperationsOptions {
   idField?: string;
   toastMessages?: {
@@ -16,6 +16,7 @@ interface TableOperationsOptions {
   };
 }
 
+// Define simple result interface
 interface TableOperationsResult<T> {
   loading: boolean;
   error: Error | null;
@@ -26,7 +27,6 @@ interface TableOperationsResult<T> {
 
 /**
  * Hook for basic table operations with standardized error handling
- * Completely refactored to eliminate complex type instantiations
  */
 export function useTableOperations<T>(
   tableName: ValidTableName,
@@ -40,92 +40,110 @@ export function useTableOperations<T>(
   const [loading, setLoading] = useState(false);
   const { error, handleError } = useErrorHandler();
 
-  // Create operation with simplified type handling
+  // Shared error handling function to avoid duplication
+  const handleOperationError = useCallback((
+    err: unknown, 
+    defaultMessage: string
+  ): null => {
+    setLoading(false);
+    handleError(err as Error | PostgrestError, defaultMessage);
+    return null;
+  }, [handleError]);
+
+  // Create operation
   const create = useCallback(async (data: Record<string, unknown>) => {
     setLoading(true);
+    
     try {
-      // Explicitly use any type to break any potential type recursion
-      const response: any = await supabase
+      // Use explicit any to break type recursion
+      const { data: result, error: responseError } = await supabase
         .from(tableName)
-        .insert(data as any)
+        .insert(data)
         .select();
       
-      if (response.error) throw response.error;
+      setLoading(false);
       
-      // Extract result with minimal type handling
-      const rawResult = response.data;
-      
-      // Simplest possible type handling - completely break the chain
-      if (Array.isArray(rawResult) && rawResult.length > 0) {
-        setLoading(false);
-        return rawResult[0] as any as T;
+      if (responseError) {
+        throw responseError;
       }
       
-      setLoading(false);
-      return rawResult as any as T;
+      // Safely handle array response
+      if (Array.isArray(result) && result.length > 0) {
+        return result[0] as any;
+      }
+      
+      return result as any;
     } catch (err) {
-      setLoading(false);
-      const errorMessage = toastMessages.createError || `Error creating record in ${tableName}`;
-      handleError(err as Error | PostgrestError, errorMessage);
-      return null;
+      return handleOperationError(
+        err, 
+        toastMessages.createError || `Error creating record in ${tableName}`
+      );
     }
-  }, [tableName, handleError, toastMessages.createError]);
+  }, [tableName, handleOperationError, toastMessages.createError]);
 
-  // Update operation with simplified type handling
+  // Update operation
   const update = useCallback(async (id: string, data: Record<string, unknown>) => {
     setLoading(true);
+    
     try {
-      // First perform the update
-      const updateResponse: any = await supabase
+      // First update the record
+      const { error: updateError } = await supabase
         .from(tableName)
-        .update(data as any)
+        .update(data)
         .eq(idField, id);
       
-      if (updateResponse.error) throw updateResponse.error;
+      if (updateError) {
+        throw updateError;
+      }
       
       // Then fetch the updated record
-      const fetchResponse: any = await supabase
+      const { data: result, error: fetchError } = await supabase
         .from(tableName)
         .select('*')
         .eq(idField, id)
         .single();
       
-      if (fetchResponse.error) throw fetchResponse.error;
+      setLoading(false);
       
-      setLoading(false);
-      // Return with explicit any cast to break type recursion
-      return fetchResponse.data as any as T;
+      if (fetchError) {
+        throw fetchError;
+      }
+      
+      return result as any;
     } catch (err) {
-      setLoading(false);
-      const errorMessage = toastMessages.updateError || `Error updating record in ${tableName}`;
-      handleError(err as Error | PostgrestError, errorMessage);
-      return null;
+      return handleOperationError(
+        err, 
+        toastMessages.updateError || `Error updating record in ${tableName}`
+      );
     }
-  }, [tableName, idField, handleError, toastMessages.updateError]);
+  }, [tableName, idField, handleOperationError, toastMessages.updateError]);
 
-  // Remove operation with simplified type handling
+  // Remove operation
   const remove = useCallback(async (id: string): Promise<boolean> => {
     setLoading(true);
+    
     try {
-      // Explicitly type as any
-      const response: any = await supabase
+      const { error: deleteError } = await supabase
         .from(tableName)
         .delete()
         .eq(idField, id);
       
-      if (response.error) throw response.error;
-      
       setLoading(false);
+      
+      if (deleteError) {
+        throw deleteError;
+      }
+      
       return true;
     } catch (err) {
-      setLoading(false);
-      const errorMessage = toastMessages.deleteError || `Error deleting record from ${tableName}`;
-      handleError(err as Error | PostgrestError, errorMessage);
+      handleOperationError(
+        err, 
+        toastMessages.deleteError || `Error deleting record from ${tableName}`
+      );
       return false;
     }
-  }, [tableName, idField, handleError, toastMessages.deleteError]);
+  }, [tableName, idField, handleOperationError, toastMessages.deleteError]);
 
-  // Return with very explicit typing
   return {
     loading,
     error,
