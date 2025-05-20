@@ -44,29 +44,30 @@ export function useTableOperations<T>(
   const create = useCallback(async (data: Record<string, unknown>) => {
     setLoading(true);
     try {
-      // Pass data as any to bypass TypeScript checking for Supabase insert
-      const response = await supabase
+      // Explicitly use any type to break any potential type recursion
+      const response: any = await supabase
         .from(tableName)
         .insert(data as any)
         .select();
       
       if (response.error) throw response.error;
       
-      // Simple result extraction
-      const result = response.data;
+      // Extract result with minimal type handling
+      const rawResult = response.data;
       
-      // Break type chain completely with double casting
-      if (Array.isArray(result) && result.length > 0) {
-        return result[0] as unknown as T;
+      // Simplest possible type handling - completely break the chain
+      if (Array.isArray(rawResult) && rawResult.length > 0) {
+        setLoading(false);
+        return rawResult[0] as any as T;
       }
       
-      return result as unknown as T;
+      setLoading(false);
+      return rawResult as any as T;
     } catch (err) {
+      setLoading(false);
       const errorMessage = toastMessages.createError || `Error creating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
       return null;
-    } finally {
-      setLoading(false);
     }
   }, [tableName, handleError, toastMessages.createError]);
 
@@ -74,60 +75,57 @@ export function useTableOperations<T>(
   const update = useCallback(async (id: string, data: Record<string, unknown>) => {
     setLoading(true);
     try {
-      // Use any explicitly to avoid TypeScript's deep type instantiation
-      const response: any = await supabase
+      // First perform the update
+      const updateResponse: any = await supabase
         .from(tableName)
         .update(data as any)
+        .eq(idField, id);
+      
+      if (updateResponse.error) throw updateResponse.error;
+      
+      // Then fetch the updated record
+      const fetchResponse: any = await supabase
+        .from(tableName)
+        .select('*')
         .eq(idField, id)
-        .select();
+        .single();
       
-      if (response.error) throw response.error;
+      if (fetchResponse.error) throw fetchResponse.error;
       
-      // Complete breakdown of type chains to prevent recursive type instantiation
-      const result = response.data;
-      
-      // Use explicit any typing here to break the chain
-      let finalResult: any = null;
-      
-      if (Array.isArray(result) && result.length > 0) {
-        finalResult = result[0];
-      } else {
-        finalResult = result;
-      }
-      
-      // Cast directly to unknown first, then to T
-      return finalResult as unknown as T;
+      setLoading(false);
+      // Return with explicit any cast to break type recursion
+      return fetchResponse.data as any as T;
     } catch (err) {
+      setLoading(false);
       const errorMessage = toastMessages.updateError || `Error updating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
       return null;
-    } finally {
-      setLoading(false);
     }
   }, [tableName, idField, handleError, toastMessages.updateError]);
 
-  // Remove operation with explicit boolean return
+  // Remove operation with simplified type handling
   const remove = useCallback(async (id: string): Promise<boolean> => {
     setLoading(true);
     try {
-      // Use explicit any typing for response
+      // Explicitly type as any
       const response: any = await supabase
         .from(tableName)
         .delete()
         .eq(idField, id);
       
       if (response.error) throw response.error;
+      
+      setLoading(false);
       return true;
     } catch (err) {
+      setLoading(false);
       const errorMessage = toastMessages.deleteError || `Error deleting record from ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
       return false;
-    } finally {
-      setLoading(false);
     }
   }, [tableName, idField, handleError, toastMessages.deleteError]);
 
-  // Return with explicit typing to prevent deep instantiation
+  // Return with very explicit typing
   return {
     loading,
     error,
