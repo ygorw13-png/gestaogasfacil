@@ -55,10 +55,10 @@ export function useTableOperations<T>(
     setLoading(true);
     
     try {
-      // Use explicit any to break type recursion
+      // Use type assertion to fix type compatibility issues
       const { data: result, error: responseError } = await supabase
         .from(tableName)
-        .insert(data)
+        .insert(data as any)
         .select();
       
       setLoading(false);
@@ -69,10 +69,10 @@ export function useTableOperations<T>(
       
       // Safely handle array response
       if (Array.isArray(result) && result.length > 0) {
-        return result[0] as any;
+        return result[0] as unknown as T;
       }
       
-      return result as any;
+      return result as unknown as T;
     } catch (err) {
       return handleOperationError(
         err, 
@@ -89,7 +89,7 @@ export function useTableOperations<T>(
       // First update the record
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(data)
+        .update(data as any)
         .eq(idField, id);
       
       if (updateError) {
@@ -101,7 +101,7 @@ export function useTableOperations<T>(
         .from(tableName)
         .select('*')
         .eq(idField, id)
-        .single();
+        .maybeSingle();
       
       setLoading(false);
       
@@ -109,7 +109,7 @@ export function useTableOperations<T>(
         throw fetchError;
       }
       
-      return result as any;
+      return result as unknown as T;
     } catch (err) {
       return handleOperationError(
         err, 
