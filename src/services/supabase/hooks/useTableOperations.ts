@@ -5,7 +5,7 @@ import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
 import { PostgrestError } from "@supabase/supabase-js";
 
-// Define simple options interface
+// Define comprehensive options interface
 interface TableOperationsOptions {
   idField?: string;
   toastMessages?: {
@@ -16,7 +16,7 @@ interface TableOperationsOptions {
   };
 }
 
-// Define simple result interface
+// Define strongly-typed result interface
 interface TableOperationsResult<T> {
   loading: boolean;
   error: Error | null;
@@ -28,7 +28,7 @@ interface TableOperationsResult<T> {
 /**
  * Hook for basic table operations with standardized error handling
  */
-export function useTableOperations<T>(
+export function useTableOperations<T extends Record<string, unknown>>(
   tableName: ValidTableName,
   options: TableOperationsOptions = {}
 ): TableOperationsResult<T> {
@@ -51,11 +51,11 @@ export function useTableOperations<T>(
   }, [handleError]);
 
   // Create operation
-  const create = useCallback(async (data: Record<string, unknown>) => {
+  const create = useCallback(async (data: Record<string, unknown>): Promise<T | null> => {
     setLoading(true);
     
     try {
-      // Use type assertion to fix type compatibility issues
+      // Break the type recursion with type assertion
       const { data: result, error: responseError } = await supabase
         .from(tableName)
         .insert(data as any)
@@ -67,12 +67,13 @@ export function useTableOperations<T>(
         throw responseError;
       }
       
-      // Safely handle array response
+      // Handle array response
       if (Array.isArray(result) && result.length > 0) {
-        return result[0] as unknown as T;
+        // Use simple type assertion
+        return result[0] as T;
       }
       
-      return result as unknown as T;
+      return result as T;
     } catch (err) {
       return handleOperationError(
         err, 
@@ -82,11 +83,11 @@ export function useTableOperations<T>(
   }, [tableName, handleOperationError, toastMessages.createError]);
 
   // Update operation
-  const update = useCallback(async (id: string, data: Record<string, unknown>) => {
+  const update = useCallback(async (id: string, data: Record<string, unknown>): Promise<T | null> => {
     setLoading(true);
     
     try {
-      // First update the record
+      // Update record with type assertion to avoid recursion
       const { error: updateError } = await supabase
         .from(tableName)
         .update(data as any)
@@ -96,7 +97,7 @@ export function useTableOperations<T>(
         throw updateError;
       }
       
-      // Then fetch the updated record
+      // Fetch updated record
       const { data: result, error: fetchError } = await supabase
         .from(tableName)
         .select('*')
@@ -109,7 +110,12 @@ export function useTableOperations<T>(
         throw fetchError;
       }
       
-      return result as unknown as T;
+      if (!result) {
+        throw new Error(`Record with ${idField}=${id} not found after update`);
+      }
+      
+      // Simple type assertion
+      return result as T;
     } catch (err) {
       return handleOperationError(
         err, 
