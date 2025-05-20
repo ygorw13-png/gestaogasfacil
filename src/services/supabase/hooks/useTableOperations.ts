@@ -5,22 +5,33 @@ import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
 import { PostgrestError } from "@supabase/supabase-js";
 
+// Define simplified interfaces to break circular type dependencies
+interface TableOperationsOptions {
+  idField?: string;
+  toastMessages?: {
+    fetchError?: string;
+    createError?: string;
+    updateError?: string;
+    deleteError?: string;
+  };
+}
+
+interface TableOperationsResult<T> {
+  loading: boolean;
+  error: Error | null;
+  create: (data: Record<string, unknown>) => Promise<T | null>;
+  update: (id: string, data: Record<string, unknown>) => Promise<T | null>;
+  remove: (id: string) => Promise<boolean>;
+}
+
 /**
  * Hook for basic table operations with standardized error handling
- * Uses simplified type handling to prevent excessive type instantiation
+ * Completely refactored to eliminate complex type instantiations
  */
-export function useTableOperations<T extends Record<string, unknown>>(
+export function useTableOperations<T>(
   tableName: ValidTableName,
-  options: {
-    idField?: string;
-    toastMessages?: {
-      fetchError?: string;
-      createError?: string;
-      updateError?: string;
-      deleteError?: string;
-    };
-  } = {}
-) {
+  options: TableOperationsOptions = {}
+): TableOperationsResult<T> {
   const {
     idField = 'id',
     toastMessages = {}
@@ -29,12 +40,11 @@ export function useTableOperations<T extends Record<string, unknown>>(
   const [loading, setLoading] = useState(false);
   const { error, handleError } = useErrorHandler();
 
-  // Create operation with improved type safety
-  const create = useCallback(async (data: Record<string, unknown>) => {
+  // Create operation with simplified type handling
+  const create = useCallback(async (data: Record<string, unknown>): Promise<T | null> => {
     setLoading(true);
     try {
-      // Use type assertion to bypass TypeScript's static type checking for Supabase insert
-      // This is necessary because Supabase expects specific table types but we're using a generic hook
+      // Pass data as any to bypass TypeScript checking for Supabase insert
       const response = await supabase
         .from(tableName)
         .insert(data as any)
@@ -43,13 +53,13 @@ export function useTableOperations<T extends Record<string, unknown>>(
       if (response.error) throw response.error;
       
       // Simple result extraction
-      const createdData = response.data;
-      const result = Array.isArray(createdData) && createdData.length > 0 
-        ? createdData[0] 
-        : createdData;
+      const result = response.data;
+      const finalResult = Array.isArray(result) && result.length > 0 
+        ? result[0] 
+        : result;
       
-      // Use unknown as an intermediate type to break the type chain and avoid TS2352 error
-      return result as unknown as T;
+      // Break type chain completely with double casting
+      return finalResult as unknown as T;
     } catch (err) {
       const errorMessage = toastMessages.createError || `Error creating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
@@ -59,11 +69,11 @@ export function useTableOperations<T extends Record<string, unknown>>(
     }
   }, [tableName, handleError, toastMessages.createError]);
 
-  // Update operation with improved type safety
-  const update = useCallback(async (id: string, data: Record<string, unknown>) => {
+  // Update operation with simplified type handling
+  const update = useCallback(async (id: string, data: Record<string, unknown>): Promise<T | null> => {
     setLoading(true);
     try {
-      // Use type assertion to bypass TypeScript's static type checking for Supabase update
+      // Pass data as any to bypass TypeScript checking for Supabase update
       const response = await supabase
         .from(tableName)
         .update(data as any)
@@ -72,14 +82,14 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       if (response.error) throw response.error;
       
-      // Simple result extraction
-      const updatedData = response.data;
-      const result = Array.isArray(updatedData) && updatedData.length > 0 
-        ? updatedData[0] 
-        : updatedData;
+      // Simple result extraction with minimal type manipulation
+      const result = response.data;
+      const finalResult = Array.isArray(result) && result.length > 0 
+        ? result[0] 
+        : result;
       
-      // Use unknown as an intermediate type to break the type chain and avoid TS2352 error
-      return result as unknown as T;
+      // Break type chain completely with double casting
+      return finalResult as unknown as T;
     } catch (err) {
       const errorMessage = toastMessages.updateError || `Error updating record in ${tableName}`;
       handleError(err as Error | PostgrestError, errorMessage);
@@ -109,6 +119,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
     }
   }, [tableName, idField, handleError, toastMessages.deleteError]);
 
+  // Return a simplified, explicitly typed result object
   return {
     loading,
     error,
