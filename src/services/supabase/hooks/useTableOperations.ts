@@ -55,7 +55,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
     setLoading(true);
     
     try {
-      // Break the type recursion with type assertion
+      // Use any type to bypass TypeScript's type checking for Supabase
       const { data: result, error: responseError } = await supabase
         .from(tableName)
         .insert(data as any)
@@ -69,11 +69,11 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       // Handle array response
       if (Array.isArray(result) && result.length > 0) {
-        // Use simple type assertion
-        return result[0] as T;
+        // Use unknown as intermediate step for safe type conversion
+        return result[0] as unknown as T;
       }
       
-      return result as T;
+      return result as unknown as T;
     } catch (err) {
       return handleOperationError(
         err, 
@@ -87,7 +87,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
     setLoading(true);
     
     try {
-      // Update record with type assertion to avoid recursion
+      // Use any type for Supabase operations to avoid type checking issues
       const { error: updateError } = await supabase
         .from(tableName)
         .update(data as any)
@@ -114,8 +114,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
         throw new Error(`Record with ${idField}=${id} not found after update`);
       }
       
-      // Simple type assertion
-      return result as T;
+      // Safe type conversion through unknown
+      return result as unknown as T;
     } catch (err) {
       return handleOperationError(
         err, 
