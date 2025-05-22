@@ -14,9 +14,11 @@ import { CylinderControl } from "./components/CylinderControl";
 import { useAuth } from "@/contexts/auth";
 import { InventoryApp } from "./components/inventory";
 import { UserRole } from "@/types/userTypes";
+import { StockData, defaultStockData } from "./components/stock/StockData";
 
 const Inventory = () => {
   const [showRequestForm, setShowRequestForm] = useState(false);
+  const [refreshCounter, setRefreshCounter] = useState(0);
   
   // Get user role from auth context
   const { user } = useAuth();
@@ -32,10 +34,23 @@ const Inventory = () => {
     fetchMinStockLevels();
   }, [fetchCurrentStock, fetchMinStockLevels]);
 
+  const handleUpdateStock = async (newStock: StockData) => {
+    await fetchCurrentStock();
+    // You may want to show a success message here
+  };
+
+  const handleRequestCreated = () => {
+    setShowRequestForm(false);
+    setRefreshCounter(prev => prev + 1);
+  };
+
   return (
     <div className="container mx-auto py-6">
       {showRequestForm ? (
-        <StockRequest onCancel={() => setShowRequestForm(false)} />
+        <StockRequest 
+          onRequestCreated={handleRequestCreated} 
+          onCancel={() => setShowRequestForm(false)} 
+        />
       ) : (
         <>
           <InventoryHeader
@@ -68,7 +83,10 @@ const Inventory = () => {
                         minStock={minStock} 
                       />
                       <div className="mt-6">
-                        <StockUpdateForm />
+                        <StockUpdateForm 
+                          currentStock={currentStock}
+                          onUpdateStock={handleUpdateStock}
+                        />
                       </div>
                     </>
                   )}

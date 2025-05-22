@@ -24,3 +24,13 @@ export interface StockMovementFormProps {
   inventoryItems: InventoryItem[];
   isLoading?: boolean;
 }
+
+export interface InventoryStatusBadgeProps {
+  quantity: number;
+  threshold?: number;
+}
+
+export interface EmptyTableRowProps {
+  colSpan: number;
+  message: string;
+}

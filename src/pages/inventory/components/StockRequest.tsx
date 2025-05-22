@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,13 +10,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Trash } from "lucide-react";
 import { customTables } from "@/integrations/supabase/customClient";
 
-interface StockRequestProps {
+export interface StockRequestProps {
   onRequestCreated: () => void;
+  onCancel?: () => void;
 }
 
 type LocationType = "portaria" | "rota" | "estoque";
 
-export function StockRequest({ onRequestCreated }: StockRequestProps) {
+export function StockRequest({ onRequestCreated, onCancel }: StockRequestProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -238,14 +240,26 @@ export function StockRequest({ onRequestCreated }: StockRequestProps) {
           />
         </div>
         
-        <Button 
-          type="button" 
-          className="w-full bg-green-600 hover:bg-green-700 text-white"
-          onClick={handleSubmit}
-          disabled={isLoading}
-        >
-          {isLoading ? "Enviando..." : "Enviar Requisição"}
-        </Button>
+        <div className="flex justify-end gap-2">
+          {onCancel && (
+            <Button 
+              type="button" 
+              variant="outline"
+              onClick={onCancel}
+            >
+              Cancelar
+            </Button>
+          )}
+          
+          <Button 
+            type="button" 
+            className="bg-green-600 hover:bg-green-700 text-white"
+            onClick={handleSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? "Enviando..." : "Enviar Requisição"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
