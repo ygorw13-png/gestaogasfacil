@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName, QueryOptions } from "@/services/supabase/types";
 import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
-import { safeTypeConversion } from "../utils/typeConversions";
+import { safeArrayConversion } from "../utils/typeConversions";
 
 /**
  * Hook for managing data state from a Supabase table
@@ -72,15 +72,15 @@ export function useBaseTable<T extends Record<string, unknown>>(
         throw responseError;
       }
       
-      // Use safeTypeConversion from the utilities
-      const typedData = fetchedData ? fetchedData.map(item => safeTypeConversion<T>(item)) : [];
+      // Use direct type assertion to avoid recursive type issues
+      const typedData = fetchedData ? safeArrayConversion<T>(fetchedData) : [];
       setData(typedData);
       return typedData;
     } catch (error) {
       const errorMsg = toastMessages.fetchError || `Error fetching data from ${tableName}`;
       handleError(error, errorMsg);
       setError(error instanceof Error ? error : new Error(String(error)));
-      return [];
+      return [] as T[];
     } finally {
       setLoading(false);
     }

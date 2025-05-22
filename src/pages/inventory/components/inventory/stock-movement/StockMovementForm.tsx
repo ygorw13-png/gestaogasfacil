@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { Form } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertBar } from "@/components/ui/AlertBar";
-import { StockMovementFormProps } from "./types";
+import { StockMovementFormProps } from "../types";
 import { ProductSelect } from "./ProductSelect";
 import { MovementTypeSelect } from "./MovementTypeSelect";
 import { QuantityInput } from "./QuantityInput";
@@ -11,7 +11,11 @@ import { NotesInput } from "./NotesInput";
 import { FormSubmitButton } from "./FormSubmitButton";
 import { useStockMovementForm } from "./useStockMovementForm";
 
-export function StockMovementForm({ onSubmit, inventoryItems }: StockMovementFormProps) {
+export function StockMovementForm({ 
+  onSubmit, 
+  inventoryItems, 
+  isLoading 
+}: StockMovementFormProps) {
   const {
     form,
     loading,
@@ -27,6 +31,8 @@ export function StockMovementForm({ onSubmit, inventoryItems }: StockMovementFor
       form.setValue("product", inventoryItems[0].product);
     }
   }, [inventoryItems, form]);
+
+  const isFormLoading = loading || isLoading;
 
   return (
     <Card>
@@ -55,27 +61,27 @@ export function StockMovementForm({ onSubmit, inventoryItems }: StockMovementFor
               <ProductSelect 
                 form={form} 
                 inventoryItems={inventoryItems} 
-                loading={loading} 
+                loading={isFormLoading} 
               />
               
               <MovementTypeSelect 
                 form={form} 
-                loading={loading} 
+                loading={isFormLoading} 
               />
               
               <QuantityInput 
                 form={form} 
-                loading={loading} 
+                loading={isFormLoading} 
               />
             </div>
             
             <NotesInput 
               form={form} 
-              loading={loading} 
+              loading={isFormLoading} 
             />
             
             <div className="flex justify-end">
-              <FormSubmitButton loading={loading} />
+              <FormSubmitButton loading={isFormLoading} />
             </div>
           </form>
         </Form>

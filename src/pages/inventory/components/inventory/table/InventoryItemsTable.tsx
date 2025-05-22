@@ -4,12 +4,12 @@ import {
   TableBody,
 } from "@/components/ui/table";
 import { InventoryItem } from "@/hooks/supabase/useInventory";
-import { InventoryItemsTableProps } from "../types/inventory-types";
+import { InventoryTableProps } from "../types";
 import { EmptyTableRow } from "./EmptyTableRow";
 import { InventoryItemRow } from "./InventoryItemRow";
 import { InventoryTableHeader } from "./InventoryTableHeader";
 
-export function InventoryItemsTable({ items }: InventoryItemsTableProps) {
+export function InventoryItemsTable({ items, isLoading, error }: InventoryTableProps) {
   return (
     <div className="border rounded-md">
       <Table>

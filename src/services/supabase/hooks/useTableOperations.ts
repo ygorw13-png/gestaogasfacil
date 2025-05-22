@@ -1,5 +1,5 @@
 
-import { useCallback, useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "@/services/supabase/types";
 import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
@@ -53,7 +53,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       if (error) throw error;
       
-      // Use safe type conversion to avoid recursive typing
+      // Use direct type assertion to avoid recursive typing issues
       return data ? safeTypeConversion<T>(data) : null;
     } catch (error) {
       const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
@@ -75,7 +75,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
         returnItem = true 
       } = options;
       
-      // Use any type for Supabase data to avoid type issues
+      // Use any type to avoid TypeScript issues with Supabase
       const { data: result, error: responseError } = await supabase
         .from(tableName)
         .insert(item as any)
@@ -88,7 +88,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       handleSuccess(successMessage);
       
       if (returnItem && Array.isArray(result) && result.length > 0) {
-        // Use safe type conversion instead of direct assertion
+        // Use safe type conversion with explicit assertion
         return safeTypeConversion<T>(result[0]);
       }
       
@@ -143,7 +143,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       }
       
       handleSuccess(successMessage);
-      // Use safe type conversion
+      // Use direct type assertion
       return safeTypeConversion<T>(result);
     } catch (err) {
       handleError(err, `Error updating item in ${tableName}`);
