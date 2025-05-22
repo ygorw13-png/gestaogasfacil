@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "../types";
@@ -55,11 +54,11 @@ export function useTableOperations<T extends Record<string, unknown>>(
     setLoading(true);
     
     try {
-      // Use any type to bypass TypeScript's type checking for Supabase
-      const { data: result, error: responseError } = await supabase
+      // Correção: adiciona 'as any' para evitar erro TS2589
+      const { data: result, error: responseError } = await (supabase
         .from(tableName)
         .insert(data as any)
-        .select();
+        .select() as any);
       
       setLoading(false);
       
@@ -67,9 +66,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
         throw responseError;
       }
       
-      // Handle array response
       if (Array.isArray(result) && result.length > 0) {
-        // Use unknown as intermediate step for safe type conversion
         return result[0] as unknown as T;
       }
       
@@ -87,22 +84,22 @@ export function useTableOperations<T extends Record<string, unknown>>(
     setLoading(true);
     
     try {
-      // Use any type for Supabase operations to avoid type checking issues
-      const { error: updateError } = await supabase
+      // Correção: adiciona 'as any' para evitar erro TS2589
+      const { error: updateError } = await (supabase
         .from(tableName)
         .update(data as any)
-        .eq(idField, id);
+        .eq(idField, id) as any);
       
       if (updateError) {
         throw updateError;
       }
       
-      // Fetch updated record
-      const { data: result, error: fetchError } = await supabase
+      // Correção: adiciona 'as any' para evitar erro TS2589
+      const { data: result, error: fetchError } = await (supabase
         .from(tableName)
         .select('*')
         .eq(idField, id)
-        .maybeSingle();
+        .maybeSingle() as any);
       
       setLoading(false);
       
@@ -114,7 +111,6 @@ export function useTableOperations<T extends Record<string, unknown>>(
         throw new Error(`Record with ${idField}=${id} not found after update`);
       }
       
-      // Safe type conversion through unknown
       return result as unknown as T;
     } catch (err) {
       return handleOperationError(
@@ -129,10 +125,11 @@ export function useTableOperations<T extends Record<string, unknown>>(
     setLoading(true);
     
     try {
-      const { error: deleteError } = await supabase
+      // Correção: adiciona 'as any' para evitar erro TS2589
+      const { error: deleteError } = await (supabase
         .from(tableName)
         .delete()
-        .eq(idField, id);
+        .eq(idField, id) as any);
       
       setLoading(false);
       
