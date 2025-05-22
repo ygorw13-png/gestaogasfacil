@@ -1,10 +1,11 @@
+
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "../types";
 import { useErrorHandler } from "../utils/errorHandling";
 import { PostgrestError } from "@supabase/supabase-js";
 
-// Define comprehensive options interface
+// Define options interface
 interface TableOperationsOptions {
   idField?: string;
   toastMessages?: {
@@ -54,11 +55,11 @@ export function useTableOperations<T extends Record<string, unknown>>(
     setLoading(true);
     
     try {
-      // Correção: adiciona 'as any' para evitar erro TS2589
-      const { data: result, error: responseError } = await (supabase
+      // Cast data to any to avoid TypeScript errors with Supabase's typing
+      const { data: result, error: responseError } = await supabase
         .from(tableName)
         .insert(data as any)
-        .select() as any);
+        .select();
       
       setLoading(false);
       
@@ -84,22 +85,22 @@ export function useTableOperations<T extends Record<string, unknown>>(
     setLoading(true);
     
     try {
-      // Correção: adiciona 'as any' para evitar erro TS2589
-      const { error: updateError } = await (supabase
+      // Update the item
+      const { error: updateError } = await supabase
         .from(tableName)
         .update(data as any)
-        .eq(idField, id) as any);
+        .eq(idField, id);
       
       if (updateError) {
         throw updateError;
       }
       
-      // Correção: adiciona 'as any' para evitar erro TS2589
-      const { data: result, error: fetchError } = await (supabase
+      // Fetch the updated item
+      const { data: result, error: fetchError } = await supabase
         .from(tableName)
         .select('*')
         .eq(idField, id)
-        .maybeSingle() as any);
+        .maybeSingle();
       
       setLoading(false);
       
@@ -125,11 +126,10 @@ export function useTableOperations<T extends Record<string, unknown>>(
     setLoading(true);
     
     try {
-      // Correção: adiciona 'as any' para evitar erro TS2589
-      const { error: deleteError } = await (supabase
+      const { error: deleteError } = await supabase
         .from(tableName)
         .delete()
-        .eq(idField, id) as any);
+        .eq(idField, id);
       
       setLoading(false);
       

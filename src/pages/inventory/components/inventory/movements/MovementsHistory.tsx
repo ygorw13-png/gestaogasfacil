@@ -20,7 +20,7 @@ export function MovementsHistory({ movements }: MovementsHistoryProps) {
           ) : (
             sortedMovements.map((movement, index) => (
               <MovementRow 
-                key={movement.id || index} 
+                key={movement.id || `movement-${index}`} 
                 movement={movement} 
                 index={index} 
               />
