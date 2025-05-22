@@ -21,7 +21,9 @@ export function MovementsHistory({ movements, isLoading, error }: MovementsHisto
       <Table>
         <MovementsTableHeader />
         <TableBody>
-          {sortedMovements.length === 0 ? (
+          {isLoading ? (
+            <EmptyMovements message="Carregando movimentações..." />
+          ) : sortedMovements.length === 0 ? (
             <EmptyMovements />
           ) : (
             sortedMovements.map((movement, index) => (

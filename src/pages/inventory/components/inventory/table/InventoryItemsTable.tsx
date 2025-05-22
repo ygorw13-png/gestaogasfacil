@@ -15,7 +15,12 @@ export function InventoryItemsTable({ items, isLoading, error }: InventoryTableP
       <Table>
         <InventoryTableHeader />
         <TableBody>
-          {items.length === 0 ? (
+          {isLoading ? (
+            <EmptyTableRow 
+              colSpan={5} 
+              message="Carregando dados do inventário..." 
+            />
+          ) : items.length === 0 ? (
             <EmptyTableRow 
               colSpan={5} 
               message="Nenhum item encontrado no inventário" 

@@ -53,7 +53,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       if (error) throw error;
       
-      // Use direct type assertion to avoid recursive typing issues
+      // Use safe type conversion to avoid recursive typing
       return data ? safeTypeConversion<T>(data) : null;
     } catch (error) {
       const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
@@ -75,10 +75,9 @@ export function useTableOperations<T extends Record<string, unknown>>(
         returnItem = true 
       } = options;
       
-      // Use any type to avoid TypeScript issues with Supabase
       const { data: result, error: responseError } = await supabase
         .from(tableName)
-        .insert(item as any)
+        .insert(item)
         .select(returnItem ? '*' : '');
       
       if (responseError) {
@@ -88,7 +87,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       handleSuccess(successMessage);
       
       if (returnItem && Array.isArray(result) && result.length > 0) {
-        // Use safe type conversion with explicit assertion
+        // Use safe type conversion
         return safeTypeConversion<T>(result[0]);
       }
       
@@ -115,10 +114,10 @@ export function useTableOperations<T extends Record<string, unknown>>(
         returnItem = true 
       } = options;
       
-      // Update the item - use any type for Supabase data
+      // Update the item
       const { error: updateError } = await supabase
         .from(tableName)
-        .update(data as any)
+        .update(data)
         .eq(idField, id);
       
       if (updateError) throw updateError;
@@ -143,7 +142,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       }
       
       handleSuccess(successMessage);
-      // Use direct type assertion
+      
+      // Use safe type conversion
       return safeTypeConversion<T>(result);
     } catch (err) {
       handleError(err, `Error updating item in ${tableName}`);

@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName, QueryOptions } from "@/services/supabase/types";
 import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
@@ -26,7 +26,7 @@ export function useBaseTable<T extends Record<string, unknown>>(
   } = options;
   
   const [data, setData] = useState<T[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(fetchOnMount);
   const [error, setError] = useState<Error | null>(null);
   
   const { handleError } = useSupabaseErrorHandler();
@@ -72,14 +72,15 @@ export function useBaseTable<T extends Record<string, unknown>>(
         throw responseError;
       }
       
-      // Use direct type assertion to avoid recursive type issues
-      const typedData = fetchedData ? safeArrayConversion<T>(fetchedData) : [];
+      // Use safe type conversion helper to avoid recursive typing
+      const typedData = safeArrayConversion<T>(fetchedData || []);
       setData(typedData);
       return typedData;
-    } catch (error) {
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
       const errorMsg = toastMessages.fetchError || `Error fetching data from ${tableName}`;
-      handleError(error, errorMsg);
-      setError(error instanceof Error ? error : new Error(String(error)));
+      handleError(err, errorMsg);
+      setError(error);
       return [] as T[];
     } finally {
       setLoading(false);
