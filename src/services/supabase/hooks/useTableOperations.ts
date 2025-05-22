@@ -1,67 +1,84 @@
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ValidTableName } from "../types";
-import { useErrorHandler } from "../utils/errorHandling";
-import { PostgrestError } from "@supabase/supabase-js";
+import { ValidTableName } from "@/services/supabase/types";
+import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
+import { safeTypeConversion } from "@/services/supabase/utils/typeConversions";
 
-// Define options interface
-interface TableOperationsOptions {
+type ToastMessages = {
+  createSuccess?: string;
+  updateSuccess?: string;
+  deleteSuccess?: string;
+  fetchItemError?: string;
+};
+
+type TableOperationOptions = {
   idField?: string;
-  toastMessages?: {
-    fetchError?: string;
-    createError?: string;
-    updateError?: string;
-    deleteError?: string;
-  };
-}
+  toastMessages?: ToastMessages;
+};
 
-// Define strongly-typed result interface
-interface TableOperationsResult<T> {
-  loading: boolean;
-  error: Error | null;
-  create: (data: Record<string, unknown>) => Promise<T | null>;
-  update: (id: string, data: Record<string, unknown>) => Promise<T | null>;
-  remove: (id: string) => Promise<boolean>;
-}
+type ReturnItemOptions = {
+  successMessage?: string;
+  returnItem?: boolean;
+};
+
+type DeleteItemOptions = {
+  successMessage?: string;
+};
 
 /**
- * Hook for basic table operations with standardized error handling
+ * Hook for CRUD operations on a Supabase table
+ * Can be used standalone or with useBaseTable
  */
 export function useTableOperations<T extends Record<string, unknown>>(
   tableName: ValidTableName,
-  options: TableOperationsOptions = {}
-): TableOperationsResult<T> {
+  options: TableOperationOptions = {}
+) {
   const {
     idField = 'id',
     toastMessages = {}
   } = options;
-
+  
   const [loading, setLoading] = useState(false);
-  const { error, handleError } = useErrorHandler();
+  const { handleError, handleSuccess } = useSupabaseErrorHandler();
+  
+  // Get a single item by ID
+  const getById = useCallback(async (id: string): Promise<T | null> => {
+    try {
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq(idField, id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      return data ? (data as unknown as T) : null;
+    } catch (error) {
+      const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
+      handleError(error, errorMsg);
+      return null;
+    }
+  }, [tableName, idField, handleError, toastMessages.fetchItemError]);
 
-  // Shared error handling function to avoid duplication
-  const handleOperationError = useCallback((
-    err: unknown, 
-    defaultMessage: string
-  ): null => {
-    setLoading(false);
-    handleError(err as Error | PostgrestError, defaultMessage);
-    return null;
-  }, [handleError]);
-
-  // Create operation
-  const create = useCallback(async (data: Record<string, unknown>): Promise<T | null> => {
+  // Create a new item
+  const createItem = useCallback(async (
+    item: Record<string, unknown>,
+    options: ReturnItemOptions = {}
+  ): Promise<T | null> => {
     setLoading(true);
     
     try {
+      const { 
+        successMessage = toastMessages.createSuccess || `Item added successfully`, 
+        returnItem = true 
+      } = options;
+      
       // Use any type for Supabase data to avoid type issues
       const { data: result, error: responseError } = await supabase
         .from(tableName)
-        .insert(data as any)
-        .select();
-      
-      setLoading(false);
+        .insert(item as any)
+        .select(returnItem ? '*' : '');
       
       if (responseError) {
         throw responseError;
@@ -72,88 +89,100 @@ export function useTableOperations<T extends Record<string, unknown>>(
         return result[0] as unknown as T;
       }
       
-      return result as unknown as T;
-    } catch (err) {
-      return handleOperationError(
-        err, 
-        toastMessages.createError || `Error creating record in ${tableName}`
-      );
+      handleSuccess(successMessage);
+      return null;
+    } catch (error) {
+      handleError(error, `Error adding item to ${tableName}`);
+      return null;
+    } finally {
+      setLoading(false);
     }
-  }, [tableName, handleOperationError, toastMessages.createError]);
+  }, [tableName, handleError, handleSuccess, toastMessages.createSuccess]);
 
-  // Update operation
-  const update = useCallback(async (id: string, data: Record<string, unknown>): Promise<T | null> => {
+  // Update an existing item
+  const updateItem = useCallback(async (
+    id: string,
+    data: Record<string, unknown>,
+    options: ReturnItemOptions = {}
+  ): Promise<T | null> => {
     setLoading(true);
     
     try {
+      const { 
+        successMessage = toastMessages.updateSuccess || `Item updated successfully`, 
+        returnItem = true 
+      } = options;
+      
       // Update the item - use any type for Supabase data
       const { error: updateError } = await supabase
         .from(tableName)
         .update(data as any)
         .eq(idField, id);
       
-      if (updateError) {
-        throw updateError;
+      if (updateError) throw updateError;
+      
+      // Then fetch the updated item if requested
+      if (!returnItem) {
+        handleSuccess(successMessage);
+        return null;
       }
       
-      // Fetch the updated item
+      // Fetch the updated record
       const { data: result, error: fetchError } = await supabase
         .from(tableName)
         .select('*')
         .eq(idField, id)
         .maybeSingle();
-      
-      setLoading(false);
-      
-      if (fetchError) {
-        throw fetchError;
-      }
+        
+      if (fetchError) throw fetchError;
       
       if (!result) {
-        throw new Error(`Record with ${idField}=${id} not found after update`);
+        throw new Error(`Record not found after update: ${idField}=${id}`);
       }
       
       // Use unknown as intermediate type for type safety
+      handleSuccess(successMessage);
       return result as unknown as T;
     } catch (err) {
-      return handleOperationError(
-        err, 
-        toastMessages.updateError || `Error updating record in ${tableName}`
-      );
+      handleError(err, `Error updating item in ${tableName}`);
+      return null;
+    } finally {
+      setLoading(false);
     }
-  }, [tableName, idField, handleOperationError, toastMessages.updateError]);
+  }, [tableName, idField, handleError, handleSuccess, toastMessages.updateSuccess]);
 
-  // Remove operation
-  const remove = useCallback(async (id: string): Promise<boolean> => {
+  // Delete an item
+  const deleteItem = useCallback(async (
+    id: string,
+    options: DeleteItemOptions = {}
+  ): Promise<boolean> => {
     setLoading(true);
     
     try {
-      const { error: deleteError } = await supabase
+      const { successMessage = toastMessages.deleteSuccess || `Item deleted successfully` } = options;
+      
+      const { error } = await supabase
         .from(tableName)
         .delete()
         .eq(idField, id);
       
-      setLoading(false);
+      if (error) throw error;
       
-      if (deleteError) {
-        throw deleteError;
-      }
-      
+      handleSuccess(successMessage);
       return true;
-    } catch (err) {
-      handleOperationError(
-        err, 
-        toastMessages.deleteError || `Error deleting record from ${tableName}`
-      );
+    } catch (error) {
+      handleError(error, `Error deleting item from ${tableName}`);
       return false;
+    } finally {
+      setLoading(false);
     }
-  }, [tableName, idField, handleOperationError, toastMessages.deleteError]);
+  }, [tableName, idField, handleError, handleSuccess, toastMessages.deleteSuccess]);
 
   return {
     loading,
-    error,
-    create,
-    update,
-    remove
+    getById,
+    createItem,
+    updateItem,
+    deleteItem
   };
 }
