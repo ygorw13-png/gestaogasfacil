@@ -3,7 +3,6 @@ import { useCallback } from "react";
 import { ValidTableName } from "@/services/supabase/types";
 import { useBaseTable } from "./useBaseTable";
 import { useTableOperations } from "./useTableOperations";
-import { updateItemInArray, addItemToArray, removeItemFromArray } from "../utils/typeConversions";
 
 // Options interface for improved readability
 interface TableCRUDOptions {
@@ -38,7 +37,8 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     loading: tableLoading,
     error,
     fetchData,
-    setData
+    setData,
+    setError
   } = useBaseTable<T>(tableName, {
     idField,
     fetchOnMount,
@@ -50,15 +50,17 @@ export function useTableCRUD<T extends Record<string, unknown>>(
   // Use our operations hook for CRUD operations
   const {
     loading: operationsLoading,
-    create,
-    update,
-    remove
+    getById,
+    createItem,
+    updateItem,
+    deleteItem
   } = useTableOperations<T>(tableName, {
     idField,
     toastMessages: {
-      createError: toastMessages.createSuccess,
-      updateError: toastMessages.updateSuccess,
-      deleteError: toastMessages.deleteSuccess
+      createSuccess: toastMessages.createSuccess,
+      updateSuccess: toastMessages.updateSuccess,
+      deleteSuccess: toastMessages.deleteSuccess,
+      fetchItemError: toastMessages.fetchItemError
     }
   });
 
@@ -69,15 +71,18 @@ export function useTableCRUD<T extends Record<string, unknown>>(
       successMessage?: string;
     } = {}
   ) => {
-    const result = await create(item);
+    const result = await createItem(item, {
+      successMessage: options.successMessage,
+      returnItem: true
+    });
     
     if (result) {
-      // Use our shared array utility
-      setData(prev => addItemToArray(prev, result));
+      // Use a simpler type approach to avoid deep recursion
+      setData(prev => [...prev, result as T]);
     }
     
     return result;
-  }, [create, setData]);
+  }, [createItem, setData]);
 
   const updateItemWithState = useCallback(async (
     id: string,
@@ -86,15 +91,20 @@ export function useTableCRUD<T extends Record<string, unknown>>(
       successMessage?: string;
     } = {}
   ) => {
-    const result = await update(id, updates);
+    const result = await updateItem(id, updates, {
+      successMessage: options.successMessage,
+      returnItem: true
+    });
     
     if (result) {
-      // Use our shared array utility
-      setData(prev => updateItemInArray(prev, result, idField));
+      setData(prev => prev.map(item => 
+        // Simple comparison instead of complex type mapping
+        (item as any)[idField] === id ? (result as T) : item
+      ));
     }
     
     return result;
-  }, [update, setData, idField]);
+  }, [updateItem, setData, idField]);
 
   const deleteItemWithState = useCallback(async (
     id: string,
@@ -102,15 +112,14 @@ export function useTableCRUD<T extends Record<string, unknown>>(
       successMessage?: string;
     } = {}
   ) => {
-    const success = await remove(id);
+    const success = await deleteItem(id, options);
     
     if (success) {
-      // Use our shared array utility
-      setData(prev => removeItemFromArray(prev, id, idField));
+      setData(prev => prev.filter(item => (item as any)[idField] !== id));
     }
     
     return success;
-  }, [remove, setData, idField]);
+  }, [deleteItem, setData, idField]);
 
   return {
     // Data state
@@ -120,12 +129,7 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     
     // Base operations
     fetchData,
-    getAll: fetchData,
-    
-    // Create, Update, Delete operations
-    create,
-    update,
-    remove,
+    getById,
     
     // State-updating operations
     addItem,

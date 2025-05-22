@@ -53,6 +53,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       if (error) throw error;
       
+      // Use unknown as intermediate type for type safety
       return data ? (data as unknown as T) : null;
     } catch (error) {
       const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
@@ -84,12 +85,13 @@ export function useTableOperations<T extends Record<string, unknown>>(
         throw responseError;
       }
       
-      if (Array.isArray(result) && result.length > 0) {
+      handleSuccess(successMessage);
+      
+      if (returnItem && Array.isArray(result) && result.length > 0) {
         // Safe conversion to T through unknown
         return result[0] as unknown as T;
       }
       
-      handleSuccess(successMessage);
       return null;
     } catch (error) {
       handleError(error, `Error adding item to ${tableName}`);
@@ -140,7 +142,6 @@ export function useTableOperations<T extends Record<string, unknown>>(
         throw new Error(`Record not found after update: ${idField}=${id}`);
       }
       
-      // Use unknown as intermediate type for type safety
       handleSuccess(successMessage);
       return result as unknown as T;
     } catch (err) {

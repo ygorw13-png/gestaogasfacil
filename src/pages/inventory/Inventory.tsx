@@ -1,61 +1,97 @@
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { StockAlert } from "./components/StockAlert";
-import { StockOverview } from "./components/StockOverview";
+import React, { useEffect, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InventoryHeader } from "./components/stock/InventoryHeader";
-import { InventoryTabs } from "./components/tabs/InventoryTabs";
 import { useStockData } from "./hooks/useStockData";
 import { useMinStockLevels } from "./hooks/useMinStockLevels";
+import { InventoryItemTable } from "./components/stock/InventoryItemTable";
+import { StockUpdateForm } from "./components/StockUpdateForm";
+import { StockAlert } from "./components/StockAlert";
+import { StockRequestsList } from "./components/StockRequestsList";
+import { StockRequest } from "./components/StockRequest";
+import { CylinderControl } from "./components/CylinderControl";
+import { useAuth } from "@/contexts/auth";
+import { InventoryApp } from "./components/inventory";
+import { UserRole } from "@/types/userTypes";
 
-export default function Inventory() {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("inventory");
-  const [refreshCounter, setRefreshCounter] = useState(0);
+const Inventory = () => {
+  const [showRequestForm, setShowRequestForm] = useState(false);
   
-  // Use custom hooks to manage stock data
-  const { currentStock, loading, fetchCurrentStock, handleStockUpdate } = useStockData();
+  // Get user role from auth context
+  const { user } = useAuth();
+  const userRole = user?.role as UserRole | undefined;
+  
+  // Get stock data and stock levels
+  const { currentStock, loading, fetchCurrentStock } = useStockData();
   const { minStock, fetchMinStockLevels } = useMinStockLevels();
 
-  // Fetch stock data and minimum stock levels when component loads or refreshCounter changes
+  // Load data on component mount
   useEffect(() => {
     fetchCurrentStock();
-  }, [fetchCurrentStock, refreshCounter]);
-
-  // Fetch minimum stock levels when component loads
-  useEffect(() => {
     fetchMinStockLevels();
-  }, [fetchMinStockLevels]);
-
-  const handleRequestCreated = () => {
-    setRefreshCounter(prev => prev + 1);
-    setActiveTab("requests");
-  };
-  
-  const handleNewRequestClick = () => {
-    setActiveTab("newRequest");
-  };
+  }, [fetchCurrentStock, fetchMinStockLevels]);
 
   return (
-    <div className="space-y-6">
-      <InventoryHeader 
-        userRole={user?.role} 
-        onNewRequestClick={handleNewRequestClick} 
-      />
+    <div className="container mx-auto py-6">
+      {showRequestForm ? (
+        <StockRequest onCancel={() => setShowRequestForm(false)} />
+      ) : (
+        <>
+          <InventoryHeader
+            userRole={userRole}
+            onNewRequestClick={() => setShowRequestForm(true)}
+          />
 
-      {/* Stock overview boxes */}
-      <StockOverview currentStock={currentStock} minStock={minStock} />
+          <div className="mt-6">
+            {!loading && <StockAlert currentStock={currentStock} minStock={minStock} />}
 
-      <StockAlert currentStock={currentStock} minStock={minStock} />
+            <Tabs defaultValue="overview" className="mt-6">
+              <TabsList>
+                <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+                <TabsTrigger value="requests">Requisições</TabsTrigger>
+                <TabsTrigger value="cylinders">Controle de Cascos</TabsTrigger>
+                <TabsTrigger value="advanced">Gerenciamento Avançado</TabsTrigger>
+              </TabsList>
 
-      <InventoryTabs 
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        currentStock={currentStock}
-        onRequestCreated={handleRequestCreated}
-        onUpdateStock={handleStockUpdate}
-        refreshCounter={refreshCounter}
-      />
+              <TabsContent value="overview" className="mt-4">
+                <Card className="p-4">
+                  <h2 className="text-xl font-semibold mb-4">Estoque Atual</h2>
+                  {loading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <InventoryItemTable 
+                        currentStock={currentStock} 
+                        minStock={minStock} 
+                      />
+                      <div className="mt-6">
+                        <StockUpdateForm />
+                      </div>
+                    </>
+                  )}
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="requests" className="mt-4">
+                <StockRequestsList />
+              </TabsContent>
+
+              <TabsContent value="cylinders" className="mt-4">
+                <CylinderControl />
+              </TabsContent>
+
+              <TabsContent value="advanced" className="mt-4">
+                <InventoryApp />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </>
+      )}
     </div>
   );
-}
+};
+
+export default Inventory;
