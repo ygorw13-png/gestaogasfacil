@@ -38,7 +38,8 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     error,
     fetchData,
     setData,
-    setError
+    setError,
+    refresh
   } = useBaseTable<T>(tableName, {
     idField,
     fetchOnMount,
@@ -136,7 +137,8 @@ export function useTableCRUD<T extends Record<string, unknown>>(
     updateItem: updateItemWithState,
     deleteItem: deleteItemWithState,
     
-    // Alias for fetchData for compatibility
-    refresh: fetchData
+    // Additional utilities
+    setError,
+    refresh
   };
 }

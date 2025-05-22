@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidTableName } from "@/services/supabase/types";
 import { useSupabaseErrorHandler } from "@/hooks/useSupabaseHelpers";
+import { safeTypeConversion } from "../utils/typeConversions";
 
 type ToastMessages = {
   createSuccess?: string;
@@ -52,9 +53,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       
       if (error) throw error;
       
-      // Since we can't use our recursive safeTypeConversion here, 
-      // we'll use a simpler approach with type assertion
-      return data as T | null;
+      // Use safe type conversion to avoid recursive typing
+      return data ? safeTypeConversion<T>(data) : null;
     } catch (error) {
       const errorMsg = toastMessages.fetchItemError || `Error fetching item from ${tableName}`;
       handleError(error, errorMsg);
@@ -88,8 +88,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       handleSuccess(successMessage);
       
       if (returnItem && Array.isArray(result) && result.length > 0) {
-        // Type assertion is safer here than recursive type conversion
-        return result[0] as T;
+        // Use safe type conversion instead of direct assertion
+        return safeTypeConversion<T>(result[0]);
       }
       
       return null;
@@ -143,7 +143,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       }
       
       handleSuccess(successMessage);
-      return result as T;
+      // Use safe type conversion
+      return safeTypeConversion<T>(result);
     } catch (err) {
       handleError(err, `Error updating item in ${tableName}`);
       return null;
