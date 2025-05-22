@@ -55,7 +55,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
     setLoading(true);
     
     try {
-      // Cast data to any to avoid TypeScript errors with Supabase's typing
+      // Use any type for Supabase data to avoid type issues
       const { data: result, error: responseError } = await supabase
         .from(tableName)
         .insert(data as any)
@@ -68,6 +68,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
       }
       
       if (Array.isArray(result) && result.length > 0) {
+        // Safe conversion to T through unknown
         return result[0] as unknown as T;
       }
       
@@ -85,7 +86,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
     setLoading(true);
     
     try {
-      // Update the item
+      // Update the item - use any type for Supabase data
       const { error: updateError } = await supabase
         .from(tableName)
         .update(data as any)
@@ -112,6 +113,7 @@ export function useTableOperations<T extends Record<string, unknown>>(
         throw new Error(`Record with ${idField}=${id} not found after update`);
       }
       
+      // Use unknown as intermediate type for type safety
       return result as unknown as T;
     } catch (err) {
       return handleOperationError(

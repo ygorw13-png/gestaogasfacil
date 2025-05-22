@@ -1,7 +1,7 @@
 
 import React from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { format, isValid } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { InventoryMovement } from "@/hooks/supabase/useInventory";
 import { MovementTypeBadge } from "./MovementTypeBadge";
@@ -17,12 +17,18 @@ export function MovementRow({ movement, index }: MovementRowProps) {
     if (!movement.created_at) return "N/A";
     
     // Try to create a valid date object
-    const dateObj = new Date(movement.created_at);
-    
-    // Check if the date is valid before formatting
-    if (!isValid(dateObj)) return "Data inválida";
-    
-    return format(dateObj, "dd/MM/yyyy HH:mm", { locale: ptBR });
+    try {
+      // Parse ISO string to date object
+      const dateObj = parseISO(movement.created_at);
+      
+      // Check if the date is valid before formatting
+      if (!isValid(dateObj)) return "Data inválida";
+      
+      return format(dateObj, "dd/MM/yyyy HH:mm", { locale: ptBR });
+    } catch (error) {
+      console.error("Error formatting date:", error, movement.created_at);
+      return "Data inválida";
+    }
   }, [movement.created_at]);
 
   return (

@@ -8,7 +8,13 @@ import { MovementRow } from "./MovementRow";
 import { useSortedMovements } from "./useMovements";
 
 export function MovementsHistory({ movements }: MovementsHistoryProps) {
-  const sortedMovements = useSortedMovements(movements);
+  // Ensure movements is always an array
+  const validMovements = React.useMemo(() => 
+    Array.isArray(movements) ? movements : [], 
+    [movements]
+  );
+  
+  const sortedMovements = useSortedMovements(validMovements);
 
   return (
     <div className="border rounded-md">
