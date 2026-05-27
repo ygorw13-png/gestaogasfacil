@@ -5,7 +5,7 @@ import { AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RoutesList } from "../components/RoutesList";
 import { NewRouteForm } from "../components/NewRouteForm";
-import { RouteReports } from "../components/RouteReports";
+import { RoutesHistory } from "../components/RoutesHistory";
 
 export default function RoutesPage() {
   return (
@@ -25,7 +25,7 @@ export default function RoutesPage() {
         <TabsList>
           <TabsTrigger value="active">Rotas Ativas</TabsTrigger>
           <TabsTrigger value="new">Nova Rota</TabsTrigger>
-          <TabsTrigger value="reports">Relatórios</TabsTrigger>
+          <TabsTrigger value="history">Histórico</TabsTrigger>
         </TabsList>
         
         <TabsContent value="active" className="space-y-4">
@@ -36,8 +36,8 @@ export default function RoutesPage() {
           <NewRouteForm />
         </TabsContent>
         
-        <TabsContent value="reports" className="space-y-4">
-          <RouteReports />
+        <TabsContent value="history" className="space-y-4">
+          <RoutesHistory />
         </TabsContent>
       </Tabs>
     </div>

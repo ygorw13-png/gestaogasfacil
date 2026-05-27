@@ -4,12 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-// Create schema for new user form
 const userFormSchema = z.object({
-  email: z.string()
-    .min(1, 'Email é obrigatório')
-    .email('Email inválido'),
+  email: z.string().min(1, 'Email é obrigatório').email('Email inválido'),
   name: z.string().min(1, 'Nome é obrigatório'),
   role: z.string().min(1, 'Função é obrigatória'),
   department: z.string().optional(),
@@ -34,12 +32,8 @@ export function useUserCreation() {
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
-      email: '',
-      name: '',
-      role: '',
-      department: '',
-      password: '',
-      confirmPassword: '',
+      email: '', name: '', role: '', department: '',
+      password: '', confirmPassword: '',
     },
   });
 
@@ -48,22 +42,30 @@ export function useUserCreation() {
       setIsCreateUserLoading(true);
       setErrors(null);
 
-      // Aqui seria integrado com Supabase para criar o usuário
-      console.log('Creating user:', values);
-      
-      // Simulação de uma requisição bem-sucedida
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: values.email,
+          password: values.password,
+          name: values.name,
+          role: values.role,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
       toast({
         title: "Usuário criado",
         description: `${values.name} foi adicionado com sucesso.`,
       });
-      
+
       form.reset();
-      return true;
+      return { user: data.user };
     } catch (error: any) {
       console.error('Error creating user:', error);
-      setErrors(error.message || 'Falha ao criar usuário');
+      const msg = error.message || 'Falha ao criar usuário';
+      setErrors(msg);
+      toast({ title: "Erro", description: msg, variant: "destructive" });
       return false;
     } finally {
       setIsCreateUserLoading(false);
@@ -75,11 +77,5 @@ export function useUserCreation() {
     setErrors(null);
   };
 
-  return {
-    form,
-    isCreateUserLoading,
-    errors,
-    handleCreateUser,
-    clearForm
-  };
+  return { form, isCreateUserLoading, errors, handleCreateUser, clearForm };
 }
