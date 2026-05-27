@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { mockRoutes } from "../data/mockRoutes";
+import { useRotas } from "../hooks/useRotas";
 import { getStatusColor, getStatusText } from "../utils/routeStatusUtils";
 import { History } from "lucide-react";
 
@@ -16,16 +16,14 @@ export function RoutesHistory() {
   const [to, setTo] = useState(today);
   const [search, setSearch] = useState("");
 
-  const routes = useMemo(() => {
-    return mockRoutes.filter(r => {
-      const dateOk = r.date >= from && r.date <= to;
-      const q = search.toLowerCase();
-      const textOk = !q ||
-        r.driverName.toLowerCase().includes(q) ||
-        r.destination.toLowerCase().includes(q);
-      return dateOk && textOk;
-    }).sort((a, b) => b.date.localeCompare(a.date));
-  }, [from, to, search]);
+  const { rotas, loading } = useRotas({ from, to });
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return rotas.filter(r =>
+      !q || r.motorista_nome.toLowerCase().includes(q) || r.destino.toLowerCase().includes(q)
+    );
+  }, [rotas, search]);
 
   const clear = () => { setFrom(monthAgo); setTo(today); setSearch(""); };
 
@@ -66,20 +64,22 @@ export function RoutesHistory() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {routes.length === 0 ? (
+            {loading ? (
+              <TableRow><TableCell colSpan={7} className="text-center py-8">Carregando...</TableCell></TableRow>
+            ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                   Nenhuma rota no período selecionado
                 </TableCell>
               </TableRow>
-            ) : routes.map(r => (
+            ) : filtered.map(r => (
               <TableRow key={r.id}>
-                <TableCell>{new Date(r.date).toLocaleDateString("pt-BR")}</TableCell>
-                <TableCell className="font-medium">{r.driverName}</TableCell>
-                <TableCell>{r.destination}</TableCell>
-                <TableCell>{r.clientsCount}</TableCell>
-                <TableCell>{r.departureTime || "-"}</TableCell>
-                <TableCell>{r.returnTime || "-"}</TableCell>
+                <TableCell>{new Date(r.data).toLocaleDateString("pt-BR")}</TableCell>
+                <TableCell className="font-medium">{r.motorista_nome}</TableCell>
+                <TableCell>{r.destino}</TableCell>
+                <TableCell>{r.clientes_count}</TableCell>
+                <TableCell>{r.hora_saida || "-"}</TableCell>
+                <TableCell>{r.hora_retorno || "-"}</TableCell>
                 <TableCell>
                   <Badge className={getStatusColor(r.status)}>{getStatusText(r.status)}</Badge>
                 </TableCell>
@@ -90,7 +90,7 @@ export function RoutesHistory() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Total: {routes.length} rota(s) encontrada(s)
+        Total: {filtered.length} rota(s) encontrada(s)
       </p>
     </Card>
   );
