@@ -132,21 +132,6 @@ function OrdersListComponent({
 
   return (
     <div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Horário</TableHead>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Endereço</TableHead>
-            <TableHead>Produto</TableHead>
-            <TableHead>Quantidade</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-  return (
-    <div>
       <div className="flex justify-end mb-2">
         <Button variant="outline" size="sm" onClick={handleExport} disabled={orders.length === 0}>
           <Download className="h-4 w-4 mr-2" />
