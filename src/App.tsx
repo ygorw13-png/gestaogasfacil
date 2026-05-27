@@ -11,6 +11,7 @@ import { SecurityHeaders } from "./components/security/SecurityHeaders";
 import { HelmetProvider } from 'react-helmet-async';
 import { useEffect } from "react";
 import { AuthGuard } from "./components/ui/AuthGuard";
+import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 
 // Authentication pages
 import Login from "./pages/auth/Login";
@@ -68,6 +69,7 @@ function App() {
         <AuthProvider>
           <div className="w-full min-h-screen bg-background">
             <SecurityHeaders />
+            <ErrorBoundary>
             <Routes>
               {/* Root route checks authentication and redirects */}
               <Route path="/" element={<Index />} />
@@ -175,6 +177,7 @@ function App() {
               {/* Wildcard route for pages not found */}
               <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
+            </ErrorBoundary>
             <Toaster richColors closeButton position="top-right" />
           </div>
         </AuthProvider>
