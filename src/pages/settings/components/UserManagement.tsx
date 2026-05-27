@@ -40,7 +40,10 @@ export function UserManagement() {
               users={users}
               loading={loading}
               onAddUserClick={() => setIsNewUserDialogOpen(true)}
+              onUserRemoved={(id) => removeUser(id)}
+              onUserToggled={(id, ativo) => updateUser(id, { ativo } as any)}
             />
+
           </section>
 
           <NewUserDialog
