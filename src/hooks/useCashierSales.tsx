@@ -37,6 +37,7 @@ export const initialSalesByType: SalesByType[] = [
 
 export function useCashierSales() {
   const { toast } = useToast();
+  const registrarMov = useRegistrarMovimentacao();
   const [cashierData, setCashierData] = useState<CashierData>(initialCashierData);
   const [recentSales, setRecentSales] = useState<Sale[]>([]);
   const [glpSales, setGlpSales] = useState({
