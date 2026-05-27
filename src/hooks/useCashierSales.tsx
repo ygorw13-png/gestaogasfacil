@@ -1,10 +1,10 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { CashierData } from '@/pages/entrance/types/cashierTypes';
 import { Sale, SalesByType } from '@/pages/entrance/types/entranceTypes';
 import { updateInventorySales } from '@/pages/entrance/data/mockData';
 import { useToast } from '@/hooks/use-toast';
 import { DollarSign, CreditCard, FileText } from 'lucide-react';
+import { useRegistrarMovimentacao, type PortariaProduto } from '@/pages/entrance/hooks/usePortariaStock';
 
 // Estado inicial do caixa - todos os valores zerados
 export const initialCashierData: CashierData = {
