@@ -46,7 +46,7 @@ export function useBaseTable<T extends Record<string, any>>(
     try {
       const { columns = '*', filters, orderBy } = options;
       
-      let query = supabase.from(tableName).select(columns);
+      let query: any = supabase.from(tableName).select(columns);
       
       // Apply filters
       if (filters) {
