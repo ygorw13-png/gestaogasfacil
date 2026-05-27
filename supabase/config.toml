@@ -1,5 +1,1 @@
-
-project_id = "scuvkiidlzivqchpcphz"
-
-[functions.get_user_profile]
-verify_jwt = true
+project_id = "dufsbwslvnucptjwvtvd"
