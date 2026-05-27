@@ -57,12 +57,13 @@ const Inventory = () => {
   }, [loading, currentStock, minStock]);
 
   const handleExportStock = () => {
-    exportToCsv(
+    type StockRow = { product: string; stock: number; min: number };
+    exportToCsv<StockRow>(
       `estoque-${new Date().toISOString().slice(0, 10)}`,
       [
-        { header: "Produto", accessor: (r: { product: string }) => r.product },
-        { header: "Estoque Atual", accessor: (r: { stock: number }) => r.stock },
-        { header: "Estoque Mínimo", accessor: (r: { min: number }) => r.min },
+        { header: "Produto", accessor: (r) => r.product },
+        { header: "Estoque Atual", accessor: (r) => r.stock },
+        { header: "Estoque Mínimo", accessor: (r) => r.min },
       ],
       [
         { product: "GLP P13", stock: currentStock.p13, min: minStock.p13 },
