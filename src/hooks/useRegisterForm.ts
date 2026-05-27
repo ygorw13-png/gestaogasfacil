@@ -90,8 +90,10 @@ export function useRegisterForm() {
       );
 
       if (!success || authError) {
+        setValidationErrors({ password: authError || "Erro ao registrar usuário" });
         throw new Error(authError || "Erro ao registrar usuário");
       }
+
       
       if (user) {
         // Criar o perfil do usuário e organização usando a RPC function
