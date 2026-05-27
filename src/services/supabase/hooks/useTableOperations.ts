@@ -163,8 +163,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
     try {
       const { successMessage = toastMessages.deleteSuccess || `Item deleted successfully` } = options;
       
-      const { error } = await supabase
-        .from(tableName)
+      const { error } = await (supabase
+        .from(tableName) as any)
         .delete()
         .eq(idField, id);
       

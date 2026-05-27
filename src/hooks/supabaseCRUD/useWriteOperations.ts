@@ -80,8 +80,8 @@ export function useWriteOperations<T>(tableName: ValidTableName) {
     const { successMessage = `Item excluído com sucesso`, idField = 'id' } = options || {};
     
     const success = await safeExecute(async () => {
-      const { error } = await supabase
-        .from(tableName)
+      const { error } = await (supabase
+        .from(tableName) as any)
         .delete()
         .eq(idField, id);
       
