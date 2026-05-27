@@ -96,8 +96,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       } = options;
       
       // First update the item
-      const { error: updateError } = await supabase
-        .from(tableName)
+      const { error: updateError } = await (supabase
+        .from(tableName) as any)
         .update(updates as any)
         .eq(idField, id);
       
