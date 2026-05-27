@@ -7,6 +7,17 @@ import { ClosingTypeTabs } from "../ClosingTypeTabs";
 import { CashierData, PartialClosing } from "../../../types/cashierTypes";
 import { SummarySection } from "./SummarySection";
 import { prepareAdaptedSalesData } from "../../../utils/closingCalculations";
+import {
+  RemainingStockSection,
+  emptyRemainingStock,
+  type RemainingStockMap,
+} from "./RemainingStockSection";
+import {
+  useRegistrarMovimentacao,
+  useSaldoPortaria,
+  type PortariaProduto,
+} from "../../../hooks/usePortariaStock";
+import { useToast } from "@/hooks/use-toast";
 
 interface CashierClosingFormProps {
   onSubmit: (type: "partial" | "total", observations?: string) => void;
@@ -19,6 +30,8 @@ interface CashierClosingFormProps {
   };
 }
 
+const PRODUCTS: PortariaProduto[] = ["P13", "P20", "P45", "agua"];
+
 export function CashierClosingForm({
   onSubmit,
   onCancel,
@@ -28,22 +41,66 @@ export function CashierClosingForm({
 }: CashierClosingFormProps) {
   const [closingType, setClosingType] = useState<"partial" | "total">("partial");
   const [observations, setObservations] = useState<string>("");
+  const [remaining, setRemaining] = useState<RemainingStockMap>(emptyRemainingStock());
+  const { data: saldo } = useSaldoPortaria();
+  const registrar = useRegistrarMovimentacao();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Para fechamento total, registrar snapshot por produto (com ajuste se houver divergência)
+    if (closingType === "total" && saldo) {
+      try {
+        for (const p of PRODUCTS) {
+          const sysCheios = saldo[p].cheios;
+          const sysVazios = saldo[p].vazios;
+          const infCheios = remaining[p].cheios;
+          const infVazios = remaining[p].vazios;
+          const diffCheios = infCheios - sysCheios;
+          const diffVazios = infVazios - sysVazios;
+
+          if (diffCheios !== 0 || diffVazios !== 0) {
+            await registrar.mutateAsync({
+              tipo: "ajuste",
+              produto: p,
+              delta_cheios: diffCheios,
+              delta_vazios: diffVazios,
+              observacoes: `Ajuste no fechamento — divergência de contagem`,
+            });
+          }
+
+          await registrar.mutateAsync({
+            tipo: "fechamento",
+            produto: p,
+            delta_cheios: 0,
+            delta_vazios: 0,
+            observacoes: `Fechamento: ${infCheios} cheios / ${infVazios} vazios`,
+          });
+        }
+      } catch (err: any) {
+        toast({
+          title: "Erro ao registrar fechamento",
+          description: err?.message || "Tente novamente",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     onSubmit(closingType, observations);
   };
 
   // Converter totalSalesSinceLastPartial para um formato compatível com CashierData
   const adaptedSalesData = prepareAdaptedSalesData(cashierData, totalSalesSinceLastPartial.amount);
 
-  // Create inventory data for the current closing
-  const inventoryData = [
-    { product: 'P13', initial: 10, additions: 0, sales: 2, final: 8 },
-    { product: 'P20', initial: 5, additions: 0, sales: 1, final: 4 },
-    { product: 'P45', initial: 3, additions: 0, sales: 0, final: 3 },
-    { product: 'Água', initial: 20, additions: 0, sales: 5, final: 15 },
-  ];
+  const inventoryData = PRODUCTS.map((p) => ({
+    product: p === "agua" ? "Água" : p,
+    initial: 0,
+    additions: 0,
+    sales: saldo?.[p].vendas_dia ?? 0,
+    final: remaining[p].cheios,
+  }));
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -60,6 +117,10 @@ export function CashierClosingForm({
         adaptedSalesData={adaptedSalesData}
         inventoryData={inventoryData}
       />
+
+      {closingType === "total" && (
+        <RemainingStockSection value={remaining} onChange={setRemaining} />
+      )}
       
       <ObservationsSection value={observations} onChange={setObservations} />
       
@@ -67,8 +128,12 @@ export function CashierClosingForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit">
-          {closingType === "partial" ? "Confirmar Fechamento Parcial" : "Confirmar Fechamento Total"}
+        <Button type="submit" disabled={registrar.isPending}>
+          {registrar.isPending
+            ? "Registrando..."
+            : closingType === "partial"
+              ? "Confirmar Fechamento Parcial"
+              : "Confirmar Fechamento Total"}
         </Button>
       </DialogFooter>
     </form>
