@@ -71,14 +71,21 @@ export const signUpWithEmail = async (email: string, password: string, userData?
     }
     
     return { success: true, user: data.user };
-  } catch (err) {
+  } catch (err: any) {
     logger.error("Erro ao registrar usuário", { module: 'auth' }, err);
-    return { 
-      success: false, 
-      error: err instanceof Error ? err.message : 'Erro ao registrar usuário' 
-    };
+    let message = err instanceof Error ? err.message : 'Erro ao registrar usuário';
+    const code = err?.code || err?.error_code;
+    if (code === 'weak_password' || /pwned|weak.?password|known to be weak/i.test(message)) {
+      message = 'Esta senha aparece em vazamentos públicos e não pode ser usada. Escolha uma senha diferente e mais forte.';
+    } else if (code === 'user_already_exists' || /already registered|already exists/i.test(message)) {
+      message = 'Este e-mail já está cadastrado. Faça login ou recupere sua senha.';
+    } else if (/invalid.*email/i.test(message)) {
+      message = 'E-mail inválido.';
+    }
+    return { success: false, error: message };
   }
 };
+
 
 // Sign out the user
 export const signOut = async () => {
