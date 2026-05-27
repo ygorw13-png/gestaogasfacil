@@ -1,9 +1,12 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { StatisticsCards } from "./components/statistics/StatisticsCards";
 import { TabContent } from "./components/tabs/TabContent";
 import { EntranceHeader } from "./components/header/EntranceHeader";
 import { useCashier, CashierProvider } from "@/contexts/CashierContext";
+import { PortariaStockPanel } from "./components/stock/PortariaStockPanel";
+import { OpeningBalanceDialog } from "./components/stock/OpeningBalanceDialog";
+import { useMovimentacoesPortaria } from "./hooks/usePortariaStock";
 
 function EntranceSalesContent() {
   const { 
@@ -22,6 +25,18 @@ function EntranceSalesContent() {
     salesByType 
   } = useCashier();
 
+  const { data: movimentacoes, isLoading: loadingMovs } = useMovimentacoesPortaria();
+  const [openingDialogOpen, setOpeningDialogOpen] = useState(false);
+
+  // Sugerir abertura do dia se não houver movimentação de abertura hoje
+  useEffect(() => {
+    if (loadingMovs) return;
+    const hasOpening = movimentacoes?.some((m) => m.tipo === "abertura");
+    if (!hasOpening && movimentacoes && movimentacoes.length === 0) {
+      setOpeningDialogOpen(true);
+    }
+  }, [movimentacoes, loadingMovs]);
+
   return (
     <div className="space-y-6 animate-in pb-20">
       <EntranceHeader
@@ -33,6 +48,8 @@ function EntranceSalesContent() {
         onCashierClosingSubmit={handleCashierClosingSubmit}
         cashierData={cashierData}
       />
+
+      <PortariaStockPanel />
 
       <StatisticsCards 
         totalSales={cashierData.totalSales}
@@ -48,6 +65,8 @@ function EntranceSalesContent() {
           salesByType={salesByType}
         />
       </div>
+
+      <OpeningBalanceDialog open={openingDialogOpen} onOpenChange={setOpeningDialogOpen} />
     </div>
   );
 }
