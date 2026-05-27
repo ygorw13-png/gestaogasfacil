@@ -12,22 +12,18 @@ interface ClientDetails {
   notes: string;
 }
 
-interface ClientDetailsTabProps { client: ClientDetails; }
+interface ClientDetailsTabProps {
+  client: ClientDetails;
+}
 
 export function ClientDetailsTab({ client }: ClientDetailsTabProps) {
   const phoneDigits = (client.phone || "").replace(/\D/g, "");
-
-  const openMaps = () => {
-    if (!client.address) return;
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.address)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
-
-  const openWhatsApp = () => {
-    if (!phoneDigits) return;
-    const phone = phoneDigits.length <= 11 ? `55${phoneDigits}` : phoneDigits;
-    window.open(`https://wa.me/${phone}`, "_blank", "noopener,noreferrer");
-  };
+  const mapsUrl = client.address
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.address)}`
+    : "";
+  const whatsappUrl = phoneDigits
+    ? `https://wa.me/${phoneDigits.length <= 11 ? `55${phoneDigits}` : phoneDigits}`
+    : "";
 
   return (
     <div className="space-y-4">
@@ -41,8 +37,12 @@ export function ClientDetailsTab({ client }: ClientDetailsTabProps) {
           <p className="font-medium">{client.address || "—"}</p>
         </div>
         <div>
-          <Label className="text-muted-foreground">Vasilhames em Comodato</Label>
-          <p className="font-medium">{client.cylinderCount} ({client.cylinderTypes.join(", ") || "—"})</p>
+          <Label className="text-muted-foreground">
+            Vasilhames em Comodato
+          </Label>
+          <p className="font-medium">
+            {client.cylinderCount} ({client.cylinderTypes.join(", ") || "—"})
+          </p>
         </div>
         <div>
           <Label className="text-muted-foreground">Observações</Label>
@@ -52,13 +52,17 @@ export function ClientDetailsTab({ client }: ClientDetailsTabProps) {
 
       <div className="flex flex-wrap gap-2 pt-2 border-t">
         {client.address && (
-          <Button variant="outline" size="sm" onClick={openMaps}>
-            <MapPin className="h-4 w-4 mr-1" /> Abrir no Maps
+          <Button variant="outline" size="sm" asChild>
+            <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
+              <MapPin className="h-4 w-4 mr-1" /> Abrir no Maps
+            </a>
           </Button>
         )}
         {phoneDigits && (
-          <Button variant="outline" size="sm" onClick={openWhatsApp}>
-            <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
+          <Button variant="outline" size="sm" asChild>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+              <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
+            </a>
           </Button>
         )}
       </div>
