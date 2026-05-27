@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/auth";
 import { InventoryApp } from "./components/inventory";
 import { UserRole } from "@/types/userTypes";
 import { StockData, defaultStockData } from "./components/stock/StockData";
+import { InventoryTableSkeleton } from "./components/InventoryTableSkeleton";
 
 const Inventory = () => {
   const [showRequestForm, setShowRequestForm] = useState(false);
@@ -73,9 +74,7 @@ const Inventory = () => {
                 <Card className="p-4">
                   <h2 className="text-xl font-semibold mb-4">Estoque Atual</h2>
                   {loading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                    </div>
+                    <InventoryTableSkeleton rows={4} columns={5} />
                   ) : (
                     <>
                       <InventoryItemTable 

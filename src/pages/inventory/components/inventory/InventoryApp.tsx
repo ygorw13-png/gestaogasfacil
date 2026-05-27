@@ -8,6 +8,7 @@ import { useInventoryData } from '@/hooks/supabase/useInventory';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { InventoryAppProps } from './types';
+import { InventoryTableSkeleton } from '../InventoryTableSkeleton';
 
 export function InventoryApp({ className = "" }: InventoryAppProps) {
   const [activeTab, setActiveTab] = useState<string>("inventory");
@@ -39,9 +40,7 @@ export function InventoryApp({ className = "" }: InventoryAppProps) {
   return (
     <div className={`space-y-6 ${className}`}>
       {loading ? (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
+        <InventoryTableSkeleton rows={6} columns={5} />
       ) : (
         <Tabs 
           defaultValue="inventory" 
