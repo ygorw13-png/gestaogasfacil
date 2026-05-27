@@ -33,11 +33,13 @@ export function useUserManagement(organizationId?: string) {
         
         if (data && Array.isArray(data)) {
           // Convert from DbProfile to our internal user format
-          setUsers(data.map((profile: DbProfile) => ({
+          setUsers(data.map((profile: DbProfile & { ativo?: boolean }) => ({
             id: profile.id,
             name: profile.name,
-            role: profile.role as UserRole
+            role: profile.role as UserRole,
+            ativo: profile.ativo ?? true,
           })));
+
         }
       } catch (error) {
         console.error("Erro ao carregar usuários:", error);
