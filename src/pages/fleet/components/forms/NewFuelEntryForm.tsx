@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { mockFuelEntries, mockVehicles } from "../../data";
+import { useFleet } from "../../context/FleetContext";
 import { VehicleSelect } from "./fuel-entry/VehicleSelect";
 import { FuelDetails } from "./fuel-entry/FuelDetails";
 import { fuelSchema, type FuelFormData } from "./schemas/fuelEntrySchema";
@@ -21,7 +21,8 @@ interface NewFuelEntryFormProps {
 
 export default function NewFuelEntryForm({ onSuccess }: NewFuelEntryFormProps) {
   const [totalCost, setTotalCost] = useState(0);
-  
+  const { vehicles, addFuelEntry } = useFleet();
+
   const form = useForm<FuelFormData>({
     resolver: zodResolver(fuelSchema),
     defaultValues: {
@@ -37,41 +38,20 @@ export default function NewFuelEntryForm({ onSuccess }: NewFuelEntryFormProps) {
   });
 
   const updateTotalCost = (liters: number, pricePerLiter: number) => {
-    const cost = liters * pricePerLiter;
-    setTotalCost(cost);
+    setTotalCost(liters * pricePerLiter);
   };
 
-  const onSubmit = (data: FuelFormData) => {
-    const vehicle = mockVehicles.find(v => v.id === data.vehicleId);
-    
-    const lastEntry = [...mockFuelEntries]
-      .filter(entry => entry.vehicleId === data.vehicleId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-    
-    const previousMileage = lastEntry?.mileage || 0;
-    
-    const newEntry = {
-      id: `fuel-${Date.now()}`,
-      vehicleId: data.vehicleId,
-      vehiclePlate: vehicle?.plate || 'Desconhecido',
-      date: data.date,
+  const onSubmit = async (data: FuelFormData) => {
+    const vehicle = vehicles.find(v => v.id === data.vehicleId);
+    await addFuelEntry({
+      vehiclePlate: vehicle?.plate || "",
+      date: (data.date instanceof Date ? data.date : new Date(data.date)).toISOString().split("T")[0],
       mileage: data.mileage,
-      previousMileage: previousMileage,
       fuelType: data.fuelType,
       liters: data.liters,
-      pricePerLiter: data.pricePerLiter,
       cost: data.liters * data.pricePerLiter,
-      station: data.station || "Não informado",
-      fullTank: data.fullTank,
-    };
-    
-    mockFuelEntries.push(newEntry);
-    
-    const vehicleIndex = mockVehicles.findIndex(v => v.id === data.vehicleId);
-    if (vehicleIndex !== -1) {
-      mockVehicles[vehicleIndex].mileage = data.mileage;
-    }
-    
+      notes: data.station || undefined,
+    });
     onSuccess();
   };
 

@@ -1,7 +1,7 @@
 
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockVehicles } from "../../../data";
+import { useFleet } from "../../../context/FleetContext";
 import { UseFormReturn } from "react-hook-form";
 import { ExpenseFormData } from "../schemas/expenseSchema";
 
@@ -10,6 +10,7 @@ interface VehicleSelectionProps {
 }
 
 export function VehicleSelection({ form }: VehicleSelectionProps) {
+  const { vehicles } = useFleet();
   return (
     <FormField
       control={form.control}
@@ -24,7 +25,7 @@ export function VehicleSelection({ form }: VehicleSelectionProps) {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {mockVehicles.map((vehicle) => (
+              {vehicles.map((vehicle) => (
                 <SelectItem key={vehicle.id} value={vehicle.id}>
                   {vehicle.plate} - {vehicle.model}
                 </SelectItem>
