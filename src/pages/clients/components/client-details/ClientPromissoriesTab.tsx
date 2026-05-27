@@ -4,8 +4,9 @@ import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from "@
 import { FilePlus } from "lucide-react";
 import { useClientPromissories } from "../../hooks/useClientPromissories";
 
-export function ClientPromissoriesTab() {
-  const { promissories, formatDate, formatCurrency, getStatusBadgeColor } = useClientPromissories();
+interface Props { clientId?: string; clientName?: string; }
+export function ClientPromissoriesTab({ clientId, clientName }: Props) {
+  const { promissories, formatDate, formatCurrency, getStatusBadgeColor } = useClientPromissories(clientId, clientName);
 
   return (
     <>

@@ -1,6 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { MapPin, Phone, MessageCircle } from "lucide-react";
+import { MapPin, MessageCircle } from "lucide-react";
 
 interface ClientDetails {
   id: string;
@@ -12,15 +12,22 @@ interface ClientDetails {
   notes: string;
 }
 
-interface ClientDetailsTabProps {
-  client: ClientDetails;
-}
+interface ClientDetailsTabProps { client: ClientDetails; }
 
 export function ClientDetailsTab({ client }: ClientDetailsTabProps) {
   const phoneDigits = (client.phone || "").replace(/\D/g, "");
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.address || "")}`;
-  const waUrl = phoneDigits ? `https://wa.me/55${phoneDigits}` : null;
-  const telUrl = phoneDigits ? `tel:+55${phoneDigits}` : null;
+
+  const openMaps = () => {
+    if (!client.address) return;
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.address)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const openWhatsApp = () => {
+    if (!phoneDigits) return;
+    const phone = phoneDigits.length <= 11 ? `55${phoneDigits}` : phoneDigits;
+    window.open(`https://wa.me/${phone}`, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div className="space-y-4">
@@ -35,7 +42,7 @@ export function ClientDetailsTab({ client }: ClientDetailsTabProps) {
         </div>
         <div>
           <Label className="text-muted-foreground">Vasilhames em Comodato</Label>
-          <p className="font-medium">{client.cylinderCount} ({client.cylinderTypes.join(", ")})</p>
+          <p className="font-medium">{client.cylinderCount} ({client.cylinderTypes.join(", ") || "—"})</p>
         </div>
         <div>
           <Label className="text-muted-foreground">Observações</Label>
@@ -45,24 +52,13 @@ export function ClientDetailsTab({ client }: ClientDetailsTabProps) {
 
       <div className="flex flex-wrap gap-2 pt-2 border-t">
         {client.address && (
-          <Button variant="outline" size="sm" asChild>
-            <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
-              <MapPin className="h-4 w-4 mr-1" /> Abrir no Maps
-            </a>
+          <Button variant="outline" size="sm" onClick={openMaps}>
+            <MapPin className="h-4 w-4 mr-1" /> Abrir no Maps
           </Button>
         )}
-        {waUrl && (
-          <Button variant="outline" size="sm" asChild>
-            <a href={waUrl} target="_blank" rel="noopener noreferrer">
-              <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
-            </a>
-          </Button>
-        )}
-        {telUrl && (
-          <Button variant="outline" size="sm" asChild>
-            <a href={telUrl}>
-              <Phone className="h-4 w-4 mr-1" /> Ligar
-            </a>
+        {phoneDigits && (
+          <Button variant="outline" size="sm" onClick={openWhatsApp}>
+            <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
           </Button>
         )}
       </div>

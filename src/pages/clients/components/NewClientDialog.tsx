@@ -29,10 +29,12 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
 
   const set = (k: keyof typeof initial, v: string) => setForm(s => ({ ...s, [k]: v }));
 
-  const fetchCep = async () => {
-    const cleanCep = form.cep.replace(/\D/g, "");
+  const fetchCep = async (rawCep?: string) => {
+    const cleanCep = (rawCep ?? form.cep).replace(/\D/g, "");
     if (cleanCep.length !== 8) {
-      toast({ title: "CEP inválido", description: "Digite os 8 dígitos", variant: "destructive" });
+      if (rawCep === undefined) {
+        toast({ title: "CEP inválido", description: "Digite os 8 dígitos", variant: "destructive" });
+      }
       return;
     }
     setCepLoading(true);
@@ -50,6 +52,12 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
     } catch (e: any) {
       toast({ title: "Erro ao buscar CEP", description: e.message, variant: "destructive" });
     } finally { setCepLoading(false); }
+  };
+
+  const handleCepChange = (v: string) => {
+    set("cep", v);
+    const clean = v.replace(/\D/g, "");
+    if (clean.length === 8) fetchCep(v);
   };
 
   const handleSave = async () => {
@@ -98,9 +106,9 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
           <div className="space-y-1">
             <Label>CEP</Label>
             <div className="flex gap-2">
-              <Input value={form.cep} onChange={e => set("cep", e.target.value)}
+              <Input value={form.cep} onChange={e => handleCepChange(e.target.value)}
                 placeholder="00000-000" maxLength={9} />
-              <Button type="button" variant="outline" onClick={fetchCep} disabled={cepLoading}>
+              <Button type="button" variant="outline" onClick={() => fetchCep()} disabled={cepLoading}>
                 <Search className="h-4 w-4 mr-1" />
                 {cepLoading ? "..." : "Buscar"}
               </Button>

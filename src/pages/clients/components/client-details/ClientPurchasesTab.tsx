@@ -4,8 +4,9 @@ import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from "@
 import { Clock } from "lucide-react";
 import { useClientPurchases } from "../../hooks/useClientPurchases";
 
-export function ClientPurchasesTab() {
-  const { purchases, formatDate, formatCurrency } = useClientPurchases();
+interface Props { clientId?: string; clientName?: string; }
+export function ClientPurchasesTab({ clientId, clientName }: Props) {
+  const { purchases, formatDate, formatCurrency } = useClientPurchases(clientId, clientName);
 
   return (
     <>

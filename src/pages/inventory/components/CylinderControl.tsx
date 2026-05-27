@@ -46,27 +46,18 @@ export function CylinderControl() {
   // Função para buscar clientes do banco de dados
   const fetchClients = useCallback(async () => {
     try {
-      const response = await fetchData('clients', {
-        columns: 'id,name'
-      });
-      
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      
-      // Transformar os dados de clientes no formato esperado
+      const response = await fetchData('clients', { columns: 'id,name' });
+      if (response.error) throw new Error(response.error.message);
       const clientsData = response.data?.map(client => ({
         id: client.id as string,
         name: client.name as string
       })) || [];
-      
       setClients(clientsData);
     } catch (err: any) {
       console.error("Erro ao buscar clientes:", err);
       setError(prev => prev || "Erro ao carregar lista de clientes");
-      handleError(err, "Erro ao carregar lista de clientes");
     }
-  }, [handleError]);
+  }, []);
 
   // Carregar dados iniciais: empréstimos e clientes
   useEffect(() => {

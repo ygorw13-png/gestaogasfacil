@@ -1,5 +1,5 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ClientPurchase {
   id: string;
@@ -10,27 +10,32 @@ interface ClientPurchase {
   paymentMethod: string;
 }
 
-// Mock data - em uma implementação real, isso viria do backend
-const mockPurchases: ClientPurchase[] = [
-  { id: "1", date: "2025-05-01", product: "P13", quantity: 1, amount: 110, paymentMethod: "Dinheiro" },
-  { id: "2", date: "2025-04-22", product: "P13", quantity: 2, amount: 220, paymentMethod: "Cartão de crédito" },
-  { id: "3", date: "2025-04-10", product: "P20", quantity: 1, amount: 180, paymentMethod: "Dinheiro" },
-];
+export function useClientPurchases(clientId?: string, clientName?: string) {
+  const [purchases, setPurchases] = useState<ClientPurchase[]>([]);
+  const [loading, setLoading] = useState(false);
 
-export function useClientPurchases() {
-  const [purchases] = useState<ClientPurchase[]>(mockPurchases);
+  useEffect(() => {
+    if (!clientId && !clientName) { setPurchases([]); return; }
+    (async () => {
+      setLoading(true);
+      let q = supabase.from("orders").select("id, created_at, product, quantity, price, payment_method, client_name").order("created_at", { ascending: false });
+      if (clientName) q = q.eq("client_name", clientName);
+      const { data, error } = await q;
+      setLoading(false);
+      if (error || !data) { setPurchases([]); return; }
+      setPurchases(data.map((o: any) => ({
+        id: o.id,
+        date: o.created_at,
+        product: o.product || "—",
+        quantity: o.quantity || 0,
+        amount: Number(o.price) || 0,
+        paymentMethod: o.payment_method || "—",
+      })));
+    })();
+  }, [clientId, clientName]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
+  const formatDate = (d: string) => new Date(d).toLocaleDateString("pt-BR");
+  const formatCurrency = (a: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(a);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
-  };
-
-  return {
-    purchases,
-    formatDate,
-    formatCurrency
-  };
+  return { purchases, loading, formatDate, formatCurrency };
 }
