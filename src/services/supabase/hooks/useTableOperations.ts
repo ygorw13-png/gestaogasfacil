@@ -45,8 +45,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
   // Get a single item by ID
   const getById = useCallback(async (id: string): Promise<T | null> => {
     try {
-      const { data, error } = await supabase
-        .from(tableName)
+      const { data, error } = await (supabase
+        .from(tableName) as any)
         .select('*')
         .eq(idField, id)
         .maybeSingle();
@@ -75,8 +75,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
         returnItem = true 
       } = options;
       
-      const { data: result, error: responseError } = await supabase
-        .from(tableName)
+      const { data: result, error: responseError } = await (supabase
+        .from(tableName) as any)
         .insert(item)
         .select(returnItem ? '*' : '');
       
@@ -115,8 +115,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       } = options;
       
       // Update the item
-      const { error: updateError } = await supabase
-        .from(tableName)
+      const { error: updateError } = await (supabase
+        .from(tableName) as any)
         .update(data)
         .eq(idField, id);
       
@@ -129,8 +129,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       }
       
       // Fetch the updated record
-      const { data: result, error: fetchError } = await supabase
-        .from(tableName)
+      const { data: result, error: fetchError } = await (supabase
+        .from(tableName) as any)
         .select('*')
         .eq(idField, id)
         .maybeSingle();
@@ -163,8 +163,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
     try {
       const { successMessage = toastMessages.deleteSuccess || `Item deleted successfully` } = options;
       
-      const { error } = await supabase
-        .from(tableName)
+      const { error } = await (supabase
+        .from(tableName) as any)
         .delete()
         .eq(idField, id);
       

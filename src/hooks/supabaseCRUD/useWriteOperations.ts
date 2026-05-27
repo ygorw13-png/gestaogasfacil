@@ -47,16 +47,16 @@ export function useWriteOperations<T>(tableName: ValidTableName) {
     
     const result = await safeExecute(async () => {
       // First do the update
-      const { error: updateError } = await supabase
-        .from(tableName)
+      const { error: updateError } = await (supabase
+        .from(tableName) as any)
         .update(data as any)
         .eq(idField, id);
       
       if (updateError) throw updateError;
       
       // Then fetch the updated item
-      const { data: updatedData, error: fetchError } = await supabase
-        .from(tableName)
+      const { data: updatedData, error: fetchError } = await (supabase
+        .from(tableName) as any)
         .select('*')
         .eq(idField, id)
         .maybeSingle();
@@ -80,8 +80,8 @@ export function useWriteOperations<T>(tableName: ValidTableName) {
     const { successMessage = `Item excluído com sucesso`, idField = 'id' } = options || {};
     
     const success = await safeExecute(async () => {
-      const { error } = await supabase
-        .from(tableName)
+      const { error } = await (supabase
+        .from(tableName) as any)
         .delete()
         .eq(idField, id);
       
