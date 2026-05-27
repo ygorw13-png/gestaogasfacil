@@ -353,6 +353,60 @@ export type Database = {
         }
         Relationships: []
       }
+      movimentacoes_portaria: {
+        Row: {
+          cliente_id: string | null
+          cliente_nome: string | null
+          criado_em: string
+          data_operacao: string
+          delta_cheios: number
+          delta_emprestados: number
+          delta_vazios: number
+          id: string
+          observacoes: string | null
+          organization_id: string
+          produto: string
+          referencia_id: string | null
+          registrado_por: string
+          registrado_por_nome: string | null
+          tipo: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          criado_em?: string
+          data_operacao?: string
+          delta_cheios?: number
+          delta_emprestados?: number
+          delta_vazios?: number
+          id?: string
+          observacoes?: string | null
+          organization_id: string
+          produto: string
+          referencia_id?: string | null
+          registrado_por: string
+          registrado_por_nome?: string | null
+          tipo: string
+        }
+        Update: {
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          criado_em?: string
+          data_operacao?: string
+          delta_cheios?: number
+          delta_emprestados?: number
+          delta_vazios?: number
+          id?: string
+          observacoes?: string | null
+          organization_id?: string
+          produto?: string
+          referencia_id?: string | null
+          registrado_por?: string
+          registrado_por_nome?: string | null
+          tipo?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           address: Json | null
@@ -537,7 +591,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      saldo_portaria_atual: {
+        Row: {
+          cheios: number | null
+          data_operacao: string | null
+          devolucoes_dia: number | null
+          emprestados: number | null
+          organization_id: string | null
+          produto: string | null
+          vazios: number | null
+          vendas_dia: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       clear_test_data: { Args: never; Returns: undefined }
@@ -548,6 +614,20 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      registrar_movimentacao_portaria: {
+        Args: {
+          _cliente_id?: string
+          _cliente_nome?: string
+          _delta_cheios: number
+          _delta_emprestados: number
+          _delta_vazios: number
+          _observacoes?: string
+          _produto: string
+          _referencia_id?: string
+          _tipo: string
+        }
+        Returns: string
       }
     }
     Enums: {

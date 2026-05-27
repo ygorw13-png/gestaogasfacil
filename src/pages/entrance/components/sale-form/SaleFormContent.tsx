@@ -92,6 +92,7 @@ export function SaleFormContent({ onSubmit, onOpenChange }: SaleFormContentProps
         onQuantityChange={setQuantity}
         onUnitPriceChange={setUnitPrice}
         readOnlyPrice={saleType === "reseller"}
+        paymentMethod={paymentMethod}
       />
       
       <CylinderMovement

@@ -1,10 +1,10 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { CashierData } from '@/pages/entrance/types/cashierTypes';
 import { Sale, SalesByType } from '@/pages/entrance/types/entranceTypes';
 import { updateInventorySales } from '@/pages/entrance/data/mockData';
 import { useToast } from '@/hooks/use-toast';
 import { DollarSign, CreditCard, FileText } from 'lucide-react';
+import { useRegistrarMovimentacao, type PortariaProduto } from '@/pages/entrance/hooks/usePortariaStock';
 
 // Estado inicial do caixa - todos os valores zerados
 export const initialCashierData: CashierData = {
@@ -37,6 +37,7 @@ export const initialSalesByType: SalesByType[] = [
 
 export function useCashierSales() {
   const { toast } = useToast();
+  const registrarMov = useRegistrarMovimentacao();
   const [cashierData, setCashierData] = useState<CashierData>(initialCashierData);
   const [recentSales, setRecentSales] = useState<Sale[]>([]);
   const [glpSales, setGlpSales] = useState({
@@ -111,6 +112,25 @@ export function useCashierSales() {
       updateInventorySales('Água', newSale.quantity);
     }
     
+    // Registrar movimentação no estoque da portaria (Supabase)
+    const codeToProduto: Record<string, PortariaProduto> = {
+      p13: 'P13', p20: 'P20', p45: 'P45', water: 'agua',
+    };
+    const produto = newSale.productCode ? codeToProduto[newSale.productCode] : undefined;
+    if (produto) {
+      const isLoan = newSale.cylinderMovement === 'loan';
+      registrarMov.mutate({
+        tipo: isLoan ? 'venda_comodato' : 'venda',
+        produto,
+        delta_cheios: -newSale.quantity,
+        delta_vazios: isLoan ? 0 : newSale.quantity,
+        delta_emprestados: isLoan ? newSale.quantity : 0,
+        cliente_id: newSale.clientId || null,
+        cliente_nome: newSale.client !== 'Venda Avulsa' ? newSale.client : null,
+        observacoes: `Venda #${newSale.id} - ${newSale.payment}`,
+      });
+    }
+    
     // Update payment type statistics
     setSalesByType(prev => 
       prev.map(item => {
@@ -128,7 +148,7 @@ export function useCashierSales() {
     });
     
     setNewSaleOpen(false);
-  }, [toast]);
+  }, [toast, registrarMov]);
 
   return {
     cashierData,
