@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -29,7 +29,7 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
 
   const set = (k: keyof typeof initial, v: string) => setForm(s => ({ ...s, [k]: v }));
 
-  const fetchCep = async (rawCep?: string) => {
+  const fetchCep = useCallback(async (rawCep?: string) => {
     const cleanCep = (rawCep ?? form.cep).replace(/\D/g, "");
     if (cleanCep.length !== 8) {
       if (rawCep === undefined) {
@@ -39,9 +39,18 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
     }
     setCepLoading(true);
     try {
-      const r = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
-      const data = await r.json();
-      if (data.erro) throw new Error("CEP não encontrado");
+      const { data, error } = await supabase.functions.invoke("lookup-cep", {
+        body: { cep: cleanCep },
+      });
+
+      if (error) {
+        throw new Error(error.message || "Não foi possível consultar o CEP");
+      }
+
+      if (!data || data.error) {
+        throw new Error(data?.error || "CEP não encontrado");
+      }
+
       setForm(s => ({
         ...s,
         street: data.logradouro || s.street,
@@ -52,7 +61,7 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
     } catch (e: any) {
       toast({ title: "Erro ao buscar CEP", description: e.message, variant: "destructive" });
     } finally { setCepLoading(false); }
-  };
+  }, [form.cep, toast]);
 
   const handleCepChange = (v: string) => {
     set("cep", v);
