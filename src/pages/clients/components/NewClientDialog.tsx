@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Search } from "lucide-react";
 
 interface NewClientDialogProps {
   open: boolean;
@@ -16,16 +17,40 @@ interface NewClientDialogProps {
 }
 
 const initial = {
-  name: "", phone: "", street: "", number: "", complement: "",
-  neighborhood: "", reference: "", notes: "",
+  name: "", phone: "", cep: "", street: "", number: "", complement: "",
+  neighborhood: "", city: "", reference: "", notes: "",
 };
 
 export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialogProps) {
   const { toast } = useToast();
   const [form, setForm] = useState(initial);
   const [loading, setLoading] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
 
   const set = (k: keyof typeof initial, v: string) => setForm(s => ({ ...s, [k]: v }));
+
+  const fetchCep = async () => {
+    const cleanCep = form.cep.replace(/\D/g, "");
+    if (cleanCep.length !== 8) {
+      toast({ title: "CEP inválido", description: "Digite os 8 dígitos", variant: "destructive" });
+      return;
+    }
+    setCepLoading(true);
+    try {
+      const r = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await r.json();
+      if (data.erro) throw new Error("CEP não encontrado");
+      setForm(s => ({
+        ...s,
+        street: data.logradouro || s.street,
+        neighborhood: data.bairro || s.neighborhood,
+        city: data.localidade || s.city,
+      }));
+      toast({ title: "Endereço preenchido" });
+    } catch (e: any) {
+      toast({ title: "Erro ao buscar CEP", description: e.message, variant: "destructive" });
+    } finally { setCepLoading(false); }
+  };
 
   const handleSave = async () => {
     if (!form.name.trim()) {
@@ -38,11 +63,9 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
       phone: form.phone || null,
       notes: form.notes || null,
       address: {
-        street: form.street,
-        number: form.number,
-        complement: form.complement,
-        neighborhood: form.neighborhood,
-        reference: form.reference,
+        cep: form.cep, street: form.street, number: form.number,
+        complement: form.complement, neighborhood: form.neighborhood,
+        city: form.city, reference: form.reference,
       },
     });
     setLoading(false);
@@ -61,7 +84,7 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Novo Cliente</DialogTitle>
-          <DialogDescription>Cadastre um novo cliente no sistema.</DialogDescription>
+          <DialogDescription>Cadastre um novo cliente. Digite o CEP para autocompletar.</DialogDescription>
         </DialogHeader>
         <div className="space-y-3 py-2">
           <div className="space-y-1">
@@ -71,6 +94,17 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
           <div className="space-y-1">
             <Label>Telefone</Label>
             <Input value={form.phone} onChange={e => set("phone", e.target.value)} placeholder="(99) 99999-9999" />
+          </div>
+          <div className="space-y-1">
+            <Label>CEP</Label>
+            <div className="flex gap-2">
+              <Input value={form.cep} onChange={e => set("cep", e.target.value)}
+                placeholder="00000-000" maxLength={9} />
+              <Button type="button" variant="outline" onClick={fetchCep} disabled={cepLoading}>
+                <Search className="h-4 w-4 mr-1" />
+                {cepLoading ? "..." : "Buscar"}
+              </Button>
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div className="col-span-2 space-y-1">
@@ -91,6 +125,10 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
               <Label>Bairro</Label>
               <Input value={form.neighborhood} onChange={e => set("neighborhood", e.target.value)} />
             </div>
+          </div>
+          <div className="space-y-1">
+            <Label>Cidade</Label>
+            <Input value={form.city} onChange={e => set("city", e.target.value)} />
           </div>
           <div className="space-y-1">
             <Label>Ponto de referência</Label>
