@@ -25,21 +25,14 @@ export function ResellersList({ resellers, canViewPrices, onViewReseller }: Rese
           <TableRow>
             <TableHead>Nome</TableHead>
             <TableHead>Contato</TableHead>
-            {canViewPrices && (
-              <>
-                <TableHead className="text-right">P13</TableHead>
-                <TableHead className="text-right">P20</TableHead>
-                <TableHead className="text-right">P45</TableHead>
-                <TableHead className="text-right">Água</TableHead>
-              </>
-            )}
+            {canViewPrices && <TableHead className="text-right">P13</TableHead>}
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {resellers.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={canViewPrices ? 7 : 3} className="text-center py-10 text-muted-foreground">
+              <TableCell colSpan={canViewPrices ? 4 : 3} className="text-center py-10 text-muted-foreground">
                 Nenhum agregado cadastrado
               </TableCell>
             </TableRow>
@@ -64,20 +57,10 @@ export function ResellersList({ resellers, canViewPrices, onViewReseller }: Rese
                   )}
                 </TableCell>
                 {canViewPrices && (
-                  <>
-                    <TableCell className="text-right font-medium">R$ {reseller.priceP13.toFixed(2)}</TableCell>
-                    <TableCell className="text-right font-medium">R$ {reseller.priceP20.toFixed(2)}</TableCell>
-                    <TableCell className="text-right font-medium">R$ {reseller.priceP45.toFixed(2)}</TableCell>
-                    <TableCell className="text-right font-medium">R$ {reseller.priceWater.toFixed(2)}</TableCell>
-                  </>
+                  <TableCell className="text-right font-medium">R$ {reseller.priceP13.toFixed(2)}</TableCell>
                 )}
                 <TableCell className="text-right">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="h-8 w-8 p-0" 
-                    onClick={() => onViewReseller(reseller)}
-                  >
+                  <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => onViewReseller(reseller)}>
                     <Eye className="h-4 w-4" />
                   </Button>
                 </TableCell>

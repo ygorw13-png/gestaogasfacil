@@ -73,7 +73,7 @@ export function ResellerDetailsDialog({
             
             {canViewPrices && (
               <div className="bg-muted p-4 rounded-md">
-                <h4 className="text-sm font-medium mb-3">Preços de Revenda</h4>
+                <h4 className="text-sm font-medium mb-3">Preço de Revenda</h4>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -86,24 +86,6 @@ export function ResellerDetailsDialog({
                       <TableCell>P13</TableCell>
                       <TableCell className="text-right font-medium">
                         R$ {reseller.priceP13.toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>P20</TableCell>
-                      <TableCell className="text-right font-medium">
-                        R$ {reseller.priceP20.toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>P45</TableCell>
-                      <TableCell className="text-right font-medium">
-                        R$ {reseller.priceP45.toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Água</TableCell>
-                      <TableCell className="text-right font-medium">
-                        R$ {reseller.priceWater.toFixed(2)}
                       </TableCell>
                     </TableRow>
                   </TableBody>
