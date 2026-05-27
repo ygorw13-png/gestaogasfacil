@@ -1,7 +1,10 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Download } from "lucide-react";
+import { toast } from "sonner";
 import { InventoryHeader } from "./components/stock/InventoryHeader";
 import { useStockData } from "./hooks/useStockData";
 import { useMinStockLevels } from "./hooks/useMinStockLevels";
@@ -16,6 +19,7 @@ import { InventoryApp } from "./components/inventory";
 import { UserRole } from "@/types/userTypes";
 import { StockData, defaultStockData } from "./components/stock/StockData";
 import { InventoryTableSkeleton } from "./components/InventoryTableSkeleton";
+import { exportToCsv } from "@/utils/csvExport";
 
 const Inventory = () => {
   const [showRequestForm, setShowRequestForm] = useState(false);
@@ -35,9 +39,43 @@ const Inventory = () => {
     fetchMinStockLevels();
   }, [fetchCurrentStock, fetchMinStockLevels]);
 
+  // Toast notification when stock drops below minimum
+  const notifiedRef = useRef(false);
+  useEffect(() => {
+    if (loading || notifiedRef.current) return;
+    const low: string[] = [];
+    if (currentStock.p13 < minStock.p13) low.push("GLP P13");
+    if (currentStock.p20 < minStock.p20) low.push("GLP P20");
+    if (currentStock.p45 < minStock.p45) low.push("GLP P45");
+    if (currentStock.water < minStock.water) low.push("Água 20L");
+    if (low.length > 0) {
+      toast.warning("Estoque baixo", {
+        description: `Produtos abaixo do mínimo: ${low.join(", ")}`,
+      });
+      notifiedRef.current = true;
+    }
+  }, [loading, currentStock, minStock]);
+
+  const handleExportStock = () => {
+    exportToCsv(
+      `estoque-${new Date().toISOString().slice(0, 10)}`,
+      [
+        { header: "Produto", accessor: (r: { product: string }) => r.product },
+        { header: "Estoque Atual", accessor: (r: { stock: number }) => r.stock },
+        { header: "Estoque Mínimo", accessor: (r: { min: number }) => r.min },
+      ],
+      [
+        { product: "GLP P13", stock: currentStock.p13, min: minStock.p13 },
+        { product: "GLP P20", stock: currentStock.p20, min: minStock.p20 },
+        { product: "GLP P45", stock: currentStock.p45, min: minStock.p45 },
+        { product: "Água 20L", stock: currentStock.water, min: minStock.water },
+      ]
+    );
+  };
+
   const handleUpdateStock = async (newStock: StockData) => {
     await fetchCurrentStock();
-    // You may want to show a success message here
+    notifiedRef.current = false;
   };
 
   const handleRequestCreated = () => {
@@ -72,17 +110,28 @@ const Inventory = () => {
 
               <TabsContent value="overview" className="mt-4">
                 <Card className="p-4">
-                  <h2 className="text-xl font-semibold mb-4">Estoque Atual</h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold">Estoque Atual</h2>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExportStock}
+                      disabled={loading}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Exportar CSV
+                    </Button>
+                  </div>
                   {loading ? (
                     <InventoryTableSkeleton rows={4} columns={5} />
                   ) : (
                     <>
-                      <InventoryItemTable 
-                        currentStock={currentStock} 
-                        minStock={minStock} 
+                      <InventoryItemTable
+                        currentStock={currentStock}
+                        minStock={minStock}
                       />
                       <div className="mt-6">
-                        <StockUpdateForm 
+                        <StockUpdateForm
                           currentStock={currentStock}
                           onUpdateStock={handleUpdateStock}
                         />
