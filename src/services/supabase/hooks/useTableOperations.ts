@@ -45,8 +45,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
   // Get a single item by ID
   const getById = useCallback(async (id: string): Promise<T | null> => {
     try {
-      const { data, error } = await supabase
-        .from(tableName)
+      const { data, error } = await (supabase
+        .from(tableName) as any)
         .select('*')
         .eq(idField, id)
         .maybeSingle();

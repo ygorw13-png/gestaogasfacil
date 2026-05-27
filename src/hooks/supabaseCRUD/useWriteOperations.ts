@@ -55,8 +55,8 @@ export function useWriteOperations<T>(tableName: ValidTableName) {
       if (updateError) throw updateError;
       
       // Then fetch the updated item
-      const { data: updatedData, error: fetchError } = await supabase
-        .from(tableName)
+      const { data: updatedData, error: fetchError } = await (supabase
+        .from(tableName) as any)
         .select('*')
         .eq(idField, id)
         .maybeSingle();

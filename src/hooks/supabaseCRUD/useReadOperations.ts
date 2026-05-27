@@ -40,8 +40,8 @@ export function useReadOperations<T>(tableName: ValidTableName) {
     const { columns = '*', idField = 'id' } = options || {};
     
     const result = await safeExecute(async () => {
-      const { data, error } = await supabase
-        .from(tableName)
+      const { data, error } = await (supabase
+        .from(tableName) as any)
         .select(columns)
         .eq(idField, id)
         .maybeSingle();
