@@ -73,11 +73,12 @@ Para cada módulo entrego: **lista do que estava mock → o que virou real → o
 ## Ordem de entrega proposta
 
 ```text
-Entrega 1 → Frente 2 itens 1-4 (rápidos, alto valor)
-Entrega 2 → Frente 1 completa (CRM Recompra)
-Entrega 3 → Frente 3 módulos 1-3 (Clientes, Promissórias, Frota)
-Entrega 4 → Frente 2 itens 5-6 (despesas, chat)
-Entrega 5 → Frente 3 módulos 4-7 (restante)
+Entrega 1 ✅ → Frente 2 itens 1-4 (rápidos, alto valor)
+Entrega 2 ✅ → Frente 1 completa (CRM Recompra)
+Entrega 3 ✅ → Frente 3 módulos 1-3 (Clientes, Promissórias, Frota) — real Supabase
+Entrega 4 → Frente 2 itens 5-6 (despesas com gráfico, chat entregador)
+Entrega 5 → Frente 3 módulos 4-7 (Inventário, Pedidos, Dashboard, Configurações)
+   + finance dropdowns (NewFuelExpenseForm, maintenance/VehicleSelection) → FleetContext
 ```
 
 Cada entrega gera 1 migração consolidada + commits de código + relatório curto do que mudou.

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { mockVehicles } from "../../data";
+import { useFleet } from "../../context/FleetContext";
 
 const vehicleSchema = z.object({
   id: z.string(),
@@ -26,6 +26,7 @@ interface EditVehicleFormProps {
 }
 
 export default function EditVehicleForm({ vehicle, onSuccess }: EditVehicleFormProps) {
+  const { updateVehicle } = useFleet();
   const form = useForm<z.infer<typeof vehicleSchema>>({
     resolver: zodResolver(vehicleSchema),
     defaultValues: {
@@ -36,22 +37,19 @@ export default function EditVehicleForm({ vehicle, onSuccess }: EditVehicleFormP
       type: vehicle.type,
       mileage: vehicle.mileage,
       status: vehicle.status,
-      lastMaintenance: vehicle.lastMaintenance,
+      lastMaintenance: vehicle.lastMaintenance ?? null,
     },
   });
 
-  const onSubmit = (data: z.infer<typeof vehicleSchema>) => {
-    // Em um ambiente real, enviaríamos para o backend
-    // Por enquanto, apenas simulamos a atualização
-    const vehicleIndex = mockVehicles.findIndex(v => v.id === data.id);
-    
-    if (vehicleIndex !== -1) {
-      mockVehicles[vehicleIndex] = {
-        ...mockVehicles[vehicleIndex],
-        ...data
-      };
-    }
-    
+  const onSubmit = async (data: z.infer<typeof vehicleSchema>) => {
+    await updateVehicle(data.id, {
+      plate: data.plate,
+      model: data.model,
+      year: data.year,
+      type: data.type,
+      status: data.status,
+      mileage: data.mileage,
+    });
     onSuccess();
   };
 

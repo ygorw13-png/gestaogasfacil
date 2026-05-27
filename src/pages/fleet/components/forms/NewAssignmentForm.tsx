@@ -11,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { mockVehicles, mockAssignments } from "../../data";
+import { useFleet } from "../../context/FleetContext";
 import { ColaboradorSelect } from "@/components/inputs/ColaboradorSelect";
 import { customTables } from "@/integrations/supabase/customClient";
 import { Colaborador } from "@/types/supabaseTypes";
@@ -19,12 +19,8 @@ import { Colaborador } from "@/types/supabaseTypes";
 const assignmentSchema = z.object({
   vehicleId: z.string().min(1, "Veículo é obrigatório"),
   employeeId: z.string().min(1, "Funcionário é obrigatório"),
-  startDate: z.date({
-    required_error: "Data inicial é obrigatória",
-  }),
-  endDate: z.date({
-    required_error: "Data final é obrigatória",
-  }).nullable(),
+  startDate: z.date({ required_error: "Data inicial é obrigatória" }),
+  endDate: z.date({ required_error: "Data final é obrigatória" }).nullable(),
 });
 
 interface NewAssignmentFormProps {
@@ -34,16 +30,12 @@ interface NewAssignmentFormProps {
 }
 
 export default function NewAssignmentForm({ onSuccess, assignment, isEditing = false }: NewAssignmentFormProps) {
-  const [availableVehicles, setAvailableVehicles] = useState(mockVehicles.filter(v => v.status === 'active'));
-  
+  const { vehicles, addAssignment } = useFleet();
+  const [availableVehicles, setAvailableVehicles] = useState(vehicles.filter(v => v.status === "active"));
+
   useEffect(() => {
-    if (isEditing && assignment) {
-      const assignedVehicle = mockVehicles.find(v => v.id === assignment.vehicleId);
-      if (assignedVehicle && !availableVehicles.find(v => v.id === assignedVehicle.id)) {
-        setAvailableVehicles([...availableVehicles, assignedVehicle]);
-      }
-    }
-  }, [isEditing, assignment]);
+    setAvailableVehicles(vehicles.filter(v => v.status === "active"));
+  }, [vehicles]);
 
   const form = useForm<z.infer<typeof assignmentSchema>>({
     resolver: zodResolver(assignmentSchema),
@@ -57,44 +49,16 @@ export default function NewAssignmentForm({ onSuccess, assignment, isEditing = f
 
   const onSubmit = async (data: z.infer<typeof assignmentSchema>) => {
     try {
-      // Obter nome do funcionário (Colaborador) pelo ID
       const { data: colaboradorData } = await customTables.colaboradores.getById(data.employeeId);
       const colaborador = colaboradorData as Colaborador | null;
-      
-      if (isEditing && assignment) {
-        const assignmentIndex = mockAssignments.findIndex(a => a.id === assignment.id);
-        
-        if (assignmentIndex !== -1) {
-          const vehicle = mockVehicles.find(v => v.id === data.vehicleId);
-          
-          mockAssignments[assignmentIndex] = {
-            ...mockAssignments[assignmentIndex],
-            vehicleId: data.vehicleId,
-            vehiclePlate: vehicle?.plate || 'Desconhecido',
-            employeeId: data.employeeId,
-            employeeName: colaborador?.nome || 'Desconhecido',
-            startDate: data.startDate,
-            endDate: data.endDate,
-            isActive: data.endDate ? new Date() < data.endDate : true
-          };
-        }
-      } else {
-        const vehicle = mockVehicles.find(v => v.id === data.vehicleId);
-        
-        const newAssignment = {
-          id: `assignment-${Date.now()}`,
-          vehicleId: data.vehicleId,
-          vehiclePlate: vehicle?.plate || 'Desconhecido',
-          employeeId: data.employeeId,
-          employeeName: colaborador?.nome || 'Desconhecido',
-          startDate: data.startDate,
-          endDate: data.endDate,
-          isActive: data.endDate ? new Date() < data.endDate : true
-        };
-        
-        mockAssignments.push(newAssignment);
-      }
-      
+      const vehicle = vehicles.find(v => v.id === data.vehicleId);
+      await addAssignment({
+        vehiclePlate: vehicle?.plate || "",
+        employeeName: colaborador?.nome || "Desconhecido",
+        startDate: data.startDate.toISOString().split("T")[0],
+        endDate: data.endDate ? data.endDate.toISOString().split("T")[0] : null,
+        isActive: data.endDate ? new Date() < data.endDate : true,
+      });
       onSuccess();
     } catch (error) {
       console.error("Erro ao processar designação:", error);

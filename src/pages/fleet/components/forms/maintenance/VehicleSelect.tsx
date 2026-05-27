@@ -1,7 +1,7 @@
 
 import { UseFormReturn } from "react-hook-form";
 import { VehicleSelect as GenericVehicleSelect } from "@/components/forms/VehicleSelect";
-import { mockVehicles } from "../../../data";
+import { useFleet } from "../../../context/FleetContext";
 import { MaintenanceFormData } from "../schemas/maintenanceFormSchema";
 
 interface VehicleSelectProps {
@@ -9,11 +9,12 @@ interface VehicleSelectProps {
 }
 
 export function VehicleSelect({ form }: VehicleSelectProps) {
+  const { vehicles } = useFleet();
   return (
     <GenericVehicleSelect 
       form={form}
       name="vehicleId"
-      vehicles={mockVehicles}
+      vehicles={vehicles}
       placeholder="Selecione o veículo"
     />
   );

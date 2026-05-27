@@ -8,13 +8,14 @@ import { DateSelection } from "./expense/DateSelection";
 import { ExpenseTypeSelection } from "./expense/ExpenseTypeSelection";
 import { ExpenseDetails } from "./expense/ExpenseDetails";
 import { expenseSchema, type ExpenseFormData } from "./schemas/expenseSchema";
-import { mockVehicles, mockVehicleExpenses } from "../../data";
+import { useFleet } from "../../context/FleetContext";
 
 interface NewExpenseFormProps {
   onSuccess: () => void;
 }
 
 export default function NewExpenseForm({ onSuccess }: NewExpenseFormProps) {
+  const { vehicles, addExpense } = useFleet();
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
@@ -27,23 +28,16 @@ export default function NewExpenseForm({ onSuccess }: NewExpenseFormProps) {
     },
   });
 
-  const onSubmit = (data: ExpenseFormData) => {
-    // Em um ambiente real, enviaríamos para o backend
-    const vehicle = mockVehicles.find(v => v.id === data.vehicleId);
-    
-    const newExpense = {
-      id: `expense-${Date.now()}`,
-      vehicleId: data.vehicleId,
-      vehiclePlate: vehicle?.plate || 'Desconhecido',
-      date: data.date,
+  const onSubmit = async (data: ExpenseFormData) => {
+    const vehicle = vehicles.find(v => v.id === data.vehicleId);
+    await addExpense({
+      vehiclePlate: vehicle?.plate || "",
+      date: (data.date instanceof Date ? data.date : new Date(data.date)).toISOString().split("T")[0],
       description: data.description,
-      type: data.type,
+      type: data.type as any,
       amount: data.amount,
-      receipt: data.receipt,
-    };
-    
-    mockVehicleExpenses.push(newExpense);
-    
+      notes: data.receipt || undefined,
+    });
     onSuccess();
   };
 

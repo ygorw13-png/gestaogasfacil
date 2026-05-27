@@ -9,23 +9,19 @@ import NewVehicleForm from "./forms/NewVehicleForm";
 import EditVehicleForm from "./forms/EditVehicleForm";
 import { useToast } from "@/hooks/use-toast";
 import VehicleDetailsDialog from "./dialogs/VehicleDetailsDialog";
-import { mockVehicles } from "../data";
+import { useFleet } from "../context/FleetContext";
 
 export default function VehiclesList() {
   const [open, setOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const [vehicles, setVehicles] = useState(mockVehicles);
+  const { vehicles, deleteVehicle } = useFleet();
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const { toast } = useToast();
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm("Tem certeza que deseja excluir este veículo?")) {
-      setVehicles(vehicles.filter(vehicle => vehicle.id !== id));
-      toast({
-        title: "Veículo removido",
-        description: "O veículo foi removido com sucesso.",
-      });
+      await deleteVehicle(id);
     }
   };
 

@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { mockMaintenances, mockVehicles } from "../../data";
+import { useFleet } from "../../context/FleetContext";
 import { maintenanceSchema, maintenanceTypes, MaintenanceFormData } from "./schemas/maintenanceFormSchema";
 import { VehicleSelect } from "./maintenance/VehicleSelect";
 import { MaintenanceTypeSelect } from "./maintenance/MaintenanceTypeSelect";
@@ -17,6 +17,7 @@ interface NewMaintenanceFormProps {
 
 export default function NewMaintenanceForm({ onSuccess }: NewMaintenanceFormProps) {
   const { toast } = useToast();
+  const { vehicles, addMaintenance } = useFleet();
   const form = useForm<MaintenanceFormData>({
     resolver: zodResolver(maintenanceSchema),
     defaultValues: {
@@ -29,39 +30,25 @@ export default function NewMaintenanceForm({ onSuccess }: NewMaintenanceFormProp
     },
   });
 
-  const onSubmit = (data: MaintenanceFormData) => {
+  const onSubmit = async (data: MaintenanceFormData) => {
     try {
-      const vehicle = mockVehicles.find(v => v.id === data.vehicleId);
+      const vehicle = vehicles.find(v => v.id === data.vehicleId);
       const typeLabel = maintenanceTypes.find(t => t.value === data.type)?.label || data.type;
-      
-      const newMaintenance = {
-        id: `maintenance-${Date.now()}`,
-        vehicleId: data.vehicleId,
-        vehiclePlate: vehicle?.plate || 'Desconhecido',
+      await addMaintenance({
+        vehiclePlate: vehicle?.plate || "",
         type: typeLabel,
-        description: data.description || typeLabel,
-        scheduledDate: data.scheduledDate,
+        scheduledDate: (data.scheduledDate instanceof Date ? data.scheduledDate : new Date(data.scheduledDate)).toISOString().split("T")[0],
         completionDate: null,
-        estimatedCost: data.estimatedCost,
-        actualCost: null,
+        priority: data.priority as any,
         status: "scheduled",
-        priority: data.priority,
+        estimatedCost: data.estimatedCost,
         mileage: vehicle?.mileage || 0,
-      };
-      
-      mockMaintenances.push(newMaintenance);
-      toast({
-        title: "Manutenção agendada",
-        description: "A manutenção foi agendada com sucesso."
+        notes: data.description,
       });
       onSuccess();
     } catch (error) {
       console.error("Erro ao agendar manutenção:", error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao agendar a manutenção.",
-        variant: "destructive"
-      });
+      toast({ title: "Erro", description: "Ocorreu um erro ao agendar a manutenção.", variant: "destructive" });
     }
   };
 

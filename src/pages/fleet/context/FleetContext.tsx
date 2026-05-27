@@ -1,213 +1,234 @@
-
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { mockMaintenances } from '../data';
-import { mockVehicleExpenses } from '../data';
-import { mockFuelEntries } from '../data/mockFuelEntries';
-import { mockVehicles } from '../data/mockVehicles';
-import { mockAssignments } from '../data/mockAssignments';
-import { 
-  Vehicle, 
-  MaintenanceItem, 
-  VehicleExpense, 
-  FuelEntry,
-  VehicleAssignment
-} from '../types';
-import { useToast } from '@/hooks/use-toast';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { Vehicle, MaintenanceItem, VehicleExpense, FuelEntry, VehicleAssignment } from "../types";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FleetContextType {
-  // Vehicles
   vehicles: Vehicle[];
+  loading: boolean;
+  refreshVehicles: () => Promise<void>;
+  addVehicle: (v: Omit<Vehicle, "id">) => Promise<void>;
+  updateVehicle: (id: string, v: Partial<Vehicle>) => Promise<void>;
+  deleteVehicle: (id: string) => Promise<void>;
 
-  // Maintenance
   maintenances: MaintenanceItem[];
-  addMaintenance: (maintenance: Omit<MaintenanceItem, 'id'>) => void;
-  updateMaintenanceStatus: (id: string, status: MaintenanceItem['status']) => void;
-  
-  // Expenses
+  addMaintenance: (m: Omit<MaintenanceItem, "id">) => Promise<void>;
+  updateMaintenanceStatus: (id: string, status: MaintenanceItem["status"]) => Promise<void>;
+
   expenses: VehicleExpense[];
-  addExpense: (expense: Omit<VehicleExpense, 'id'>) => void;
-  
-  // Fuel
+  addExpense: (e: Omit<VehicleExpense, "id">) => Promise<void>;
+
   fuelEntries: FuelEntry[];
-  addFuelEntry: (entry: Omit<FuelEntry, 'id'>) => void;
-  
-  // Assignments
+  addFuelEntry: (e: Omit<FuelEntry, "id">) => Promise<void>;
+
   assignments: VehicleAssignment[];
-  addAssignment: (assignment: Omit<VehicleAssignment, 'id'>) => void;
-  endAssignment: (id: string) => void;
+  addAssignment: (a: Omit<VehicleAssignment, "id">) => Promise<void>;
+  endAssignment: (id: string) => Promise<void>;
 }
 
 const FleetContext = createContext<FleetContextType | undefined>(undefined);
 
+const mapVehicle = (r: any): Vehicle => ({
+  id: r.id,
+  plate: r.plate,
+  model: r.model || "",
+  year: r.year || new Date().getFullYear(),
+  type: (r.type as Vehicle["type"]) || "car",
+  status: (r.status as Vehicle["status"]) || "active",
+  mileage: r.current_km || 0,
+  notes: r.notes || undefined,
+});
+
 export const FleetProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Convert Date objects to strings when initializing state from mock data
-  const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles as Vehicle[]);
-  
-  // Convert Date objects to ISO strings for maintenances
-  const [maintenances, setMaintenances] = useState<MaintenanceItem[]>(
-    mockMaintenances.map(item => ({
-      ...item,
-      scheduledDate: item.scheduledDate instanceof Date ? item.scheduledDate.toISOString() : item.scheduledDate,
-      completionDate: item.completionDate instanceof Date ? item.completionDate.toISOString() : item.completionDate
-    })) as MaintenanceItem[]
-  );
-  
-  // Convert Date objects to ISO strings for expenses
-  const [expenses, setExpenses] = useState<VehicleExpense[]>(
-    mockVehicleExpenses.map(expense => ({
-      ...expense,
-      date: expense.date instanceof Date ? expense.date.toISOString() : expense.date
-    })) as VehicleExpense[]
-  );
-  
-  // Convert Date objects to ISO strings for fuel entries
-  const [fuelEntries, setFuelEntries] = useState<FuelEntry[]>(
-    mockFuelEntries.map(entry => ({
-      ...entry,
-      date: entry.date instanceof Date ? entry.date.toISOString() : entry.date
-    })) as FuelEntry[]
-  );
-  
-  // Convert Date objects to ISO strings for assignments
-  const [assignments, setAssignments] = useState<VehicleAssignment[]>(
-    mockAssignments.map(assignment => ({
-      ...assignment,
-      startDate: assignment.startDate instanceof Date ? assignment.startDate.toISOString() : assignment.startDate,
-      endDate: assignment.endDate instanceof Date ? assignment.endDate.toISOString() : assignment.endDate
-    })) as VehicleAssignment[]
-  );
-  
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [maintenances, setMaintenances] = useState<MaintenanceItem[]>([]);
+  const [expenses, setExpenses] = useState<VehicleExpense[]>([]);
+  const [fuelEntries, setFuelEntries] = useState<FuelEntry[]>([]);
+  const [assignments, setAssignments] = useState<VehicleAssignment[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // In a real app, we would fetch data from API here
-  useEffect(() => {
-    // Fetch data from API
-    console.log("Fleet context initialized");
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    const [v, m, e, f, a] = await Promise.all([
+      supabase.from("vehicles").select("*").order("created_at", { ascending: false }),
+      supabase.from("vehicle_maintenances").select("*").order("date", { ascending: false }),
+      supabase.from("vehicle_expenses").select("*").order("date", { ascending: false }),
+      supabase.from("vehicle_fuels").select("*").order("date", { ascending: false }),
+      supabase.from("vehicle_assignments").select("*").order("start_date", { ascending: false }),
+    ]);
+    const vMap = new Map<string, string>();
+    (v.data || []).forEach((r: any) => vMap.set(r.id, r.plate));
+    setVehicles((v.data || []).map(mapVehicle));
+    setMaintenances(
+      (m.data || []).map((r: any) => ({
+        id: r.id,
+        vehiclePlate: vMap.get(r.vehicle_id) || "",
+        type: r.type,
+        scheduledDate: r.date,
+        completionDate: r.status === "completed" ? r.date : null,
+        priority: "medium",
+        status: r.status as MaintenanceItem["status"],
+        estimatedCost: Number(r.cost) || 0,
+        actualCost: Number(r.cost) || 0,
+        mileage: r.km || undefined,
+        notes: r.description || undefined,
+      }))
+    );
+    setExpenses(
+      (e.data || []).map((r: any) => ({
+        id: r.id,
+        vehiclePlate: vMap.get(r.vehicle_id) || "",
+        date: r.date,
+        description: r.description || "",
+        type: (r.type as VehicleExpense["type"]) || "other",
+        amount: Number(r.amount) || 0,
+        notes: r.notes || undefined,
+      }))
+    );
+    setFuelEntries(
+      (f.data || []).map((r: any) => ({
+        id: r.id,
+        vehiclePlate: vMap.get(r.vehicle_id) || "",
+        date: r.date,
+        mileage: r.km || 0,
+        fuelType: r.fuel_type || "gasolina",
+        liters: Number(r.liters) || 0,
+        cost: Number(r.total) || 0,
+        notes: r.notes || undefined,
+      }))
+    );
+    setAssignments(
+      (a.data || []).map((r: any) => ({
+        id: r.id,
+        vehiclePlate: vMap.get(r.vehicle_id) || "",
+        employeeName: r.driver_name,
+        startDate: r.start_date,
+        endDate: r.end_date || null,
+        isActive: r.status === "ativo" && !r.end_date,
+        notes: r.notes || undefined,
+      }))
+    );
+    setLoading(false);
   }, []);
 
-  // Maintenance methods - using useCallback to prevent unnecessary re-renders
-  const addMaintenance = useCallback((maintenance: Omit<MaintenanceItem, 'id'>) => {
-    const newMaintenance = { 
-      ...maintenance, 
-      id: `maint-${Date.now()}`
-    } as MaintenanceItem;
-    
-    setMaintenances(prev => [newMaintenance, ...prev]);
-    
-    toast({
-      title: "Manutenção agendada",
-      description: `Manutenção para ${newMaintenance.vehiclePlate} agendada com sucesso.`
-    });
-  }, [toast]);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const updateMaintenanceStatus = useCallback((id: string, status: MaintenanceItem['status']) => {
-    setMaintenances(prev => 
-      prev.map(item => 
-        item.id === id 
-          ? { 
-              ...item, 
-              status, 
-              completionDate: status === 'completed' ? new Date().toISOString() : item.completionDate 
-            } as MaintenanceItem
-          : item
-      )
-    );
-    
-    toast({
-      title: "Status atualizado",
-      description: `Status da manutenção atualizado para ${status}.`
-    });
-  }, [toast]);
+  const findVehicleId = (plate: string) => vehicles.find((v) => v.plate === plate)?.id;
 
-  // Expense methods
-  const addExpense = useCallback((expense: Omit<VehicleExpense, 'id'>) => {
-    const newExpense = {
-      ...expense,
-      id: `exp-${Date.now()}`
-    } as VehicleExpense;
-    
-    setExpenses(prev => [newExpense, ...prev]);
-    
-    toast({
-      title: "Despesa registrada",
-      description: `Despesa de R$${newExpense.amount.toFixed(2)} registrada com sucesso.`
+  const addVehicle = useCallback(async (v: Omit<Vehicle, "id">) => {
+    const { error } = await supabase.from("vehicles").insert({
+      plate: v.plate, model: v.model, year: v.year, type: v.type,
+      status: v.status, current_km: v.mileage, notes: v.notes,
     });
-  }, [toast]);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Veículo adicionado" });
+    fetchAll();
+  }, [toast, fetchAll]);
 
-  // Fuel entry methods
-  const addFuelEntry = useCallback((entry: Omit<FuelEntry, 'id'>) => {
-    const newEntry = {
-      ...entry,
-      id: `fuel-${Date.now()}`
-    } as FuelEntry;
-    
-    setFuelEntries(prev => [newEntry, ...prev]);
-    
-    toast({
-      title: "Abastecimento registrado",
-      description: `Abastecimento de ${newEntry.liters}L registrado com sucesso.`
+  const updateVehicle = useCallback(async (id: string, v: Partial<Vehicle>) => {
+    const payload: any = {};
+    if (v.plate !== undefined) payload.plate = v.plate;
+    if (v.model !== undefined) payload.model = v.model;
+    if (v.year !== undefined) payload.year = v.year;
+    if (v.type !== undefined) payload.type = v.type;
+    if (v.status !== undefined) payload.status = v.status;
+    if (v.mileage !== undefined) payload.current_km = v.mileage;
+    if (v.notes !== undefined) payload.notes = v.notes;
+    const { error } = await supabase.from("vehicles").update(payload).eq("id", id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Veículo atualizado" });
+    fetchAll();
+  }, [toast, fetchAll]);
+
+  const deleteVehicle = useCallback(async (id: string) => {
+    const { error } = await supabase.from("vehicles").delete().eq("id", id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Veículo removido" });
+    fetchAll();
+  }, [toast, fetchAll]);
+
+  const addMaintenance = useCallback(async (m: Omit<MaintenanceItem, "id">) => {
+    const vid = findVehicleId(m.vehiclePlate);
+    if (!vid) { toast({ title: "Veículo não encontrado", variant: "destructive" }); return; }
+    const { error } = await supabase.from("vehicle_maintenances").insert({
+      vehicle_id: vid, type: m.type, description: m.notes, date: m.scheduledDate,
+      cost: m.estimatedCost, km: m.mileage, status: m.status,
     });
-  }, [toast]);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Manutenção agendada" });
+    fetchAll();
+  }, [toast, fetchAll, vehicles]);
 
-  // Assignment methods
-  const addAssignment = useCallback((assignment: Omit<VehicleAssignment, 'id'>) => {
-    const newAssignment = {
-      ...assignment,
-      id: `assign-${Date.now()}`
-    } as VehicleAssignment;
-    
-    setAssignments(prev => [newAssignment, ...prev]);
-    
-    toast({
-      title: "Atribuição registrada",
-      description: `Veículo ${newAssignment.vehiclePlate} atribuído a ${newAssignment.employeeName}.`
+  const updateMaintenanceStatus = useCallback(async (id: string, status: MaintenanceItem["status"]) => {
+    const { error } = await supabase.from("vehicle_maintenances").update({ status }).eq("id", id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Status atualizado" });
+    fetchAll();
+  }, [toast, fetchAll]);
+
+  const addExpense = useCallback(async (e: Omit<VehicleExpense, "id">) => {
+    const vid = findVehicleId(e.vehiclePlate);
+    if (!vid) { toast({ title: "Veículo não encontrado", variant: "destructive" }); return; }
+    const { error } = await supabase.from("vehicle_expenses").insert({
+      vehicle_id: vid, type: e.type, description: e.description,
+      date: e.date, amount: e.amount, notes: e.notes,
     });
-  }, [toast]);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Despesa registrada" });
+    fetchAll();
+  }, [toast, fetchAll, vehicles]);
 
-  const endAssignment = useCallback((id: string) => {
-    setAssignments(prev => 
-      prev.map(item => 
-        item.id === id 
-          ? { 
-              ...item, 
-              endDate: new Date().toISOString(), 
-              isActive: false 
-            } as VehicleAssignment
-          : item
-      )
-    );
-    
-    toast({
-      title: "Atribuição encerrada",
-      description: "Atribuição de veículo encerrada com sucesso."
+  const addFuelEntry = useCallback(async (e: Omit<FuelEntry, "id">) => {
+    const vid = findVehicleId(e.vehiclePlate);
+    if (!vid) { toast({ title: "Veículo não encontrado", variant: "destructive" }); return; }
+    const { error } = await supabase.from("vehicle_fuels").insert({
+      vehicle_id: vid, date: e.date, liters: e.liters, total: e.cost,
+      km: e.mileage, fuel_type: e.fuelType, notes: e.notes,
     });
-  }, [toast]);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Abastecimento registrado" });
+    fetchAll();
+  }, [toast, fetchAll, vehicles]);
 
-  const value = {
-    vehicles,
-    maintenances,
-    expenses,
-    fuelEntries,
-    assignments,
-    addMaintenance,
-    updateMaintenanceStatus,
-    addExpense,
-    addFuelEntry,
-    addAssignment,
-    endAssignment
-  };
+  const addAssignment = useCallback(async (a: Omit<VehicleAssignment, "id">) => {
+    const vid = findVehicleId(a.vehiclePlate);
+    if (!vid) { toast({ title: "Veículo não encontrado", variant: "destructive" }); return; }
+    const { error } = await supabase.from("vehicle_assignments").insert({
+      vehicle_id: vid, driver_name: a.employeeName,
+      start_date: a.startDate, end_date: a.endDate || null,
+      status: a.isActive ? "ativo" : "encerrado", notes: a.notes,
+    });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Atribuição registrada" });
+    fetchAll();
+  }, [toast, fetchAll, vehicles]);
+
+  const endAssignment = useCallback(async (id: string) => {
+    const { error } = await supabase.from("vehicle_assignments")
+      .update({ end_date: new Date().toISOString().split("T")[0], status: "encerrado" })
+      .eq("id", id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Atribuição encerrada" });
+    fetchAll();
+  }, [toast, fetchAll]);
 
   return (
-    <FleetContext.Provider value={value}>
+    <FleetContext.Provider value={{
+      vehicles, loading, refreshVehicles: fetchAll,
+      addVehicle, updateVehicle, deleteVehicle,
+      maintenances, addMaintenance, updateMaintenanceStatus,
+      expenses, addExpense,
+      fuelEntries, addFuelEntry,
+      assignments, addAssignment, endAssignment,
+    }}>
       {children}
     </FleetContext.Provider>
   );
 };
 
 export const useFleet = (): FleetContextType => {
-  const context = useContext(FleetContext);
-  if (context === undefined) {
-    throw new Error('useFleet must be used within a FleetProvider');
-  }
-  return context;
+  const ctx = useContext(FleetContext);
+  if (!ctx) throw new Error("useFleet must be used within a FleetProvider");
+  return ctx;
 };

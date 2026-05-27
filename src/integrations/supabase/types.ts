@@ -708,6 +708,60 @@ export type Database = {
           },
         ]
       }
+      promissory_notes: {
+        Row: {
+          assigned_to: string | null
+          client_id: string | null
+          client_name: string
+          created_at: string
+          created_by: string | null
+          due_date: string
+          id: string
+          notes: string | null
+          organization_id: string
+          paid_amount: number | null
+          paid_at: string | null
+          payment_method: string | null
+          status: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          assigned_to?: string | null
+          client_id?: string | null
+          client_name: string
+          created_at?: string
+          created_by?: string | null
+          due_date: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          paid_amount?: number | null
+          paid_at?: string | null
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          assigned_to?: string | null
+          client_id?: string | null
+          client_name?: string
+          created_at?: string
+          created_by?: string | null
+          due_date?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          paid_amount?: number | null
+          paid_at?: string | null
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string
@@ -882,6 +936,213 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vehicle_assignments: {
+        Row: {
+          created_at: string
+          driver_id: string | null
+          driver_name: string
+          end_date: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          start_date: string
+          status: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id?: string | null
+          driver_name: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          start_date?: string
+          status?: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string | null
+          driver_name?: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          start_date?: string
+          status?: string
+          vehicle_id?: string
+        }
+        Relationships: []
+      }
+      vehicle_expenses: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          type: string
+          vehicle_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          type: string
+          vehicle_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          type?: string
+          vehicle_id?: string
+        }
+        Relationships: []
+      }
+      vehicle_fuels: {
+        Row: {
+          created_at: string
+          date: string
+          fuel_type: string | null
+          id: string
+          km: number | null
+          liters: number
+          notes: string | null
+          organization_id: string
+          price_per_liter: number | null
+          station: string | null
+          total: number
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          fuel_type?: string | null
+          id?: string
+          km?: number | null
+          liters?: number
+          notes?: string | null
+          organization_id?: string
+          price_per_liter?: number | null
+          station?: string | null
+          total?: number
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          fuel_type?: string | null
+          id?: string
+          km?: number | null
+          liters?: number
+          notes?: string | null
+          organization_id?: string
+          price_per_liter?: number | null
+          station?: string | null
+          total?: number
+          vehicle_id?: string
+        }
+        Relationships: []
+      }
+      vehicle_maintenances: {
+        Row: {
+          cost: number
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+          km: number | null
+          organization_id: string
+          status: string
+          type: string
+          vehicle_id: string
+          workshop: string | null
+        }
+        Insert: {
+          cost?: number
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          km?: number | null
+          organization_id?: string
+          status?: string
+          type: string
+          vehicle_id: string
+          workshop?: string | null
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          km?: number | null
+          organization_id?: string
+          status?: string
+          type?: string
+          vehicle_id?: string
+          workshop?: string | null
+        }
+        Relationships: []
+      }
+      vehicles: {
+        Row: {
+          brand: string | null
+          created_at: string
+          current_km: number | null
+          id: string
+          model: string | null
+          notes: string | null
+          organization_id: string
+          plate: string
+          status: string
+          type: string | null
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          current_km?: number | null
+          id?: string
+          model?: string | null
+          notes?: string | null
+          organization_id?: string
+          plate: string
+          status?: string
+          type?: string | null
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          current_km?: number | null
+          id?: string
+          model?: string | null
+          notes?: string | null
+          organization_id?: string
+          plate?: string
+          status?: string
+          type?: string | null
+          updated_at?: string
+          year?: number | null
         }
         Relationships: []
       }
