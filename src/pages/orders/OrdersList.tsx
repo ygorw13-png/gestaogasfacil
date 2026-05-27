@@ -48,10 +48,14 @@ function OrdersListComponent({
       `pedidos-${new Date().toISOString().slice(0, 10)}`,
       [
         { header: "ID", accessor: (o: Order) => o.id },
-        { header: "Cliente", accessor: (o: Order) => o.customerName ?? "" },
-        { header: "Endereço", accessor: (o: Order) => o.address ?? "" },
-        { header: "Status", accessor: (o: Order) => o.status ?? "" },
-        { header: "Criado em", accessor: (o: Order) => o.createdAt ?? "" },
+        { header: "Cliente", accessor: (o: Order) => o.clientName },
+        { header: "Telefone", accessor: (o: Order) => o.clientPhone },
+        { header: "Endereço", accessor: (o: Order) => `${o.address.street}, ${o.address.number}` },
+        { header: "Produto", accessor: (o: Order) => o.product },
+        { header: "Quantidade", accessor: (o: Order) => o.quantity },
+        { header: "Preço", accessor: (o: Order) => o.price },
+        { header: "Status", accessor: (o: Order) => o.status },
+        { header: "Criado em", accessor: (o: Order) => o.createdAt },
       ],
       orders
     );
