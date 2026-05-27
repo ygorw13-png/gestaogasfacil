@@ -47,8 +47,8 @@ export function useWriteOperations<T>(tableName: ValidTableName) {
     
     const result = await safeExecute(async () => {
       // First do the update
-      const { error: updateError } = await supabase
-        .from(tableName)
+      const { error: updateError } = await (supabase
+        .from(tableName) as any)
         .update(data as any)
         .eq(idField, id);
       

@@ -129,8 +129,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       }
       
       // Fetch the updated record
-      const { data: result, error: fetchError } = await supabase
-        .from(tableName)
+      const { data: result, error: fetchError } = await (supabase
+        .from(tableName) as any)
         .select('*')
         .eq(idField, id)
         .maybeSingle();
