@@ -190,6 +190,10 @@ function App() {
                 <Route path="/entrance/acerto-entregadores" element={
                   <Suspense fallback={<LoadingComponent />}><AcertoEntregadores /></Suspense>
                 } />
+                <Route path="/recompra" element={
+                  <Suspense fallback={<LoadingComponent />}><Recompra /></Suspense>
+                } />
+
               </Route>
               
               {/* Wildcard route for pages not found */}
