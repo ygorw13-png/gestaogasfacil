@@ -1,13 +1,18 @@
 
-import React, { useState, useCallback, memo } from "react";
+import React, { useState, useCallback, useMemo, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Download } from "lucide-react";
 import { Order } from "./types";
 import { CompleteOrderDialog } from "./components/CompleteOrderDialog";
 import { AssignOrderDialog } from "./components/AssignOrderDialog";
 import { OrderTableRow } from "./components/OrderTableRow";
+import { TablePagination, paginate } from "@/components/ui/TablePagination";
+import { exportToCsv } from "@/utils/csvExport";
+
+const PAGE_SIZE = 10;
 
 interface OrdersListProps {
   orders: Order[];
@@ -31,6 +36,26 @@ function OrdersListComponent({
   const [isCompleteDialogOpen, setIsCompleteDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [selectedDeliveryPerson, setSelectedDeliveryPerson] = useState("");
+  const [page, setPage] = useState(1);
+
+  const paginatedOrders = useMemo(
+    () => paginate(orders, page, PAGE_SIZE),
+    [orders, page]
+  );
+
+  const handleExport = useCallback(() => {
+    exportToCsv(
+      `pedidos-${new Date().toISOString().slice(0, 10)}`,
+      [
+        { header: "ID", accessor: (o: Order) => o.id },
+        { header: "Cliente", accessor: (o: Order) => o.customerName ?? "" },
+        { header: "Endereço", accessor: (o: Order) => o.address ?? "" },
+        { header: "Status", accessor: (o: Order) => o.status ?? "" },
+        { header: "Criado em", accessor: (o: Order) => o.createdAt ?? "" },
+      ],
+      orders
+    );
+  }, [orders]);
 
   const handleAssignClick = useCallback((orderId: string) => {
     setSelectedOrder(orderId);
@@ -120,7 +145,28 @@ function OrdersListComponent({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {orders.map((order) => (
+  return (
+    <div>
+      <div className="flex justify-end mb-2">
+        <Button variant="outline" size="sm" onClick={handleExport} disabled={orders.length === 0}>
+          <Download className="h-4 w-4 mr-2" />
+          Exportar CSV
+        </Button>
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Horário</TableHead>
+            <TableHead>Cliente</TableHead>
+            <TableHead>Endereço</TableHead>
+            <TableHead>Produto</TableHead>
+            <TableHead>Quantidade</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedOrders.map((order) => (
             <OrderTableRow
               key={order.id}
               order={order}
@@ -133,7 +179,14 @@ function OrdersListComponent({
           ))}
         </TableBody>
       </Table>
-      
+
+      <TablePagination
+        page={page}
+        pageSize={PAGE_SIZE}
+        totalItems={orders.length}
+        onPageChange={setPage}
+      />
+
       <AssignOrderDialog
         isOpen={isAssignDialogOpen}
         onOpenChange={setIsAssignDialogOpen}
@@ -141,7 +194,7 @@ function OrdersListComponent({
         onDeliveryPersonChange={handleDeliveryPersonChange}
         onSubmit={handleAssignSubmit}
       />
-      
+
       <CompleteOrderDialog
         isOpen={isCompleteDialogOpen}
         onOpenChange={setIsCompleteDialogOpen}
