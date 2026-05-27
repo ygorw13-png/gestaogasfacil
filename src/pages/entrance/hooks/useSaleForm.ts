@@ -135,7 +135,11 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
               state.paymentMethod === 'pix' ? 'PIX' :
               state.paymentMethod === 'promissory' ? 'Promissória' :
               state.paymentMethod === 'gasVoucher' ? 'Vale Gás' : 'Convênio',
-      amount: state.quantity * state.unitPrice
+      amount: state.quantity * state.unitPrice,
+      productCode: state.product as 'p13' | 'p20' | 'p45' | 'water',
+      clientId: state.selectedClient?.id ? String(state.selectedClient.id) : null,
+      cylinderMovement: state.loanGas ? 'loan' : state.cylinderMovement,
+      movementQuantity: state.loanGas ? state.quantity : state.movementQuantity,
     };
 
     // Reset the form
