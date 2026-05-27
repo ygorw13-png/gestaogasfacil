@@ -630,6 +630,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ativo: boolean
           created_at: string
           id: string
           name: string
@@ -638,6 +639,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ativo?: boolean
           created_at?: string
           id: string
           name: string
@@ -646,6 +648,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ativo?: boolean
           created_at?: string
           id?: string
           name?: string
@@ -734,6 +737,60 @@ export type Database = {
           origem?: string
           processado_por?: string | null
           solicitante_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      rotas: {
+        Row: {
+          atualizado_em: string
+          clientes_count: number
+          criado_em: string
+          criado_por: string
+          data: string
+          destino: string
+          hora_retorno: string | null
+          hora_saida: string | null
+          id: string
+          inventario: Json | null
+          motorista_id: string | null
+          motorista_nome: string
+          observacoes: string | null
+          organization_id: string
+          status: string
+        }
+        Insert: {
+          atualizado_em?: string
+          clientes_count?: number
+          criado_em?: string
+          criado_por?: string
+          data?: string
+          destino: string
+          hora_retorno?: string | null
+          hora_saida?: string | null
+          id?: string
+          inventario?: Json | null
+          motorista_id?: string | null
+          motorista_nome: string
+          observacoes?: string | null
+          organization_id?: string
+          status?: string
+        }
+        Update: {
+          atualizado_em?: string
+          clientes_count?: number
+          criado_em?: string
+          criado_por?: string
+          data?: string
+          destino?: string
+          hora_retorno?: string | null
+          hora_saida?: string | null
+          id?: string
+          inventario?: Json | null
+          motorista_id?: string | null
+          motorista_nome?: string
+          observacoes?: string | null
+          organization_id?: string
           status?: string
         }
         Relationships: []
