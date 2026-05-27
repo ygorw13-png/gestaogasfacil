@@ -39,6 +39,10 @@ const Fleet = lazy(() => import("./pages/fleet/Fleet"));
 const Settings = lazy(() => import("./pages/settings/Settings"));
 const Expenses = lazy(() => import("./pages/finance/Expenses"));
 const Colaboradores = lazy(() => import("./pages/colaboradores/Colaboradores"));
+const MinhasEntregas = lazy(() => import("./pages/entregador/MinhasEntregas"));
+const CadastroRapido = lazy(() => import("./pages/entregador/CadastroRapido"));
+const VendaRua = lazy(() => import("./pages/entregador/VendaRua"));
+const AcertoEntregadores = lazy(() => import("./pages/entrance/AcertoEntregadores"));
 
 // Loading component for lazy loading
 const LoadingComponent = () => (
@@ -171,6 +175,18 @@ function App() {
                   <Suspense fallback={<LoadingComponent />}>
                     <Colaboradores />
                   </Suspense>
+                } />
+                <Route path="/entregador/entregas" element={
+                  <Suspense fallback={<LoadingComponent />}><MinhasEntregas /></Suspense>
+                } />
+                <Route path="/entregador/cadastro" element={
+                  <Suspense fallback={<LoadingComponent />}><CadastroRapido /></Suspense>
+                } />
+                <Route path="/entregador/venda-rua" element={
+                  <Suspense fallback={<LoadingComponent />}><VendaRua /></Suspense>
+                } />
+                <Route path="/entrance/acerto-entregadores" element={
+                  <Suspense fallback={<LoadingComponent />}><AcertoEntregadores /></Suspense>
                 } />
               </Route>
               
