@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { mockVehicles } from "../../data";
+import { useFleet } from "../../context/FleetContext";
 
 const vehicleSchema = z.object({
   plate: z.string().min(7, "A placa deve ter no mínimo 7 caracteres").max(8, "A placa deve ter no máximo 8 caracteres"),
@@ -23,6 +23,7 @@ interface NewVehicleFormProps {
 }
 
 export default function NewVehicleForm({ onSuccess }: NewVehicleFormProps) {
+  const { addVehicle } = useFleet();
   const form = useForm<z.infer<typeof vehicleSchema>>({
     resolver: zodResolver(vehicleSchema),
     defaultValues: {
@@ -35,23 +36,15 @@ export default function NewVehicleForm({ onSuccess }: NewVehicleFormProps) {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof vehicleSchema>) => {
-    // Em um ambiente real, enviaríamos para o backend
-    // Por enquanto, apenas simulamos a adição
-    const newVehicle = {
-      id: `vehicle-${Date.now()}`,
+  const onSubmit = async (data: z.infer<typeof vehicleSchema>) => {
+    await addVehicle({
       plate: data.plate,
       model: data.model,
       year: data.year,
       type: data.type,
       status: data.status,
       mileage: data.mileage,
-      lastMaintenance: null,
-      documentExpiration: null,
-    };
-    
-    mockVehicles.push(newVehicle);
-    
+    });
     onSuccess();
   };
 
