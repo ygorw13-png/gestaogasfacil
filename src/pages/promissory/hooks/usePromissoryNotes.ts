@@ -1,204 +1,139 @@
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { PromissoryNote, PromissoryStatus } from "../types";
-import { overviewData } from "@/pages/dashboard/data";
+
+function mapRow(r: any): PromissoryNote {
+  return {
+    id: r.id,
+    clientName: r.client_name,
+    value: Number(r.value),
+    dueDate: new Date(r.due_date),
+    status: (r.status as PromissoryStatus) || "pending",
+    createdAt: new Date(r.created_at),
+    assignedTo: r.assigned_to || undefined,
+    paidAt: r.paid_at ? new Date(r.paid_at) : undefined,
+  };
+}
 
 export function usePromissoryNotes() {
   const [promissoryNotes, setPromissoryNotes] = useState<PromissoryNote[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedClient, setSelectedClient] = useState<string>("all");
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Update dashboard data with promissory notes - defined outside of other functions
-  const updateDashboardData = useCallback((notes: PromissoryNote[]): void => {
-    const pendingNotes = notes.filter(note => note.status === "pending" || note.status === "overdue");
-    const pendingValue = pendingNotes.reduce((sum, note) => sum + note.value, 0);
-    
-    // Atualizar os dados do dashboard
-    overviewData.promissoryNotes = pendingNotes.length;
-    overviewData.promissoryValue = `R$ ${pendingValue.toFixed(2).replace('.', ',')}`;
-  }, []);
-
-  // Fetch promissory notes with proper dependency
-  const fetchPromissoryNotes = useCallback(async (): Promise<void> => {
-    try {
-      console.log("Loading mock promissory note data");
-      const { mockPromissoryNotes } = await import('../data/mockData');
-      setPromissoryNotes(mockPromissoryNotes);
-      
-      // Atualizar dados do dashboard
-      updateDashboardData(mockPromissoryNotes);
-      
+  const fetch = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("promissory_notes")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      toast({ title: "Erro ao carregar promissórias", description: error.message, variant: "destructive" });
       setLoading(false);
-    } catch (error) {
-      console.error("Erro ao buscar promissórias:", error);
-      setLoading(false);
+      return;
     }
-  }, [updateDashboardData]);
-
-  useEffect(() => {
-    console.log("Fetching promissory notes...");
-    fetchPromissoryNotes();
-  }, [fetchPromissoryNotes]);
-  
-  // Filtrar notas com base no status e cliente selecionados - usando useMemo para otimização
-  const filteredNotes = useMemo(() => {
-    return promissoryNotes.filter(note => {
-      const statusMatch = selectedStatus === 'all' || note.status === selectedStatus;
-      const clientMatch = selectedClient === 'all' || note.clientName === selectedClient;
-      return statusMatch && clientMatch;
+    // Marcar atrasadas no client-side
+    const today = new Date();
+    const list = (data || []).map(mapRow).map((n) => {
+      if (n.status === "pending" && n.dueDate < today) return { ...n, status: "overdue" as PromissoryStatus };
+      return n;
     });
-  }, [promissoryNotes, selectedStatus, selectedClient]);
+    setPromissoryNotes(list);
+    setLoading(false);
+  }, [toast]);
 
-  // Separar as notas por status - usando useMemo para evitar recálculos
-  const pendingNotes = useMemo(() => {
-    return filteredNotes.filter(
-      note => note.status === "pending" || note.status === "overdue"
-    );
-  }, [filteredNotes]);
-  
-  const assignedNotes = useMemo(() => {
-    return filteredNotes.filter(note => note.status === "assigned");
-  }, [filteredNotes]);
-  
-  const paidNotes = useMemo(() => {
-    return filteredNotes.filter(note => note.status === "paid");
-  }, [filteredNotes]);
+  useEffect(() => { fetch(); }, [fetch]);
 
-  // Extrair lista única de clientes para o filtro - usando useMemo
-  const clients = useMemo(() => {
-    return [...new Set(promissoryNotes.map(note => note.clientName))];
-  }, [promissoryNotes]);
+  const filteredNotes = useMemo(
+    () =>
+      promissoryNotes.filter((n) => {
+        const s = selectedStatus === "all" || n.status === selectedStatus;
+        const c = selectedClient === "all" || n.clientName === selectedClient;
+        return s && c;
+      }),
+    [promissoryNotes, selectedStatus, selectedClient]
+  );
 
-  const addPromissoryNote = useCallback((note: Omit<PromissoryNote, 'id' | 'createdAt'>): void => {
-    const newNote: PromissoryNote = {
-      id: (Math.random() * 1000).toFixed(0),
-      clientName: note.clientName,
-      value: note.value,
-      dueDate: note.dueDate,
-      status: note.status || 'pending',
-      createdAt: new Date(),
-      assignedTo: note.assignedTo
-    };
+  const pendingNotes = useMemo(
+    () => filteredNotes.filter((n) => n.status === "pending" || n.status === "overdue"),
+    [filteredNotes]
+  );
+  const assignedNotes = useMemo(() => filteredNotes.filter((n) => n.status === "assigned"), [filteredNotes]);
+  const paidNotes = useMemo(() => filteredNotes.filter((n) => n.status === "paid"), [filteredNotes]);
+  const clients = useMemo(() => [...new Set(promissoryNotes.map((n) => n.clientName))], [promissoryNotes]);
 
-    setPromissoryNotes(prevNotes => {
-      const updatedNotes = [newNote, ...prevNotes];
-      // Atualizar dados do dashboard
-      updateDashboardData(updatedNotes);
-      return updatedNotes;
-    });
-    
-    toast({
-      title: "Promissória Adicionada",
-      description: `Promissória de R$ ${note.value.toFixed(2)} para ${note.clientName} registrada com sucesso.`
-    });
-  }, [toast, updateDashboardData]);
+  const handleAssign = useCallback(
+    async (collector: string) => {
+      if (!selectedNoteId) return;
+      const { error } = await supabase
+        .from("promissory_notes")
+        .update({ status: "assigned", assigned_to: collector })
+        .eq("id", selectedNoteId);
+      if (error) {
+        toast({ title: "Erro", description: error.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: "Promissória atribuída", description: `Atribuída a ${collector}.` });
+      fetch();
+    },
+    [selectedNoteId, toast, fetch]
+  );
 
-  const handleAssign = useCallback((collector: string): void => {
-    if (selectedNoteId) {
-      setPromissoryNotes(prevNotes => {
-        const updatedNotes = prevNotes.map((note) => {
-          if (note.id === selectedNoteId) {
-            return {
-              ...note,
-              status: 'assigned' as PromissoryStatus,
-              assignedTo: collector,
-            };
-          }
-          return note;
-        });
-        
-        // Atualizar dados do dashboard
-        updateDashboardData(updatedNotes);
-        
-        return updatedNotes;
-      });
+  const handlePayment = useCallback(
+    async (amount: number, method: string) => {
+      if (!selectedNoteId) return;
+      const { error } = await supabase
+        .from("promissory_notes")
+        .update({
+          status: "paid",
+          paid_at: new Date().toISOString(),
+          paid_amount: amount || null,
+          payment_method: method || null,
+        })
+        .eq("id", selectedNoteId);
+      if (error) {
+        toast({ title: "Erro", description: error.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: "Promissória paga" });
+      fetch();
+    },
+    [selectedNoteId, toast, fetch]
+  );
 
-      toast({
-        title: "Promissória Atribuída",
-        description: `Promissória atribuída a ${collector} com sucesso.`
-      });
-    }
-  }, [selectedNoteId, toast, updateDashboardData]);
-
-  const handlePayment = useCallback((amount: number, method: string): void => {
-    if (selectedNoteId) {
-      setPromissoryNotes(prevNotes => {
-        const updatedNotes = prevNotes.map((note) => {
-          if (note.id === selectedNoteId) {
-            return {
-              ...note,
-              status: 'paid' as PromissoryStatus,
-              paidAt: new Date()
-            };
-          }
-          return note;
-        });
-        
-        // Atualizar dados do dashboard
-        updateDashboardData(updatedNotes);
-        
-        return updatedNotes;
-      });
-
-      toast({
-        title: "Promissória Paga",
-        description: "Promissória marcada como paga com sucesso."
-      });
-    }
-  }, [selectedNoteId, toast, updateDashboardData]);
-
-  interface NewPromissoryData {
-    clientName: string;
-    value: number;
-    dueDate: Date;
-    collector: string | null;
-  }
-
-  const handleNewPromissory = useCallback((data: NewPromissoryData): void => {
-    addPromissoryNote({
-      clientName: data.clientName,
-      value: data.value,
-      dueDate: data.dueDate,
-      status: data.collector ? 'assigned' : 'pending',
-      assignedTo: data.collector || undefined
-    });
-  }, [addPromissoryNote]);
-
-  // Create memoized functions to avoid recreating them on each render
-  const assignPromissoryNote = useCallback((id: string, collector: string) => {
-    setSelectedNoteId(id);
-    handleAssign(collector);
-  }, [setSelectedNoteId, handleAssign]);
-
-  const markPromissoryAsPaid = useCallback((id: string) => {
-    setSelectedNoteId(id);
-    handlePayment(0, "");
-  }, [setSelectedNoteId, handlePayment]);
+  const handleNewPromissory = useCallback(
+    async (data: { clientName: string; value: number; dueDate: Date; collector: string | null }) => {
+      const payload: any = {
+        client_name: data.clientName,
+        value: data.value,
+        due_date: data.dueDate.toISOString().split("T")[0],
+        status: data.collector ? "assigned" : "pending",
+        assigned_to: data.collector || null,
+      };
+      const { error } = await supabase.from("promissory_notes").insert(payload);
+      if (error) {
+        toast({ title: "Erro ao criar", description: error.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: "Promissória criada", description: `R$ ${data.value.toFixed(2)} para ${data.clientName}` });
+      fetch();
+    },
+    [toast, fetch]
+  );
 
   return {
-    promissoryNotes,
-    loading,
-    addPromissoryNote,
-    assignPromissoryNote,
-    markPromissoryAsPaid,
+    promissoryNotes, loading,
     notes: promissoryNotes,
-    filteredNotes,
-    pendingNotes,
-    assignedNotes,
-    paidNotes,
-    clients,
-    selectedStatus,
-    selectedClient,
-    selectedNoteId,
-    setSelectedStatus,
-    setSelectedClient,
-    setSelectedNoteId,
-    handleAssign,
-    handlePayment,
-    handleNewPromissory
+    filteredNotes, pendingNotes, assignedNotes, paidNotes, clients,
+    selectedStatus, selectedClient, selectedNoteId,
+    setSelectedStatus, setSelectedClient, setSelectedNoteId,
+    handleAssign, handlePayment, handleNewPromissory,
+    addPromissoryNote: handleNewPromissory,
+    assignPromissoryNote: async (id: string, collector: string) => { setSelectedNoteId(id); await handleAssign(collector); },
+    markPromissoryAsPaid: async (id: string) => { setSelectedNoteId(id); await handlePayment(0, ""); },
+    refresh: fetch,
   };
 }

@@ -1,112 +1,146 @@
-
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-
-// Mock data for clients with cylinder loans
-const mockClients = [
-  { 
-    id: "1", 
-    name: "João Silva", 
-    phone: "(79) 99999-1234", 
-    address: "Rua das Flores, 123, Centro", 
-    cylinderCount: 2,
-    cylinderTypes: ["P13", "P13"],
-    loanDate: "2025-04-10",
-    notes: "Cliente regular, compra sempre aos domingos"
-  },
-  { 
-    id: "2", 
-    name: "Maria Santos", 
-    phone: "(79) 99999-5678", 
-    address: "Av. Principal, 456, Bairro Novo", 
-    cylinderCount: 3,
-    cylinderTypes: ["P13", "P20", "Água 20L"],
-    loanDate: "2025-04-15",
-    notes: "Prefere entregas pela manhã"
-  },
-  { 
-    id: "3", 
-    name: "Pedro Oliveira", 
-    phone: "(79) 99999-9876", 
-    address: "Travessa das Palmeiras, 78, Jardim", 
-    cylinderCount: 1,
-    cylinderTypes: ["P45"],
-    loanDate: "2025-04-18",
-    notes: "Cliente comercial - restaurante"
-  },
-  { 
-    id: "4", 
-    name: "Ana Pereira", 
-    phone: "(79) 99999-4321", 
-    address: "Rua do Comércio, 321, Centro", 
-    cylinderCount: 4,
-    cylinderTypes: ["P13", "P13", "Água 20L", "Água 20L"],
-    loanDate: "2025-04-05",
-    notes: "Cliente com histórico de atraso na devolução"
-  }
-];
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Client {
   id: string;
   name: string;
   phone: string;
   address: string;
+  addressObj?: any;
   cylinderCount: number;
   cylinderTypes: string[];
   loanDate: string;
   notes: string;
 }
 
+function formatAddress(a: any): string {
+  if (!a) return "";
+  if (typeof a === "string") return a;
+  const parts = [
+    a.street && `${a.street}${a.number ? `, ${a.number}` : ""}`,
+    a.complement,
+    a.neighborhood,
+    a.city,
+  ].filter(Boolean);
+  return parts.join(" - ");
+}
+
 export function useClients() {
-  const [clients, setClients] = useState<Client[]>(mockClients);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isNewClientDialogOpen, setIsNewClientDialogOpen] = useState(false);
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
   const [isCylinderDialogOpen, setIsCylinderDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isClientDetailOpen, setIsClientDetailOpen] = useState(false);
-  const [newCylinders, setNewCylinders] = useState<{type: string, quantity: number}[]>([{type: "P13", quantity: 1}]);
+  const [newCylinders, setNewCylinders] = useState<{ type: string; quantity: number }[]>([
+    { type: "P13", quantity: 1 },
+  ]);
   const { toast } = useToast();
 
-  const filteredClients = clients.filter(client => 
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.phone.includes(searchTerm) ||
-    client.address.toLowerCase().includes(searchTerm.toLowerCase())
+  const fetchClients = useCallback(async () => {
+    setLoading(true);
+    const [clientsRes, cascosRes] = await Promise.all([
+      supabase.from("clients").select("*").order("created_at", { ascending: false }),
+      supabase.from("cascos_emprestados").select("cliente_id, tipo_vasilhame, quantidade, data_emprestimo, status"),
+    ]);
+    if (clientsRes.error) {
+      toast({ title: "Erro ao carregar clientes", description: clientsRes.error.message, variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+    const cascos = cascosRes.data || [];
+    const mapped: Client[] = (clientsRes.data || []).map((c: any) => {
+      const ativos = cascos.filter((x: any) => x.cliente_id === c.id && x.status === "emprestado");
+      const types: string[] = [];
+      let count = 0;
+      let lastDate = "";
+      ativos.forEach((x: any) => {
+        count += x.quantidade || 0;
+        for (let i = 0; i < (x.quantidade || 0); i++) types.push(x.tipo_vasilhame);
+        if (!lastDate || x.data_emprestimo > lastDate) lastDate = x.data_emprestimo;
+      });
+      return {
+        id: c.id,
+        name: c.name,
+        phone: c.phone || "",
+        address: formatAddress(c.address),
+        addressObj: c.address,
+        cylinderCount: count,
+        cylinderTypes: types,
+        loanDate: lastDate || c.created_at,
+        notes: c.notes || "",
+      };
+    });
+    setClients(mapped);
+    setLoading(false);
+  }, [toast]);
+
+  useEffect(() => { fetchClients(); }, [fetchClients]);
+
+  const filteredClients = clients.filter(
+    (c) =>
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.phone.includes(searchTerm) ||
+      c.address.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Clients with more than 3 cylinders (example threshold)
-  const clientsWithManyLoans = clients.filter(client => client.cylinderCount >= 3);
+  const clientsWithManyLoans = clients.filter((c) => c.cylinderCount >= 3);
 
-  const handleAddNewClient = () => {
-    toast({
-      title: "Cliente adicionado com sucesso",
-      description: "O novo cliente foi registrado no sistema."
-    });
-    setIsNewClientDialogOpen(false);
-  };
+  const handleAddNewClient = () => { fetchClients(); };
 
-  const handleAddCylinders = () => {
-    if (selectedClient) {
-      toast({
-        title: "Comodato registrado",
-        description: `Vasilhames adicionados para ${selectedClient.name}`
-      });
-      setIsCylinderDialogOpen(false);
+  const handleAddCylinders = async () => {
+    if (!selectedClient) return;
+    const { data: org } = await supabase.from("profiles").select("organization_id").eq("id", (await supabase.auth.getUser()).data.user?.id || "").single();
+    const orgId = org?.organization_id;
+    const me = (await supabase.auth.getUser()).data.user?.id;
+    if (!orgId || !me) {
+      toast({ title: "Sessão inválida", variant: "destructive" });
+      return;
     }
+    const rows = newCylinders
+      .filter((c) => c.quantity > 0)
+      .map((c) => ({
+        cliente_id: selectedClient.id,
+        tipo_cliente: "cliente",
+        tipo_vasilhame: c.type,
+        quantidade: c.quantity,
+        organization_id: orgId,
+        registrado_por: me,
+      }));
+    if (rows.length === 0) {
+      toast({ title: "Adicione ao menos 1 vasilhame", variant: "destructive" });
+      return;
+    }
+    const { error } = await supabase.from("cascos_emprestados").insert(rows);
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Comodato registrado", description: `Vasilhames adicionados para ${selectedClient.name}` });
+    setIsCylinderDialogOpen(false);
+    setNewCylinders([{ type: "P13", quantity: 1 }]);
+    fetchClients();
   };
 
-  const handleReturnCylinders = (clientId: string) => {
-    toast({
-      title: "Devolução registrada",
-      description: "A devolução de vasilhames foi registrada com sucesso."
-    });
+  const handleReturnCylinders = async (clientId: string) => {
+    const { error } = await supabase
+      .from("cascos_emprestados")
+      .update({ status: "devolvido", data_devolucao: new Date().toISOString().split("T")[0] })
+      .eq("cliente_id", clientId)
+      .eq("status", "emprestado");
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Devolução registrada" });
+    fetchClients();
   };
 
   const handleGenerateReport = () => {
-    toast({
-      title: "Relatório gerado",
-      description: "O relatório de comodatos foi gerado e está pronto para download."
-    });
+    toast({ title: "Use o botão 'Gerar Relatório' dentro da lista para baixar o Excel." });
   };
 
   const handleViewClientDetails = (client: Client) => {
@@ -115,28 +149,17 @@ export function useClients() {
   };
 
   return {
-    clients,
-    setClients,
-    searchTerm,
-    setSearchTerm,
-    isNewClientDialogOpen,
-    setIsNewClientDialogOpen,
-    isAlertDialogOpen,
-    setIsAlertDialogOpen,
-    isCylinderDialogOpen,
-    setIsCylinderDialogOpen,
-    selectedClient,
-    setSelectedClient,
-    isClientDetailOpen,
-    setIsClientDetailOpen,
-    newCylinders,
-    setNewCylinders,
-    filteredClients,
-    clientsWithManyLoans,
-    handleAddNewClient,
-    handleAddCylinders,
-    handleReturnCylinders,
-    handleGenerateReport,
-    handleViewClientDetails
+    clients, setClients, loading,
+    searchTerm, setSearchTerm,
+    isNewClientDialogOpen, setIsNewClientDialogOpen,
+    isAlertDialogOpen, setIsAlertDialogOpen,
+    isCylinderDialogOpen, setIsCylinderDialogOpen,
+    selectedClient, setSelectedClient,
+    isClientDetailOpen, setIsClientDetailOpen,
+    newCylinders, setNewCylinders,
+    filteredClients, clientsWithManyLoans,
+    handleAddNewClient, handleAddCylinders, handleReturnCylinders,
+    handleGenerateReport, handleViewClientDetails,
+    refresh: fetchClients,
   };
 }
