@@ -9,7 +9,9 @@ type User = {
   id: string;
   name: string;
   role: UserRole;
+  ativo?: boolean;
 };
+
 
 export function useUserManagement(organizationId?: string) {
   const { toast } = useToast();
