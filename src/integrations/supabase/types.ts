@@ -356,14 +356,18 @@ export type Database = {
       orders: {
         Row: {
           address: Json | null
+          assigned_at: string | null
           client_name: string
           client_phone: string | null
           created_at: string
+          delivered_at: string | null
+          delivery_person: string | null
           has_empty_cylinder: boolean | null
           id: string
           is_complete_package: boolean | null
           notes: string | null
           organization_id: string | null
+          payment_method: string | null
           price: number | null
           product: string | null
           quantity: number | null
@@ -373,14 +377,18 @@ export type Database = {
         }
         Insert: {
           address?: Json | null
+          assigned_at?: string | null
           client_name: string
           client_phone?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_person?: string | null
           has_empty_cylinder?: boolean | null
           id?: string
           is_complete_package?: boolean | null
           notes?: string | null
           organization_id?: string | null
+          payment_method?: string | null
           price?: number | null
           product?: string | null
           quantity?: number | null
@@ -390,14 +398,18 @@ export type Database = {
         }
         Update: {
           address?: Json | null
+          assigned_at?: string | null
           client_name?: string
           client_phone?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_person?: string | null
           has_empty_cylinder?: boolean | null
           id?: string
           is_complete_package?: boolean | null
           notes?: string | null
           organization_id?: string | null
+          payment_method?: string | null
           price?: number | null
           product?: string | null
           quantity?: number | null
