@@ -56,6 +56,39 @@ export type Database = {
         }
         Relationships: []
       }
+      clients: {
+        Row: {
+          address: Json | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: Json | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: Json | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       colaboradores: {
         Row: {
           atualizado_em: string
@@ -100,22 +133,34 @@ export type Database = {
       }
       configuracoes_entrega: {
         Row: {
-          data: Json
+          atualizado_em: string
+          atualizado_por: string | null
           id: string
           organization_id: string | null
-          updated_at: string
+          raio_maximo_km: number | null
+          rastreamento_ativo: boolean | null
+          taxa_entrega: number | null
+          valor_min_entrega_gratis: number | null
         }
         Insert: {
-          data?: Json
+          atualizado_em?: string
+          atualizado_por?: string | null
           id?: string
           organization_id?: string | null
-          updated_at?: string
+          raio_maximo_km?: number | null
+          rastreamento_ativo?: boolean | null
+          taxa_entrega?: number | null
+          valor_min_entrega_gratis?: number | null
         }
         Update: {
-          data?: Json
+          atualizado_em?: string
+          atualizado_por?: string | null
           id?: string
           organization_id?: string | null
-          updated_at?: string
+          raio_maximo_km?: number | null
+          rastreamento_ativo?: boolean | null
+          taxa_entrega?: number | null
+          valor_min_entrega_gratis?: number | null
         }
         Relationships: []
       }
@@ -154,154 +199,211 @@ export type Database = {
       }
       configuracoes_financeiras: {
         Row: {
-          data: Json
+          atualizado_em: string
+          atualizado_por: string | null
           id: string
+          metodos_pagamento: Json | null
+          moeda: string | null
           organization_id: string | null
-          updated_at: string
+          taxa_imposto: number | null
         }
         Insert: {
-          data?: Json
+          atualizado_em?: string
+          atualizado_por?: string | null
           id?: string
+          metodos_pagamento?: Json | null
+          moeda?: string | null
           organization_id?: string | null
-          updated_at?: string
+          taxa_imposto?: number | null
         }
         Update: {
-          data?: Json
+          atualizado_em?: string
+          atualizado_por?: string | null
           id?: string
+          metodos_pagamento?: Json | null
+          moeda?: string | null
           organization_id?: string | null
-          updated_at?: string
+          taxa_imposto?: number | null
         }
         Relationships: []
       }
       configuracoes_notificacoes: {
         Row: {
-          data: Json
+          atualizado_em: string
+          atualizado_por: string | null
+          email_ativo: boolean | null
           id: string
+          notificacao_estoque: boolean | null
+          notificacao_pedidos: boolean | null
           organization_id: string | null
-          updated_at: string
+          sms_ativo: boolean | null
         }
         Insert: {
-          data?: Json
+          atualizado_em?: string
+          atualizado_por?: string | null
+          email_ativo?: boolean | null
           id?: string
+          notificacao_estoque?: boolean | null
+          notificacao_pedidos?: boolean | null
           organization_id?: string | null
-          updated_at?: string
+          sms_ativo?: boolean | null
         }
         Update: {
-          data?: Json
+          atualizado_em?: string
+          atualizado_por?: string | null
+          email_ativo?: boolean | null
           id?: string
+          notificacao_estoque?: boolean | null
+          notificacao_pedidos?: boolean | null
           organization_id?: string | null
-          updated_at?: string
+          sms_ativo?: boolean | null
         }
         Relationships: []
       }
       configuracoes_seguranca: {
         Row: {
-          data: Json
+          atualizado_em: string
+          atualizado_por: string | null
+          dois_fatores_ativo: boolean | null
+          expiracao_senha_dias: number | null
           id: string
+          nivel_log: string | null
           organization_id: string | null
-          updated_at: string
+          tempo_sessao_minutos: number | null
         }
         Insert: {
-          data?: Json
+          atualizado_em?: string
+          atualizado_por?: string | null
+          dois_fatores_ativo?: boolean | null
+          expiracao_senha_dias?: number | null
           id?: string
+          nivel_log?: string | null
           organization_id?: string | null
-          updated_at?: string
+          tempo_sessao_minutos?: number | null
         }
         Update: {
-          data?: Json
+          atualizado_em?: string
+          atualizado_por?: string | null
+          dois_fatores_ativo?: boolean | null
+          expiracao_senha_dias?: number | null
           id?: string
+          nivel_log?: string | null
           organization_id?: string | null
-          updated_at?: string
+          tempo_sessao_minutos?: number | null
         }
         Relationships: []
       }
       configuracoes_sistema: {
         Row: {
-          data: Json
+          atualizado_em: string
+          atualizado_por: string | null
+          email: string | null
+          endereco: string | null
           id: string
+          nome_empresa: string | null
           organization_id: string | null
-          updated_at: string
+          telefone: string | null
         }
         Insert: {
-          data?: Json
+          atualizado_em?: string
+          atualizado_por?: string | null
+          email?: string | null
+          endereco?: string | null
           id?: string
+          nome_empresa?: string | null
           organization_id?: string | null
-          updated_at?: string
+          telefone?: string | null
         }
         Update: {
-          data?: Json
+          atualizado_em?: string
+          atualizado_por?: string | null
+          email?: string | null
+          endereco?: string | null
           id?: string
+          nome_empresa?: string | null
           organization_id?: string | null
-          updated_at?: string
+          telefone?: string | null
         }
         Relationships: []
       }
       dashboard_data: {
         Row: {
-          data: Json
           id: string
-          organization_id: string
+          organization_id: string | null
+          sales_data: Json
+          stock_data: Json
           updated_at: string
+          user_id: string
         }
         Insert: {
-          data?: Json
           id?: string
-          organization_id: string
+          organization_id?: string | null
+          sales_data?: Json
+          stock_data?: Json
           updated_at?: string
+          user_id: string
         }
         Update: {
-          data?: Json
           id?: string
-          organization_id?: string
+          organization_id?: string | null
+          sales_data?: Json
+          stock_data?: Json
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
       orders: {
         Row: {
-          cliente: string | null
+          address: Json | null
+          client_name: string
+          client_phone: string | null
           created_at: string
-          endereco: string | null
+          has_empty_cylinder: boolean | null
           id: string
-          metodo_pagamento: string | null
-          observacoes: string | null
-          organization_id: string
-          produto: string | null
-          quantidade: number | null
+          is_complete_package: boolean | null
+          notes: string | null
+          organization_id: string | null
+          price: number | null
+          product: string | null
+          quantity: number | null
           status: string | null
-          telefone: string | null
           updated_at: string
-          valor: number | null
+          user_id: string
         }
         Insert: {
-          cliente?: string | null
+          address?: Json | null
+          client_name: string
+          client_phone?: string | null
           created_at?: string
-          endereco?: string | null
+          has_empty_cylinder?: boolean | null
           id?: string
-          metodo_pagamento?: string | null
-          observacoes?: string | null
-          organization_id: string
-          produto?: string | null
-          quantidade?: number | null
+          is_complete_package?: boolean | null
+          notes?: string | null
+          organization_id?: string | null
+          price?: number | null
+          product?: string | null
+          quantity?: number | null
           status?: string | null
-          telefone?: string | null
           updated_at?: string
-          valor?: number | null
+          user_id: string
         }
         Update: {
-          cliente?: string | null
+          address?: Json | null
+          client_name?: string
+          client_phone?: string | null
           created_at?: string
-          endereco?: string | null
+          has_empty_cylinder?: boolean | null
           id?: string
-          metodo_pagamento?: string | null
-          observacoes?: string | null
-          organization_id?: string
-          produto?: string | null
-          quantidade?: number | null
+          is_complete_package?: boolean | null
+          notes?: string | null
+          organization_id?: string | null
+          price?: number | null
+          product?: string | null
+          quantity?: number | null
           status?: string | null
-          telefone?: string | null
           updated_at?: string
-          valor?: number | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -426,6 +528,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clear_test_data: { Args: never; Returns: undefined }
       get_my_org: { Args: never; Returns: string }
       has_role: {
         Args: {
