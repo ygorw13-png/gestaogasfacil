@@ -51,11 +51,11 @@ export function ClientDetailDialog({ open, onOpenChange, client }: ClientDetailD
           </TabsContent>
           
           <TabsContent value="purchases" className="py-4">
-            <ClientPurchasesTab />
+            <ClientPurchasesTab clientId={client.id} clientName={client.name} />
           </TabsContent>
           
           <TabsContent value="promissories" className="py-4">
-            <ClientPromissoriesTab />
+            <ClientPromissoriesTab clientId={client.id} clientName={client.name} />
           </TabsContent>
         </Tabs>
       </DialogContent>
