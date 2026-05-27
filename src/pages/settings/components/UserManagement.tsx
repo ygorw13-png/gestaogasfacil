@@ -14,7 +14,8 @@ import { useUserManagement } from "./users/hooks/useUserManagement";
 export function UserManagement() {
   const { organization } = useAuth();
   const [isNewUserDialogOpen, setIsNewUserDialogOpen] = useState(false);
-  const { users, loading, addUser, updateUser } = useUserManagement(organization?.id);
+  const { users, loading, addUser, updateUser, removeUser } = useUserManagement(organization?.id);
+
 
   const handleUserCreated = (newUser: {id: string, name: string, role: UserRole}) => {
     addUser(newUser);
@@ -39,7 +40,10 @@ export function UserManagement() {
               users={users}
               loading={loading}
               onAddUserClick={() => setIsNewUserDialogOpen(true)}
+              onUserRemoved={(id) => removeUser(id)}
+              onUserToggled={(id, ativo) => updateUser(id, { ativo } as any)}
             />
+
           </section>
 
           <NewUserDialog

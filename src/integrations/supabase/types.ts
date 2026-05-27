@@ -117,6 +117,7 @@ export type Database = {
         Row: {
           address: Json | null
           created_at: string
+          data_nascimento: string | null
           id: string
           name: string
           notes: string | null
@@ -127,6 +128,7 @@ export type Database = {
         Insert: {
           address?: Json | null
           created_at?: string
+          data_nascimento?: string | null
           id?: string
           name: string
           notes?: string | null
@@ -137,6 +139,7 @@ export type Database = {
         Update: {
           address?: Json | null
           created_at?: string
+          data_nascimento?: string | null
           id?: string
           name?: string
           notes?: string | null
@@ -380,6 +383,45 @@ export type Database = {
           nome_empresa?: string | null
           organization_id?: string | null
           telefone?: string | null
+        }
+        Relationships: []
+      }
+      contatos_recompra: {
+        Row: {
+          canal: string
+          cliente_id: string
+          cliente_nome: string
+          contatado_em: string
+          contatado_por: string
+          id: string
+          observacao: string | null
+          organization_id: string
+          resultado: string | null
+          tipo: string
+        }
+        Insert: {
+          canal?: string
+          cliente_id: string
+          cliente_nome: string
+          contatado_em?: string
+          contatado_por?: string
+          id?: string
+          observacao?: string | null
+          organization_id?: string
+          resultado?: string | null
+          tipo: string
+        }
+        Update: {
+          canal?: string
+          cliente_id?: string
+          cliente_nome?: string
+          contatado_em?: string
+          contatado_por?: string
+          id?: string
+          observacao?: string | null
+          organization_id?: string
+          resultado?: string | null
+          tipo?: string
         }
         Relationships: []
       }
@@ -630,6 +672,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ativo: boolean
           created_at: string
           id: string
           name: string
@@ -638,6 +681,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ativo?: boolean
           created_at?: string
           id: string
           name: string
@@ -646,6 +690,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ativo?: boolean
           created_at?: string
           id?: string
           name?: string
@@ -735,6 +780,90 @@ export type Database = {
           processado_por?: string | null
           solicitante_id?: string
           status?: string
+        }
+        Relationships: []
+      }
+      rotas: {
+        Row: {
+          atualizado_em: string
+          clientes_count: number
+          criado_em: string
+          criado_por: string
+          data: string
+          destino: string
+          hora_retorno: string | null
+          hora_saida: string | null
+          id: string
+          inventario: Json | null
+          motorista_id: string | null
+          motorista_nome: string
+          observacoes: string | null
+          organization_id: string
+          status: string
+        }
+        Insert: {
+          atualizado_em?: string
+          clientes_count?: number
+          criado_em?: string
+          criado_por?: string
+          data?: string
+          destino: string
+          hora_retorno?: string | null
+          hora_saida?: string | null
+          id?: string
+          inventario?: Json | null
+          motorista_id?: string | null
+          motorista_nome: string
+          observacoes?: string | null
+          organization_id?: string
+          status?: string
+        }
+        Update: {
+          atualizado_em?: string
+          clientes_count?: number
+          criado_em?: string
+          criado_por?: string
+          data?: string
+          destino?: string
+          hora_retorno?: string | null
+          hora_saida?: string | null
+          id?: string
+          inventario?: Json | null
+          motorista_id?: string | null
+          motorista_nome?: string
+          observacoes?: string | null
+          organization_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      templates_mensagem: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          conteudo: string
+          criado_em: string
+          id: string
+          organization_id: string
+          tipo: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          conteudo: string
+          criado_em?: string
+          id?: string
+          organization_id?: string
+          tipo: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          conteudo?: string
+          criado_em?: string
+          id?: string
+          organization_id?: string
+          tipo?: string
         }
         Relationships: []
       }

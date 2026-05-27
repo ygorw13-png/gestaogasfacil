@@ -1,6 +1,6 @@
 
 import { BarChart3, Users, ShoppingCart, Store, Package, ReceiptText, 
-        Truck, CalendarCheck, FileBarChart, Settings } from "lucide-react";
+        Truck, CalendarCheck, FileBarChart, Settings, Repeat } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
 export interface NavigationItem {
@@ -24,8 +24,10 @@ export interface AccordionNavItem {
 // Main navigation links
 export const mainNavItems: NavigationItem[] = [
   { to: "/dashboard", icon: BarChart3, label: "Dashboard" },
-  { to: "/clients", icon: Users, label: "Clientes" }
+  { to: "/clients", icon: Users, label: "Clientes" },
+  { to: "/recompra", icon: Repeat, label: "Recompra" }
 ];
+
 
 // Orders navigation with accordion items
 export const ordersNavItems: AccordionNavItem[] = [

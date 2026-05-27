@@ -43,6 +43,8 @@ const MinhasEntregas = lazy(() => import("./pages/entregador/MinhasEntregas"));
 const CadastroRapido = lazy(() => import("./pages/entregador/CadastroRapido"));
 const VendaRua = lazy(() => import("./pages/entregador/VendaRua"));
 const AcertoEntregadores = lazy(() => import("./pages/entrance/AcertoEntregadores"));
+const Recompra = lazy(() => import("./pages/recompra/Recompra"));
+
 
 // Loading component for lazy loading
 const LoadingComponent = () => (
@@ -188,6 +190,10 @@ function App() {
                 <Route path="/entrance/acerto-entregadores" element={
                   <Suspense fallback={<LoadingComponent />}><AcertoEntregadores /></Suspense>
                 } />
+                <Route path="/recompra" element={
+                  <Suspense fallback={<LoadingComponent />}><Recompra /></Suspense>
+                } />
+
               </Route>
               
               {/* Wildcard route for pages not found */}
