@@ -12,7 +12,9 @@ interface ClientDetails {
   notes: string;
 }
 
-interface ClientDetailsTabProps { client: ClientDetails; }
+interface ClientDetailsTabProps {
+  client: ClientDetails;
+}
 
 export function ClientDetailsTab({ client }: ClientDetailsTabProps) {
   const phoneDigits = (client.phone || "").replace(/\D/g, "");
@@ -35,8 +37,12 @@ export function ClientDetailsTab({ client }: ClientDetailsTabProps) {
           <p className="font-medium">{client.address || "—"}</p>
         </div>
         <div>
-          <Label className="text-muted-foreground">Vasilhames em Comodato</Label>
-          <p className="font-medium">{client.cylinderCount} ({client.cylinderTypes.join(", ") || "—"})</p>
+          <Label className="text-muted-foreground">
+            Vasilhames em Comodato
+          </Label>
+          <p className="font-medium">
+            {client.cylinderCount} ({client.cylinderTypes.join(", ") || "—"})
+          </p>
         </div>
         <div>
           <Label className="text-muted-foreground">Observações</Label>
@@ -48,14 +54,14 @@ export function ClientDetailsTab({ client }: ClientDetailsTabProps) {
         {client.address && (
           <Button variant="outline" size="sm" asChild>
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
-            <MapPin className="h-4 w-4 mr-1" /> Abrir no Maps
+              <MapPin className="h-4 w-4 mr-1" /> Abrir no Maps
             </a>
           </Button>
         )}
         {phoneDigits && (
           <Button variant="outline" size="sm" asChild>
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-            <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
+              <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp
             </a>
           </Button>
         )}
