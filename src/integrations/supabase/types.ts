@@ -14,16 +14,544 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cascos_emprestados: {
+        Row: {
+          cliente_id: string
+          data_devolucao: string | null
+          data_emprestimo: string
+          id: string
+          observacoes: string | null
+          organization_id: string
+          quantidade: number
+          registrado_por: string
+          status: string
+          tipo_cliente: string
+          tipo_vasilhame: string
+        }
+        Insert: {
+          cliente_id: string
+          data_devolucao?: string | null
+          data_emprestimo?: string
+          id?: string
+          observacoes?: string | null
+          organization_id: string
+          quantidade?: number
+          registrado_por: string
+          status?: string
+          tipo_cliente: string
+          tipo_vasilhame: string
+        }
+        Update: {
+          cliente_id?: string
+          data_devolucao?: string | null
+          data_emprestimo?: string
+          id?: string
+          observacoes?: string | null
+          organization_id?: string
+          quantidade?: number
+          registrado_por?: string
+          status?: string
+          tipo_cliente?: string
+          tipo_vasilhame?: string
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          address: Json | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: Json | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: Json | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      colaboradores: {
+        Row: {
+          atualizado_em: string
+          cargo: string
+          cpf: string | null
+          criado_em: string
+          data_admissao: string
+          id: string
+          nome: string
+          observacoes: string | null
+          organization_id: string
+          situacao: string
+          telefone: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          cargo: string
+          cpf?: string | null
+          criado_em?: string
+          data_admissao: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          organization_id: string
+          situacao?: string
+          telefone?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          cargo?: string
+          cpf?: string | null
+          criado_em?: string
+          data_admissao?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          organization_id?: string
+          situacao?: string
+          telefone?: string | null
+        }
+        Relationships: []
+      }
+      configuracoes_entrega: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          id: string
+          organization_id: string | null
+          raio_maximo_km: number | null
+          rastreamento_ativo: boolean | null
+          taxa_entrega: number | null
+          valor_min_entrega_gratis: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          id?: string
+          organization_id?: string | null
+          raio_maximo_km?: number | null
+          rastreamento_ativo?: boolean | null
+          taxa_entrega?: number | null
+          valor_min_entrega_gratis?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          id?: string
+          organization_id?: string | null
+          raio_maximo_km?: number | null
+          rastreamento_ativo?: boolean | null
+          taxa_entrega?: number | null
+          valor_min_entrega_gratis?: number | null
+        }
+        Relationships: []
+      }
+      configuracoes_estoque: {
+        Row: {
+          alerta_ativo: boolean
+          atualizado_em: string
+          atualizado_por: string | null
+          destinatarios_alerta: Json | null
+          estoque_minimo: number
+          id: string
+          organization_id: string | null
+          produto: string
+        }
+        Insert: {
+          alerta_ativo?: boolean
+          atualizado_em?: string
+          atualizado_por?: string | null
+          destinatarios_alerta?: Json | null
+          estoque_minimo?: number
+          id?: string
+          organization_id?: string | null
+          produto: string
+        }
+        Update: {
+          alerta_ativo?: boolean
+          atualizado_em?: string
+          atualizado_por?: string | null
+          destinatarios_alerta?: Json | null
+          estoque_minimo?: number
+          id?: string
+          organization_id?: string | null
+          produto?: string
+        }
+        Relationships: []
+      }
+      configuracoes_financeiras: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          id: string
+          metodos_pagamento: Json | null
+          moeda: string | null
+          organization_id: string | null
+          taxa_imposto: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          id?: string
+          metodos_pagamento?: Json | null
+          moeda?: string | null
+          organization_id?: string | null
+          taxa_imposto?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          id?: string
+          metodos_pagamento?: Json | null
+          moeda?: string | null
+          organization_id?: string | null
+          taxa_imposto?: number | null
+        }
+        Relationships: []
+      }
+      configuracoes_notificacoes: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          email_ativo: boolean | null
+          id: string
+          notificacao_estoque: boolean | null
+          notificacao_pedidos: boolean | null
+          organization_id: string | null
+          sms_ativo: boolean | null
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          email_ativo?: boolean | null
+          id?: string
+          notificacao_estoque?: boolean | null
+          notificacao_pedidos?: boolean | null
+          organization_id?: string | null
+          sms_ativo?: boolean | null
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          email_ativo?: boolean | null
+          id?: string
+          notificacao_estoque?: boolean | null
+          notificacao_pedidos?: boolean | null
+          organization_id?: string | null
+          sms_ativo?: boolean | null
+        }
+        Relationships: []
+      }
+      configuracoes_seguranca: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          dois_fatores_ativo: boolean | null
+          expiracao_senha_dias: number | null
+          id: string
+          nivel_log: string | null
+          organization_id: string | null
+          tempo_sessao_minutos: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          dois_fatores_ativo?: boolean | null
+          expiracao_senha_dias?: number | null
+          id?: string
+          nivel_log?: string | null
+          organization_id?: string | null
+          tempo_sessao_minutos?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          dois_fatores_ativo?: boolean | null
+          expiracao_senha_dias?: number | null
+          id?: string
+          nivel_log?: string | null
+          organization_id?: string | null
+          tempo_sessao_minutos?: number | null
+        }
+        Relationships: []
+      }
+      configuracoes_sistema: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          email: string | null
+          endereco: string | null
+          id: string
+          nome_empresa: string | null
+          organization_id: string | null
+          telefone: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome_empresa?: string | null
+          organization_id?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome_empresa?: string | null
+          organization_id?: string | null
+          telefone?: string | null
+        }
+        Relationships: []
+      }
+      dashboard_data: {
+        Row: {
+          id: string
+          organization_id: string | null
+          sales_data: Json
+          stock_data: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          organization_id?: string | null
+          sales_data?: Json
+          stock_data?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string | null
+          sales_data?: Json
+          stock_data?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          address: Json | null
+          assigned_at: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery_person: string | null
+          has_empty_cylinder: boolean | null
+          id: string
+          is_complete_package: boolean | null
+          notes: string | null
+          organization_id: string | null
+          payment_method: string | null
+          price: number | null
+          product: string | null
+          quantity: number | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: Json | null
+          assigned_at?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_person?: string | null
+          has_empty_cylinder?: boolean | null
+          id?: string
+          is_complete_package?: boolean | null
+          notes?: string | null
+          organization_id?: string | null
+          payment_method?: string | null
+          price?: number | null
+          product?: string | null
+          quantity?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: Json | null
+          assigned_at?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_person?: string | null
+          has_empty_cylinder?: boolean | null
+          id?: string
+          is_complete_package?: boolean | null
+          notes?: string | null
+          organization_id?: string | null
+          payment_method?: string | null
+          price?: number | null
+          product?: string | null
+          quantity?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          organization_id: string | null
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          name: string
+          organization_id?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      requisicoes_estoque: {
+        Row: {
+          data_processamento: string | null
+          data_solicitacao: string
+          destino: string
+          id: string
+          itens: Json
+          observacoes: string | null
+          organization_id: string
+          origem: string
+          processado_por: string | null
+          solicitante_id: string
+          status: string
+        }
+        Insert: {
+          data_processamento?: string | null
+          data_solicitacao?: string
+          destino: string
+          id?: string
+          itens?: Json
+          observacoes?: string | null
+          organization_id: string
+          origem: string
+          processado_por?: string | null
+          solicitante_id: string
+          status?: string
+        }
+        Update: {
+          data_processamento?: string | null
+          data_solicitacao?: string
+          destino?: string
+          id?: string
+          itens?: Json
+          observacoes?: string | null
+          organization_id?: string
+          origem?: string
+          processado_por?: string | null
+          solicitante_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      clear_test_data: { Args: never; Returns: undefined }
+      get_my_org: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +678,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
