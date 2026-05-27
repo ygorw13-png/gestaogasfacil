@@ -75,8 +75,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
         returnItem = true 
       } = options;
       
-      const { data: result, error: responseError } = await supabase
-        .from(tableName)
+      const { data: result, error: responseError } = await (supabase
+        .from(tableName) as any)
         .insert(item)
         .select(returnItem ? '*' : '');
       
@@ -115,8 +115,8 @@ export function useTableOperations<T extends Record<string, unknown>>(
       } = options;
       
       // Update the item
-      const { error: updateError } = await supabase
-        .from(tableName)
+      const { error: updateError } = await (supabase
+        .from(tableName) as any)
         .update(data)
         .eq(idField, id);
       

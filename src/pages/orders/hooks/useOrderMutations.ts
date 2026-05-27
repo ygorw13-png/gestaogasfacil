@@ -148,8 +148,8 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
         updateData.payment_method = extraData.paymentMethod;
       }
 
-      const { error } = await supabase
-        .from('orders')
+      const { error } = await (supabase
+        .from('orders') as any)
         .update(updateData)
         .eq('id', orderId);
 

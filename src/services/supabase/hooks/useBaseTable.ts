@@ -41,8 +41,8 @@ export function useBaseTable<T extends Record<string, unknown>>(
     try {
       const { columns, filters, orderBy, pagination } = options;
       
-      // Start building the query
-      let query = supabase.from(tableName).select(columns || '*');
+      // Start building the query - cast to any to avoid deep generic recursion
+      let query: any = supabase.from(tableName).select(columns || '*');
       
       // Apply filters if provided
       if (filters) {
