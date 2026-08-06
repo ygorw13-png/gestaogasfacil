@@ -75,7 +75,10 @@ export function NewResellerForm({ onSubmit, isSubmitting }: NewResellerFormProps
         )} />
 
         <div className="flex justify-end">
-          <Button type="submit">Cadastrar Agregado</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Salvando..." : "Cadastrar Agregado"}
+          </Button>
+
         </div>
       </form>
     </Form>
