@@ -27,8 +27,8 @@ export function useLoginForm() {
     if (user) {
       logger.debug("Login page - User already authenticated, redirecting", { module: 'auth', user: user.id });
       
-      // Redirect to previous page if available, otherwise to dashboard
-      const from = location.state?.from?.pathname || '/dashboard';
+      // Redireciona para a página anterior, senão para a raiz (que decide pelo papel)
+      const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     }
   }, [user, navigate, location]);
