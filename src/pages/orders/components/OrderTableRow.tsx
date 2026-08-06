@@ -117,6 +117,16 @@ function OrderTableRowComponent({
               <Check size={14} className="mr-1" /> Concluir
             </Button>
           )}
+          <WhatsAppButton
+            phone={order.clientPhone}
+            iconOnly
+            message={
+              order.status === "delivering" || order.status === "assigned"
+                ? msgSaiuParaEntrega(order, order.deliveryPerson)
+                : msgPedidoConfirmado(order)
+            }
+            variant="ghost"
+          />
           <Button
             variant="ghost"
             size="icon"
