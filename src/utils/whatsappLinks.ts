@@ -201,12 +201,10 @@ export function msgRecompra(params: {
   }
 
   if (params.tipo === "atrasado") {
-    return [
-      `Olá ${nome}! 👋 Faz ${params.diasDesdeUltima ?? "alguns"} dias desde sua última compra de gás`,
-      params.mediaDias ? `e normalmente você recompra a cada ${params.mediaDias} dias.` : ".",
-      "Não queremos que o seu acabe no meio do almoço 😅",
-      ...sugestao,
-    ].join(" ").replace(" \n", "\n");
+    const linha1 = params.mediaDias
+      ? `Olá ${nome}! 👋 Já faz ${params.diasDesdeUltima ?? "alguns"} dias desde sua última compra de gás e normalmente você recompra a cada ${params.mediaDias} dias.`
+      : `Olá ${nome}! 👋 Já faz ${params.diasDesdeUltima ?? "alguns"} dias desde sua última compra de gás.`;
+    return [linha1, "Não queremos que o seu acabe na hora do almoço 😅", ...sugestao].join("\n");
   }
 
   return [
