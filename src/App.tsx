@@ -43,6 +43,7 @@ const MinhasEntregas = lazy(() => import("./pages/entregador/MinhasEntregas"));
 const CadastroRapido = lazy(() => import("./pages/entregador/CadastroRapido"));
 const VendaRua = lazy(() => import("./pages/entregador/VendaRua"));
 const AcertoEntregadores = lazy(() => import("./pages/entrance/AcertoEntregadores"));
+const HistoricoPortaria = lazy(() => import("./pages/entrance/HistoricoPortaria"));
 const Recompra = lazy(() => import("./pages/recompra/Recompra"));
 
 
@@ -189,6 +190,9 @@ function App() {
                 } />
                 <Route path="/entrance/acerto-entregadores" element={
                   <Suspense fallback={<LoadingComponent />}><AcertoEntregadores /></Suspense>
+                } />
+                <Route path="/entrance/historico-portaria" element={
+                  <Suspense fallback={<LoadingComponent />}><HistoricoPortaria /></Suspense>
                 } />
                 <Route path="/recompra" element={
                   <Suspense fallback={<LoadingComponent />}><Recompra /></Suspense>
