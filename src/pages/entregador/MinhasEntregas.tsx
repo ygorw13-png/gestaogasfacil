@@ -16,6 +16,8 @@ import { formatAddress, mapsRouteUrl } from "@/utils/mapsLinks";
 import { tipoVendaShort } from "@/lib/saleTypes";
 import { playDeliveryAlert } from "@/utils/deliveryAlert";
 import { useToast } from "@/hooks/use-toast";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+
 
 const minutesSince = (iso?: string | null) =>
   iso ? Math.floor((Date.now() - new Date(iso).getTime()) / 60000) : 0;
