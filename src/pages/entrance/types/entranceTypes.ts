@@ -21,7 +21,7 @@ export interface EntranceState {
 }
 
 export interface Sale {
-  id: number;
+  id: number | string;
   time: string;
   client: string;
   product: string;
