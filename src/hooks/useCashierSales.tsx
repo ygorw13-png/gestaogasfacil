@@ -5,6 +5,9 @@ import { updateInventorySales } from '@/pages/entrance/data/mockData';
 import { useToast } from '@/hooks/use-toast';
 import { DollarSign, CreditCard, FileText } from 'lucide-react';
 import { useRegistrarMovimentacao, type PortariaProduto } from '@/pages/entrance/hooks/usePortariaStock';
+import { useVendasHoje } from '@/pages/entrance/hooks/useVendasHoje';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Estado inicial do caixa - todos os valores zerados
 export const initialCashierData: CashierData = {
@@ -38,6 +41,8 @@ export const initialSalesByType: SalesByType[] = [
 export function useCashierSales() {
   const { toast } = useToast();
   const registrarMov = useRegistrarMovimentacao();
+  const queryClient = useQueryClient();
+  const { data: vendasHoje } = useVendasHoje();
   const [cashierData, setCashierData] = useState<CashierData>(initialCashierData);
   const [recentSales, setRecentSales] = useState<Sale[]>([]);
   const [glpSales, setGlpSales] = useState({
@@ -78,6 +83,22 @@ export function useCashierSales() {
     return () => clearInterval(interval);
   }, [startTime, recentSales.length, updateHoursElapsed]);
 
+  // Sincroniza os totais da portaria com TODAS as vendas do dia registradas no banco
+  // (venda na portaria, venda rápida, entregas concluídas e vendas na rua)
+  useEffect(() => {
+    if (!vendasHoje) return;
+    setCashierData(prev => ({ ...prev, totalSales: vendasHoje.totalSales }));
+    setRecentSales(vendasHoje.recentSales);
+    setGlpSales(vendasHoje.glpSales);
+    setWaterSales(vendasHoje.waterSales);
+    setSalesByType(prev =>
+      prev.map(item => ({ ...item, amount: vendasHoje.byPayment[item.type] || 0 }))
+    );
+    if (vendasHoje.firstSaleAt) {
+      setStartTime(prev => prev || vendasHoje.firstSaleAt);
+    }
+  }, [vendasHoje]);
+
   const handleNewSaleSubmit = useCallback((newSale: Sale) => {
     // Set start time if this is the first sale after reset
     setStartTime(prevStartTime => {
@@ -87,30 +108,47 @@ export function useCashierSales() {
       return prevStartTime;
     });
     
-    setRecentSales(prevSales => [newSale, ...prevSales.slice(0, 4)]);
-    
-    setCashierData(prevData => {
-      const newTotal = prevData.totalSales + newSale.amount;
-      return {
-        ...prevData,
-        totalSales: newTotal,
-      };
-    });
-    
-    // Atualizar as vendas de estoque e os contadores de produtos
-    if (newSale.product.includes('P13')) {
-      setGlpSales(prev => ({ ...prev, p13: prev.p13 + newSale.quantity }));
-      updateInventorySales('P13', newSale.quantity);
-    } else if (newSale.product.includes('P20')) {
-      setGlpSales(prev => ({ ...prev, p20: prev.p20 + newSale.quantity }));
-      updateInventorySales('P20', newSale.quantity);
-    } else if (newSale.product.includes('P45')) {
-      setGlpSales(prev => ({ ...prev, p45: prev.p45 + newSale.quantity }));
-      updateInventorySales('P45', newSale.quantity);
-    } else if (newSale.product.includes('Água')) {
-      setWaterSales(prev => prev + newSale.quantity);
-      updateInventorySales('Água', newSale.quantity);
-    }
+    // Atualiza contadores locais de estoque (mock legado)
+    if (newSale.product.includes('P13')) updateInventorySales('P13', newSale.quantity);
+    else if (newSale.product.includes('P20')) updateInventorySales('P20', newSale.quantity);
+    else if (newSale.product.includes('P45')) updateInventorySales('P45', newSale.quantity);
+    else if (newSale.product.includes('Água')) updateInventorySales('Água', newSale.quantity);
+
+    // Persiste a venda da portaria em orders para entrar nos totais do dia
+    const paymentCodeMap: Record<string, string> = {
+      'Dinheiro': 'money',
+      'Crédito': 'credit',
+      'Débito': 'debit',
+      'PIX': 'pix',
+      'Promissória': 'promissoria',
+      'Vale Gás': 'vale-gas',
+      'Convênio': 'convenio',
+    };
+    (async () => {
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        const userId = authData?.user?.id;
+        if (!userId) return;
+        const now = new Date().toISOString();
+        await supabase.from('orders').insert({
+          user_id: userId,
+          client_name: newSale.client,
+          address: {},
+          product: newSale.product,
+          quantity: newSale.quantity,
+          price: newSale.amount,
+          payment_method: paymentCodeMap[newSale.payment] || 'money',
+          status: 'delivered',
+          delivered_at: now,
+          origem_venda: 'portaria',
+          has_empty_cylinder: newSale.cylinderMovement !== 'loan',
+          notes: 'Venda registrada na portaria',
+        } as any);
+        queryClient.invalidateQueries({ queryKey: ['vendas_hoje'] });
+      } catch (e) {
+        console.error('Erro ao registrar venda no banco:', e);
+      }
+    })();
     
     // Registrar movimentação no estoque da portaria (Supabase)
     const codeToProduto: Record<string, PortariaProduto> = {
@@ -131,16 +169,6 @@ export function useCashierSales() {
       });
     }
     
-    // Update payment type statistics
-    setSalesByType(prev => 
-      prev.map(item => {
-        if (item.type === newSale.payment) {
-          return { ...item, amount: item.amount + newSale.amount };
-        }
-        return item;
-      })
-    );
-    
     toast({
       title: "Venda registrada",
       description: "A venda foi registrada com sucesso.",
@@ -148,7 +176,7 @@ export function useCashierSales() {
     });
     
     setNewSaleOpen(false);
-  }, [toast, registrarMov]);
+  }, [toast, registrarMov, queryClient]);
 
   return {
     cashierData,
