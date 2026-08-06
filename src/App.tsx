@@ -106,7 +106,7 @@ function App() {
                 } />
                 <Route path="/orders/map" element={
                   <Suspense fallback={<LoadingComponent />}>
-                    <OrdersMap orders={[]} />
+                    <OrdersMap />
                   </Suspense>
                 } />
                 <Route path="/orders/new" element={
