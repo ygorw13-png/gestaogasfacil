@@ -96,7 +96,7 @@ export default function Orders() {
         </TabsContent>
 
         <TabsContent value="map">
-          <OrdersMap orders={orders} />
+          <OrdersMap />
         </TabsContent>
       </Tabs>
     </div>

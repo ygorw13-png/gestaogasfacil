@@ -20,6 +20,9 @@ export interface DeliveryOrder {
   delivered_at: string | null;
   delivery_person: string | null;
   created_at: string;
+  tipo_venda?: string | null;
+  vasilhames_entregues?: number | null;
+  vasilhames_recebidos?: number | null;
 }
 
 /**
@@ -125,14 +128,15 @@ export function useConfirmDelivery() {
   const qc = useQueryClient();
   const { toast } = useToast();
   return useMutation({
-    mutationFn: async ({ orderId, recebeuVasilhame }: { orderId: string; recebeuVasilhame: boolean }) => {
+    mutationFn: async ({ orderId, recebeuVasilhame, vasilhamesRecebidos = 0 }: { orderId: string; recebeuVasilhame: boolean; vasilhamesRecebidos?: number }) => {
       const { error } = await supabase
         .from("orders")
         .update({
           status: "completed",
           delivered_at: new Date().toISOString(),
           has_empty_cylinder: recebeuVasilhame,
-        })
+          vasilhames_recebidos: recebeuVasilhame ? vasilhamesRecebidos : 0,
+        } as any)
         .eq("id", orderId);
       if (error) throw error;
     },

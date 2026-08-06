@@ -8,7 +8,7 @@ import { AdminNavigation } from "./categories/AdminNavigation";
 import { EntregadorNavigation } from "./categories/EntregadorNavigation";
 import { SidebarLink } from "./SidebarLink";
 import { useUserRole } from "@/hooks/useUserRole";
-import { Users, Package, Repeat } from "lucide-react";
+import { Users, Package, Repeat, FileBarChart } from "lucide-react";
 
 export const SidebarNav = () => {
   const { isEntregador, isPortaria } = useUserRole();
@@ -34,6 +34,7 @@ export const SidebarNav = () => {
           <SidebarLink to="/clients" icon={Users} label="Clientes" />
           <SidebarLink to="/recompra" icon={Repeat} label="Recompra" />
           <SidebarLink to="/inventory" icon={Package} label="Estoque" />
+          <SidebarLink to="/relatorios/vasilhames" icon={FileBarChart} label="Relatório Vasilhames" />
         </NavCategory>
       </nav>
     );

@@ -13,9 +13,12 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     case "assigned":
       return <Badge variant="secondary" className="flex items-center gap-1"><Clipboard size={12} /> Atribuído</Badge>;
     case "delivering":
-      return <Badge variant="default" className="bg-amber-500 flex items-center gap-1"><Truck size={12} /> Em entrega</Badge>;
+    case "in-progress":
+      return <Badge variant="default" className="bg-amber-500 flex items-center gap-1"><Truck size={12} /> Aceita — em entrega</Badge>;
     case "delivered":
+    case "completed":
       return <Badge variant="default" className="bg-green-600 flex items-center gap-1"><Check size={12} /> Entregue</Badge>;
+
     case "cancelled":
       return <Badge variant="destructive" className="flex items-center gap-1"><X size={12} /> Cancelado</Badge>;
     default:

@@ -1,5 +1,8 @@
 
-import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
+import { FormField, FormItem, FormControl, FormMessage, FormLabel } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TIPOS_VENDA } from "@/lib/saleTypes";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -41,6 +44,32 @@ export function ProductsFormSection({
           </Alert>
         )}
       </div>
+
+      <FormField
+        control={control}
+        name="tipoVenda"
+        render={({ field }) => (
+          <FormItem className="max-w-md">
+            <FormLabel>Tipo de venda</FormLabel>
+            <Select value={field.value as string} onValueChange={field.onChange}>
+              <FormControl>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {TIPOS_VENDA.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {TIPOS_VENDA.find((t) => t.value === field.value)?.description}
+            </p>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <ProductInput

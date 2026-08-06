@@ -16,6 +16,7 @@ export const formSchema = z.object({
   gasP20: z.number().int().min(0, "Quantidade inválida").max(99, "Quantidade máxima excedida"),
   gasP45: z.number().int().min(0, "Quantidade inválida").max(99, "Quantidade máxima excedida"),
   water: z.number().int().min(0, "Quantidade inválida").max(99, "Quantidade máxima excedida"),
+  tipoVenda: z.enum(["completa", "recarga", "vasilhame"]),
   paymentMethod: z.string().min(1, "Método de pagamento é obrigatório"),
   saleValue: z.number().min(0).optional(),
   observations: z.string().optional(),

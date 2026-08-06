@@ -517,6 +517,42 @@ export type Database = {
           },
         ]
       }
+      entregador_localizacoes: {
+        Row: {
+          accuracy: number | null
+          created_at: string
+          id: string
+          latitude: number
+          longitude: number
+          nome: string | null
+          organization_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string
+          id?: string
+          latitude: number
+          longitude: number
+          nome?: string | null
+          organization_id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          nome?: string | null
+          organization_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       movimentacoes_portaria: {
         Row: {
           cliente_id: string | null
@@ -579,6 +615,7 @@ export type Database = {
           accepted_at: string | null
           address: Json | null
           assigned_at: string | null
+          client_id: string | null
           client_name: string
           client_phone: string | null
           created_at: string
@@ -596,13 +633,17 @@ export type Database = {
           quantity: number | null
           rejection_reason: string | null
           status: string | null
+          tipo_venda: string
           updated_at: string
           user_id: string
+          vasilhames_entregues: number
+          vasilhames_recebidos: number
         }
         Insert: {
           accepted_at?: string | null
           address?: Json | null
           assigned_at?: string | null
+          client_id?: string | null
           client_name: string
           client_phone?: string | null
           created_at?: string
@@ -620,13 +661,17 @@ export type Database = {
           quantity?: number | null
           rejection_reason?: string | null
           status?: string | null
+          tipo_venda?: string
           updated_at?: string
           user_id: string
+          vasilhames_entregues?: number
+          vasilhames_recebidos?: number
         }
         Update: {
           accepted_at?: string | null
           address?: Json | null
           assigned_at?: string | null
+          client_id?: string | null
           client_name?: string
           client_phone?: string | null
           created_at?: string
@@ -644,8 +689,11 @@ export type Database = {
           quantity?: number | null
           rejection_reason?: string | null
           status?: string | null
+          tipo_venda?: string
           updated_at?: string
           user_id?: string
+          vasilhames_entregues?: number
+          vasilhames_recebidos?: number
         }
         Relationships: []
       }

@@ -28,6 +28,9 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
         has_empty_cylinder: order.hasEmptyCylinder || false,
         is_complete_package: order.isCompletePackage || false,
         status: "pending" as OrderStatus,
+        tipo_venda: order.tipoVenda ?? "completa",
+        vasilhames_entregues: order.tipoVenda === "recarga" ? 0 : (order.quantity || 0),
+        vasilhames_recebidos: 0,
         notes: order.notes
       };
 
