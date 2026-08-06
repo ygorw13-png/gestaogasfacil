@@ -172,7 +172,9 @@ export default function MinhasEntregas() {
   const { data: orders = [], isLoading } = useMyDeliveries();
   const { name, isEntregador } = useUserRole();
   const { toast } = useToast();
+  const push = usePushNotifications();
   const lastReminder = useRef(0);
+
 
   // Atualiza a localização no mapa de entregas sempre que acessa o app
   useTrackMyLocation(isEntregador, name);
