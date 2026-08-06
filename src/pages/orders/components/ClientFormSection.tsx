@@ -118,24 +118,42 @@ export function ClientFormSection({ control }: ClientFormSectionProps) {
         </Alert>
       )}
 
+      {matchedClient && (
+        <Alert className="mb-2">
+          <UserCheck className="h-4 w-4" />
+          <AlertDescription>
+            Cliente <strong>{matchedClient}</strong> encontrado — dados preenchidos automaticamente.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField
           control={control}
           name="clientName"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="relative">
               <FormLabel>Nome *</FormLabel>
               <FormControl>
                 <Input 
                   placeholder="Nome do cliente" 
+                  autoComplete="off"
                   {...field} 
                   onChange={(e) => {
                     // Sanitiza a entrada limitando a 100 caracteres
                     const sanitized = e.target.value.substring(0, 100);
                     field.onChange(sanitized);
+                    setMatchedClient(null);
+                    setOpenField("name");
+                  }}
+                  onFocus={() => setOpenField("name")}
+                  onBlur={() => {
+                    field.onBlur();
+                    setTimeout(() => setOpenField((f) => (f === "name" ? null : f)), 120);
                   }}
                 />
               </FormControl>
+              <SuggestionList field="name" />
               <FormMessage />
             </FormItem>
           )}
@@ -145,24 +163,34 @@ export function ClientFormSection({ control }: ClientFormSectionProps) {
           control={control}
           name="clientPhone"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="relative">
               <FormLabel>Telefone *</FormLabel>
               <FormControl>
                 <Input 
                   placeholder="Somente números" 
                   maxLength={11}
+                  autoComplete="off"
                   {...field} 
                   onChange={(e) => {
                     const formattedValue = formatPhoneNumber(e.target.value);
                     field.onChange(formattedValue);
+                    setMatchedClient(null);
+                    setOpenField("phone");
+                  }}
+                  onFocus={() => setOpenField("phone")}
+                  onBlur={() => {
+                    field.onBlur();
+                    setTimeout(() => setOpenField((f) => (f === "phone" ? null : f)), 120);
                   }}
                 />
               </FormControl>
+              <SuggestionList field="phone" />
               <FormMessage />
             </FormItem>
           )}
         />
       </div>
+
       
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField
