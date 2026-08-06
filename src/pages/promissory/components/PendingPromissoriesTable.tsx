@@ -47,6 +47,16 @@ function PendingPromissoriesTableComponent({
               </Badge>
             </TableCell>
             <TableCell className="flex gap-2">
+              <WhatsAppButton
+                phone={note.clientPhone}
+                label="Cobrar"
+                message={msgPromissoria({
+                  clientName: note.clientName,
+                  value: note.value,
+                  dueDate: note.dueDate,
+                  vencida: note.status === "overdue",
+                })}
+              />
               <Button
                 size="sm"
                 variant="outline"
