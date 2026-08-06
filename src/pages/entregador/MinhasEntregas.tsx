@@ -210,18 +210,21 @@ export default function MinhasEntregas() {
     return () => clearInterval(timer);
   }, [pendentes, emRota, toast]);
 
-  const enableNotifications = () => {
-    if ("Notification" in window) Notification.requestPermission();
-  };
-
   return (
     <div className="space-y-4 pb-8">
       <div className="flex justify-between items-center gap-2">
         <h1 className="text-2xl font-bold">Minhas Entregas</h1>
-        <Button variant="outline" size="sm" onClick={enableNotifications}>
-          <Bell className="h-4 w-4 mr-1" /> Alertas
+        <Button
+          variant={push.subscribed ? "secondary" : "default"}
+          size="sm"
+          disabled={push.loading || !push.supported}
+          onClick={() => (push.subscribed ? push.unsubscribe() : push.subscribe())}
+        >
+          {push.subscribed ? <BellOff className="h-4 w-4 mr-1" /> : <Bell className="h-4 w-4 mr-1" />}
+          {push.subscribed ? "Alertas ativos" : "Ativar alertas"}
         </Button>
       </div>
+
 
       <div className="grid grid-cols-3 gap-2">
         <Card><CardContent className="p-3 text-center">
