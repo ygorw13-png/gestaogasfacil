@@ -56,7 +56,7 @@ function OrderTableRowComponent({
         <div className="font-medium">
           {order.createdAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
         </div>
-        <div className={`text-xs ${isLate ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+        <div className={`text-xs ${isCritical ? "text-destructive font-medium" : isLate ? "text-amber-600 font-medium" : "text-muted-foreground"}`}>
           {getTimeAgo(order.createdAt)}
         </div>
       </TableCell>
