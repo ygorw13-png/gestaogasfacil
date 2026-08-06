@@ -7,6 +7,8 @@ import { StatusBadge } from "./StatusBadge";
 import { Clipboard, Check, X, Truck, PhoneCall } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { WhatsAppButton } from "@/components/common/WhatsAppButton";
+import { msgPedidoConfirmado, msgSaiuParaEntrega } from "@/utils/whatsappLinks";
 
 interface OrderTableRowProps {
   order: Order;
