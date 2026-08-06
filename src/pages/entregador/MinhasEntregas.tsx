@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Phone, Package, DollarSign, CreditCard, Navigation, Check, X, Bell, Clock } from "lucide-react";
+import { MapPin, Phone, Package, DollarSign, CreditCard, Navigation, Check, X, Bell, BellOff, Clock } from "lucide-react";
 import { useMyDeliveries, useAcceptDelivery, useRejectDelivery, useConfirmDelivery, type DeliveryOrder } from "@/hooks/useMyDeliveries";
 import { useTrackMyLocation } from "@/hooks/useEntregadorLocation";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -16,6 +16,8 @@ import { formatAddress, mapsRouteUrl } from "@/utils/mapsLinks";
 import { tipoVendaShort } from "@/lib/saleTypes";
 import { playDeliveryAlert } from "@/utils/deliveryAlert";
 import { useToast } from "@/hooks/use-toast";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+
 
 const minutesSince = (iso?: string | null) =>
   iso ? Math.floor((Date.now() - new Date(iso).getTime()) / 60000) : 0;
@@ -172,7 +174,9 @@ export default function MinhasEntregas() {
   const { data: orders = [], isLoading } = useMyDeliveries();
   const { name, isEntregador } = useUserRole();
   const { toast } = useToast();
+  const push = usePushNotifications();
   const lastReminder = useRef(0);
+
 
   // Atualiza a localização no mapa de entregas sempre que acessa o app
   useTrackMyLocation(isEntregador, name);
@@ -210,18 +214,21 @@ export default function MinhasEntregas() {
     return () => clearInterval(timer);
   }, [pendentes, emRota, toast]);
 
-  const enableNotifications = () => {
-    if ("Notification" in window) Notification.requestPermission();
-  };
-
   return (
     <div className="space-y-4 pb-8">
       <div className="flex justify-between items-center gap-2">
         <h1 className="text-2xl font-bold">Minhas Entregas</h1>
-        <Button variant="outline" size="sm" onClick={enableNotifications}>
-          <Bell className="h-4 w-4 mr-1" /> Alertas
+        <Button
+          variant={push.subscribed ? "secondary" : "default"}
+          size="sm"
+          disabled={push.loading || !push.supported}
+          onClick={() => (push.subscribed ? push.unsubscribe() : push.subscribe())}
+        >
+          {push.subscribed ? <BellOff className="h-4 w-4 mr-1" /> : <Bell className="h-4 w-4 mr-1" />}
+          {push.subscribed ? "Alertas ativos" : "Ativar alertas"}
         </Button>
       </div>
+
 
       <div className="grid grid-cols-3 gap-2">
         <Card><CardContent className="p-3 text-center">

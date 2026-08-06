@@ -108,6 +108,20 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
 
       if (error) throw error;
 
+      // Notificação push para o entregador (não bloqueia o fluxo)
+      supabase.functions
+        .invoke("send-push", {
+          body: {
+            deliveryPersonName: deliveryPerson,
+            title: "Nova entrega atribuída",
+            body: "Você recebeu uma nova entrega. Abra o app para aceitar.",
+            url: "/entregador/entregas",
+          },
+        })
+        .catch((e) => console.warn("Falha ao enviar push:", e));
+
+
+
       setOrders(prevOrders => 
         prevOrders.map((order) => {
           if (order.id === orderId) {
