@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, Plus, Truck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,17 @@ export default function Orders() {
     handleCompleteOrder,
     handleCancelOrder,
   } = useOrders();
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "F2") {
+        e.preventDefault();
+        setIsQuickSaleOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const onNewOrderSubmit = (order: any) => {
     handleAddOrder(order);
