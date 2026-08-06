@@ -19,9 +19,11 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface NewResellerFormProps {
   onSubmit: (data: FormValues & { priceP20: number; priceP45: number; priceWater: number }) => void;
+  isSubmitting?: boolean;
 }
 
-export function NewResellerForm({ onSubmit }: NewResellerFormProps) {
+export function NewResellerForm({ onSubmit, isSubmitting }: NewResellerFormProps) {
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
