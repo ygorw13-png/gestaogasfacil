@@ -1,6 +1,15 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface UltimoPedido {
+  produto: string | null;
+  quantidade: number | null;
+  preco: number | null;
+  tipo_venda: string | null;
+  pagamento: string | null;
+  data: string;
+}
+
 export interface ClienteInsight {
   cliente_id: string;
   cliente_nome: string;
@@ -13,6 +22,7 @@ export interface ClienteInsight {
   status: "em_dia" | "hora_comprar" | "atrasado" | "novo";
   aniversario_hoje: boolean;
   data_nascimento: string | null;
+  ultimo_pedido: UltimoPedido | null;
 }
 
 interface Cliente {
@@ -28,6 +38,11 @@ interface Order {
   client_phone: string | null;
   created_at: string;
   status: string;
+  product: string | null;
+  quantity: number | null;
+  price: number | null;
+  tipo_venda: string | null;
+  payment_method: string | null;
 }
 
 function calcStatus(diasDesde: number | null, media: number | null): ClienteInsight["status"] {
