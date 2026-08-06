@@ -31,6 +31,17 @@ export default function Orders() {
     handleCancelOrder,
   } = useOrders();
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "F2") {
+        e.preventDefault();
+        setIsQuickSaleOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const onNewOrderSubmit = (order: any) => {
     handleAddOrder(order);
     setIsNewOrderOpen(false);
