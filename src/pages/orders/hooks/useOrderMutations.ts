@@ -82,9 +82,10 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
       console.error("Erro ao adicionar pedido:", error);
       toast({
         title: "Erro ao adicionar pedido",
-        description: "Não foi possível registrar o pedido.",
+        description: error instanceof Error ? error.message : "Não foi possível registrar o pedido.",
         variant: "destructive",
       });
+
     } finally {
       setLoading(false);
     }
