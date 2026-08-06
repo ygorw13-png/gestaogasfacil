@@ -1,6 +1,15 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface UltimoPedido {
+  produto: string | null;
+  quantidade: number | null;
+  preco: number | null;
+  tipo_venda: string | null;
+  pagamento: string | null;
+  data: string;
+}
+
 export interface ClienteInsight {
   cliente_id: string;
   cliente_nome: string;
@@ -13,6 +22,7 @@ export interface ClienteInsight {
   status: "em_dia" | "hora_comprar" | "atrasado" | "novo";
   aniversario_hoje: boolean;
   data_nascimento: string | null;
+  ultimo_pedido: UltimoPedido | null;
 }
 
 interface Cliente {
@@ -28,6 +38,11 @@ interface Order {
   client_phone: string | null;
   created_at: string;
   status: string;
+  product: string | null;
+  quantity: number | null;
+  price: number | null;
+  tipo_venda: string | null;
+  payment_method: string | null;
 }
 
 function calcStatus(diasDesde: number | null, media: number | null): ClienteInsight["status"] {
@@ -48,7 +63,8 @@ export function useRecompraInsights() {
       setLoading(true);
       const [{ data: c }, { data: o }] = await Promise.all([
         supabase.from("clients").select("id, name, phone, data_nascimento"),
-        supabase.from("orders").select("id, client_name, client_phone, created_at, status")
+        supabase.from("orders")
+          .select("id, client_name, client_phone, created_at, status, product, quantity, price, tipo_venda, payment_method")
           .order("created_at", { ascending: false }).limit(2000),
       ]);
       setClientes((c as Cliente[]) || []);
@@ -98,6 +114,18 @@ export function useRecompraInsights() {
 
       const aniversarioHoje = !!c.data_nascimento && c.data_nascimento.slice(5, 10) === todayMD;
 
+      const last = list[0];
+      const ultimoPedido: UltimoPedido | null = last
+        ? {
+            produto: last.product,
+            quantidade: last.quantity,
+            preco: last.price,
+            tipo_venda: last.tipo_venda,
+            pagamento: last.payment_method,
+            data: last.created_at,
+          }
+        : null;
+
       return {
         cliente_id: c.id,
         cliente_nome: c.name,
@@ -110,6 +138,7 @@ export function useRecompraInsights() {
         status: calcStatus(diasDesde, media),
         aniversario_hoje: aniversarioHoje,
         data_nascimento: c.data_nascimento,
+        ultimo_pedido: ultimoPedido,
       };
     }).sort((a, b) => {
       const order = { atrasado: 0, hora_comprar: 1, em_dia: 2, novo: 3 };

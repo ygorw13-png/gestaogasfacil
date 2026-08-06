@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MessageCircle, Phone, Cake, AlertCircle, CheckCircle2, Clock, UserPlus } from "lucide-react";
+import { MessageCircle, Phone, Cake, AlertCircle, CheckCircle2, Clock, UserPlus, Send, SkipForward } from "lucide-react";
 import { useRecompraInsights, ClienteInsight } from "./hooks/useRecompraInsights";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { msgRecompra, resumoUltimoPedido, openWhatsApp, normalizePhone } from "@/utils/whatsappLinks";
 
 const statusConfig = {
   em_dia:       { label: "Em dia",         className: "bg-green-100 text-green-800",   icon: CheckCircle2 },
@@ -18,31 +19,31 @@ const statusConfig = {
   novo:         { label: "Novo cliente",    className: "bg-gray-100 text-gray-700",     icon: UserPlus },
 };
 
-const DEFAULT_TEMPLATES = {
-  pre:  "Oi {nome}! 👋 Notamos que faz {dias} dias da sua última compra de gás. Quer que a gente já agende sua entrega? 🔥",
-  pos:  "Oi {nome}! Tudo certo com sua entrega? Se precisar de algo é só chamar 😊",
-  aniv: "Feliz aniversário, {nome}! 🎂 Toda a equipe deseja muitas felicidades. Conta com a gente sempre!",
-};
+type TipoContato = "pre" | "atrasado" | "pos" | "aniversario";
 
-function applyTemplate(tpl: string, ins: ClienteInsight): string {
-  return tpl
-    .replace(/{nome}/g, ins.cliente_nome.split(" ")[0])
-    .replace(/{dias}/g, String(ins.dias_desde_ultima ?? 0))
-    .replace(/{ultima_data}/g, ins.ultima_compra
-      ? new Date(ins.ultima_compra).toLocaleDateString("pt-BR") : "");
+function tipoParaCliente(i: ClienteInsight): TipoContato {
+  if (i.aniversario_hoje) return "aniversario";
+  if (i.dias_desde_ultima != null && i.dias_desde_ultima <= 3) return "pos";
+  if (i.status === "atrasado") return "atrasado";
+  return "pre";
 }
 
-function waLink(phone: string | null, msg: string) {
-  if (!phone) return null;
-  const digits = phone.replace(/\D/g, "");
-  if (!digits) return null;
-  return `https://wa.me/55${digits}?text=${encodeURIComponent(msg)}`;
+function mensagemPara(i: ClienteInsight, tipo: TipoContato) {
+  return msgRecompra({
+    clientName: i.cliente_nome,
+    tipo,
+    diasDesdeUltima: i.dias_desde_ultima,
+    mediaDias: i.media_dias,
+    ultimoPedido: i.ultimo_pedido,
+  });
 }
 
 export default function Recompra() {
   const { insights, loading } = useRecompraInsights();
   const [status, setStatus] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [fila, setFila] = useState<ClienteInsight[]>([]);
+  const [filaIndex, setFilaIndex] = useState(0);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -63,31 +64,56 @@ export default function Recompra() {
 
   const aniversariantes = useMemo(() => insights.filter(i => i.aniversario_hoje), [insights]);
 
-  const registrarContato = async (ins: ClienteInsight, tipo: "pre" | "pos" | "aniversario", canal: "whatsapp" | "ligacao") => {
+  // Clientes elegíveis para lembrete de recompra (atrasado ou na hora, com telefone válido)
+  const elegiveis = useMemo(
+    () => filtered.filter(i =>
+      (i.status === "atrasado" || i.status === "hora_comprar") && !!normalizePhone(i.cliente_phone)
+    ),
+    [filtered]
+  );
+
+  const registrarContato = async (ins: ClienteInsight, tipo: TipoContato, canal: "whatsapp" | "ligacao") => {
     const { error } = await supabase.from("contatos_recompra").insert({
       cliente_id: ins.cliente_id,
       cliente_nome: ins.cliente_nome,
-      tipo, canal,
+      tipo: tipo === "atrasado" ? "pre" : tipo,
+      canal,
+      observacao: resumoUltimoPedido(ins.ultimo_pedido) ?? undefined,
     });
     if (error) toast.error("Erro ao registrar: " + error.message);
-    else toast.success("Contato registrado");
   };
 
-  const handleWhats = (ins: ClienteInsight, tipo: "pre" | "pos" | "aniversario") => {
-    const tpl = tipo === "pre" ? DEFAULT_TEMPLATES.pre
-              : tipo === "pos" ? DEFAULT_TEMPLATES.pos
-              : DEFAULT_TEMPLATES.aniv;
-    const url = waLink(ins.cliente_phone, applyTemplate(tpl, ins));
-    if (!url) { toast.error("Cliente sem telefone"); return; }
-    window.open(url, "_blank");
+  const handleWhats = (ins: ClienteInsight, tipo: TipoContato) => {
+    const ok = openWhatsApp(ins.cliente_phone, mensagemPara(ins, tipo));
+    if (!ok) { toast.error("Cliente sem telefone válido"); return; }
     registrarContato(ins, tipo, "whatsapp");
   };
+
+  const iniciarDisparos = () => {
+    if (elegiveis.length === 0) { toast.error("Nenhum cliente elegível no filtro atual"); return; }
+    setFila(elegiveis);
+    setFilaIndex(0);
+    handleWhats(elegiveis[0], tipoParaCliente(elegiveis[0]));
+  };
+
+  const proximoDisparo = () => {
+    const next = filaIndex + 1;
+    if (next >= fila.length) {
+      setFila([]); setFilaIndex(0);
+      toast.success("Fila de disparos concluída");
+      return;
+    }
+    setFilaIndex(next);
+    handleWhats(fila[next], tipoParaCliente(fila[next]));
+  };
+
+  const atual = fila[filaIndex];
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Recompra</h1>
-        <p className="text-muted-foreground">CRM inteligente: identifique clientes prestes a recomprar e os que estão atrasados</p>
+        <p className="text-muted-foreground">CRM inteligente: lembretes de recompra no WhatsApp com sugestão de repetir o último pedido</p>
       </div>
 
       {/* Status cards */}
@@ -108,6 +134,29 @@ export default function Recompra() {
           );
         })}
       </div>
+
+      {/* Disparos em lote */}
+      <Card>
+        <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-3 justify-between">
+          <div className="text-sm">
+            <div className="font-medium">Disparo de lembretes</div>
+            <div className="text-muted-foreground">
+              {elegiveis.length} cliente(s) com telefone válido prontos para receber lembrete de recompra
+              {atual ? ` — enviando ${filaIndex + 1} de ${fila.length}: ${atual.cliente_nome}` : ""}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={iniciarDisparos} disabled={elegiveis.length === 0}>
+              <Send className="h-4 w-4 mr-2" /> Iniciar disparos ({elegiveis.length})
+            </Button>
+            {fila.length > 0 && (
+              <Button variant="outline" onClick={proximoDisparo}>
+                <SkipForward className="h-4 w-4 mr-2" /> Próximo
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Birthday alert */}
       {aniversariantes.length > 0 && (
@@ -155,7 +204,7 @@ export default function Recompra() {
             <TableHeader>
               <TableRow>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Última compra</TableHead>
+                <TableHead>Último pedido</TableHead>
                 <TableHead>Média</TableHead>
                 <TableHead>Atraso</TableHead>
                 <TableHead>Status</TableHead>
@@ -171,24 +220,31 @@ export default function Recompra() {
                 const cfg = statusConfig[i.status];
                 const atrasoDias = i.media_dias && i.dias_desde_ultima
                   ? Math.max(0, i.dias_desde_ultima - i.media_dias) : 0;
-                const isPos = i.dias_desde_ultima != null && i.dias_desde_ultima <= 3;
+                const tipo = tipoParaCliente(i);
+                const resumo = resumoUltimoPedido(i.ultimo_pedido);
+                const labelBtn = tipo === "pos" ? "Pós-venda" : tipo === "aniversario" ? "Parabenizar" : "Lembrete";
                 return (
                   <TableRow key={i.cliente_id}>
                     <TableCell>
                       <div className="font-medium">{i.cliente_nome}</div>
                       <div className="text-xs text-muted-foreground">{i.cliente_phone || "sem telefone"}</div>
                     </TableCell>
-                    <TableCell>{i.ultima_compra ? new Date(i.ultima_compra).toLocaleDateString("pt-BR") : "—"}</TableCell>
+                    <TableCell>
+                      <div className="text-sm">{resumo || "—"}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {i.ultima_compra ? new Date(i.ultima_compra).toLocaleDateString("pt-BR") : "sem compras"}
+                      </div>
+                    </TableCell>
                     <TableCell>{i.media_dias ? `${i.media_dias} dias` : "—"}</TableCell>
                     <TableCell>
                       {atrasoDias > 0 ? <Badge variant="destructive">+{atrasoDias}d</Badge> : "—"}
                     </TableCell>
                     <TableCell><Badge className={cfg.className}>{cfg.label}</Badge></TableCell>
                     <TableCell className="text-right space-x-1">
-                      <Button size="sm" variant="outline" disabled={!i.cliente_phone}
-                        onClick={() => handleWhats(i, isPos ? "pos" : "pre")}>
+                      <Button size="sm" variant="outline" disabled={!normalizePhone(i.cliente_phone)}
+                        onClick={() => handleWhats(i, tipo)}>
                         <MessageCircle className="h-4 w-4 mr-1" />
-                        {isPos ? "Pós-venda" : "Pré-venda"}
+                        {labelBtn}
                       </Button>
                       {i.cliente_phone && (
                         <Button size="sm" variant="ghost" asChild>

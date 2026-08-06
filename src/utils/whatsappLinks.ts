@@ -129,3 +129,86 @@ export function msgCascoEmprestado(clientName: string, quantidade: number, dias:
     "Pode nos avisar quando puder devolver ou se prefere já converter na próxima recarga?",
   ].join("\n");
 }
+
+type UltimoPedidoLike = {
+  produto?: string | null;
+  quantidade?: number | null;
+  preco?: number | null;
+  tipo_venda?: string | null;
+  pagamento?: string | null;
+  data?: string | null;
+} | null;
+
+const TIPO_VENDA_LABEL: Record<string, string> = {
+  completa: "gás completo (com vasilhame)",
+  recarga: "recarga (troca de vasilhame)",
+  vasilhame: "somente vasilhame",
+};
+
+/** Resumo curto do último pedido, usado nas mensagens de recompra. */
+export function resumoUltimoPedido(up: UltimoPedidoLike): string | null {
+  if (!up) return null;
+  const partes = [
+    up.quantidade ? `${up.quantidade}x` : null,
+    up.produto || "gás",
+    up.tipo_venda ? `(${TIPO_VENDA_LABEL[up.tipo_venda] || up.tipo_venda})` : null,
+    typeof up.preco === "number" && up.preco > 0 ? `— ${money(up.preco)}` : null,
+  ].filter(Boolean);
+  return partes.join(" ");
+}
+
+/**
+ * Mensagem de recompra baseada no histórico do CRM.
+ * - `pre`: lembrete de que está na hora de recomprar
+ * - `atrasado`: cliente passou da média de dias
+ * - `pos`: pós-venda logo após a entrega
+ * - `aniversario`: felicitação
+ */
+export function msgRecompra(params: {
+  clientName: string;
+  tipo: "pre" | "atrasado" | "pos" | "aniversario";
+  diasDesdeUltima?: number | null;
+  mediaDias?: number | null;
+  ultimoPedido?: UltimoPedidoLike;
+}): string {
+  const nome = firstName(params.clientName);
+  const resumo = resumoUltimoPedido(params.ultimoPedido);
+  const sugestao = resumo
+    ? [
+        "",
+        `Seu último pedido foi: *${resumo}*.`,
+        "Quer que eu repita o mesmo pedido? É só responder *SIM* que já deixamos separado. 🔥",
+      ]
+    : ["", "Quer que a gente já agende sua entrega? É só responder por aqui. 🔥"];
+
+  if (params.tipo === "aniversario") {
+    return [
+      `Feliz aniversário, ${nome}! 🎂`,
+      "Toda a equipe deseja muitas felicidades — conta com a gente sempre!",
+      ...(resumo ? ["", `Se precisar repetir seu último pedido (${resumo}), é só chamar. 😉`] : []),
+    ].join("\n");
+  }
+
+  if (params.tipo === "pos") {
+    return [
+      `Olá ${nome}! 😊 Tudo certo com sua última entrega?`,
+      resumo ? `Pedido: ${resumo}.` : null,
+      "",
+      "Se algo não saiu como esperado, me conta por aqui que a gente resolve rapidinho.",
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  if (params.tipo === "atrasado") {
+    const linha1 = params.mediaDias
+      ? `Olá ${nome}! 👋 Já faz ${params.diasDesdeUltima ?? "alguns"} dias desde sua última compra de gás e normalmente você recompra a cada ${params.mediaDias} dias.`
+      : `Olá ${nome}! 👋 Já faz ${params.diasDesdeUltima ?? "alguns"} dias desde sua última compra de gás.`;
+    return [linha1, "Não queremos que o seu acabe na hora do almoço 😅", ...sugestao].join("\n");
+  }
+
+  return [
+    `Oi ${nome}! 👋 Notamos que já faz ${params.diasDesdeUltima ?? "alguns"} dias da sua última compra de gás.`,
+    ...sugestao,
+  ].join("\n");
+}
