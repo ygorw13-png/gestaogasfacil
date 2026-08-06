@@ -46,16 +46,17 @@ export function OpeningBalanceDialog({ open, onOpenChange }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    // Buscar último fechamento de cada produto
+    // Sugerir com base no saldo final do último dia com movimentação
     const load = async () => {
       setLoading(true);
       try {
+        const hoje = new Date().toISOString().slice(0, 10);
         const { data } = await (supabase as any)
           .from("movimentacoes_portaria")
-          .select("produto, delta_cheios, delta_vazios")
-          .eq("tipo", "fechamento")
-          .order("criado_em", { ascending: false })
-          .limit(20);
+          .select("produto, delta_cheios, delta_vazios, data_operacao")
+          .lt("data_operacao", hoje)
+          .order("data_operacao", { ascending: false })
+          .limit(500);
 
         const sugs: Record<PortariaProduto, Suggestion> = {
           P13: { cheios: 0, vazios: 0 },
@@ -63,16 +64,23 @@ export function OpeningBalanceDialog({ open, onOpenChange }: Props) {
           P45: { cheios: 0, vazios: 0 },
           agua: { cheios: 0, vazios: 0 },
         };
-        const seen = new Set<string>();
-        (data || []).forEach((row: any) => {
-          if (!seen.has(row.produto) && PRODUTOS.includes(row.produto)) {
-            sugs[row.produto as PortariaProduto] = {
-              cheios: Math.abs(row.delta_cheios) || 0,
-              vazios: Math.abs(row.delta_vazios) || 0,
-            };
-            seen.add(row.produto);
-          }
+
+        const ultimoDia = (data || [])[0]?.data_operacao;
+        (data || [])
+          .filter((row: any) => row.data_operacao === ultimoDia)
+          .forEach((row: any) => {
+            if (PRODUTOS.includes(row.produto)) {
+              const p = row.produto as PortariaProduto;
+              sugs[p].cheios += row.delta_cheios || 0;
+              sugs[p].vazios += row.delta_vazios || 0;
+            }
+          });
+
+        PRODUTOS.forEach((p) => {
+          sugs[p].cheios = Math.max(0, sugs[p].cheios);
+          sugs[p].vazios = Math.max(0, sugs[p].vazios);
         });
+
         setValues(sugs);
       } finally {
         setLoading(false);
@@ -81,24 +89,54 @@ export function OpeningBalanceDialog({ open, onOpenChange }: Props) {
     load();
   }, [open]);
 
+
   const handleSubmit = async () => {
+    let divergencias = 0;
     for (const p of PRODUTOS) {
       const cur = saldoAtual?.[p];
+      const sistemaCheios = cur?.cheios ?? 0;
+      const sistemaVazios = cur?.vazios ?? 0;
       const target = values[p];
-      // Ajusta para o valor informado considerando o saldo atual
-      const deltaCheios = target.cheios - (cur?.cheios ?? 0);
-      const deltaVazios = target.vazios - (cur?.vazios ?? 0);
+      const deltaCheios = target.cheios - sistemaCheios;
+      const deltaVazios = target.vazios - sistemaVazios;
       if (deltaCheios === 0 && deltaVazios === 0) continue;
 
+      const temSaldoSistema = sistemaCheios !== 0 || sistemaVazios !== 0;
+      if (temSaldoSistema) divergencias++;
+
       await registrar.mutateAsync({
-        tipo: "abertura",
+        tipo: temSaldoSistema ? "ajuste" : "abertura",
         produto: p,
         delta_cheios: deltaCheios,
         delta_vazios: deltaVazios,
-        observacoes: "Saldo de abertura do dia",
+        observacoes: temSaldoSistema
+          ? `Divergência na abertura — sistema: ${sistemaCheios} cheios / ${sistemaVazios} vazios; contado: ${target.cheios} cheios / ${target.vazios} vazios`
+          : "Saldo de abertura do dia",
       });
     }
-    toast({ title: "Saldo de abertura registrado" });
+
+    // Garante que o dia fique marcado como aberto mesmo sem alterações
+    const jaTemMovimento = PRODUTOS.some((p) => {
+      const cur = saldoAtual?.[p];
+      return (cur?.cheios ?? 0) !== 0 || (cur?.vazios ?? 0) !== 0;
+    });
+    if (!jaTemMovimento) {
+      await registrar.mutateAsync({
+        tipo: "abertura",
+        produto: "P13",
+        delta_cheios: 0,
+        delta_vazios: 0,
+        observacoes: "Abertura confirmada sem saldo remanescente",
+      });
+    }
+
+    toast({
+      title: "Saldo de abertura registrado",
+      description:
+        divergencias > 0
+          ? `${divergencias} divergência(s) registrada(s) como ajuste para auditoria.`
+          : undefined,
+    });
     onOpenChange(false);
   };
 
@@ -109,42 +147,62 @@ export function OpeningBalanceDialog({ open, onOpenChange }: Props) {
           <DialogTitle>Abertura do dia</DialogTitle>
           <DialogDescription>
             Confirme o saldo de cheios e vazios em estoque. Os valores foram sugeridos com base no
-            último fechamento.
+            último fechamento. Diferenças em relação ao sistema são registradas como ajuste.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 py-2">
           {loading && <p className="text-sm text-muted-foreground">Carregando sugestão...</p>}
-          {PRODUTOS.map((p) => (
-            <div key={p} className="grid grid-cols-[1fr_auto_auto] items-center gap-3">
-              <Label className="font-medium">{produtoLabel(p)}</Label>
-              <div className="space-y-1">
-                <span className="text-[10px] text-muted-foreground block">Cheios</span>
-                <Input
-                  type="number"
-                  min={0}
-                  className="w-24"
-                  value={values[p].cheios}
-                  onChange={(e) =>
-                    setValues((v) => ({ ...v, [p]: { ...v[p], cheios: Math.max(0, Number(e.target.value)) } }))
-                  }
-                />
+          {PRODUTOS.map((p) => {
+            const sistemaCheios = saldoAtual?.[p]?.cheios ?? 0;
+            const sistemaVazios = saldoAtual?.[p]?.vazios ?? 0;
+            const difCheios = values[p].cheios - sistemaCheios;
+            const difVazios = values[p].vazios - sistemaVazios;
+            const temDif = (sistemaCheios !== 0 || sistemaVazios !== 0) && (difCheios !== 0 || difVazios !== 0);
+            return (
+              <div key={p} className="space-y-1">
+                <div className="grid grid-cols-[1fr_auto_auto] items-center gap-3">
+                  <Label className="font-medium">{produtoLabel(p)}</Label>
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-muted-foreground block">Cheios</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      className="w-24"
+                      value={values[p].cheios}
+                      onChange={(e) =>
+                        setValues((v) => ({ ...v, [p]: { ...v[p], cheios: Math.max(0, Number(e.target.value)) } }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-muted-foreground block">Vazios</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      className="w-24"
+                      value={values[p].vazios}
+                      onChange={(e) =>
+                        setValues((v) => ({ ...v, [p]: { ...v[p], vazios: Math.max(0, Number(e.target.value)) } }))
+                      }
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Sistema: {sistemaCheios} cheios / {sistemaVazios} vazios
+                  {temDif && (
+                    <span className="text-destructive font-medium">
+                      {" "}• Divergência: {difCheios > 0 ? "+" : ""}
+                      {difCheios} cheios, {difVazios > 0 ? "+" : ""}
+                      {difVazios} vazios
+                    </span>
+                  )}
+                </p>
               </div>
-              <div className="space-y-1">
-                <span className="text-[10px] text-muted-foreground block">Vazios</span>
-                <Input
-                  type="number"
-                  min={0}
-                  className="w-24"
-                  value={values[p].vazios}
-                  onChange={(e) =>
-                    setValues((v) => ({ ...v, [p]: { ...v[p], vazios: Math.max(0, Number(e.target.value)) } }))
-                  }
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

@@ -40,7 +40,8 @@ export const ordersNavItems: AccordionNavItem[] = [
       { to: "/orders", label: "Pedidos", isEnd: true },
       { to: "/orders/map", label: "Mapa de Entregas" },
       { to: "/entrance/acerto-entregadores", label: "Acerto Entregadores" },
-      { to: "/entrance/history", label: "Histórico de Vendas" }
+      { to: "/entrance/history", label: "Histórico de Vendas" },
+      { to: "/entrance/historico-portaria", label: "Histórico da Portaria" }
     ]
   }
 ];

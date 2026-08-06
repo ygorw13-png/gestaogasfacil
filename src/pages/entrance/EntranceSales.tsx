@@ -6,12 +6,15 @@ import { EntranceHeader } from "./components/header/EntranceHeader";
 import { useCashier, CashierProvider } from "@/contexts/CashierContext";
 import { PortariaStockPanel } from "./components/stock/PortariaStockPanel";
 import { OpeningBalanceDialog } from "./components/stock/OpeningBalanceDialog";
+import { OpeningLockAlert } from "./components/stock/OpeningLockAlert";
 import { useMovimentacoesPortaria } from "./hooks/usePortariaStock";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Store, ShoppingCart, Users } from "lucide-react";
+import { Store, ShoppingCart, Users, History } from "lucide-react";
 import { useLateOrdersCount } from "@/hooks/useLateOrdersCount";
 import Orders from "@/pages/orders/Orders";
 import AcertoEntregadores from "./AcertoEntregadores";
+import HistoricoPortaria from "./HistoricoPortaria";
+
 
 function EntranceSalesContent() {
   const { 
@@ -34,11 +37,12 @@ function EntranceSalesContent() {
   const lateCount = useLateOrdersCount();
   const [openingDialogOpen, setOpeningDialogOpen] = useState(false);
 
+  const hasOpening = !loadingMovs && !!movimentacoes?.some((m) => m.tipo === "abertura");
+
   // Sugerir abertura do dia se não houver movimentação de abertura hoje
   useEffect(() => {
-    if (loadingMovs) return;
-    const hasOpening = movimentacoes?.some((m) => m.tipo === "abertura");
-    if (!hasOpening && movimentacoes && movimentacoes.length === 0) {
+    if (loadingMovs || !movimentacoes) return;
+    if (!movimentacoes.some((m) => m.tipo === "abertura") && movimentacoes.length === 0) {
       setOpeningDialogOpen(true);
     }
   }, [movimentacoes, loadingMovs]);
@@ -64,9 +68,16 @@ function EntranceSalesContent() {
             <Users size={14} />
             <span>Acerto Entregadores</span>
           </TabsTrigger>
+          <TabsTrigger value="historico" className="flex items-center gap-2">
+            <History size={14} />
+            <span>Histórico Diário</span>
+          </TabsTrigger>
         </TabsList>
 
+
         <TabsContent value="balcao" className="space-y-6">
+          {!hasOpening && <OpeningLockAlert onOpen={() => setOpeningDialogOpen(true)} />}
+
           <EntranceHeader
             newSaleOpen={newSaleOpen}
             cashierClosingOpen={cashierClosingOpen}
@@ -104,7 +115,12 @@ function EntranceSalesContent() {
         <TabsContent value="acerto">
           <AcertoEntregadores />
         </TabsContent>
+
+        <TabsContent value="historico">
+          <HistoricoPortaria />
+        </TabsContent>
       </Tabs>
+
     </div>
   );
 }

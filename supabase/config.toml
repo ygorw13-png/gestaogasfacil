@@ -1,1 +1,4 @@
 project_id = "dufsbwslvnucptjwvtvd"
+
+[functions.fechamento-portaria-automatico]
+verify_jwt = false
