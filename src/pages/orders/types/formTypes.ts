@@ -17,8 +17,19 @@ export const formSchema = z.object({
   gasP45: z.number().int().min(0, "Quantidade inválida").max(99, "Quantidade máxima excedida"),
   water: z.number().int().min(0, "Quantidade inválida").max(99, "Quantidade máxima excedida"),
   paymentMethod: z.string().min(1, "Método de pagamento é obrigatório"),
+  saleValue: z.number().min(0).optional(),
   observations: z.string().optional(),
+}).superRefine((data, ctx) => {
+  const requiresValue = ["money", "credit", "debit", "pix"].includes(data.paymentMethod);
+  if (requiresValue && (!data.saleValue || data.saleValue <= 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["saleValue"],
+      message: "Informe o valor da venda",
+    });
+  }
 });
+
 
 // Tipo derivado do schema
 export type FormValues = z.infer<typeof formSchema>;
