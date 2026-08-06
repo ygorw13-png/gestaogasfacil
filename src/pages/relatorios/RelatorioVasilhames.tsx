@@ -48,23 +48,25 @@ export default function RelatorioVasilhames() {
   });
 
   const baixarCsv = () => {
-    exportToCsv(
+    exportToCsv<any>(
       `relatorio-vasilhames-${inicio}_${fim}.csv`,
-      linhas.map((r) => ({
-        data: new Date(r.created_at).toLocaleString("pt-BR"),
-        cliente: r.client_name,
-        tipo_venda: tipoVendaLabel(r.tipo_venda),
-        produto: r.product ?? "",
-        quantidade: r.quantity ?? 0,
-        vasilhames_saida: r.vasilhames_entregues ?? 0,
-        vasilhames_entrada: r.vasilhames_recebidos ?? 0,
-        pagamento: r.payment_method ?? "",
-        valor: Number(r.price ?? 0).toFixed(2),
-        origem: r.origem_venda ?? "",
-        status: r.status ?? "",
-      }))
+      [
+        { header: "Data", accessor: (r) => new Date(r.created_at).toLocaleString("pt-BR") },
+        { header: "Cliente", accessor: (r) => r.client_name },
+        { header: "Tipo de venda", accessor: (r) => tipoVendaLabel(r.tipo_venda) },
+        { header: "Produto", accessor: (r) => r.product ?? "" },
+        { header: "Quantidade", accessor: (r) => r.quantity ?? 0 },
+        { header: "Vasilhames saída", accessor: (r) => r.vasilhames_entregues ?? 0 },
+        { header: "Vasilhames entrada", accessor: (r) => r.vasilhames_recebidos ?? 0 },
+        { header: "Pagamento", accessor: (r) => r.payment_method ?? "" },
+        { header: "Valor", accessor: (r) => Number(r.price ?? 0).toFixed(2) },
+        { header: "Origem", accessor: (r) => r.origem_venda ?? "" },
+        { header: "Status", accessor: (r) => r.status ?? "" },
+      ],
+      linhas
     );
   };
+
 
   return (
     <div className="space-y-4">
