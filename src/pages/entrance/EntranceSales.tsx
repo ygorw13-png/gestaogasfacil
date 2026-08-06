@@ -76,6 +76,8 @@ function EntranceSalesContent() {
 
 
         <TabsContent value="balcao" className="space-y-6">
+          {!hasOpening && <OpeningLockAlert onOpen={() => setOpeningDialogOpen(true)} />}
+
           <EntranceHeader
             newSaleOpen={newSaleOpen}
             cashierClosingOpen={cashierClosingOpen}
@@ -113,7 +115,12 @@ function EntranceSalesContent() {
         <TabsContent value="acerto">
           <AcertoEntregadores />
         </TabsContent>
+
+        <TabsContent value="historico">
+          <HistoricoPortaria />
+        </TabsContent>
       </Tabs>
+
     </div>
   );
 }
