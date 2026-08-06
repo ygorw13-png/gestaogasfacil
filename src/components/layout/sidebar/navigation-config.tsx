@@ -1,6 +1,6 @@
 
-import { BarChart3, Users, ShoppingCart, Store, Package, ReceiptText, 
-        Truck, CalendarCheck, FileBarChart, Settings, Repeat } from "lucide-react";
+import { BarChart3, Users, Store, Package, ReceiptText, 
+        Truck, CalendarCheck, Settings, Repeat } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
 export interface NavigationItem {
