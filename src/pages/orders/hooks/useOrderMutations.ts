@@ -140,6 +140,8 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
     status: OrderStatus, 
     extraData?: {
       paymentMethod?: string;
+      receivedValue?: number;
+      divergenceReason?: string;
     }
   ) => {
     setLoading(true);
@@ -151,6 +153,14 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
       } else if (status === "delivered" && extraData?.paymentMethod) {
         updateData.delivered_at = new Date().toISOString();
         updateData.payment_method = extraData.paymentMethod;
+        if (typeof extraData.receivedValue === "number") {
+          updateData.price = extraData.receivedValue;
+        }
+        if (extraData.divergenceReason) {
+          const current = orders.find((o) => o.id === orderId);
+          const previous = current?.notes ? `${current.notes}\n` : "";
+          updateData.notes = `${previous}[Divergência na entrega] ${extraData.divergenceReason}`;
+        }
       }
 
       const { error } = await (supabase
@@ -171,6 +181,12 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
             if (status === "delivered" && extraData?.paymentMethod) {
               updatedOrder.deliveredAt = new Date();
               updatedOrder.paymentMethod = extraData.paymentMethod;
+              if (typeof extraData.receivedValue === "number") {
+                updatedOrder.price = extraData.receivedValue;
+              }
+              if (extraData.divergenceReason) {
+                updatedOrder.notes = `${order.notes ? order.notes + "\n" : ""}[Divergência na entrega] ${extraData.divergenceReason}`;
+              }
             }
             
             return updatedOrder;
@@ -214,14 +230,17 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
     } finally {
       setLoading(false);
     }
-  }, [toast, setOrders]);
+  }, [toast, setOrders, orders]);
 
   const handleStartDelivery = useCallback(async (orderId: string) => {
     return handleStatusChange(orderId, "delivering");
   }, [handleStatusChange]);
 
-  const handleCompleteOrder = useCallback(async (orderId: string, paymentMethod: string) => {
-    return handleStatusChange(orderId, "delivered", { paymentMethod });
+  const handleCompleteOrder = useCallback(async (
+    orderId: string,
+    payload: { paymentMethod: string; receivedValue?: number; divergenceReason?: string }
+  ) => {
+    return handleStatusChange(orderId, "delivered", payload);
   }, [handleStatusChange]);
 
   const handleCancelOrder = useCallback(async (orderId: string) => {
