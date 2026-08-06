@@ -29,7 +29,9 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
       gasP45: 0,
       water: 0,
       paymentMethod: "",
+      saleValue: undefined,
       observations: "",
+
     },
   });
 
