@@ -179,6 +179,7 @@ function OrdersListComponent({
       <AssignOrderDialog
         isOpen={isAssignDialogOpen}
         onOpenChange={setIsAssignDialogOpen}
+        order={orders.find((o) => o.id === selectedOrder) || null}
         selectedDeliveryPerson={selectedDeliveryPerson}
         onDeliveryPersonChange={handleDeliveryPersonChange}
         onSubmit={handleAssignSubmit}

@@ -6,6 +6,7 @@ import { PromissoryNote, PromissoryStatus } from "../types";
 function mapRow(r: any): PromissoryNote {
   return {
     id: r.id,
+    clientId: r.client_id || undefined,
     clientName: r.client_name,
     value: Number(r.value),
     dueDate: new Date(r.due_date),
@@ -35,11 +36,27 @@ export function usePromissoryNotes() {
       setLoading(false);
       return;
     }
+    // Buscar telefones dos clientes para contato via WhatsApp
+    const { data: clientRows } = await supabase.from("clients").select("id, name, phone");
+    const byId = new Map<string, string>();
+    const byName = new Map<string, string>();
+    (clientRows || []).forEach((c: any) => {
+      if (c.phone) {
+        byId.set(c.id, c.phone);
+        byName.set((c.name || "").toLowerCase().trim(), c.phone);
+      }
+    });
+
     // Marcar atrasadas no client-side
     const today = new Date();
     const list = (data || []).map(mapRow).map((n) => {
-      if (n.status === "pending" && n.dueDate < today) return { ...n, status: "overdue" as PromissoryStatus };
-      return n;
+      const phone =
+        (n.clientId ? byId.get(n.clientId) : undefined) ??
+        byName.get(n.clientName.toLowerCase().trim());
+      const withPhone = { ...n, clientPhone: phone };
+      if (withPhone.status === "pending" && withPhone.dueDate < today)
+        return { ...withPhone, status: "overdue" as PromissoryStatus };
+      return withPhone;
     });
     setPromissoryNotes(list);
     setLoading(false);

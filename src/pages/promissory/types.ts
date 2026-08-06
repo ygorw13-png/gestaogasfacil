@@ -1,7 +1,9 @@
 
 export interface PromissoryNote {
   id: string;
+  clientId?: string;
   clientName: string;
+  clientPhone?: string;
   value: number;
   dueDate: Date;
   status: PromissoryStatus;

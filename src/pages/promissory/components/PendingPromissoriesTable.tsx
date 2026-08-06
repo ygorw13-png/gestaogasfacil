@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { CreditCard, FileText } from "lucide-react";
 import { PromissoryNote } from "../types";
+import { WhatsAppButton } from "@/components/common/WhatsAppButton";
+import { msgPromissoria } from "@/utils/whatsappLinks";
 
 interface PendingPromissoriesTableProps {
   promissories: PromissoryNote[];
@@ -45,6 +47,16 @@ function PendingPromissoriesTableComponent({
               </Badge>
             </TableCell>
             <TableCell className="flex gap-2">
+              <WhatsAppButton
+                phone={note.clientPhone}
+                label="Cobrar"
+                message={msgPromissoria({
+                  clientName: note.clientName,
+                  value: note.value,
+                  dueDate: note.dueDate,
+                  vencida: note.status === "overdue",
+                })}
+              />
               <Button
                 size="sm"
                 variant="outline"

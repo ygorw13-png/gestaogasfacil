@@ -7,6 +7,8 @@ import { StatusBadge } from "./StatusBadge";
 import { Clipboard, Check, X, Truck, PhoneCall } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { WhatsAppButton } from "@/components/common/WhatsAppButton";
+import { msgPedidoConfirmado, msgSaiuParaEntrega } from "@/utils/whatsappLinks";
 
 interface OrderTableRowProps {
   order: Order;
@@ -115,6 +117,16 @@ function OrderTableRowComponent({
               <Check size={14} className="mr-1" /> Concluir
             </Button>
           )}
+          <WhatsAppButton
+            phone={order.clientPhone}
+            iconOnly
+            message={
+              order.status === "delivering" || order.status === "assigned"
+                ? msgSaiuParaEntrega(order, order.deliveryPerson)
+                : msgPedidoConfirmado(order)
+            }
+            variant="ghost"
+          />
           <Button
             variant="ghost"
             size="icon"
