@@ -7,6 +7,11 @@ import { useCashier, CashierProvider } from "@/contexts/CashierContext";
 import { PortariaStockPanel } from "./components/stock/PortariaStockPanel";
 import { OpeningBalanceDialog } from "./components/stock/OpeningBalanceDialog";
 import { useMovimentacoesPortaria } from "./hooks/usePortariaStock";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Store, ShoppingCart, Users } from "lucide-react";
+import { useLateOrdersCount } from "@/hooks/useLateOrdersCount";
+import Orders from "@/pages/orders/Orders";
+import AcertoEntregadores from "./AcertoEntregadores";
 
 function EntranceSalesContent() {
   const { 
@@ -26,6 +31,7 @@ function EntranceSalesContent() {
   } = useCashier();
 
   const { data: movimentacoes, isLoading: loadingMovs } = useMovimentacoesPortaria();
+  const lateCount = useLateOrdersCount();
   const [openingDialogOpen, setOpeningDialogOpen] = useState(false);
 
   // Sugerir abertura do dia se não houver movimentação de abertura hoje
@@ -39,34 +45,66 @@ function EntranceSalesContent() {
 
   return (
     <div className="space-y-6 animate-in pb-20">
-      <EntranceHeader
-        newSaleOpen={newSaleOpen}
-        cashierClosingOpen={cashierClosingOpen}
-        setNewSaleOpen={setNewSaleOpen}
-        setCashierClosingOpen={setCashierClosingOpen}
-        onNewSaleSubmit={handleNewSaleSubmit}
-        onCashierClosingSubmit={handleCashierClosingSubmit}
-        cashierData={cashierData}
-      />
+      <Tabs defaultValue="balcao" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="balcao" className="flex items-center gap-2">
+            <Store size={14} />
+            <span>Balcão</span>
+          </TabsTrigger>
+          <TabsTrigger value="pedidos" className="flex items-center gap-2">
+            <ShoppingCart size={14} />
+            <span>Pedidos</span>
+            {lateCount > 0 && (
+              <span className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-semibold leading-none text-destructive-foreground">
+                {lateCount}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="acerto" className="flex items-center gap-2">
+            <Users size={14} />
+            <span>Acerto Entregadores</span>
+          </TabsTrigger>
+        </TabsList>
 
-      <PortariaStockPanel />
+        <TabsContent value="balcao" className="space-y-6">
+          <EntranceHeader
+            newSaleOpen={newSaleOpen}
+            cashierClosingOpen={cashierClosingOpen}
+            setNewSaleOpen={setNewSaleOpen}
+            setCashierClosingOpen={setCashierClosingOpen}
+            onNewSaleSubmit={handleNewSaleSubmit}
+            onCashierClosingSubmit={handleCashierClosingSubmit}
+            cashierData={cashierData}
+          />
 
-      <StatisticsCards 
-        totalSales={cashierData.totalSales}
-        previousDaySales={previousDaySales}
-        glpSales={glpSales}
-        waterSales={waterSales}
-        hoursElapsed={hoursElapsed}
-      />
+          <PortariaStockPanel />
 
-      <div className="overflow-hidden">
-        <TabContent 
-          recentSales={recentSales}
-          salesByType={salesByType}
-        />
-      </div>
+          <StatisticsCards 
+            totalSales={cashierData.totalSales}
+            previousDaySales={previousDaySales}
+            glpSales={glpSales}
+            waterSales={waterSales}
+            hoursElapsed={hoursElapsed}
+          />
 
-      <OpeningBalanceDialog open={openingDialogOpen} onOpenChange={setOpeningDialogOpen} />
+          <div className="overflow-hidden">
+            <TabContent 
+              recentSales={recentSales}
+              salesByType={salesByType}
+            />
+          </div>
+
+          <OpeningBalanceDialog open={openingDialogOpen} onOpenChange={setOpeningDialogOpen} />
+        </TabsContent>
+
+        <TabsContent value="pedidos">
+          <Orders />
+        </TabsContent>
+
+        <TabsContent value="acerto">
+          <AcertoEntregadores />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

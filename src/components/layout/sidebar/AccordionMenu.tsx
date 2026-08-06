@@ -10,21 +10,27 @@ interface AccordionMenuItemProps {
   to: string;
   label: string;
   isEnd?: boolean;
+  badge?: number;
 }
 
-const AccordionMenuItem = ({ to, label, isEnd = false }: AccordionMenuItemProps) => {
+const AccordionMenuItem = ({ to, label, isEnd = false, badge }: AccordionMenuItemProps) => {
   return (
     <NavLink
       to={to}
       className={({ isActive }) => 
         cn(
-          "block rounded-lg px-3 py-2 transition-all text-muted-foreground hover:text-foreground",
+          "flex items-center justify-between gap-2 rounded-lg px-3 py-2 transition-all text-muted-foreground hover:text-foreground",
           isActive ? "text-foreground bg-accent" : "hover:bg-muted"
         )
       }
       end={isEnd}
     >
-      {label}
+      <span>{label}</span>
+      {!!badge && badge > 0 && (
+        <span className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-semibold leading-none text-destructive-foreground">
+          {badge}
+        </span>
+      )}
     </NavLink>
   );
 };
@@ -33,6 +39,7 @@ interface AccordionMenuProps {
   icon: LucideIcon;
   label: string;
   value: string;
+  badge?: number;
   accordionValue?: string;
   onValueChange?: (value: string) => void;
   children: ReactNode;
@@ -42,6 +49,7 @@ export const AccordionMenu = ({
   icon: Icon, 
   label, 
   value, 
+  badge,
   accordionValue, 
   onValueChange, 
   children 
@@ -78,6 +86,11 @@ export const AccordionMenu = ({
           <div className="flex items-center gap-3 text-muted-foreground">
             <Icon className="h-4 w-4 flex-shrink-0" />
             <span className="truncate">{label}</span>
+            {!!badge && badge > 0 && (
+              <span className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-semibold leading-none text-destructive-foreground">
+                {badge}
+              </span>
+            )}
           </div>
         </AccordionTrigger>
         <AccordionContent className="pl-9 space-y-2 pt-2">

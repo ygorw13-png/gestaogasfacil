@@ -3,9 +3,11 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AccordionMenu, AccordionMenuItem } from "../AccordionMenu";
 import { ordersNavItems } from "../navigation-config";
+import { useLateOrdersCount } from "@/hooks/useLateOrdersCount";
 
 export const OrdersNavigation = () => {
   const { pathname } = useLocation();
+  const lateCount = useLateOrdersCount();
 
   // Mantém aberto o grupo que contém a rota atual
   const activeSection = ordersNavItems.find((section) =>
@@ -22,6 +24,7 @@ export const OrdersNavigation = () => {
           icon={section.icon} 
           label={section.label} 
           value={section.value}
+          badge={lateCount}
           accordionValue={accordionValue ?? activeSection} 
           onValueChange={(value) => setAccordionValue(value)}
         >
@@ -31,6 +34,7 @@ export const OrdersNavigation = () => {
               to={item.to} 
               label={item.label} 
               isEnd={item.isEnd} 
+              badge={item.to === "/orders" ? lateCount : undefined}
             />
           ))}
         </AccordionMenu>
