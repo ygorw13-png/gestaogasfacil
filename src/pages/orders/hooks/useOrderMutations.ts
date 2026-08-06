@@ -10,23 +10,27 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
   const handleAddOrder = useCallback(async (order: Order) => {
     setLoading(true);
     try {
-      if (!order.userId) {
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = order.userId || authData?.user?.id;
+      if (!userId) {
         throw new Error("Usuário não autenticado");
       }
 
       const newOrderData = {
-        user_id: order.userId,
+        user_id: userId,
         client_name: order.clientName,
         client_phone: order.clientPhone,
         address: order.address,
         product: order.product,
         quantity: order.quantity,
         price: order.price || 0,
+        payment_method: order.paymentMethod || null,
         has_empty_cylinder: order.hasEmptyCylinder || false,
         is_complete_package: order.isCompletePackage || false,
         status: "pending" as OrderStatus,
         notes: order.notes
       };
+
       
       const { data, error } = await supabase
         .from('orders')
