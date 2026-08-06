@@ -27,11 +27,21 @@ export function useUserRole() {
 
   const role = (query.data?.role ?? "admin") as UserRole;
 
+  // Página inicial de acordo com o papel do usuário
+  const homePath =
+    role === "entregador"
+      ? "/entregador/entregas"
+      : role === "portaria"
+      ? "/entrance"
+      : "/dashboard";
+
   return {
     role,
     name: query.data?.name,
     isEntregador: role === "entregador",
+    isPortaria: role === "portaria",
     isAdmin: role === "admin",
+    homePath,
     isLoading: query.isLoading,
   };
 }
