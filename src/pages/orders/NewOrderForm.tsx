@@ -28,6 +28,7 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
       gasP20: 0,
       gasP45: 0,
       water: 0,
+      tipoVenda: "completa",
       paymentMethod: "",
       saleValue: undefined,
       observations: "",
@@ -104,8 +105,9 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
       quantity,
       price: values.saleValue ?? 0,
       paymentMethod: values.paymentMethod,
+      tipoVenda: values.tipoVenda,
 
-      hasEmptyCylinder: true,
+      hasEmptyCylinder: values.tipoVenda === "recarga",
       isCompletePackage: false,
       createdAt: new Date(),
       status: "pending",

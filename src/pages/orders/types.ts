@@ -23,5 +23,6 @@ export type Order = {
   deliveredAt?: Date;
   paymentMethod?: string;
   notes?: string;
+  tipoVenda?: "completa" | "recarga" | "vasilhame";
   userId?: string; // Added userId as an optional property
 };
