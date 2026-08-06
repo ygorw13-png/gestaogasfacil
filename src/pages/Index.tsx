@@ -1,25 +1,18 @@
 
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 
 const Index = () => {
   const { user, loading, error } = useAuth();
-
-  // Debug logging
-  useEffect(() => {
-    console.log("Index - Authentication state:", { 
-      isLoading: loading, 
-      hasUser: !!user,
-      errorMsg: error?.message
-    });
-  }, [user, loading, error]);
+  const { homePath, isLoading: roleLoading } = useUserRole();
 
   const renderContent = useCallback(() => {
-    if (loading) {
+    if (loading || (user && roleLoading)) {
       return (
         <div className="flex items-center justify-center h-screen">
           <LoadingSpinner size="lg" message="Carregando..." />
@@ -40,10 +33,10 @@ const Index = () => {
         </div>
       );
     }
-    
-    // Redirect to dashboard if authenticated, otherwise to login
-    return user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
-  }, [user, loading, error]);
+
+    // Cada papel abre na sua própria página inicial
+    return user ? <Navigate to={homePath} replace /> : <Navigate to="/login" replace />;
+  }, [user, loading, error, homePath, roleLoading]);
 
   return renderContent();
 };
