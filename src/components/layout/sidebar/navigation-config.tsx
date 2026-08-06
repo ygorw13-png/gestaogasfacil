@@ -1,6 +1,6 @@
 
-import { BarChart3, Users, ShoppingCart, Store, Package, ReceiptText, 
-        Truck, CalendarCheck, FileBarChart, Settings, Repeat } from "lucide-react";
+import { BarChart3, Users, Store, Package, ReceiptText, 
+        Truck, CalendarCheck, Settings, Repeat } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
 export interface NavigationItem {
@@ -29,25 +29,18 @@ export const mainNavItems: NavigationItem[] = [
 ];
 
 
-// Orders navigation with accordion items
+// Portaria: tudo relacionado a vendas e pedidos em um único menu
 export const ordersNavItems: AccordionNavItem[] = [
-  {
-    icon: ShoppingCart,
-    label: "Pedidos",
-    value: "orders",
-    items: [
-      { to: "/orders", label: "Lista de Pedidos", isEnd: true },
-      { to: "/orders/map", label: "Mapa de Entregas" }
-    ]
-  },
   {
     icon: Store,
     label: "Portaria",
     value: "entrance",
     items: [
-      { to: "/entrance", label: "Vendas", isEnd: true },
-      { to: "/entrance/history", label: "Histórico" },
-      { to: "/entrance/acerto-entregadores", label: "Acerto Entregadores" }
+      { to: "/entrance", label: "Vendas (Balcão)", isEnd: true },
+      { to: "/orders", label: "Pedidos", isEnd: true },
+      { to: "/orders/map", label: "Mapa de Entregas" },
+      { to: "/entrance/acerto-entregadores", label: "Acerto Entregadores" },
+      { to: "/entrance/history", label: "Histórico de Vendas" }
     ]
   }
 ];
