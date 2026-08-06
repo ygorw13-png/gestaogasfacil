@@ -114,6 +114,18 @@ export function useRecompraInsights() {
 
       const aniversarioHoje = !!c.data_nascimento && c.data_nascimento.slice(5, 10) === todayMD;
 
+      const last = list[0];
+      const ultimoPedido: UltimoPedido | null = last
+        ? {
+            produto: last.product,
+            quantidade: last.quantity,
+            preco: last.price,
+            tipo_venda: last.tipo_venda,
+            pagamento: last.payment_method,
+            data: last.created_at,
+          }
+        : null;
+
       return {
         cliente_id: c.id,
         cliente_nome: c.name,
@@ -126,6 +138,7 @@ export function useRecompraInsights() {
         status: calcStatus(diasDesde, media),
         aniversario_hoje: aniversarioHoje,
         data_nascimento: c.data_nascimento,
+        ultimo_pedido: ultimoPedido,
       };
     }).sort((a, b) => {
       const order = { atrasado: 0, hora_comprar: 1, em_dia: 2, novo: 3 };
