@@ -36,16 +36,24 @@ function OrderTableRowComponent({
     }
   };
 
+  const isLate =
+    order.status === "pending" &&
+    Date.now() - order.createdAt.getTime() > 5 * 60 * 1000;
+
   return (
-    <TableRow key={order.id} className="hover:bg-muted/50">
+    <TableRow
+      key={order.id}
+      className={isLate ? "bg-destructive/10 hover:bg-destructive/20" : "hover:bg-muted/50"}
+    >
       <TableCell>
         <div className="font-medium">
           {order.createdAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
         </div>
-        <div className="text-xs text-muted-foreground">
+        <div className={`text-xs ${isLate ? "text-destructive font-medium" : "text-muted-foreground"}`}>
           {getTimeAgo(order.createdAt)}
         </div>
       </TableCell>
+
       <TableCell>
         <div className="font-medium">{order.clientName}</div>
         <div className="text-xs text-muted-foreground">{order.clientPhone}</div>
