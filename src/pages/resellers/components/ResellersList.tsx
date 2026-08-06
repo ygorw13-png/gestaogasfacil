@@ -8,16 +8,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Eye, Phone } from "lucide-react";
+import { Eye, Phone, Trash2 } from "lucide-react";
 import { Reseller } from "../types";
 
 interface ResellersListProps {
   resellers: Reseller[];
   canViewPrices: boolean;
   onViewReseller: (reseller: Reseller) => void;
+  onRemoveReseller?: (id: string) => void;
 }
 
-export function ResellersList({ resellers, canViewPrices, onViewReseller }: ResellersListProps) {
+export function ResellersList({ resellers, canViewPrices, onViewReseller, onRemoveReseller }: ResellersListProps) {
+
   return (
     <div className="overflow-x-auto">
       <Table>
