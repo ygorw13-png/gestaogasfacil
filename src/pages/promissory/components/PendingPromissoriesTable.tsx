@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { CreditCard, FileText } from "lucide-react";
 import { PromissoryNote } from "../types";
+import { WhatsAppButton } from "@/components/common/WhatsAppButton";
+import { msgPromissoria } from "@/utils/whatsappLinks";
 
 interface PendingPromissoriesTableProps {
   promissories: PromissoryNote[];
