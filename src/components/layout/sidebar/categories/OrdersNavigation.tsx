@@ -1,10 +1,18 @@
 
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { AccordionMenu, AccordionMenuItem } from "../AccordionMenu";
 import { ordersNavItems } from "../navigation-config";
 
 export const OrdersNavigation = () => {
-  const [accordionValue, setAccordionValue] = useState<string | undefined>(undefined);
+  const { pathname } = useLocation();
+
+  // Mantém aberto o grupo que contém a rota atual
+  const activeSection = ordersNavItems.find((section) =>
+    section.items.some((item) => pathname.startsWith(item.to))
+  )?.value;
+
+  const [accordionValue, setAccordionValue] = useState<string | undefined>(activeSection);
 
   return (
     <>
@@ -14,7 +22,7 @@ export const OrdersNavigation = () => {
           icon={section.icon} 
           label={section.label} 
           value={section.value}
-          accordionValue={accordionValue} 
+          accordionValue={accordionValue ?? activeSection} 
           onValueChange={(value) => setAccordionValue(value)}
         >
           {section.items.map((item) => (
