@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 interface Sale {
-  id: number;
+  id: number | string;
   time: string;
   client: string;
   product: string;
