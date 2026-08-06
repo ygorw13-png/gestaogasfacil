@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Download } from "lucide-react";
 import { Order } from "./types";
-import { CompleteOrderDialog } from "./components/CompleteOrderDialog";
+import { CompleteOrderDialog, type CompleteOrderPayload } from "./components/CompleteOrderDialog";
 import { AssignOrderDialog } from "./components/AssignOrderDialog";
 import { OrderTableRow } from "./components/OrderTableRow";
 import { TablePagination, paginate } from "@/components/ui/TablePagination";
@@ -19,7 +19,7 @@ interface OrdersListProps {
   loading: boolean;
   onAssignOrder: (orderId: string, deliveryPerson: string) => void;
   onStartDelivery: (orderId: string) => void;
-  onCompleteOrder: (orderId: string, paymentMethod: string) => void;
+  onCompleteOrder: (orderId: string, payload: CompleteOrderPayload) => void;
   onCancelOrder: (orderId: string) => void;
 }
 
@@ -83,9 +83,9 @@ function OrdersListComponent({
     }
   }, [selectedOrder, selectedDeliveryPerson, onAssignOrder]);
 
-  const handleCompleteSubmit = useCallback((paymentMethod: string) => {
+  const handleCompleteSubmit = useCallback((payload: CompleteOrderPayload) => {
     if (selectedOrder) {
-      onCompleteOrder(selectedOrder, paymentMethod);
+      onCompleteOrder(selectedOrder, payload);
       setIsCompleteDialogOpen(false);
     }
   }, [selectedOrder, onCompleteOrder]);
@@ -185,6 +185,7 @@ function OrdersListComponent({
       />
 
       <CompleteOrderDialog
+        order={orders.find((o) => o.id === selectedOrder) || null}
         isOpen={isCompleteDialogOpen}
         onOpenChange={setIsCompleteDialogOpen}
         onSubmit={handleCompleteSubmit}
