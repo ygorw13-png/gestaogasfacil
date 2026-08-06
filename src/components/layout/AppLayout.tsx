@@ -9,6 +9,7 @@ import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { cn } from "@/lib/utils";
+import { GlobalQuickSale } from "./GlobalQuickSale";
 
 // Content component to manage layout based on sidebar state
 const MainContent = memo(() => {
@@ -105,6 +106,7 @@ export function AppLayout() {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <MainContent />
+        <GlobalQuickSale />
       </div>
     </SidebarProvider>
   );
