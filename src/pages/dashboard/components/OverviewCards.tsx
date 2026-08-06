@@ -1,17 +1,23 @@
-
-import { TrendingUp, Package, Droplet, AlertCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, Package, Droplet, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/formatUtils";
 
-interface OverviewData {
-  todaySales: string;
-  totalStock: {
+export interface OverviewData {
+  todaySalesValue: number;
+  variation: number;
+  ordersToday: number;
+  stock: {
     gasP13: number;
     gasP20: number;
     gasP45: number;
     water: number;
+    vaziosP13: number;
+    vaziosAgua: number;
+    emprestadosP13: number;
   };
   promissoryNotes: number;
-  promissoryValue: string;
+  promissoryValue: number;
+  promissoryOverdue: number;
 }
 
 interface OverviewCardsProps {
@@ -19,17 +25,21 @@ interface OverviewCardsProps {
 }
 
 export function OverviewCards({ data }: OverviewCardsProps) {
+  const positive = data.variation >= 0;
+  const TrendIcon = positive ? TrendingUp : TrendingDown;
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Vendas de Hoje</CardTitle>
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <TrendIcon className={`h-4 w-4 ${positive ? "text-primary" : "text-destructive"}`} />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{data.todaySales}</div>
+          <div className="text-2xl font-bold">{formatCurrency(data.todaySalesValue)}</div>
           <p className="text-xs text-muted-foreground">
-            +20.1% desde ontem
+            {data.ordersToday} vendas · {positive ? "+" : ""}
+            {data.variation.toFixed(1)}% vs. ontem
           </p>
         </CardContent>
       </Card>
@@ -40,9 +50,9 @@ export function OverviewCards({ data }: OverviewCardsProps) {
           <Package className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{data.totalStock.gasP13} unidades</div>
+          <div className="text-2xl font-bold">{data.stock.gasP13} cheios</div>
           <p className="text-xs text-muted-foreground">
-            12 unidades na portaria
+            {data.stock.vaziosP13} vazios · {data.stock.emprestadosP13} emprestados
           </p>
         </CardContent>
       </Card>
@@ -53,10 +63,8 @@ export function OverviewCards({ data }: OverviewCardsProps) {
           <Droplet className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{data.totalStock.water} galões</div>
-          <p className="text-xs text-muted-foreground">
-            15 galões na portaria
-          </p>
+          <div className="text-2xl font-bold">{data.stock.water} galões</div>
+          <p className="text-xs text-muted-foreground">{data.stock.vaziosAgua} vazios na portaria</p>
         </CardContent>
       </Card>
 
@@ -68,7 +76,7 @@ export function OverviewCards({ data }: OverviewCardsProps) {
         <CardContent>
           <div className="text-2xl font-bold">{data.promissoryNotes}</div>
           <p className="text-xs text-muted-foreground">
-            Total: {data.promissoryValue}
+            {formatCurrency(data.promissoryValue)} · {data.promissoryOverdue} vencidas
           </p>
         </CardContent>
       </Card>
