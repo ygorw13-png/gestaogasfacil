@@ -6,12 +6,15 @@ import { EntranceHeader } from "./components/header/EntranceHeader";
 import { useCashier, CashierProvider } from "@/contexts/CashierContext";
 import { PortariaStockPanel } from "./components/stock/PortariaStockPanel";
 import { OpeningBalanceDialog } from "./components/stock/OpeningBalanceDialog";
+import { OpeningLockAlert } from "./components/stock/OpeningLockAlert";
 import { useMovimentacoesPortaria } from "./hooks/usePortariaStock";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Store, ShoppingCart, Users } from "lucide-react";
+import { Store, ShoppingCart, Users, History } from "lucide-react";
 import { useLateOrdersCount } from "@/hooks/useLateOrdersCount";
 import Orders from "@/pages/orders/Orders";
 import AcertoEntregadores from "./AcertoEntregadores";
+import HistoricoPortaria from "./HistoricoPortaria";
+
 
 function EntranceSalesContent() {
   const { 
