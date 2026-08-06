@@ -8,16 +8,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Eye, Phone } from "lucide-react";
+import { Eye, Phone, Trash2 } from "lucide-react";
 import { Reseller } from "../types";
 
 interface ResellersListProps {
   resellers: Reseller[];
   canViewPrices: boolean;
   onViewReseller: (reseller: Reseller) => void;
+  onRemoveReseller?: (id: string) => void;
 }
 
-export function ResellersList({ resellers, canViewPrices, onViewReseller }: ResellersListProps) {
+export function ResellersList({ resellers, canViewPrices, onViewReseller, onRemoveReseller }: ResellersListProps) {
+
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -60,10 +62,23 @@ export function ResellersList({ resellers, canViewPrices, onViewReseller }: Rese
                   <TableCell className="text-right font-medium">R$ {reseller.priceP13.toFixed(2)}</TableCell>
                 )}
                 <TableCell className="text-right">
-                  <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => onViewReseller(reseller)}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
+                  <div className="flex justify-end gap-1">
+                    <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => onViewReseller(reseller)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    {onRemoveReseller && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 w-8 p-0 text-destructive"
+                        onClick={() => onRemoveReseller(reseller.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
+
               </TableRow>
             ))
           )}

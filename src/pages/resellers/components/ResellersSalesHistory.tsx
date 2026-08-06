@@ -1,4 +1,3 @@
-
 import {
   Table,
   TableBody,
@@ -7,14 +6,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import { useResellerSales } from "../hooks/useResellers";
 
 interface ResellersSalesHistoryProps {
   canViewPrices: boolean;
 }
 
 export function ResellersSalesHistory({ canViewPrices }: ResellersSalesHistoryProps) {
-  // This would be populated from real data in a production environment
-  const sales: any[] = [];
+  const { data: sales = [], isLoading } = useResellerSales();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-10 w-full" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -39,11 +50,23 @@ export function ResellersSalesHistory({ canViewPrices }: ResellersSalesHistoryPr
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sales.map((sale) => (
-              <TableRow key={sale.id}>
-                {/* Sale data would be rendered here */}
-              </TableRow>
-            ))}
+            {sales.map((sale) => {
+              const unit = sale.quantity > 0 ? sale.price / sale.quantity : sale.price;
+              return (
+                <TableRow key={sale.id}>
+                  <TableCell>{format(new Date(sale.date), "dd/MM/yyyy HH:mm")}</TableCell>
+                  <TableCell className="font-medium">{sale.resellerName}</TableCell>
+                  <TableCell>{sale.product ?? "-"}</TableCell>
+                  <TableCell className="text-right">{sale.quantity}</TableCell>
+                  {canViewPrices && (
+                    <>
+                      <TableCell className="text-right">R$ {unit.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-medium">R$ {sale.price.toFixed(2)}</TableCell>
+                    </>
+                  )}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       )}
