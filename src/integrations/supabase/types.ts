@@ -632,6 +632,7 @@ export type Database = {
           product: string | null
           quantity: number | null
           rejection_reason: string | null
+          reseller_id: string | null
           status: string | null
           tipo_venda: string
           updated_at: string
@@ -660,6 +661,7 @@ export type Database = {
           product?: string | null
           quantity?: number | null
           rejection_reason?: string | null
+          reseller_id?: string | null
           status?: string | null
           tipo_venda?: string
           updated_at?: string
@@ -688,6 +690,7 @@ export type Database = {
           product?: string | null
           quantity?: number | null
           rejection_reason?: string | null
+          reseller_id?: string | null
           status?: string | null
           tipo_venda?: string
           updated_at?: string
@@ -695,7 +698,15 @@ export type Database = {
           vasilhames_entregues?: number
           vasilhames_recebidos?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       organizations: {
         Row: {
@@ -882,6 +893,48 @@ export type Database = {
           processado_por?: string | null
           solicitante_id?: string
           status?: string
+        }
+        Relationships: []
+      }
+      resellers: {
+        Row: {
+          active: boolean
+          address: string | null
+          contact_person: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          price_p13: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          price_p13?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          price_p13?: number
+          updated_at?: string
         }
         Relationships: []
       }
