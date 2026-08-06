@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,32 +9,31 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/contexts/AuthContext";
-import { mockResellers } from "./mockData";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ResellersList } from "./components/ResellersList";
 import { NewResellerForm } from "./components/NewResellerForm";
 import { ResellersSalesHistory } from "./components/ResellersSalesHistory";
 import { Reseller } from "./types";
 import { ResellerDetailsDialog } from "./components/ResellerDetailsDialog";
+import { useResellers } from "./hooks/useResellers";
 
 export default function Resellers() {
-  const [resellers, setResellers] = useState(mockResellers);
+  const { resellers, isLoading, createReseller, removeReseller } = useResellers();
   const [isNewResellerOpen, setIsNewResellerOpen] = useState(false);
   const [selectedReseller, setSelectedReseller] = useState<Reseller | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const { user } = useAuth();
-  
-  // Removendo a verificação de cargo que estava escondendo o botão
-  // const canManageResellers = user?.role === 'admin' || user?.role === 'gerente';
+
   const canManageResellers = true;
-  
-  const handleAddReseller = (reseller: any) => {
-    const newReseller = {
-      ...reseller,
-      id: (resellers.length + 1).toString(),
-      createdAt: new Date(),
-    };
-    setResellers([newReseller, ...resellers]);
+
+  const handleAddReseller = async (data: any) => {
+    await createReseller.mutateAsync({
+      name: data.name,
+      phone: data.phone,
+      contactPerson: data.contactPerson,
+      address: data.address,
+      priceP13: data.priceP13,
+      notes: data.notes,
+    });
     setIsNewResellerOpen(false);
   };
 
@@ -61,7 +59,7 @@ export default function Resellers() {
           <DialogHeader>
             <DialogTitle>Cadastrar Novo Agregado</DialogTitle>
           </DialogHeader>
-          <NewResellerForm onSubmit={handleAddReseller} />
+          <NewResellerForm onSubmit={handleAddReseller} isSubmitting={createReseller.isPending} />
         </DialogContent>
       </Dialog>
 
@@ -83,11 +81,20 @@ export default function Resellers() {
               <CardTitle>Lista de Agregados</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResellersList 
-                resellers={resellers} 
-                canViewPrices={canManageResellers}
-                onViewReseller={handleViewReseller}
-              />
+              {isLoading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : (
+                <ResellersList 
+                  resellers={resellers} 
+                  canViewPrices={canManageResellers}
+                  onViewReseller={handleViewReseller}
+                  onRemoveReseller={(id) => removeReseller.mutate(id)}
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
