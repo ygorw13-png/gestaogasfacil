@@ -6,6 +6,7 @@ import { PromissoryNote, PromissoryStatus } from "../types";
 function mapRow(r: any): PromissoryNote {
   return {
     id: r.id,
+    clientId: r.client_id || undefined,
     clientName: r.client_name,
     value: Number(r.value),
     dueDate: new Date(r.due_date),
