@@ -45,6 +45,7 @@ const VendaRua = lazy(() => import("./pages/entregador/VendaRua"));
 const AcertoEntregadores = lazy(() => import("./pages/entrance/AcertoEntregadores"));
 const HistoricoPortaria = lazy(() => import("./pages/entrance/HistoricoPortaria"));
 const Recompra = lazy(() => import("./pages/recompra/Recompra"));
+const RelatorioVasilhames = lazy(() => import("./pages/relatorios/RelatorioVasilhames"));
 
 
 // Loading component for lazy loading
@@ -193,6 +194,9 @@ function App() {
                 } />
                 <Route path="/entrance/historico-portaria" element={
                   <Suspense fallback={<LoadingComponent />}><HistoricoPortaria /></Suspense>
+                } />
+                <Route path="/relatorios/vasilhames" element={
+                  <Suspense fallback={<LoadingComponent />}><RelatorioVasilhames /></Suspense>
                 } />
                 <Route path="/recompra" element={
                   <Suspense fallback={<LoadingComponent />}><Recompra /></Suspense>
