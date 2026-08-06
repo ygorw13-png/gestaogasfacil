@@ -37,11 +37,12 @@ function EntranceSalesContent() {
   const lateCount = useLateOrdersCount();
   const [openingDialogOpen, setOpeningDialogOpen] = useState(false);
 
+  const hasOpening = !loadingMovs && !!movimentacoes?.some((m) => m.tipo === "abertura");
+
   // Sugerir abertura do dia se não houver movimentação de abertura hoje
   useEffect(() => {
-    if (loadingMovs) return;
-    const hasOpening = movimentacoes?.some((m) => m.tipo === "abertura");
-    if (!hasOpening && movimentacoes && movimentacoes.length === 0) {
+    if (loadingMovs || !movimentacoes) return;
+    if (!movimentacoes.some((m) => m.tipo === "abertura") && movimentacoes.length === 0) {
       setOpeningDialogOpen(true);
     }
   }, [movimentacoes, loadingMovs]);
@@ -67,7 +68,12 @@ function EntranceSalesContent() {
             <Users size={14} />
             <span>Acerto Entregadores</span>
           </TabsTrigger>
+          <TabsTrigger value="historico" className="flex items-center gap-2">
+            <History size={14} />
+            <span>Histórico Diário</span>
+          </TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="balcao" className="space-y-6">
           <EntranceHeader
