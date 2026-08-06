@@ -63,7 +63,8 @@ export function useRecompraInsights() {
       setLoading(true);
       const [{ data: c }, { data: o }] = await Promise.all([
         supabase.from("clients").select("id, name, phone, data_nascimento"),
-        supabase.from("orders").select("id, client_name, client_phone, created_at, status")
+        supabase.from("orders")
+          .select("id, client_name, client_phone, created_at, status, product, quantity, price, tipo_venda, payment_method")
           .order("created_at", { ascending: false }).limit(2000),
       ]);
       setClientes((c as Cliente[]) || []);
