@@ -102,7 +102,9 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
       },
       product,
       quantity,
-      price: 0,
+      price: values.saleValue ?? 0,
+      paymentMethod: values.paymentMethod,
+
       hasEmptyCylinder: true,
       isCompletePackage: false,
       createdAt: new Date(),
