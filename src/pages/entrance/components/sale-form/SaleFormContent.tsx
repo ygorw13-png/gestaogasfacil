@@ -6,7 +6,7 @@ import { PaymentMethodSelect } from "./PaymentMethodSelect";
 import { ProductSelection } from "./ProductSelection";
 import { CylinderMovement } from "./CylinderMovement";
 import { ResellerSelection } from "./ResellerSelection";
-import { mockResellers } from "../../../resellers/mockData";
+import { useResellers } from "../../../resellers/hooks/useResellers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSaleForm } from "../../hooks/useSaleForm";
 import type { Sale } from "../../types/saleTypes";
@@ -26,6 +26,7 @@ interface SaleFormContentProps {
 
 export function SaleFormContent({ onSubmit, onOpenChange }: SaleFormContentProps) {
   const { user } = useAuth();
+  const { resellers } = useResellers();
   const {
     saleType,
     setSaleType,
@@ -74,7 +75,7 @@ export function SaleFormContent({ onSubmit, onOpenChange }: SaleFormContentProps
         <ResellerSelection
           selectedReseller={selectedReseller}
           onSelectReseller={setSelectedReseller}
-          resellers={mockResellers}
+          resellers={resellers}
           showPrices={user?.role === 'admin' || user?.role === 'gerente'}
         />
       )}
