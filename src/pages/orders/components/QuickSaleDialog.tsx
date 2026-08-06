@@ -21,6 +21,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useRegistrarMovimentacao, type PortariaProduto } from "@/pages/entrance/hooks/usePortariaStock";
+import { SaleTypeSelect } from "@/components/forms/SaleTypeSelect";
+import { exigeValor, vasilhameDeltas, tipoVendaLabel, type TipoVenda } from "@/lib/saleTypes";
 
 const PRODUCTS: { value: PortariaProduto; label: string; orderProduct: string }[] = [
   { value: "P13", label: "Gás P13", orderProduct: "P13" },
@@ -54,11 +56,13 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState("money");
-  const [returnedEmpty, setReturnedEmpty] = useState(true);
+  const [tipoVenda, setTipoVenda] = useState<TipoVenda>("recarga");
   const [counterMode, setCounterMode] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const requiresClient = paymentMethod === "promissoria" || paymentMethod === "convenio";
+  const requiresValue = exigeValor(paymentMethod);
+  const returnedEmpty = tipoVenda === "recarga";
 
   const reset = () => {
     setClientName("");
@@ -66,7 +70,7 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
     setQuantity(1);
     setPrice("");
     setPaymentMethod("money");
-    setReturnedEmpty(true);
+    setTipoVenda("recarga");
   };
 
   // Atalho: Enter (com Ctrl) registra a venda
@@ -92,8 +96,12 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
       return;
     }
     const value = Number(price.replace(",", "."));
-    if (!value || value <= 0) {
-      toast({ title: "Informe o valor da venda", variant: "destructive" });
+    if (requiresValue && (!value || value <= 0)) {
+      toast({
+        title: "Informe o valor da venda",
+        description: "Obrigatório para dinheiro, PIX e cartão.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -116,13 +124,16 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
           address: {},
           product: productLabel,
           quantity,
-          price: value,
+          price: value || 0,
           payment_method: paymentMethod,
           status: "delivered",
           delivered_at: now,
           origem_venda: "portaria",
           has_empty_cylinder: returnedEmpty,
-          notes: "Venda rápida - retirada na portaria",
+          tipo_venda: tipoVenda,
+          vasilhames_entregues: vasilhameDeltas(tipoVenda, quantity).entregues,
+          vasilhames_recebidos: vasilhameDeltas(tipoVenda, quantity).recebidos,
+          notes: `Venda rápida - ${tipoVendaLabel(tipoVenda)}`,
         } as any)
         .select("id")
         .single();
@@ -135,9 +146,9 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
         await registrarMov.mutateAsync({
           tipo: returnedEmpty ? "venda" : "venda_comodato",
           produto: product,
-          delta_cheios: -quantity,
-          delta_vazios: returnedEmpty ? quantity : 0,
-          delta_emprestados: returnedEmpty ? 0 : quantity,
+          delta_cheios: tipoVenda === "vasilhame" ? 0 : -quantity,
+          delta_vazios: tipoVenda === "recarga" ? quantity : tipoVenda === "vasilhame" ? -quantity : 0,
+          delta_emprestados: 0,
           cliente_nome: finalName,
           referencia_id: orderId,
           observacoes: "Venda rápida na portaria",
@@ -157,7 +168,7 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
         const { error: pnError } = await supabase.from("promissory_notes").insert({
           organization_id: (await supabase.rpc("get_my_org" as any)).data as any,
           client_name: finalName,
-          value,
+          value: value || 0,
           due_date: due.toISOString().slice(0, 10),
           status: "pending",
           created_by: userId,
@@ -200,6 +211,8 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
         </DialogHeader>
 
         <div className="space-y-4">
+          <SaleTypeSelect value={tipoVenda} onChange={setTipoVenda} id="qs-tipo" />
+
           <div className="space-y-2">
             <Label htmlFor="qs-client">
               Cliente {requiresClient ? "(obrigatório)" : "(opcional)"}
@@ -249,7 +262,9 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="qs-price">Valor da venda (R$)</Label>
+            <Label htmlFor="qs-price">
+              Valor da venda (R$) {requiresValue && <span className="text-destructive">*</span>}
+            </Label>
             <Input
               id="qs-price"
               inputMode="decimal"
@@ -257,16 +272,6 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
               value={price}
               onChange={(e) => setPrice(e.target.value)}
             />
-          </div>
-
-          <div className="flex items-center justify-between rounded-md border p-3">
-            <div>
-              <Label htmlFor="qs-empty">Trouxe vasilhame vazio</Label>
-              <p className="text-xs text-muted-foreground">
-                Se desligado, a saída é registrada como comodato (emprestado).
-              </p>
-            </div>
-            <Switch id="qs-empty" checked={returnedEmpty} onCheckedChange={setReturnedEmpty} />
           </div>
 
           <div className="flex items-center justify-between rounded-md border p-3">
