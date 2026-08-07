@@ -1250,6 +1250,48 @@ export type Database = {
         }
         Relationships: []
       }
+      tarefas_mensais: {
+        Row: {
+          boletos_ok: boolean
+          competencia: string
+          conferido_por: string | null
+          conferido_por_nome: string | null
+          contabilidade_ok: boolean
+          created_at: string
+          id: string
+          notas_fiscais_ok: boolean
+          observacoes: string | null
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          boletos_ok?: boolean
+          competencia: string
+          conferido_por?: string | null
+          conferido_por_nome?: string | null
+          contabilidade_ok?: boolean
+          created_at?: string
+          id?: string
+          notas_fiscais_ok?: boolean
+          observacoes?: string | null
+          organization_id?: string
+          updated_at?: string
+        }
+        Update: {
+          boletos_ok?: boolean
+          competencia?: string
+          conferido_por?: string | null
+          conferido_por_nome?: string | null
+          contabilidade_ok?: boolean
+          created_at?: string
+          id?: string
+          notas_fiscais_ok?: boolean
+          observacoes?: string | null
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       templates_mensagem: {
         Row: {
           ativo: boolean

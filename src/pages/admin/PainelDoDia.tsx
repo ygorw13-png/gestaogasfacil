@@ -22,6 +22,7 @@ import {
   usePromissoriasVencidas,
   useRotasHoje,
 } from "./hooks/usePainelDoDia";
+import { TarefasMensaisCard } from "./components/TarefasMensaisCard";
 
 const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -55,6 +56,8 @@ export default function PainelDoDia() {
             : `${pendentes} tarefa(s) pendente(s) para começar o dia.`}
         </p>
       </div>
+
+      <TarefasMensaisCard />
 
       {/* 1. Estoque */}
       <Card className={conferencia?.estoque_ok ? "border-emerald-500/50" : "border-primary/40"}>
