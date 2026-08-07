@@ -43,7 +43,7 @@ function rodape(doc: jsPDF, y: number, esquerda: string, direita: string) {
   doc.text(direita, w - 55, yy + 4.5, { align: "center" });
   doc.setFontSize(7);
   doc.text(
-    "Após o retorno, lance estas informações no sistema (Portaria → Nova Venda / Pedidos).",
+    "Apos o retorno, lance estas informacoes no sistema: Portaria > Nova Venda / Pedidos.",
     w / 2,
     pageH - 8,
     { align: "center" }
@@ -57,7 +57,7 @@ function linhasVazias(colunas: number, quantidade: number) {
 const hoje = () => new Date().toLocaleDateString("pt-BR");
 
 /** Folha de rota para o entregador anotar as vendas na rua (sem internet). */
-export function gerarFolhaRota(linhas = 18) {
+export function gerarFolhaRota(linhas = 13) {
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
   const y = cabecalho(doc, {
     titulo: "Folha de Rota - Vendas na Rua",
@@ -108,7 +108,7 @@ export function gerarFolhaRota(linhas = 18) {
 }
 
 /** Folha de vendas da portaria para dias sem sistema/internet/energia. */
-export function gerarFolhaVendasPortaria(linhas = 22) {
+export function gerarFolhaVendasPortaria(linhas = 16) {
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
   const y = cabecalho(doc, {
     titulo: "Vendas da Portaria - Registro Manual",
