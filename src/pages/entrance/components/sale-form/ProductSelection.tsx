@@ -121,6 +121,7 @@ export function ProductSelection({
           />
         </div>
       </div>
+      )}
     </div>
   );
 }
