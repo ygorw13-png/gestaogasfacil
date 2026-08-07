@@ -670,6 +670,54 @@ export type Database = {
         }
         Relationships: []
       }
+      lembretes_manutencao: {
+        Row: {
+          ativo: boolean
+          categoria: string
+          created_at: string
+          criado_por: string | null
+          id: string
+          intervalo_dias: number
+          observacoes: string | null
+          organization_id: string
+          titulo: string
+          ultima_execucao: string
+          updated_at: string
+          veiculo_id: string | null
+          veiculo_placa: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          categoria?: string
+          created_at?: string
+          criado_por?: string | null
+          id?: string
+          intervalo_dias?: number
+          observacoes?: string | null
+          organization_id?: string
+          titulo: string
+          ultima_execucao?: string
+          updated_at?: string
+          veiculo_id?: string | null
+          veiculo_placa?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string
+          created_at?: string
+          criado_por?: string | null
+          id?: string
+          intervalo_dias?: number
+          observacoes?: string | null
+          organization_id?: string
+          titulo?: string
+          ultima_execucao?: string
+          updated_at?: string
+          veiculo_id?: string | null
+          veiculo_placa?: string | null
+        }
+        Relationships: []
+      }
       movimentacoes_portaria: {
         Row: {
           cliente_id: string | null
