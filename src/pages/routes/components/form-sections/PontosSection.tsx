@@ -3,7 +3,7 @@ import { FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { RouteFormSchema } from "../schemas/routeFormSchema";
+import { RouteFormSchema } from "../../schemas/routeFormSchema";
 import { usePontosRevenda } from "@/hooks/usePontosRevenda";
 
 interface Props {
