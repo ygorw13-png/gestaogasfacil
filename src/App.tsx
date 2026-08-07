@@ -47,6 +47,7 @@ const AcertoEntregadores = lazy(() => import("./pages/entrance/AcertoEntregadore
 const HistoricoPortaria = lazy(() => import("./pages/entrance/HistoricoPortaria"));
 const Recompra = lazy(() => import("./pages/recompra/Recompra"));
 const RelatorioVasilhames = lazy(() => import("./pages/relatorios/RelatorioVasilhames"));
+const Formularios = lazy(() => import("./pages/formularios/Formularios"));
 const PontosRevenda = lazy(() => import("./pages/pontos/PontosRevenda"));
 const PainelDoDia = lazy(() => import("./pages/admin/PainelDoDia"));
 
@@ -215,6 +216,9 @@ function App() {
                 } />
                 <Route path="/relatorios/vasilhames" element={
                   <Suspense fallback={<LoadingComponent />}><RelatorioVasilhames /></Suspense>
+                } />
+                <Route path="/formularios" element={
+                  <Suspense fallback={<LoadingComponent />}><Formularios /></Suspense>
                 } />
                 <Route path="/recompra" element={
                   <Suspense fallback={<LoadingComponent />}><Recompra /></Suspense>
