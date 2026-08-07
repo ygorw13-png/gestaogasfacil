@@ -57,7 +57,7 @@ function linhasVazias(colunas: number, quantidade: number) {
 const hoje = () => new Date().toLocaleDateString("pt-BR");
 
 /** Folha de rota para o entregador anotar as vendas na rua (sem internet). */
-export function gerarFolhaRota(linhas = 13) {
+export function gerarFolhaRota(linhas = 10) {
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
   const y = cabecalho(doc, {
     titulo: "Folha de Rota - Vendas na Rua",

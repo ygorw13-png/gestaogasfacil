@@ -59,7 +59,7 @@ function linhasVazias(colunas: number, quantidade: number) {
 const hoje = () => new Date().toLocaleDateString("pt-BR");
 
 /** Folha de rota para o entregador anotar as vendas na rua (sem internet). */
-export function gerarFolhaRota(linhas = 13) {
+export function gerarFolhaRota(linhas = 10) {
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
   const y = cabecalho(doc, {
     titulo: "Folha de Rota - Vendas na Rua",
@@ -106,7 +106,7 @@ export function gerarFolhaRota(linhas = 13) {
   doc.text("Total recebido em dinheiro: R$ ______________     Total em PIX/cartão: R$ ______________", 14, yy);
 
   rodape(doc, yy, "Entregador", "Conferido pela portaria");
-  fs.writeFileSync("/dev-server/../tmp/qa/out-"+String(n++)+".pdf", Buffer.from(doc.output("arraybuffer")));
+  fs.writeFileSync("/tmp/qa/out-"+String(n++)+".pdf", Buffer.from(doc.output("arraybuffer")));
 }
 
 /** Folha de vendas da portaria para dias sem sistema/internet/energia. */
@@ -148,7 +148,7 @@ export function gerarFolhaVendasPortaria(linhas = 16) {
   );
 
   rodape(doc, yy, "Operador da portaria", "Lançado no sistema por");
-  fs.writeFileSync("/dev-server/../tmp/qa/out-"+String(n++)+".pdf", Buffer.from(doc.output("arraybuffer")));
+  fs.writeFileSync("/tmp/qa/out-"+String(n++)+".pdf", Buffer.from(doc.output("arraybuffer")));
 }
 
 /** Folha de fechamento de caixa em branco (dia manual). */
@@ -200,5 +200,5 @@ export function gerarFolhaFechamentoManual() {
   doc.text("Observações: ______________________________________________________________", 14, yy);
 
   rodape(doc, yy, "Conferido por (portaria)", "Recebido por (administração)");
-  fs.writeFileSync("/dev-server/../tmp/qa/out-"+String(n++)+".pdf", Buffer.from(doc.output("arraybuffer")));
+  fs.writeFileSync("/tmp/qa/out-"+String(n++)+".pdf", Buffer.from(doc.output("arraybuffer")));
 }
