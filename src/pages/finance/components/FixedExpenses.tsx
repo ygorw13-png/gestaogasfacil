@@ -3,10 +3,12 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar } from "lucide-react";
+import { Plus, Calendar, BellRing, FilePlus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DateRange } from "react-day-picker";
 import NewFixedExpenseForm from "./forms/NewFixedExpenseForm";
+import LembretesTab from "./LembretesTab";
 
 interface FixedExpensesProps {
   dateRange?: DateRange;
@@ -16,6 +18,24 @@ export default function FixedExpenses({ dateRange }: FixedExpensesProps) {
   const [open, setOpen] = useState(false);
 
   return (
+    <Tabs defaultValue="despesas" className="w-full space-y-4">
+      <TabsList>
+        <TabsTrigger value="despesas" className="flex items-center gap-2">
+          <FilePlus className="h-4 w-4" />
+          Despesas Fixas
+        </TabsTrigger>
+        <TabsTrigger value="lembretes" className="flex items-center gap-2">
+          <BellRing className="h-4 w-4" />
+          Lembretes
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="lembretes">
+        <LembretesTab />
+      </TabsContent>
+
+      <TabsContent value="despesas">
+
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
