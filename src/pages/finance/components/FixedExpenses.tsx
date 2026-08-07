@@ -79,5 +79,8 @@ export default function FixedExpenses({ dateRange }: FixedExpensesProps) {
         </Table>
       </CardContent>
     </Card>
+      </TabsContent>
+    </Tabs>
   );
 }
+
