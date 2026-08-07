@@ -112,6 +112,9 @@ export function CashierClosingForm({
       }
     }
 
+    // Gera automaticamente o PDF para imprimir e anexar ao envelope
+    handleGerarPdf();
+
     onSubmit(closingType, observations);
   };
 
