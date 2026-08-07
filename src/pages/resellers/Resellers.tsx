@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ResellersList } from "./components/ResellersList";
 import { NewResellerForm } from "./components/NewResellerForm";
+import { ContaAgregadosTab } from "./components/ContaAgregadosTab";
 import { ResellersSalesHistory } from "./components/ResellersSalesHistory";
 import { Reseller } from "./types";
 import { ResellerDetailsDialog } from "./components/ResellerDetailsDialog";
@@ -73,6 +74,7 @@ export default function Resellers() {
       <Tabs defaultValue="list" className="space-y-4">
         <TabsList>
           <TabsTrigger value="list">Agregados</TabsTrigger>
+          <TabsTrigger value="conta">Conta / Acerto</TabsTrigger>
           <TabsTrigger value="sales">Histórico de Vendas</TabsTrigger>
         </TabsList>
         <TabsContent value="list" className="mt-0">
@@ -95,6 +97,16 @@ export default function Resellers() {
                   onRemoveReseller={(id) => removeReseller.mutate(id)}
                 />
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="conta" className="mt-0">
+          <Card>
+            <CardHeader>
+              <CardTitle>Botijões a acertar</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ContaAgregadosTab />
             </CardContent>
           </Card>
         </TabsContent>
