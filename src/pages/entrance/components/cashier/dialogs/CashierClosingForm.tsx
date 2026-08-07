@@ -151,9 +151,13 @@ export function CashierClosingForm({
       
       <ObservationsSection value={observations} onChange={setObservations} />
       
-      <DialogFooter>
+      <DialogFooter className="gap-2 sm:gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
+        </Button>
+        <Button type="button" variant="secondary" onClick={handleGerarPdf} className="gap-2">
+          <FileText className="h-4 w-4" />
+          Gerar PDF
         </Button>
         <Button type="submit" disabled={registrar.isPending}>
           {registrar.isPending
