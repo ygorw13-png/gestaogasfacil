@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { ObservationsSection } from "../../ObservationsSection";
 import { useState } from "react";
+import { FileText } from "lucide-react";
 import { ClosingTypeTabs } from "../ClosingTypeTabs";
 import { CashierData, PartialClosing } from "../../../types/cashierTypes";
 import { SummarySection } from "./SummarySection";
 import { prepareAdaptedSalesData } from "../../../utils/closingCalculations";
+import { gerarPdfFechamento } from "../../../utils/closingPdf";
 import {
   RemainingStockSection,
   emptyRemainingStock,
@@ -15,6 +17,7 @@ import {
 import {
   useRegistrarMovimentacao,
   useSaldoPortaria,
+  produtoLabel,
   type PortariaProduto,
 } from "../../../hooks/usePortariaStock";
 import { useToast } from "@/hooks/use-toast";
@@ -45,6 +48,27 @@ export function CashierClosingForm({
   const { data: saldo } = useSaldoPortaria();
   const registrar = useRegistrarMovimentacao();
   const { toast } = useToast();
+
+  const handleGerarPdf = () => {
+    gerarPdfFechamento({
+      tipo: closingType,
+      cashierData,
+      observacoes: observations,
+      estoque: PRODUCTS.map((p) => ({
+        produto: produtoLabel(p),
+        vendas: saldo?.[p].vendas_dia ?? 0,
+        sistemaCheios: saldo?.[p].cheios ?? 0,
+        contadoCheios: remaining[p].cheios,
+        sistemaVazios: saldo?.[p].vazios ?? 0,
+        contadoVazios: remaining[p].vazios,
+      })),
+    });
+    toast({
+      title: "PDF gerado",
+      description: "O relatório foi baixado. Imprima e coloque junto ao envelope.",
+    });
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
