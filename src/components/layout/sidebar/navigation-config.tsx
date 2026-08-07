@@ -55,7 +55,6 @@ export const inventoryNavItems: NavigationItem[] = [
   { to: "/routes", icon: Truck, label: "Rotas" },
   { to: "/resellers", icon: CalendarCheck, label: "Revendedores" },
   { to: "/pontos-revenda", icon: MapPin, label: "Pontos de Revenda" },
-  { to: "/fleet", icon: Truck, label: "Frota" },
   { to: "/relatorios/vasilhames", icon: FileBarChart, label: "Relatório Vasilhames" }
 ];
 
