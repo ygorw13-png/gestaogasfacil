@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RoutesList } from "../components/RoutesList";
 import { NewRouteForm } from "../components/NewRouteForm";
 import { RoutesHistory } from "../components/RoutesHistory";
+import { AlertasPontosCard } from "../components/AlertasPontosCard";
 
 export default function RoutesPage() {
   return (
@@ -29,6 +30,7 @@ export default function RoutesPage() {
         </TabsList>
         
         <TabsContent value="active" className="space-y-4">
+          <AlertasPontosCard />
           <RoutesList />
         </TabsContent>
         
