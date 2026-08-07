@@ -183,6 +183,11 @@ function App() {
                     <Expenses />
                   </Suspense>
                 } />
+                <Route path="/comissoes" element={
+                  <Suspense fallback={<LoadingComponent />}>
+                    <Comissoes />
+                  </Suspense>
+                } />
                 <Route path="/settings" element={
                   <Suspense fallback={<LoadingComponent />}>
                     <Settings />
