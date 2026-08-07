@@ -80,21 +80,46 @@ export function SaleFormContent({ onSubmit, onOpenChange }: SaleFormContentProps
         />
       )}
       
-      <PaymentMethodSelect
-        value={paymentMethod}
-        onChange={setPaymentMethod}
-      />
-      
-      <ProductSelection
-        product={product}
-        quantity={quantity}
-        unitPrice={unitPrice}
-        onProductChange={setProduct}
-        onQuantityChange={setQuantity}
-        onUnitPriceChange={setUnitPrice}
-        readOnlyPrice={saleType === "reseller"}
-        paymentMethod={paymentMethod}
-      />
+      {saleType === "regular" ? (
+        <>
+          <PaymentMethodSelect
+            value={paymentMethod}
+            onChange={setPaymentMethod}
+          />
+
+          <ProductSelection
+            product={product}
+            quantity={quantity}
+            unitPrice={unitPrice}
+            onProductChange={setProduct}
+            onQuantityChange={setQuantity}
+            onUnitPriceChange={setUnitPrice}
+            paymentMethod={paymentMethod}
+          />
+        </>
+      ) : (
+        <>
+          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+            <p className="font-medium">Venda a acertar (nota promissória)</p>
+            <p className="text-muted-foreground">
+              Não é preciso informar valor agora. Os botijões entram na conta do agregado e o preço
+              é definido no recebimento, pelo menu Revendedores.
+            </p>
+          </div>
+
+          <ProductSelection
+            product={product}
+            quantity={quantity}
+            unitPrice={unitPrice}
+            onProductChange={setProduct}
+            onQuantityChange={setQuantity}
+            onUnitPriceChange={setUnitPrice}
+            hidePrice
+            paymentMethod={paymentMethod}
+          />
+        </>
+      )}
+
       
       <CylinderMovement
         loanGas={loanGas}

@@ -18,6 +18,7 @@ interface ProductSelectionProps {
   onQuantityChange: (value: number) => void;
   onUnitPriceChange: (value: number) => void;
   readOnlyPrice?: boolean;
+  hidePrice?: boolean;
   paymentMethod?: string;
 }
 
@@ -32,6 +33,7 @@ export function ProductSelection({
   onQuantityChange,
   onUnitPriceChange,
   readOnlyPrice = false,
+  hidePrice = false,
   paymentMethod = "",
 }: ProductSelectionProps) {
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,6 +76,7 @@ export function ProductSelection({
         </div>
       </div>
 
+      {!hidePrice && (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label
@@ -118,6 +121,7 @@ export function ProductSelection({
           />
         </div>
       </div>
+      )}
     </div>
   );
 }

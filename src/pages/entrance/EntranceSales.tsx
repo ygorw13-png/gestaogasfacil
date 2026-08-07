@@ -9,11 +9,12 @@ import { OpeningBalanceDialog } from "./components/stock/OpeningBalanceDialog";
 import { OpeningLockAlert } from "./components/stock/OpeningLockAlert";
 import { useMovimentacoesPortaria } from "./hooks/usePortariaStock";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Store, ShoppingCart, Users, History } from "lucide-react";
+import { Store, ShoppingCart, Users, History, Receipt } from "lucide-react";
 import { useLateOrdersCount } from "@/hooks/useLateOrdersCount";
 import Orders from "@/pages/orders/Orders";
 import AcertoEntregadores from "./AcertoEntregadores";
 import HistoricoPortaria from "./HistoricoPortaria";
+import { DespesasPortariaTab } from "./components/despesas/DespesasPortariaTab";
 
 
 function EntranceSalesContent() {
@@ -72,6 +73,10 @@ function EntranceSalesContent() {
             <History size={14} />
             <span>Histórico Diário</span>
           </TabsTrigger>
+          <TabsTrigger value="despesas" className="flex items-center gap-2">
+            <Receipt size={14} />
+            <span>Despesas</span>
+          </TabsTrigger>
         </TabsList>
 
 
@@ -118,6 +123,10 @@ function EntranceSalesContent() {
 
         <TabsContent value="historico">
           <HistoricoPortaria />
+        </TabsContent>
+
+        <TabsContent value="despesas">
+          <DespesasPortariaTab />
         </TabsContent>
       </Tabs>
 

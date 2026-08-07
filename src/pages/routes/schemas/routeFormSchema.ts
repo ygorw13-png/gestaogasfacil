@@ -12,6 +12,15 @@ export const routeFormSchema = z.object({
     water: z.number().min(0, "Quantidade não pode ser negativa"),
   }),
   promissoryNotesToCollect: z.array(z.string()).default([]),
+  pontos: z
+    .array(
+      z.object({
+        pontoId: z.string(),
+        nome: z.string(),
+        cheios: z.number().min(0),
+      })
+    )
+    .default([]),
   notes: z.string().optional(),
 });
 

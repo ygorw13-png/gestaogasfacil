@@ -1,6 +1,6 @@
 
-import { BarChart3, Users, Store, Package, ReceiptText, 
-        Truck, CalendarCheck, Settings, Repeat, FileBarChart } from "lucide-react";
+import { BarChart3, Users, Store, Package, ReceiptText, ListChecks,
+        Truck, CalendarCheck, Settings, Repeat, FileBarChart, MapPin } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
 export interface NavigationItem {
@@ -23,6 +23,7 @@ export interface AccordionNavItem {
 
 // Main navigation links
 export const mainNavItems: NavigationItem[] = [
+  { to: "/painel", icon: ListChecks, label: "Painel do Dia" },
   { to: "/dashboard", icon: BarChart3, label: "Dashboard" },
   { to: "/clients", icon: Users, label: "Clientes" },
   { to: "/recompra", icon: Repeat, label: "Recompra" }
@@ -53,6 +54,7 @@ export const inventoryNavItems: NavigationItem[] = [
   { to: "/promissory", icon: ReceiptText, label: "Promissórias" },
   { to: "/routes", icon: Truck, label: "Rotas" },
   { to: "/resellers", icon: CalendarCheck, label: "Revendedores" },
+  { to: "/pontos-revenda", icon: MapPin, label: "Pontos de Revenda" },
   { to: "/fleet", icon: Truck, label: "Frota" },
   { to: "/relatorios/vasilhames", icon: FileBarChart, label: "Relatório Vasilhames" }
 ];
