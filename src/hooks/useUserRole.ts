@@ -33,7 +33,7 @@ export function useUserRole() {
       ? "/entregador/entregas"
       : role === "portaria"
       ? "/entrance"
-      : "/dashboard";
+      : "/painel";
 
   return {
     role,

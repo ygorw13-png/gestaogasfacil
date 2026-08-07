@@ -46,6 +46,8 @@ const AcertoEntregadores = lazy(() => import("./pages/entrance/AcertoEntregadore
 const HistoricoPortaria = lazy(() => import("./pages/entrance/HistoricoPortaria"));
 const Recompra = lazy(() => import("./pages/recompra/Recompra"));
 const RelatorioVasilhames = lazy(() => import("./pages/relatorios/RelatorioVasilhames"));
+const PontosRevenda = lazy(() => import("./pages/pontos/PontosRevenda"));
+const PainelDoDia = lazy(() => import("./pages/admin/PainelDoDia"));
 
 
 // Loading component for lazy loading
@@ -153,6 +155,16 @@ function App() {
                 <Route path="/routes" element={
                   <Suspense fallback={<LoadingComponent />}>
                     <RoutesPage />
+                  </Suspense>
+                } />
+                <Route path="/painel" element={
+                  <Suspense fallback={<LoadingComponent />}>
+                    <PainelDoDia />
+                  </Suspense>
+                } />
+                <Route path="/pontos-revenda" element={
+                  <Suspense fallback={<LoadingComponent />}>
+                    <PontosRevenda />
                   </Suspense>
                 } />
                 <Route path="/resellers" element={

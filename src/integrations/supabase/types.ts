@@ -191,6 +191,54 @@ export type Database = {
         }
         Relationships: []
       }
+      conferencias_diarias: {
+        Row: {
+          caixa_observacao: string | null
+          caixa_ok: boolean
+          conferido_por: string | null
+          conferido_por_nome: string | null
+          created_at: string
+          data: string
+          estoque_observacao: string | null
+          estoque_ok: boolean
+          id: string
+          organization_id: string
+          rotas_observacao: string | null
+          rotas_ok: boolean
+          updated_at: string
+        }
+        Insert: {
+          caixa_observacao?: string | null
+          caixa_ok?: boolean
+          conferido_por?: string | null
+          conferido_por_nome?: string | null
+          created_at?: string
+          data?: string
+          estoque_observacao?: string | null
+          estoque_ok?: boolean
+          id?: string
+          organization_id?: string
+          rotas_observacao?: string | null
+          rotas_ok?: boolean
+          updated_at?: string
+        }
+        Update: {
+          caixa_observacao?: string | null
+          caixa_ok?: boolean
+          conferido_por?: string | null
+          conferido_por_nome?: string | null
+          created_at?: string
+          data?: string
+          estoque_observacao?: string | null
+          estoque_ok?: boolean
+          id?: string
+          organization_id?: string
+          rotas_observacao?: string | null
+          rotas_ok?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       configuracoes_entrega: {
         Row: {
           atualizado_em: string
@@ -386,6 +434,69 @@ export type Database = {
         }
         Relationships: []
       }
+      conta_botijoes: {
+        Row: {
+          created_at: string
+          data: string
+          forma_pagamento: string | null
+          id: string
+          observacoes: string | null
+          order_id: string | null
+          organization_id: string
+          parceiro_id: string
+          parceiro_nome: string
+          parceiro_tipo: string
+          preco_unitario: number | null
+          produto: string
+          quantidade: number
+          registrado_por: string | null
+          rota_id: string | null
+          tipo: string
+          valor_total: number | null
+          vasilhames_recebidos: number
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          forma_pagamento?: string | null
+          id?: string
+          observacoes?: string | null
+          order_id?: string | null
+          organization_id?: string
+          parceiro_id: string
+          parceiro_nome: string
+          parceiro_tipo: string
+          preco_unitario?: number | null
+          produto?: string
+          quantidade?: number
+          registrado_por?: string | null
+          rota_id?: string | null
+          tipo: string
+          valor_total?: number | null
+          vasilhames_recebidos?: number
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          forma_pagamento?: string | null
+          id?: string
+          observacoes?: string | null
+          order_id?: string | null
+          organization_id?: string
+          parceiro_id?: string
+          parceiro_nome?: string
+          parceiro_tipo?: string
+          preco_unitario?: number | null
+          produto?: string
+          quantidade?: number
+          registrado_por?: string | null
+          rota_id?: string | null
+          tipo?: string
+          valor_total?: number | null
+          vasilhames_recebidos?: number
+        }
+        Relationships: []
+      }
       contatos_recompra: {
         Row: {
           canal: string
@@ -457,6 +568,8 @@ export type Database = {
           atualizado_em: string
           caixa_movimentacao_id: string | null
           categoria: string | null
+          colaborador_id: string | null
+          colaborador_nome: string | null
           criado_em: string
           data: string
           descricao: string
@@ -475,6 +588,8 @@ export type Database = {
           atualizado_em?: string
           caixa_movimentacao_id?: string | null
           categoria?: string | null
+          colaborador_id?: string | null
+          colaborador_nome?: string | null
           criado_em?: string
           data?: string
           descricao: string
@@ -493,6 +608,8 @@ export type Database = {
           atualizado_em?: string
           caixa_movimentacao_id?: string | null
           categoria?: string | null
+          colaborador_id?: string | null
+          colaborador_nome?: string | null
           criado_em?: string
           data?: string
           descricao?: string
@@ -729,6 +846,48 @@ export type Database = {
         }
         Relationships: []
       }
+      pontos_revenda: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          media_botijoes: number
+          nome: string
+          observacoes: string | null
+          organization_id: string
+          povoado: string | null
+          telefone: string | null
+          updated_at: string
+          vasilhames_emprestados: number
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          media_botijoes?: number
+          nome: string
+          observacoes?: string | null
+          organization_id?: string
+          povoado?: string | null
+          telefone?: string | null
+          updated_at?: string
+          vasilhames_emprestados?: number
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          media_botijoes?: number
+          nome?: string
+          observacoes?: string | null
+          organization_id?: string
+          povoado?: string | null
+          telefone?: string | null
+          updated_at?: string
+          vasilhames_emprestados?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           ativo: boolean
@@ -937,6 +1096,57 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      rota_pontos: {
+        Row: {
+          cheios_entregues: number
+          created_at: string
+          id: string
+          observacoes: string | null
+          organization_id: string
+          ponto_id: string
+          ponto_nome: string
+          rota_id: string
+          vasilhames_recolhidos: number
+        }
+        Insert: {
+          cheios_entregues?: number
+          created_at?: string
+          id?: string
+          observacoes?: string | null
+          organization_id?: string
+          ponto_id: string
+          ponto_nome: string
+          rota_id: string
+          vasilhames_recolhidos?: number
+        }
+        Update: {
+          cheios_entregues?: number
+          created_at?: string
+          id?: string
+          observacoes?: string | null
+          organization_id?: string
+          ponto_id?: string
+          ponto_nome?: string
+          rota_id?: string
+          vasilhames_recolhidos?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rota_pontos_ponto_id_fkey"
+            columns: ["ponto_id"]
+            isOneToOne: false
+            referencedRelation: "pontos_revenda"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rota_pontos_rota_id_fkey"
+            columns: ["rota_id"]
+            isOneToOne: false
+            referencedRelation: "rotas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rotas: {
         Row: {

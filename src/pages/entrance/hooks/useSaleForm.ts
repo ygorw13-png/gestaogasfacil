@@ -2,6 +2,7 @@
 import { useReducer, useCallback } from "react";
 import type { Sale } from "../types/saleTypes";
 import type { Reseller } from "../../resellers/types";
+import { useRegistrarEntregaConta } from "@/hooks/useContaBotijoes";
 
 // Define action types
 type SaleFormAction =
@@ -78,6 +79,7 @@ function saleFormReducer(state: SaleFormState, action: SaleFormAction): SaleForm
 // Custom hook
 export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open: boolean) => void) => {
   const [state, dispatch] = useReducer(saleFormReducer, initialState);
+  const registrarEntrega = useRegistrarEntregaConta();
   
   // Effect to update price when reseller or product changes
   // Since we're using a reducer, we can handle this in the reducer
@@ -120,27 +122,47 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
   // Função para lidar com o envio do formulário
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    const isReseller = state.saleType === "reseller";
+
     const newSale: Sale = {
       id: Date.now(),
       time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      client: state.selectedClient ? state.selectedClient.name : "Venda Avulsa",
+      client: isReseller
+        ? state.selectedReseller?.name ?? "Agregado"
+        : state.selectedClient ? state.selectedClient.name : "Venda Avulsa",
       product: state.product === 'p13' ? 'GLP P13' : 
               state.product === 'p20' ? 'GLP P20' :
               state.product === 'p45' ? 'GLP P45' : 'Água 20L',
       quantity: state.quantity,
-      payment: state.paymentMethod === 'cash' ? 'Dinheiro' :
+      payment: isReseller ? 'Promissória' :
+              state.paymentMethod === 'cash' ? 'Dinheiro' :
               state.paymentMethod === 'credit' ? 'Crédito' :
               state.paymentMethod === 'debit' ? 'Débito' :
               state.paymentMethod === 'pix' ? 'PIX' :
               state.paymentMethod === 'promissory' ? 'Promissória' :
               state.paymentMethod === 'gasVoucher' ? 'Vale Gás' : 'Convênio',
-      amount: state.quantity * state.unitPrice,
+      // Venda para agregado não tem valor no ato: o preço é definido no acerto
+      amount: isReseller ? 0 : state.quantity * state.unitPrice,
       productCode: state.product as 'p13' | 'p20' | 'p45' | 'water',
       clientId: state.selectedClient?.id ? String(state.selectedClient.id) : null,
       cylinderMovement: state.loanGas ? 'loan' : state.cylinderMovement,
       movementQuantity: state.loanGas ? state.quantity : state.movementQuantity,
     };
+
+    // Agregado: lança na conta de botijões (acerto por quantidade)
+    if (isReseller && state.selectedReseller) {
+      registrarEntrega.mutate({
+        parceiro_tipo: "agregado",
+        parceiro_id: state.selectedReseller.id,
+        parceiro_nome: state.selectedReseller.name,
+        produto: state.product ? state.product.toUpperCase() : "P13",
+        quantidade: state.quantity,
+        vasilhames_recebidos: state.cylinderMovement === "return" ? state.movementQuantity : 0,
+        observacoes: "Venda na portaria - a acertar",
+      });
+    }
+
 
     // Reset the form
     dispatch({ type: 'RESET_FORM' });
@@ -149,7 +171,8 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
   }, [
     state,
     onSubmit,
-    onOpenChange
+    onOpenChange,
+    registrarEntrega
   ]);
 
   // Reset form function

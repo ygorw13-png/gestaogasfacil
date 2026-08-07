@@ -20,6 +20,8 @@ export interface DespesaInput {
   origem_dinheiro: OrigemDinheiro;
   veiculo_id?: string | null;
   veiculo_placa?: string | null;
+  colaborador_id?: string | null;
+  colaborador_nome?: string | null;
   categoria?: string | null;
   observacoes?: string | null;
 }
@@ -87,6 +89,8 @@ export function useRegistrarDespesa() {
           data: input.data,
           origem_dinheiro: input.origem_dinheiro,
           veiculo_id: input.veiculo_id ?? null,
+          colaborador_id: input.colaborador_id ?? null,
+          colaborador_nome: input.colaborador_nome ?? null,
           veiculo_placa: input.veiculo_placa ?? null,
           categoria: input.categoria ?? null,
           observacoes: input.observacoes ?? null,
