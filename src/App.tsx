@@ -38,6 +38,7 @@ const Resellers = lazy(() => import("./pages/resellers/Resellers"));
 const Fleet = lazy(() => import("./pages/fleet/Fleet"));
 const Settings = lazy(() => import("./pages/settings/Settings"));
 const Expenses = lazy(() => import("./pages/finance/Expenses"));
+const Comissoes = lazy(() => import("./pages/comissoes/Comissoes"));
 const Colaboradores = lazy(() => import("./pages/colaboradores/Colaboradores"));
 const MinhasEntregas = lazy(() => import("./pages/entregador/MinhasEntregas"));
 const CadastroRapido = lazy(() => import("./pages/entregador/CadastroRapido"));
@@ -180,6 +181,11 @@ function App() {
                 <Route path="/finance/expenses" element={
                   <Suspense fallback={<LoadingComponent />}>
                     <Expenses />
+                  </Suspense>
+                } />
+                <Route path="/comissoes" element={
+                  <Suspense fallback={<LoadingComponent />}>
+                    <Comissoes />
                   </Suspense>
                 } />
                 <Route path="/settings" element={

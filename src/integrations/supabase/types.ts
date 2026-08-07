@@ -191,6 +191,171 @@ export type Database = {
         }
         Relationships: []
       }
+      comissao_bonus_faixas: {
+        Row: {
+          bonus: number
+          created_at: string
+          id: string
+          organization_id: string
+          valor_min_recebido: number
+        }
+        Insert: {
+          bonus: number
+          created_at?: string
+          id?: string
+          organization_id?: string
+          valor_min_recebido: number
+        }
+        Update: {
+          bonus?: number
+          created_at?: string
+          id?: string
+          organization_id?: string
+          valor_min_recebido?: number
+        }
+        Relationships: []
+      }
+      comissao_config: {
+        Row: {
+          ativo: boolean
+          ciclo: string
+          created_at: string
+          id: string
+          organization_id: string
+          pagar_promissoria_no_recebimento: boolean
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          ciclo?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          pagar_promissoria_no_recebimento?: boolean
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          ciclo?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          pagar_promissoria_no_recebimento?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      comissao_fechamentos: {
+        Row: {
+          colaborador_nome: string
+          created_at: string
+          criado_por: string | null
+          detalhes: Json | null
+          id: string
+          observacoes: string | null
+          organization_id: string
+          pago_em: string | null
+          periodo_fim: string
+          periodo_inicio: string
+          status: string
+          total_bonus: number
+          total_comissao: number
+          total_pagar: number
+          total_vendido: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          colaborador_nome: string
+          created_at?: string
+          criado_por?: string | null
+          detalhes?: Json | null
+          id?: string
+          observacoes?: string | null
+          organization_id?: string
+          pago_em?: string | null
+          periodo_fim: string
+          periodo_inicio: string
+          status?: string
+          total_bonus?: number
+          total_comissao?: number
+          total_pagar?: number
+          total_vendido?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          colaborador_nome?: string
+          created_at?: string
+          criado_por?: string | null
+          detalhes?: Json | null
+          id?: string
+          observacoes?: string | null
+          organization_id?: string
+          pago_em?: string | null
+          periodo_fim?: string
+          periodo_inicio?: string
+          status?: string
+          total_bonus?: number
+          total_comissao?: number
+          total_pagar?: number
+          total_vendido?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      comissao_regras: {
+        Row: {
+          ativo: boolean
+          colaborador_id: string | null
+          colaborador_nome: string
+          created_at: string
+          fixo_por_botijao: number
+          id: string
+          modo: string
+          organization_id: string
+          perc_cartao: number
+          perc_dinheiro: number
+          perc_pix: number
+          perc_promissoria: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          colaborador_id?: string | null
+          colaborador_nome: string
+          created_at?: string
+          fixo_por_botijao?: number
+          id?: string
+          modo?: string
+          organization_id?: string
+          perc_cartao?: number
+          perc_dinheiro?: number
+          perc_pix?: number
+          perc_promissoria?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          colaborador_id?: string | null
+          colaborador_nome?: string
+          created_at?: string
+          fixo_por_botijao?: number
+          id?: string
+          modo?: string
+          organization_id?: string
+          perc_cartao?: number
+          perc_dinheiro?: number
+          perc_pix?: number
+          perc_promissoria?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       conferencias_diarias: {
         Row: {
           caixa_observacao: string | null
