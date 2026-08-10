@@ -40,6 +40,7 @@ export function ResellerSelection({ selectedReseller, onSelectReseller, reseller
         <Popover open={resellerSearchOpen} onOpenChange={setResellerSearchOpen}>
           <PopoverTrigger asChild>
             <Button
+              type="button"
               variant="outline"
               role="combobox"
               className="w-full justify-between"
