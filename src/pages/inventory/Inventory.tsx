@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download } from "lucide-react";
+import { Download, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { InventoryHeader } from "./components/stock/InventoryHeader";
 import { useStockData } from "./hooks/useStockData";
@@ -20,6 +20,10 @@ import { UserRole } from "@/types/userTypes";
 import { StockData, defaultStockData } from "./components/stock/StockData";
 import { InventoryTableSkeleton } from "./components/InventoryTableSkeleton";
 import { exportToCsv } from "@/utils/csvExport";
+import { CorrigirEstoqueGeralDialog } from "./components/CorrigirEstoqueGeralDialog";
+import { DailyAdjustmentsStrip, type AdjustmentItem } from "@/components/stock/DailyAdjustmentsStrip";
+import { getDailyAdjustments } from "@/lib/dailyAdjustLog";
+
 
 const Inventory = () => {
   const [showRequestForm, setShowRequestForm] = useState(false);
