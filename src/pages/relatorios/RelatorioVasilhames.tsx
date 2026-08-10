@@ -6,13 +6,32 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import { Download, ArrowDownCircle, ArrowUpCircle, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { tipoVendaLabel, tipoVendaShort } from "@/lib/saleTypes";
+import { paymentLabelFromCode } from "@/pages/entrance/hooks/useVendasHoje";
 import { exportToCsv } from "@/utils/csvExport";
 
 const hoje = () => new Date().toISOString().slice(0, 10);
 const diasAtras = (n: number) => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);
+
+type Linha = {
+  id: string;
+  data: string;
+  parceiro: string;
+  movimento: "venda_vasilhame" | "gas_completo" | "emprestimo" | "devolucao";
+  produto: string;
+  saida: number;
+  entrada: number;
+  pagamento: string;
+  valor: number;
+};
+
+const MOV_LABEL: Record<Linha["movimento"], string> = {
+  venda_vasilhame: "Venda de vasilhame",
+  gas_completo: "Gás completo (casco saiu)",
+  emprestimo: "Empréstimo / comodato",
+  devolucao: "Devolução de vasilhame",
+};
 
 export default function RelatorioVasilhames() {
   const [inicio, setInicio] = useState(diasAtras(7));
@@ -20,70 +39,102 @@ export default function RelatorioVasilhames() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["relatorio-vasilhames", inicio, fim],
-    queryFn: async () => {
+    queryFn: async (): Promise<Linha[]> => {
       const { data: vendas, error } = await supabase
         .from("orders")
-        .select("id, created_at, delivered_at, client_name, product, quantity, price, payment_method, status, tipo_venda, vasilhames_entregues, vasilhames_recebidos, origem_venda")
+        .select(
+          "id, created_at, client_name, product, quantity, price, payment_method, status, tipo_venda, vasilhames_entregues, vasilhames_recebidos, has_empty_cylinder",
+        )
         .gte("created_at", inicio + "T00:00:00")
         .lte("created_at", fim + "T23:59:59")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (vendas ?? []) as any[];
+
+      const { data: movs, error: movErr } = await (supabase as any)
+        .from("movimentacoes_portaria")
+        .select("*")
+        .gte("data_operacao", inicio)
+        .lte("data_operacao", fim)
+        .order("criado_em", { ascending: false });
+      if (movErr) throw movErr;
+
+      const linhasVendas: Linha[] = (vendas ?? [])
+        // Vendas canceladas não entram no relatório
+        .filter((r: any) => (r.status ?? "").toLowerCase() !== "cancelled" && (r.status ?? "") !== "cancelado")
+        // Troca normal (cliente traz o casco) não é movimentação de vasilhame
+        .filter((r: any) => (r.tipo_venda ?? "recarga") !== "recarga")
+        .map((r: any) => ({
+          id: r.id,
+          data: r.created_at,
+          parceiro: r.client_name ?? "-",
+          movimento: (r.tipo_venda === "vasilhame" ? "venda_vasilhame" : "gas_completo") as Linha["movimento"],
+          produto: r.product ?? "",
+          saida: Number(r.vasilhames_entregues ?? r.quantity ?? 0),
+          entrada: Number(r.vasilhames_recebidos ?? 0),
+          pagamento: paymentLabelFromCode(r.payment_method),
+          valor: Number(r.price ?? 0),
+        }));
+
+      const linhasMovs: Linha[] = (movs ?? [])
+        .filter((m: any) => m.tipo === "devolucao_vasilhame" || Number(m.delta_emprestados ?? 0) !== 0)
+        .map((m: any) => ({
+          id: m.id,
+          data: m.criado_em,
+          parceiro: m.cliente_nome ?? "Portaria",
+          movimento: (m.tipo === "devolucao_vasilhame" ? "devolucao" : "emprestimo") as Linha["movimento"],
+          produto: m.produto ?? "",
+          saida: Math.max(0, Number(m.delta_emprestados ?? 0)),
+          entrada: Math.max(0, Number(m.delta_vazios ?? 0)),
+          pagamento: "-",
+          valor: 0,
+        }));
+
+      return [...linhasVendas, ...linhasMovs].sort((a, b) => (a.data < b.data ? 1 : -1));
     },
   });
 
   const linhas = data ?? [];
-  const totalVendas = linhas.reduce((s, r) => s + Number(r.price ?? 0), 0);
-  const saidas = linhas.reduce((s, r) => s + Number(r.vasilhames_entregues ?? 0), 0);
-  const entradas = linhas.reduce((s, r) => s + Number(r.vasilhames_recebidos ?? 0), 0);
+  const saidas = linhas.reduce((s, r) => s + r.saida, 0);
+  const entradas = linhas.reduce((s, r) => s + r.entrada, 0);
+  const totalVendas = linhas.reduce((s, r) => s + r.valor, 0);
+  const saldo = entradas - saidas;
 
-  // Cada venda de gás (não vasilhame avulso) deve gerar um casco vazio de volta,
-  // exceto quando o casco saiu como comodato/venda completa.
-  const unidadesGas = linhas
-    .filter((r) => (r.tipo_venda ?? "recarga") !== "vasilhame")
-    .reduce((s, r) => s + Number(r.quantity ?? 0), 0);
-  const esperadoVolta = unidadesGas - linhas
-    .filter((r) => (r.tipo_venda ?? "recarga") === "completa")
-    .reduce((s, r) => s + Number(r.quantity ?? 0), 0);
-  const divergencia = entradas - esperadoVolta;
-
-  const porTipo = ["recarga", "completa", "vasilhame"].map((t) => {
-    const itens = linhas.filter((r) => (r.tipo_venda ?? "recarga") === t);
+  const porMovimento = (Object.keys(MOV_LABEL) as Linha["movimento"][]).map((m) => {
+    const itens = linhas.filter((r) => r.movimento === m);
     return {
-      tipo: t,
+      movimento: m,
       qtd: itens.length,
-      unidades: itens.reduce((s, r) => s + Number(r.quantity ?? 0), 0),
-      valor: itens.reduce((s, r) => s + Number(r.price ?? 0), 0),
+      saida: itens.reduce((s, r) => s + r.saida, 0),
+      entrada: itens.reduce((s, r) => s + r.entrada, 0),
+      valor: itens.reduce((s, r) => s + r.valor, 0),
     };
   });
 
   const baixarCsv = () => {
-    exportToCsv<any>(
+    exportToCsv<Linha>(
       `relatorio-vasilhames-${inicio}_${fim}.csv`,
       [
-        { header: "Data", accessor: (r) => new Date(r.created_at).toLocaleString("pt-BR") },
-        { header: "Cliente", accessor: (r) => r.client_name },
-        { header: "Tipo de venda", accessor: (r) => tipoVendaLabel(r.tipo_venda) },
-        { header: "Produto", accessor: (r) => r.product ?? "" },
-        { header: "Quantidade", accessor: (r) => r.quantity ?? 0 },
-        { header: "Vasilhames saída", accessor: (r) => r.vasilhames_entregues ?? 0 },
-        { header: "Vasilhames entrada", accessor: (r) => r.vasilhames_recebidos ?? 0 },
-        { header: "Pagamento", accessor: (r) => r.payment_method ?? "" },
-        { header: "Valor", accessor: (r) => Number(r.price ?? 0).toFixed(2) },
-        { header: "Origem", accessor: (r) => r.origem_venda ?? "" },
-        { header: "Status", accessor: (r) => r.status ?? "" },
+        { header: "Data", accessor: (r) => new Date(r.data).toLocaleString("pt-BR") },
+        { header: "Cliente/Parceiro", accessor: (r) => r.parceiro },
+        { header: "Movimento", accessor: (r) => MOV_LABEL[r.movimento] },
+        { header: "Produto", accessor: (r) => r.produto },
+        { header: "Cascos saída", accessor: (r) => r.saida },
+        { header: "Cascos entrada", accessor: (r) => r.entrada },
+        { header: "Pagamento", accessor: (r) => r.pagamento },
+        { header: "Valor", accessor: (r) => r.valor.toFixed(2) },
       ],
-      linhas
+      linhas,
     );
   };
-
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Relatório de Vasilhames e Vendas</h1>
-          <p className="text-sm text-muted-foreground">Entrada e saída de cascos por tipo de venda</p>
+          <h1 className="text-2xl font-bold">Relatório de Vasilhames</h1>
+          <p className="text-sm text-muted-foreground">
+            Somente movimentações de casco: vendas de vasilhame, gás completo, empréstimos e devoluções
+          </p>
         </div>
         <div className="flex items-end gap-2">
           <div>
@@ -100,56 +151,59 @@ export default function RelatorioVasilhames() {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <Card className="border-dashed">
+        <CardContent className="flex gap-3 p-4 text-sm text-muted-foreground">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            A venda comum (cliente leva o cheio e deixa o casco vazio) <strong>não aparece aqui</strong>, pois não muda a
+            quantidade de vasilhames da empresa. Só entram os casos em que um casco sai (venda de vasilhame, gás completo,
+            empréstimo) ou volta (devolução). Vendas canceladas são desconsideradas.
+          </p>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-3 sm:grid-cols-4">
         <Card><CardContent className="p-4">
-          <p className="text-sm text-muted-foreground">Total vendido</p>
-          <p className="text-2xl font-bold">R$ {totalVendas.toFixed(2)}</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <p className="text-sm text-muted-foreground flex items-center gap-1"><ArrowUpCircle className="h-4 w-4" /> Vasilhames que saíram</p>
+          <p className="text-sm text-muted-foreground flex items-center gap-1"><ArrowUpCircle className="h-4 w-4" /> Cascos que saíram</p>
           <p className="text-2xl font-bold">{saidas}</p>
         </CardContent></Card>
         <Card><CardContent className="p-4">
-          <p className="text-sm text-muted-foreground flex items-center gap-1"><ArrowDownCircle className="h-4 w-4" /> Vasilhames que voltaram</p>
+          <p className="text-sm text-muted-foreground flex items-center gap-1"><ArrowDownCircle className="h-4 w-4" /> Cascos que voltaram</p>
           <p className="text-2xl font-bold">{entradas}</p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4">
+          <p className="text-sm text-muted-foreground">Saldo de cascos no período</p>
+          <p className={`text-2xl font-bold ${saldo < 0 ? "text-destructive" : ""}`}>{saldo > 0 ? "+" : ""}{saldo}</p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4">
+          <p className="text-sm text-muted-foreground">Valor das movimentações</p>
+          <p className="text-2xl font-bold">R$ {totalVendas.toFixed(2)}</p>
         </CardContent></Card>
       </div>
 
       <Card>
-        <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-muted-foreground">Conferência de cascos</p>
-            <p className="text-sm">
-              {unidadesGas} vendas de gás · esperados {esperadoVolta} vasilhames de volta · recebidos {entradas}
-            </p>
-          </div>
-          <Badge variant={divergencia === 0 ? "outline" : "destructive"}>
-            {divergencia === 0 ? "Conferido" : `Divergência: ${divergencia > 0 ? "+" : ""}${divergencia}`}
-          </Badge>
-        </CardContent>
-      </Card>
-
-      <Card>
         <CardHeader>
-          <CardTitle>Por tipo de venda</CardTitle>
+          <CardTitle>Por tipo de movimentação</CardTitle>
           <CardDescription>Período de {inicio} a {fim}</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tipo</TableHead>
-                <TableHead className="text-right">Vendas</TableHead>
-                <TableHead className="text-right">Unidades</TableHead>
+                <TableHead>Movimento</TableHead>
+                <TableHead className="text-right">Registros</TableHead>
+                <TableHead className="text-right">Cascos saída</TableHead>
+                <TableHead className="text-right">Cascos entrada</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {porTipo.map((t) => (
-                <TableRow key={t.tipo}>
-                  <TableCell>{tipoVendaLabel(t.tipo)}</TableCell>
+              {porMovimento.map((t) => (
+                <TableRow key={t.movimento}>
+                  <TableCell>{MOV_LABEL[t.movimento]}</TableCell>
                   <TableCell className="text-right">{t.qtd}</TableCell>
-                  <TableCell className="text-right">{t.unidades}</TableCell>
+                  <TableCell className="text-right">{t.saida}</TableCell>
+                  <TableCell className="text-right">{t.entrada}</TableCell>
                   <TableCell className="text-right">R$ {t.valor.toFixed(2)}</TableCell>
                 </TableRow>
               ))}
@@ -164,14 +218,14 @@ export default function RelatorioVasilhames() {
           {isLoading ? (
             <p className="py-6 text-center text-muted-foreground">Carregando...</p>
           ) : linhas.length === 0 ? (
-            <p className="py-6 text-center text-muted-foreground">Nenhuma venda no período.</p>
+            <p className="py-6 text-center text-muted-foreground">Nenhuma movimentação de vasilhame no período.</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Data</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Tipo</TableHead>
+                  <TableHead>Cliente/Parceiro</TableHead>
+                  <TableHead>Movimento</TableHead>
                   <TableHead>Produto</TableHead>
                   <TableHead className="text-right">Saída</TableHead>
                   <TableHead className="text-right">Entrada</TableHead>
@@ -182,14 +236,14 @@ export default function RelatorioVasilhames() {
               <TableBody>
                 {linhas.map((r) => (
                   <TableRow key={r.id}>
-                    <TableCell className="whitespace-nowrap">{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
-                    <TableCell>{r.client_name}</TableCell>
-                    <TableCell><Badge variant="outline">{tipoVendaShort(r.tipo_venda)}</Badge></TableCell>
-                    <TableCell>{r.product} ({r.quantity})</TableCell>
-                    <TableCell className="text-right">{r.vasilhames_entregues ?? 0}</TableCell>
-                    <TableCell className="text-right">{r.vasilhames_recebidos ?? 0}</TableCell>
-                    <TableCell>{r.payment_method}</TableCell>
-                    <TableCell className="text-right">R$ {Number(r.price ?? 0).toFixed(2)}</TableCell>
+                    <TableCell className="whitespace-nowrap">{new Date(r.data).toLocaleDateString("pt-BR")}</TableCell>
+                    <TableCell>{r.parceiro}</TableCell>
+                    <TableCell><Badge variant="outline">{MOV_LABEL[r.movimento]}</Badge></TableCell>
+                    <TableCell>{r.produto}</TableCell>
+                    <TableCell className="text-right">{r.saida}</TableCell>
+                    <TableCell className="text-right">{r.entrada}</TableCell>
+                    <TableCell>{r.pagamento}</TableCell>
+                    <TableCell className="text-right">R$ {r.valor.toFixed(2)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
