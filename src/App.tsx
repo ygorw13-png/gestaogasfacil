@@ -239,6 +239,7 @@ function App() {
             </Routes>
             </ErrorBoundary>
             <Toaster richColors closeButton position="top-right" />
+            <OfflineSyncToasts />
           </div>
         </AuthProvider>
       </QueryClientProvider>
