@@ -3,6 +3,8 @@ import React from 'react';
 import { AuthContext } from './AuthContext';
 import { AuthProviderProps } from './types';
 import { signInWithEmail, signOut as authSignOut, getCurrentSession, hasUserRole, getUserRole } from './services';
+import { clearCachedUser } from '@/lib/offline/userCache';
+
 import { useAuthState } from './useAuthState';
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -45,6 +47,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setError(null);
       await authSignOut();
+      clearCachedUser();
+
       resetAuthState(); // Clear the state when logging out
     } catch (err) {
       console.error("Error signing out:", err);

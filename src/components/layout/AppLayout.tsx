@@ -10,6 +10,8 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { cn } from "@/lib/utils";
 import { GlobalQuickSale } from "./GlobalQuickSale";
+import { OfflineBanner } from "@/components/offline/OfflineBanner";
+
 
 // Content component to manage layout based on sidebar state
 const MainContent = memo(() => {
@@ -34,7 +36,9 @@ const MainContent = memo(() => {
       isMobile ? "ml-0" : ""
     )}>
       <TopBar />
+      <OfflineBanner />
       <ErrorBoundary>
+
         <main className="flex-1 p-4 md:p-6 overflow-y-auto" id="main-content" tabIndex={-1}>
           <Outlet />
         </main>
