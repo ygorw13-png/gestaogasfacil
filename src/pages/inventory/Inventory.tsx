@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download } from "lucide-react";
+import { Download, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { InventoryHeader } from "./components/stock/InventoryHeader";
 import { useStockData } from "./hooks/useStockData";
@@ -20,10 +20,33 @@ import { UserRole } from "@/types/userTypes";
 import { StockData, defaultStockData } from "./components/stock/StockData";
 import { InventoryTableSkeleton } from "./components/InventoryTableSkeleton";
 import { exportToCsv } from "@/utils/csvExport";
+import { CorrigirEstoqueGeralDialog } from "./components/CorrigirEstoqueGeralDialog";
+import { DailyAdjustmentsStrip, type AdjustmentItem } from "@/components/stock/DailyAdjustmentsStrip";
+import { getDailyAdjustments } from "@/lib/dailyAdjustLog";
+
 
 const Inventory = () => {
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [fixOpen, setFixOpen] = useState(false);
+  const [ajustes, setAjustes] = useState<AdjustmentItem[]>([]);
+
+  const refreshAjustes = React.useCallback(() => {
+    setAjustes(
+      getDailyAdjustments("estoque_geral").map((a) => ({
+        id: a.id,
+        at: a.at,
+        who: a.who,
+        label: `${a.produto}: ${a.de} → ${a.para}`,
+        motivo: a.motivo,
+      }))
+    );
+  }, []);
+
+  useEffect(() => {
+    refreshAjustes();
+  }, [refreshAjustes]);
+
   
   // Get user role from auth context
   const { user } = useAuth();
@@ -111,18 +134,32 @@ const Inventory = () => {
 
               <TabsContent value="overview" className="mt-4">
                 <Card className="p-4">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
                     <h2 className="text-xl font-semibold">Estoque Atual</h2>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleExportStock}
-                      disabled={loading}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Exportar CSV
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFixOpen(true)}
+                        disabled={loading}
+                      >
+                        <Wrench className="h-4 w-4 mr-2" />
+                        Corrigir estoque
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExportStock}
+                        disabled={loading}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Exportar CSV
+                      </Button>
+                    </div>
                   </div>
+
+                  <DailyAdjustmentsStrip items={ajustes} className="mb-4" />
+
                   {loading ? (
                     <InventoryTableSkeleton rows={4} columns={5} />
                   ) : (
@@ -157,7 +194,18 @@ const Inventory = () => {
           </div>
         </>
       )}
+
+      <CorrigirEstoqueGeralDialog
+        open={fixOpen}
+        onOpenChange={setFixOpen}
+        currentStock={currentStock}
+        onCorrected={() => {
+          refreshAjustes();
+          fetchCurrentStock();
+        }}
+      />
     </div>
+
   );
 };
 
