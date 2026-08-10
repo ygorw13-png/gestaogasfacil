@@ -282,7 +282,10 @@ export async function processQueue(): Promise<SyncResult> {
     setProgress({ running: false });
     emit();
   }
-  return { sent, failed, conflicts, skipped: false };
+  const result: SyncResult = { sent, failed, conflicts, skipped: false };
+  emitResult(result);
+  return result;
+
 }
 
 /**
