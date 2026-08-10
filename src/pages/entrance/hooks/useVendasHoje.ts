@@ -39,7 +39,7 @@ export const paymentLabelFromCode = (code?: string | null): string => {
   }
 };
 
-const productKey = (product?: string | null): "p13" | "p20" | "p45" | "water" | null => {
+export const productKey = (product?: string | null): "p13" | "p20" | "p45" | "water" | null => {
   const p = (product || "").toUpperCase();
   if (p.includes("P13")) return "p13";
   if (p.includes("P20")) return "p20";

@@ -10,12 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Package, Receipt, Wallet } from "lucide-react";
+import { ArrowLeft, Droplets, Package, Receipt, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SalesFilters } from "./components/sales/SalesFilters";
 import { CancelSaleButton } from "./components/sales/CancelSaleButton";
 import { DateRange } from "react-day-picker";
 import { useSalesHistory } from "./hooks/useSalesHistory";
+import { productKey } from "./hooks/useVendasHoje";
 
 const brl = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 
@@ -72,7 +73,14 @@ export default function SalesHistory() {
     const totalQty = filteredSales.reduce((a, s) => a + s.quantity, 0);
     const totalValue = filteredSales.reduce((a, s) => a + s.amount, 0);
 
-    return { productList, paymentList, matrix, totalQty, totalValue };
+    const productTotals = { p13: 0, p20: 0, p45: 0, water: 0 };
+    filteredSales.forEach((s) => {
+      const key = productKey(s.product);
+      if (key === "water") productTotals.water += s.quantity;
+      else if (key) productTotals[key] += s.quantity;
+    });
+
+    return { productList, paymentList, matrix, totalQty, totalValue, productTotals };
   }, [filteredSales]);
 
   const cell = (p: string, pay: string) => summary.matrix[p]?.[pay];
@@ -86,7 +94,7 @@ export default function SalesHistory() {
         <h1 className="text-3xl font-bold tracking-tight">Histórico de Vendas</h1>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Vendas</CardTitle>
@@ -94,17 +102,47 @@ export default function SalesHistory() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{filteredSales.length}</div>
-            <p className="text-xs text-muted-foreground">no período filtrado</p>
+            <p className="text-xs text-muted-foreground">no período</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Itens vendidos</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">P13</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.totalQty}</div>
-            <p className="text-xs text-muted-foreground">unidades entregues</p>
+            <div className="text-2xl font-bold">{summary.productTotals.p13}</div>
+            <p className="text-xs text-muted-foreground">unidades</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">P20</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summary.productTotals.p20}</div>
+            <p className="text-xs text-muted-foreground">unidades</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">P45</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summary.productTotals.p45}</div>
+            <p className="text-xs text-muted-foreground">unidades</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Água</CardTitle>
+            <Droplets className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summary.productTotals.water}</div>
+            <p className="text-xs text-muted-foreground">unidades</p>
           </CardContent>
         </Card>
         <Card>
