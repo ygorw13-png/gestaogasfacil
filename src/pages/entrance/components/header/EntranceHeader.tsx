@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Plus, CheckCircle } from "lucide-react";
 import { CashierData } from "../../types/cashierTypes";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sale } from "../../types/entranceTypes";
 import { SaleFormContent } from "../sale-form/SaleFormContent";
 import { CashierClosingDialog } from "../cashier/CashierClosingDialog";
@@ -59,6 +59,14 @@ export function EntranceHeader({
             onSubmit={onNewSaleSubmit} 
             onOpenChange={setNewSaleOpen}
           />
+          <DialogFooter className="border-t pt-4">
+            <Button type="button" variant="outline" onClick={() => setNewSaleOpen(false)}>
+              Cancelar
+            </Button>
+            <Button form="sale-form" type="submit">
+              Registrar Venda
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
