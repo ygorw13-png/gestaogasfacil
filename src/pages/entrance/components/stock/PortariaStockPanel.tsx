@@ -70,12 +70,19 @@ export function PortariaStockPanel() {
                 <RotateCcw className="h-4 w-4 mr-1" />
                 Devolver vasilhame
               </Button>
+              <Button size="sm" variant="outline" onClick={() => setFixOpen(true)}>
+                <Wrench className="h-4 w-4 mr-1" />
+                Corrigir estoque
+              </Button>
               <Button size="sm" variant="ghost" onClick={() => setHistoryOpen(true)}>
                 <History className="h-4 w-4 mr-1" />
                 Histórico
               </Button>
             </div>
           </div>
+
+          <DailyAdjustmentsStrip items={ajustesHoje} />
+
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {PRODUCTS.map((p) => {
