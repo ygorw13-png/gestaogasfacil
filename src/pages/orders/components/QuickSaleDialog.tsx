@@ -166,7 +166,6 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
         const due = new Date();
         due.setDate(due.getDate() + 30);
         const { error: pnError } = await supabase.from("promissory_notes").insert({
-          organization_id: (await supabase.rpc("get_my_org" as any)).data as any,
           client_name: finalName,
           value: value || 0,
           due_date: due.toISOString().slice(0, 10),

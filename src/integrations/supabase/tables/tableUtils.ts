@@ -91,7 +91,4 @@ export function createTableOperations<T extends Record<string, any>>(
   };
 }
 
-// Função utilitária para limpar dados de teste
-export const clearTestData = async (): Promise<void> => {
-  await supabase.rpc('clear_test_data');
-};
+

@@ -6,7 +6,6 @@ import { colaboradoresTable } from './colaboradores';
 import { profilesTable } from './profiles';
 import { organizationsTable } from './organizations';
 import { sistemaConfigTable, financeiroConfigTable, entregaConfigTable, segurancaConfigTable, notificacoesConfigTable } from './configTables';
-import { clearTestData } from './tableUtils';
 
 // A more type-safe approach for custom tables
 export const customTables = {
@@ -44,7 +43,6 @@ export const customTables = {
   notificacoesConfig: notificacoesConfigTable,
 
   // Utility function to clear test data
-  clearTestData
 };
 
 export {
@@ -59,5 +57,4 @@ export {
   entregaConfigTable,
   segurancaConfigTable,
   notificacoesConfigTable,
-  clearTestData
 };

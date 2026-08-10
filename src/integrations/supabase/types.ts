@@ -121,7 +121,7 @@ export type Database = {
           id: string
           name: string
           notes: string | null
-          organization_id: string | null
+          organization_id: string
           phone: string | null
           updated_at: string
         }
@@ -132,7 +132,7 @@ export type Database = {
           id?: string
           name: string
           notes?: string | null
-          organization_id?: string | null
+          organization_id?: string
           phone?: string | null
           updated_at?: string
         }
@@ -143,7 +143,7 @@ export type Database = {
           id?: string
           name?: string
           notes?: string | null
-          organization_id?: string | null
+          organization_id?: string
           phone?: string | null
           updated_at?: string
         }
@@ -1729,7 +1729,6 @@ export type Database = {
       }
     }
     Functions: {
-      clear_test_data: { Args: never; Returns: undefined }
       get_my_org: { Args: never; Returns: string }
       has_role: {
         Args: {
