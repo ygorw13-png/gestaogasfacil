@@ -31,14 +31,14 @@ export function NewResellerForm({ onSubmit, isSubmitting }: NewResellerFormProps
       phone: "",
       address: "",
       contactPerson: "",
-      priceP13: 80,
+      priceP13: "",
       notes: "",
     },
   });
 
   const handleSubmit = (data: FormValues) => {
     // Mantém compatibilidade com tipo Reseller
-    onSubmit({ ...data, priceP20: 0, priceP45: 0, priceWater: 0 });
+    onSubmit({ ...data, priceP20: 0, priceP45: 0, priceWater: 0, priceP13: Number(data.priceP13 || 0) });
   };
 
   return (
