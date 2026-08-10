@@ -5,6 +5,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import App from './App.tsx';
 import './index.css';
 import { registerOfflineSupport } from './pwa/registerSW';
+import { startBackgroundQueueWatcher } from './lib/offline/queue';
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -17,3 +18,5 @@ createRoot(document.getElementById("root")!).render(
 );
 
 registerOfflineSupport();
+
+startBackgroundQueueWatcher();

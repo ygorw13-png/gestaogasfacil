@@ -1,12 +1,24 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   QueuedOperation,
+  SyncProgress,
   getLastSyncAt,
   getQueue,
   processQueue,
   removeOperation,
+  retryOperation,
+  startBackgroundQueueWatcher,
+  subscribeProgress,
   subscribeQueue,
 } from '@/lib/offline/queue';
+import {
+  DEFAULT_RETRY_CONFIG,
+  RetryConfig,
+  getConfigSync,
+  loadRetryConfig,
+  saveRetryConfig,
+  subscribeConfig,
+} from '@/lib/offline/config';
 
 export function useOfflineSync() {
   const [online, setOnline] = useState<boolean>(
@@ -15,6 +27,13 @@ export function useOfflineSync() {
   const [queue, setQueue] = useState<QueuedOperation[]>([]);
   const [lastSyncAt, setLastSyncAt] = useState<number | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [config, setConfig] = useState<RetryConfig>(getConfigSync() ?? DEFAULT_RETRY_CONFIG);
+  const [progress, setProgressState] = useState<SyncProgress>({
+    running: false,
+    total: 0,
+    done: 0,
+    failed: 0,
+  });
 
   const refresh = useCallback(async () => {
     const [q, last] = await Promise.all([getQueue(), getLastSyncAt()]);
@@ -40,42 +59,55 @@ export function useOfflineSync() {
     [refresh],
   );
 
+  const retry = useCallback(
+    async (id: string, force = false) => {
+      await retryOperation(id, force);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const updateConfig = useCallback(async (patch: Partial<RetryConfig>) => {
+    setConfig(await saveRetryConfig(patch));
+  }, []);
+
   useEffect(() => {
+    startBackgroundQueueWatcher();
     void refresh();
-    const unsub = subscribeQueue(() => void refresh());
+    void loadRetryConfig().then(setConfig);
 
-    const goOnline = () => {
-      setOnline(true);
-      void sync();
-    };
+    const unsubQueue = subscribeQueue(() => void refresh());
+    const unsubConfig = subscribeConfig(() => setConfig(getConfigSync()));
+    const unsubProgress = subscribeProgress(setProgressState);
+
+    const goOnline = () => setOnline(true);
     const goOffline = () => setOnline(false);
-
     window.addEventListener('online', goOnline);
     window.addEventListener('offline', goOffline);
 
-    // Tentativa periódica enquanto houver pendências
-    const interval = window.setInterval(() => {
-      if (navigator.onLine) void processQueue();
-    }, 60_000);
-
-    if (navigator.onLine) void processQueue();
-
     return () => {
-      unsub();
+      unsubQueue();
+      unsubConfig();
+      unsubProgress();
       window.removeEventListener('online', goOnline);
       window.removeEventListener('offline', goOffline);
-      window.clearInterval(interval);
     };
-  }, [refresh, sync]);
+  }, [refresh]);
 
   return {
     online,
     queue,
-    pendingCount: queue.length,
+    pendingCount: queue.filter((q) => q.status !== 'conflito').length,
+    conflicts: queue.filter((q) => q.status === 'conflito'),
+    exceeded: queue.filter((q) => q.status === 'excedido'),
     errors: queue.filter((q) => q.lastError),
     lastSyncAt,
-    syncing,
+    syncing: syncing || progress.running,
+    progress,
+    config,
+    updateConfig,
     sync,
+    retry,
     discard,
     refresh,
   };

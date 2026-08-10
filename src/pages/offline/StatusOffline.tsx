@@ -2,8 +2,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
-import { AlertTriangle, CheckCircle2, CloudOff, Cloud, RefreshCw, Trash2 } from 'lucide-react';
+import type { ExceedAction } from '@/lib/offline/config';
+import { AlertTriangle, CheckCircle2, CloudOff, Cloud, RefreshCw, Send, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 function formatDate(ts: number | null) {
@@ -12,18 +17,37 @@ function formatDate(ts: number | null) {
 }
 
 export default function StatusOffline() {
-  const { online, queue, pendingCount, errors, lastSyncAt, syncing, sync, discard } = useOfflineSync();
+  const {
+    online,
+    queue,
+    pendingCount,
+    conflicts,
+    exceeded,
+    errors,
+    lastSyncAt,
+    syncing,
+    progress,
+    config,
+    updateConfig,
+    sync,
+    retry,
+    discard,
+  } = useOfflineSync();
 
   const handleSync = async () => {
     const result = await sync();
     if (result.skipped) {
-      toast.error('Sem internet no momento. Vamos tentar de novo automaticamente.');
+      toast.info('Nada para enviar agora ou aguardando a próxima tentativa.');
+    } else if (result.conflicts > 0) {
+      toast.warning(`${result.conflicts} lançamento(s) precisam da sua confirmação.`);
     } else if (result.failed > 0) {
       toast.warning(`${result.sent} enviado(s), ${result.failed} com erro.`);
     } else {
       toast.success(result.sent > 0 ? `${result.sent} lançamento(s) enviado(s)!` : 'Tudo já está sincronizado.');
     }
   };
+
+  const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
 
   return (
     <div className="container mx-auto space-y-6 p-4 sm:p-6">
@@ -45,7 +69,7 @@ export default function StatusOffline() {
                 </>
               ) : (
                 <>
-                  <CloudOff className="h-5 w-5 text-amber-500" /> Offline
+                  <CloudOff className="text-amber-500 h-5 w-5" /> Offline
                 </>
               )}
             </CardTitle>
@@ -63,7 +87,7 @@ export default function StatusOffline() {
             <CardTitle className="text-xl">{formatDate(lastSyncAt)}</CardTitle>
           </CardHeader>
           <CardContent className="text-muted-foreground text-sm">
-            Momento em que os dados foram enviados com sucesso.
+            O envio acontece sozinho em segundo plano, mesmo com esta tela fechada.
           </CardContent>
         </Card>
 
@@ -72,7 +96,15 @@ export default function StatusOffline() {
             <CardDescription>Aguardando envio</CardDescription>
             <CardTitle className="text-xl">{pendingCount}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-2">
+            {progress.running && (
+              <div className="space-y-1">
+                <Progress value={pct} />
+                <p className="text-muted-foreground text-xs">
+                  Enviando {progress.done} de {progress.total}…
+                </p>
+              </div>
+            )}
             <Button onClick={handleSync} disabled={syncing} size="sm" className="w-full">
               <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
               Sincronizar agora
@@ -81,7 +113,101 @@ export default function StatusOffline() {
         </Card>
       </div>
 
-      {errors.length > 0 && (
+      {conflicts.length > 0 && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>{conflicts.length} lançamento(s) podem estar duplicados</AlertTitle>
+          <AlertDescription>
+            O sistema encontrou algo parecido já salvo na nuvem. Confirme "Enviar mesmo assim" só se tiver certeza de
+            que é um lançamento diferente.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {exceeded.length > 0 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>{exceeded.length} lançamento(s) passaram do limite de tentativas</AlertTitle>
+          <AlertDescription>Revise o erro, tente de novo manualmente ou descarte.</AlertDescription>
+        </Alert>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Ajustes de reenvio</CardTitle>
+          <CardDescription>
+            Defina de quanto em quanto tempo o sistema tenta de novo e o que fazer quando não conseguir.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-2">
+            <Label>Primeira espera (segundos)</Label>
+            <Input
+              type="number"
+              min={5}
+              value={config.baseDelaySec}
+              onChange={(e) => void updateConfig({ baseDelaySec: Math.max(5, +e.target.value || 5) })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Multiplicador da espera</Label>
+            <Input
+              type="number"
+              min={1}
+              step="0.5"
+              value={config.factor}
+              onChange={(e) => void updateConfig({ factor: Math.max(1, +e.target.value || 1) })}
+            />
+            <p className="text-muted-foreground text-xs">2 = dobra a espera a cada tentativa.</p>
+          </div>
+          <div className="space-y-2">
+            <Label>Espera máxima (segundos)</Label>
+            <Input
+              type="number"
+              min={30}
+              value={config.maxDelaySec}
+              onChange={(e) => void updateConfig({ maxDelaySec: Math.max(30, +e.target.value || 30) })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Limite de tentativas</Label>
+            <Input
+              type="number"
+              min={1}
+              value={config.maxAttempts}
+              onChange={(e) => void updateConfig({ maxAttempts: Math.max(1, +e.target.value || 1) })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Verificar a cada (segundos)</Label>
+            <Input
+              type="number"
+              min={10}
+              value={config.pollIntervalSec}
+              onChange={(e) => void updateConfig({ pollIntervalSec: Math.max(10, +e.target.value || 10) })}
+            />
+            <p className="text-muted-foreground text-xs">Vale a partir da próxima abertura do app.</p>
+          </div>
+          <div className="space-y-2">
+            <Label>Quando exceder o limite</Label>
+            <Select
+              value={config.onExceed}
+              onValueChange={(v) => void updateConfig({ onExceed: v as ExceedAction })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="perguntar">Perguntar (avisar e aguardar)</SelectItem>
+                <SelectItem value="manter">Manter na fila e continuar tentando</SelectItem>
+                <SelectItem value="descartar">Descartar automaticamente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {errors.length > 0 && conflicts.length === 0 && exceeded.length === 0 && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>{errors.length} lançamento(s) com erro</AlertTitle>
@@ -111,13 +237,28 @@ export default function StatusOffline() {
                 <p className="truncate font-medium">{op.description}</p>
                 <p className="text-muted-foreground text-xs">
                   {new Date(op.createdAt).toLocaleString('pt-BR')} · tentativas: {op.attempts}
+                  {op.nextAttemptAt && op.nextAttemptAt > Date.now()
+                    ? ` · próxima tentativa às ${new Date(op.nextAttemptAt).toLocaleTimeString('pt-BR')}`
+                    : ''}
                 </p>
                 {op.lastError && <p className="text-destructive mt-1 text-xs break-words">{op.lastError}</p>}
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <Badge variant={op.lastError ? 'destructive' : 'secondary'}>
-                  {op.lastError ? 'Erro' : 'Na fila'}
+                <Badge
+                  variant={
+                    op.status === 'conflito' ? 'outline' : op.status === 'excedido' ? 'destructive' : 'secondary'
+                  }
+                >
+                  {op.status === 'conflito' ? 'Confirmar' : op.status === 'excedido' ? 'Excedido' : 'Na fila'}
                 </Badge>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void retry(op.id, op.status === 'conflito')}
+                >
+                  <Send className="mr-1 h-3.5 w-3.5" />
+                  {op.status === 'conflito' ? 'Enviar mesmo assim' : 'Tentar agora'}
+                </Button>
                 <Button variant="ghost" size="icon" onClick={() => discard(op.id)} aria-label="Descartar">
                   <Trash2 className="h-4 w-4" />
                 </Button>
