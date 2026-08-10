@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { z } from 'zod';
 
@@ -26,6 +26,8 @@ export default function LoginForm({ onSubmit, loading, error, csrfToken }: Login
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string }>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -56,6 +58,7 @@ export default function LoginForm({ onSubmit, loading, error, csrfToken }: Login
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLocalError(null);
     
     // Validação de entrada
     if (!validateForm()) {
@@ -69,17 +72,18 @@ export default function LoginForm({ onSubmit, loading, error, csrfToken }: Login
     try {
       await onSubmit(sanitizedEmail, sanitizedPassword);
       // O redirecionamento é gerenciado pelo AuthContext após login bem-sucedido
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao processar login:", error);
+      setLocalError(error?.message || 'Não foi possível entrar. Tente novamente.');
     }
   };
 
   return (
     <div className="w-full max-w-md mx-auto">
-      {error && (
+      {(error || localError) && (
         <Alert variant="destructive" className="mb-4 bg-red-900/50 border-red-800 text-white backdrop-blur-sm">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{error || localError}</AlertDescription>
         </Alert>
       )}
       
@@ -106,20 +110,31 @@ export default function LoginForm({ onSubmit, loading, error, csrfToken }: Login
         
         <div className="space-y-2">
           <Label htmlFor="password" className="text-white">Senha</Label>
-          <Input 
-            id="password"
-            type="password" 
-            placeholder="Senha" 
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={`bg-white/10 border-white/20 text-white placeholder:text-gray-400 
-              focus:border-orange-500 focus:ring-orange-500 ${validationErrors.password ? 'border-red-500' : ''}`}
-            disabled={loading}
-            required 
-            minLength={6}
-            aria-invalid={!!validationErrors.password}
-            aria-describedby={validationErrors.password ? "password-error" : undefined}
-          />
+          <div className="relative">
+            <Input 
+              id="password"
+              type={showPassword ? 'text' : 'password'} 
+              placeholder="Senha" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`bg-white/10 border-white/20 text-white placeholder:text-gray-400 pr-10
+                focus:border-orange-500 focus:ring-orange-500 ${validationErrors.password ? 'border-red-500' : ''}`}
+              disabled={loading}
+              required 
+              minLength={6}
+              aria-invalid={!!validationErrors.password}
+              aria-describedby={validationErrors.password ? "password-error" : undefined}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-300 hover:text-white"
+              aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
           {validationErrors.password && (
             <p className="text-sm text-red-400 mt-1" id="password-error">{validationErrors.password}</p>
           )}
