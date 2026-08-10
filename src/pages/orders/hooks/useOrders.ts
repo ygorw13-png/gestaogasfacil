@@ -25,7 +25,10 @@ export function useOrders() {
       const { data, error } = await supabase
         .from('orders')
         .select('*')
+        // Vendas avulsas (balcão da portaria / venda na rua) não entram na gestão de pedidos
+        .or('origem_venda.is.null,origem_venda.not.in.(portaria,venda_rua,balcao),delivery_person.not.is.null')
         .order('created_at', { ascending: false });
+
 
       if (error) throw error;
 
