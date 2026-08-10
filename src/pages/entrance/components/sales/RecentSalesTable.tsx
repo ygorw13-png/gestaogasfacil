@@ -15,6 +15,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useCancelarVenda } from "../../hooks/useCancelarVenda";
+import { EditSaleButton } from "./EditSaleButton";
 
 interface Sale {
   id: number | string;
@@ -23,6 +24,7 @@ interface Sale {
   product: string;
   quantity: number;
   payment: string;
+  paymentCode?: string;
   amount: number;
 }
 
@@ -77,6 +79,15 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
               <td className="py-2">{sale.payment}</td>
               <td className="py-2 text-right">R$ {sale.amount.toFixed(2).replace('.', ',')}</td>
               <td className="py-2 text-right">
+                <div className="flex justify-end gap-1">
+                <EditSaleButton
+                  saleId={String(sale.id)}
+                  client={sale.client}
+                  product={sale.product}
+                  quantity={sale.quantity}
+                  amount={sale.amount}
+                  paymentCode={sale.paymentCode}
+                />
                 <Button
                   type="button"
                   variant="ghost"
@@ -89,6 +100,7 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
                 >
                   <Ban className="mr-1 h-4 w-4" /> Cancelar
                 </Button>
+                </div>
               </td>
             </tr>
           ))}

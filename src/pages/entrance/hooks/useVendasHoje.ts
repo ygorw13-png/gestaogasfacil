@@ -103,6 +103,7 @@ export function useVendasHoje() {
         product: o.product || "",
         quantity: Number(o.quantity) || 0,
         payment: paymentLabelFromCode(o.payment_method),
+        paymentCode: o.payment_method || "money",
         amount: Number(o.price) || 0,
       })) as Sale[];
 

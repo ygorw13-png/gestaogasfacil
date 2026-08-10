@@ -27,6 +27,7 @@ export interface Sale {
   product: string;
   quantity: number;
   payment: string;
+  paymentCode?: string;
   amount: number;
   // Metadados opcionais para registrar movimentação no estoque da portaria
   productCode?: 'p13' | 'p20' | 'p45' | 'water' | 'vasilhame_p13';
