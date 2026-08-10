@@ -10,6 +10,7 @@ export interface SaleFormClient {
   id: string;
   name: string;
   phone: string;
+  origem?: "cliente" | "ponto";
 }
 
 interface ClientSelectionProps {
