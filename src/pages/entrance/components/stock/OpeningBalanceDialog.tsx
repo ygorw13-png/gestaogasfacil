@@ -92,6 +92,7 @@ export function OpeningBalanceDialog({ open, onOpenChange }: Props) {
 
   const handleSubmit = async () => {
     let divergencias = 0;
+    try {
     for (const p of PRODUTOS) {
       const cur = saldoAtual?.[p];
       const sistemaCheios = cur?.cheios ?? 0;
@@ -130,14 +131,21 @@ export function OpeningBalanceDialog({ open, onOpenChange }: Props) {
       });
     }
 
-    toast({
-      title: "Saldo de abertura registrado",
-      description:
-        divergencias > 0
-          ? `${divergencias} divergência(s) registrada(s) como ajuste para auditoria.`
-          : undefined,
-    });
-    onOpenChange(false);
+      toast({
+        title: "Saldo de abertura registrado",
+        description:
+          divergencias > 0
+            ? `${divergencias} divergência(s) registrada(s) como ajuste para auditoria.`
+            : "Abertura do dia confirmada com sucesso.",
+      });
+      onOpenChange(false);
+    } catch (err: any) {
+      toast({
+        title: "Não foi possível confirmar a abertura",
+        description: err?.message || "Tente novamente em instantes.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
