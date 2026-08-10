@@ -125,6 +125,13 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
 
     const isReseller = state.saleType === "reseller";
 
+    const isVasilhame = state.product === 'vasilhame_p13';
+    const tipoVenda: 'completa' | 'recarga' | 'vasilhame' = isVasilhame
+      ? 'vasilhame'
+      : state.cylinderMovement === 'return'
+      ? 'recarga'
+      : 'completa';
+
     const newSale: Sale = {
       id: Date.now(),
       time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -133,7 +140,8 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
         : state.selectedClient ? state.selectedClient.name : "Venda Avulsa",
       product: state.product === 'p13' ? 'GLP P13' : 
               state.product === 'p20' ? 'GLP P20' :
-              state.product === 'p45' ? 'GLP P45' : 'Água 20L',
+              state.product === 'p45' ? 'GLP P45' :
+              isVasilhame ? 'Vasilhame P13' : 'Água 20L',
       quantity: state.quantity,
       payment: isReseller ? 'Promissória' :
               state.paymentMethod === 'cash' ? 'Dinheiro' :
@@ -144,11 +152,13 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
               state.paymentMethod === 'gasVoucher' ? 'Vale Gás' : 'Convênio',
       // Venda para agregado não tem valor no ato: o preço é definido no acerto
       amount: isReseller ? 0 : state.quantity * state.unitPrice,
-      productCode: state.product as 'p13' | 'p20' | 'p45' | 'water',
+      productCode: state.product as 'p13' | 'p20' | 'p45' | 'water' | 'vasilhame_p13',
+      tipoVenda,
       clientId: state.selectedClient?.id ? String(state.selectedClient.id) : null,
       cylinderMovement: state.loanGas ? 'loan' : state.cylinderMovement,
       movementQuantity: state.loanGas ? state.quantity : state.movementQuantity,
     };
+
 
     // Agregado: lança na conta de botijões (acerto por quantidade)
     if (isReseller && state.selectedReseller) {

@@ -7,11 +7,13 @@ export interface Sale {
   quantity: number;
   payment: string;
   amount: number;
-  productCode?: 'p13' | 'p20' | 'p45' | 'water';
+  productCode?: 'p13' | 'p20' | 'p45' | 'water' | 'vasilhame_p13';
+  tipoVenda?: 'completa' | 'recarga' | 'vasilhame';
   clientId?: string | null;
   cylinderMovement?: 'none' | 'loan' | 'return';
   movementQuantity?: number;
 }
+
 
 export interface NewSaleFormProps {
   isOpen: boolean;
