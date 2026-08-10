@@ -28,6 +28,25 @@ import { getDailyAdjustments } from "@/lib/dailyAdjustLog";
 const Inventory = () => {
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [fixOpen, setFixOpen] = useState(false);
+  const [ajustes, setAjustes] = useState<AdjustmentItem[]>([]);
+
+  const refreshAjustes = React.useCallback(() => {
+    setAjustes(
+      getDailyAdjustments("estoque_geral").map((a) => ({
+        id: a.id,
+        at: a.at,
+        who: a.who,
+        label: `${a.produto}: ${a.de} → ${a.para}`,
+        motivo: a.motivo,
+      }))
+    );
+  }, []);
+
+  useEffect(() => {
+    refreshAjustes();
+  }, [refreshAjustes]);
+
   
   // Get user role from auth context
   const { user } = useAuth();
