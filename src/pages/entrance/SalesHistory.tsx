@@ -10,12 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Package, Receipt, Wallet } from "lucide-react";
+import { ArrowLeft, Droplets, Package, Receipt, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SalesFilters } from "./components/sales/SalesFilters";
 import { CancelSaleButton } from "./components/sales/CancelSaleButton";
 import { DateRange } from "react-day-picker";
 import { useSalesHistory } from "./hooks/useSalesHistory";
+import { productKey } from "./hooks/useVendasHoje";
 
 const brl = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
 
