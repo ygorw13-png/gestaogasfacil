@@ -58,7 +58,12 @@ export function ResellerSelection({ selectedReseller, onSelectReseller, reseller
                   {resellers.map((reseller) => (
                     <CommandItem
                       key={reseller.id}
+                      value={`${reseller.name} ${reseller.phone ?? ""}`}
                       onSelect={() => handleSelectReseller(reseller)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleSelectReseller(reseller);
+                      }}
                       className="cursor-pointer"
                     >
                       <div className="flex flex-col">
