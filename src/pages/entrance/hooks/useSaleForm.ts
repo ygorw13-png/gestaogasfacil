@@ -128,11 +128,15 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
     const isVasilhame = state.product === 'vasilhame_p13';
     const isPonto = !isReseller && state.selectedClient?.origem === 'ponto';
     const isPontoAPrazo = isPonto && (state.paymentMethod === 'promissory' || !state.paymentMethod);
+    // Padrão da portaria: o cliente traz o casco vazio (troca) => "recarga".
+    // Só é "completa" quando o casco sai da empresa (empréstimo/comodato).
+    const levaCasco = state.loanGas || state.cylinderMovement === 'loan';
     const tipoVenda: 'completa' | 'recarga' | 'vasilhame' = isVasilhame
       ? 'vasilhame'
-      : state.cylinderMovement === 'return'
-      ? 'recarga'
-      : 'completa';
+      : levaCasco
+      ? 'completa'
+      : 'recarga';
+
 
     const newSale: Sale = {
       id: Date.now(),
