@@ -8,6 +8,7 @@ import { useRegistrarMovimentacao, type PortariaProduto } from '@/pages/entrance
 import { useVendasHoje } from '@/pages/entrance/hooks/useVendasHoje';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { createPromissoryFromSale } from '@/lib/promissory';
 
 // Estado inicial do caixa - todos os valores zerados
 export const initialCashierData: CashierData = {
@@ -148,7 +149,7 @@ export function useCashierSales() {
         const userId = authData?.user?.id;
         if (!userId) return;
         const now = new Date().toISOString();
-        await supabase.from('orders').insert({
+        const { data: inserted } = await supabase.from('orders').insert({
           user_id: userId,
           client_name: newSale.client,
           client_id: newSale.clientId || null,
@@ -167,9 +168,28 @@ export function useCashierSales() {
           notes: isVasilhame
             ? 'Venda de vasilhame vazio na portaria'
             : 'Venda registrada na portaria',
-        } as any);
+        } as any).select('id').maybeSingle();
+
+        // Venda a prazo: gera nota promissória com vencimento em 30 dias
+        if (newSale.payment === 'Promissória') {
+          const { error: pnError } = await createPromissoryFromSale({
+            clientId: newSale.clientId || null,
+            clientName: newSale.client,
+            value: newSale.amount,
+            referenceId: (inserted as any)?.id ?? null,
+            description: `Venda na portaria - ${newSale.quantity}x ${newSale.product}`,
+          });
+          if (pnError) {
+            toast({ title: 'Venda salva, promissória não criada', description: pnError, variant: 'destructive' });
+          } else {
+            toast({ title: 'Nota promissória gerada', description: `Vencimento em 30 dias — ${newSale.client}` });
+          }
+        }
+
         queryClient.invalidateQueries({ queryKey: ['vendas_hoje'] });
         queryClient.invalidateQueries({ queryKey: ['relatorio-vasilhames'] });
+        queryClient.invalidateQueries({ queryKey: ['promissory_notes'] });
+
       } catch (e) {
         console.error('Erro ao registrar venda no banco:', e);
       }
