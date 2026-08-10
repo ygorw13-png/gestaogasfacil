@@ -64,8 +64,8 @@ export function NewResellerForm({ onSubmit, isSubmitting }: NewResellerFormProps
 
         <FormField control={form.control} name="priceP13" render={({ field }) => (
           <FormItem className="max-w-xs">
-            <FormLabel>Preço P13 (R$)</FormLabel>
-            <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+            <FormLabel>Preço P13 (R$) <span className="text-muted-foreground font-normal">(opcional)</span></FormLabel>
+            <FormControl><Input type="number" step="0.01" placeholder="Ex: 80,00" {...field} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />
