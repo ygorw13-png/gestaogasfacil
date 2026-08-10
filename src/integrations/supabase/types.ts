@@ -121,7 +121,7 @@ export type Database = {
           id: string
           name: string
           notes: string | null
-          organization_id: string | null
+          organization_id: string
           phone: string | null
           updated_at: string
         }
@@ -132,7 +132,7 @@ export type Database = {
           id?: string
           name: string
           notes?: string | null
-          organization_id?: string | null
+          organization_id?: string
           phone?: string | null
           updated_at?: string
         }
@@ -143,7 +143,7 @@ export type Database = {
           id?: string
           name?: string
           notes?: string | null
-          organization_id?: string | null
+          organization_id?: string
           phone?: string | null
           updated_at?: string
         }
