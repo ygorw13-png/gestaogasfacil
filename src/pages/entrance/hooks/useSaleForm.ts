@@ -126,6 +126,8 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
     const isReseller = state.saleType === "reseller";
 
     const isVasilhame = state.product === 'vasilhame_p13';
+    const isPonto = !isReseller && state.selectedClient?.origem === 'ponto';
+    const isPontoAPrazo = isPonto && (state.paymentMethod === 'promissory' || !state.paymentMethod);
     const tipoVenda: 'completa' | 'recarga' | 'vasilhame' = isVasilhame
       ? 'vasilhame'
       : state.cylinderMovement === 'return'
@@ -150,8 +152,8 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
               state.paymentMethod === 'pix' ? 'PIX' :
               state.paymentMethod === 'promissory' ? 'Promissória' :
               state.paymentMethod === 'gasVoucher' ? 'Vale Gás' : 'Convênio',
-      // Venda para agregado não tem valor no ato: o preço é definido no acerto
-      amount: isReseller ? 0 : state.quantity * state.unitPrice,
+      // Venda para agregado/ponto em promissória não tem valor no ato: preço é definido no acerto
+      amount: isReseller || isPontoAPrazo ? 0 : state.quantity * state.unitPrice,
       productCode: state.product as 'p13' | 'p20' | 'p45' | 'water' | 'vasilhame_p13',
       tipoVenda,
       clientId: state.selectedClient?.id ? String(state.selectedClient.id) : null,
@@ -172,6 +174,22 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
         observacoes: "Venda na portaria - a acertar",
       });
     }
+
+    // Ponto de revenda que retirou na portaria: lança na ficha do ponto
+    if (isPonto && !isVasilhame && state.selectedClient) {
+      registrarEntrega.mutate({
+        parceiro_tipo: "ponto",
+        parceiro_id: String(state.selectedClient.id),
+        parceiro_nome: String(state.selectedClient.name).replace(/\s*\(.*\)$/, ""),
+        produto: state.product ? state.product.toUpperCase() : "P13",
+        quantidade: state.quantity,
+        vasilhames_recebidos: state.cylinderMovement === "return" ? state.movementQuantity : 0,
+        observacoes: isPontoAPrazo
+          ? "Retirada na portaria - a acertar"
+          : "Retirada na portaria",
+      });
+    }
+
 
 
     // Reset the form
