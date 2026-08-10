@@ -126,6 +126,8 @@ export function PortariaStockPanel() {
       />
       <ReturnCylinderDialog open={returnOpen} onOpenChange={setReturnOpen} />
       <MovementsHistory open={historyOpen} onOpenChange={setHistoryOpen} />
+      <CorrigirEstoqueDialog open={fixOpen} onOpenChange={setFixOpen} />
+
     </>
   );
 }
