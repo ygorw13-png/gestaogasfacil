@@ -152,7 +152,7 @@ export default function SalesHistory() {
     });
   }, [estoqueRetirado, summary.productTotals]);
 
-  const temDivergencia = conferencia.some((c) => c.diferenca !== 0);
+  
   const filtroAtivo =
     productFilter !== "all" || paymentFilter !== "all" || sellerFilter !== "all" || !!searchTerm;
 
