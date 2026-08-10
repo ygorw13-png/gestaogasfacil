@@ -142,6 +142,7 @@ export default function SalesHistory() {
                       <TableHead className="text-center">Qtd</TableHead>
                       <TableHead>Pagamento</TableHead>
                       <TableHead className="text-right">Valor</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -154,6 +155,14 @@ export default function SalesHistory() {
                         <TableCell className="text-center">{sale.quantity}</TableCell>
                         <TableCell>{sale.payment}</TableCell>
                         <TableCell className="text-right">{brl(sale.amount)}</TableCell>
+                        <TableCell className="text-right">
+                          <CancelSaleButton
+                            saleId={String(sale.id)}
+                            client={sale.client}
+                            product={sale.product}
+                            quantity={sale.quantity}
+                          />
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
