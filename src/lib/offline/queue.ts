@@ -207,6 +207,17 @@ export interface SyncResult {
   skipped: boolean;
 }
 
+/** Avisos de fim de sincronização / conflitos, para o app mostrar notificações. */
+const resultListeners = new Set<(r: SyncResult) => void>();
+export function subscribeSyncResult(fn: (r: SyncResult) => void) {
+  resultListeners.add(fn);
+  return () => resultListeners.delete(fn);
+}
+function emitResult(r: SyncResult) {
+  resultListeners.forEach((l) => l(r));
+}
+
+
 export async function processQueue(): Promise<SyncResult> {
   if (syncing) return { sent: 0, failed: 0, conflicts: 0, skipped: true };
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
