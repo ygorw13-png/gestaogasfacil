@@ -15,7 +15,7 @@ export function OfflineSyncToasts() {
   useEffect(() => {
     const abrirFila = { label: 'Ver fila', onClick: () => navRef.current('/offline') };
 
-    return subscribeSyncResult(({ sent, failed, conflicts }) => {
+    const unsub = subscribeSyncResult(({ sent, failed, conflicts }) => {
       if (sent > 0) {
         toast.success(
           sent === 1 ? '1 lançamento enviado para a nuvem' : `${sent} lançamentos enviados para a nuvem`,
