@@ -22,12 +22,18 @@ export function useOrders() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
+      const inicioDoDia = new Date();
+      inicioDoDia.setHours(0, 0, 0, 0);
+
       const { data, error } = await supabase
         .from('orders')
         .select('*')
         // Vendas avulsas (balcão da portaria / venda na rua) não entram na gestão de pedidos
         .or('origem_venda.is.null,origem_venda.not.in.(portaria,venda_rua,balcao),delivery_person.not.is.null')
+        // Somente pedidos do dia ou pedidos ainda em aberto (pendentes/em rota)
+        .or(`created_at.gte.${inicioDoDia.toISOString()},status.not.in.(delivered,cancelled)`)
         .order('created_at', { ascending: false });
+
 
 
       if (error) throw error;
