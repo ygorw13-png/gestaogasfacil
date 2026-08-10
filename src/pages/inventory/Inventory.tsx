@@ -194,7 +194,18 @@ const Inventory = () => {
           </div>
         </>
       )}
+
+      <CorrigirEstoqueGeralDialog
+        open={fixOpen}
+        onOpenChange={setFixOpen}
+        currentStock={currentStock}
+        onCorrected={() => {
+          refreshAjustes();
+          fetchCurrentStock();
+        }}
+      />
     </div>
+
   );
 };
 
