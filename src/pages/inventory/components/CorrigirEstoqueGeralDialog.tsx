@@ -134,13 +134,22 @@ export function CorrigirEstoqueGeralDialog({
         </div>
 
         <div className="space-y-1">
-          <Label className="text-xs">Motivo da correção</Label>
+          <Label className="text-xs" htmlFor="motivo-correcao-geral">
+            Motivo da correção <span className="text-red-500">*</span>
+          </Label>
           <Textarea
+            id="motivo-correcao-geral"
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
             placeholder="Ex.: digitei 100 no lugar de 10"
             rows={2}
+            aria-invalid={motivo.trim().length < 3}
           />
+          {motivo.trim().length < 3 && (
+            <p className="text-xs text-red-500 font-medium">
+              Informe o motivo para salvar a correção.
+            </p>
+          )}
         </div>
 
         <DialogFooter>
