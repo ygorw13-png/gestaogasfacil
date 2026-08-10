@@ -20,7 +20,7 @@ const SidebarHeader = memo(({ isOpen, onToggle }: SidebarHeaderProps) => {
   return (
     <div className="flex items-center justify-between p-4">
       {isOpen && (
-        <h2 className="text-xl font-bold tracking-tight">GasFlow Aqua</h2>
+        <h2 className="text-xl font-bold tracking-tight">GásFácil</h2>
       )}
       <Button
         variant="ghost"

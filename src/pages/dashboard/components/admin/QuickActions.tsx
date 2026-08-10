@@ -35,7 +35,7 @@ export function QuickActions() {
           
           // Configuração correta para download do arquivo Excel
           link.href = url;
-          link.download = `RelatorioGasFlowAqua_${fromDate}_a_${toDate}.xlsx`;
+          link.download = `RelatorioGásFácilAqua_${fromDate}_a_${toDate}.xlsx`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);

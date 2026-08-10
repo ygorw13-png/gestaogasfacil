@@ -7,7 +7,7 @@ import { ptBR } from "date-fns/locale";
 const excelStyles = {
   headerStyle: {
     font: { bold: true, color: { rgb: "FFFFFF" } },
-    fill: { fgColor: { rgb: "22C55E" } }, // Verde GasFlow (gasflow-500)
+    fill: { fgColor: { rgb: "22C55E" } }, // Verde GásFácil (gasflow-500)
     alignment: { horizontal: "center", vertical: "center" },
     border: {
       top: { style: "thin", color: { rgb: "15803D" } }, // gasflow-700

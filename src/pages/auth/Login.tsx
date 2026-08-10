@@ -94,7 +94,7 @@ export default function Login() {
           <ProductShowcase className="lg:hidden max-w-xs mb-6" />
 
           <h1 className="text-4xl font-bold text-center text-white mb-2 tracking-tight">
-            GasFlow <span className="bg-gradient-to-r from-orange-400 to-sky-400 bg-clip-text text-transparent">Aqua</span>
+            Gás<span className="bg-gradient-to-r from-orange-400 to-sky-400 bg-clip-text text-transparent">Fácil</span>
           </h1>
           <p className="text-white/60 mb-8 text-center text-sm">
             Sistema de gestão para distribuição de gás e água

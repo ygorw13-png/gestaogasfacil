@@ -15,10 +15,10 @@ export function SystemConfiguration() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    companyName: "GasFlow Aqua",
+    companyName: "GásFácil",
     address: "Av. Principal, 123",
     phone: "(11) 99999-9999",
-    email: "contato@gasflowaqua.com.br"
+    email: "contato@gasfacil.com.br"
   });
 
   useEffect(() => {
