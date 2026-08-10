@@ -60,6 +60,8 @@ export function ProductSelection({
               <SelectItem value="p20">GLP P20</SelectItem>
               <SelectItem value="p45">GLP P45</SelectItem>
               <SelectItem value="water">Água 20L</SelectItem>
+              <SelectItem value="vasilhame_p13">Vasilhame P13 (vazio)</SelectItem>
+
             </SelectContent>
           </Select>
         </div>
