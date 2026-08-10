@@ -1729,7 +1729,6 @@ export type Database = {
       }
     }
     Functions: {
-      clear_test_data: { Args: never; Returns: undefined }
       get_my_org: { Args: never; Returns: string }
       has_role: {
         Args: {
