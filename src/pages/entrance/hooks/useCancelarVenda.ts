@@ -80,19 +80,41 @@ export function useCancelarVenda() {
       }
 
       if (parceiro && !isVasilhame && qty > 0) {
-        await supabase.from("conta_botijoes" as any).insert({
-          parceiro_tipo: parceiro.tipo,
-          parceiro_id: parceiro.id,
-          parceiro_nome: parceiro.nome,
-          tipo: "ajuste",
-          produto: produto ?? "P13",
-          quantidade: -qty,
-          vasilhames_recebidos: 0,
-          data: new Date().toISOString().slice(0, 10),
-          order_id: orderId,
-          observacoes: `Cancelamento de venda - ${motivo}`,
-        } as any);
+        // Só estorna se existir uma entrega em aberto (ainda não estornada) para este parceiro
+        const { data: entregas } = await supabase
+          .from("conta_botijoes" as any)
+          .select("id, quantidade, order_id")
+          .eq("parceiro_id", parceiro.id)
+          .eq("tipo", "entrega")
+          .is("order_id", null)
+          .eq("quantidade", qty)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        const entrega = (entregas as any[])?.[0];
+
+        if (entrega) {
+          // marca a entrega como vinculada a este pedido para não estornar duas vezes
+          await supabase
+            .from("conta_botijoes" as any)
+            .update({ order_id: orderId } as any)
+            .eq("id", entrega.id);
+
+          await supabase.from("conta_botijoes" as any).insert({
+            parceiro_tipo: parceiro.tipo,
+            parceiro_id: parceiro.id,
+            parceiro_nome: parceiro.nome,
+            tipo: "ajuste",
+            produto: produto ?? "P13",
+            quantidade: -qty,
+            vasilhames_recebidos: 0,
+            data: new Date().toISOString().slice(0, 10),
+            order_id: orderId,
+            observacoes: `Cancelamento de venda - ${motivo}`,
+          } as any);
+        }
       }
+
 
       // 3) Cancela o pedido
       const { error: upErr } = await supabase
