@@ -187,6 +187,27 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
 
       if (error) throw error;
 
+      // Entrega paga em promissória: gera a obrigação com vencimento em 30 dias
+      if (status === "delivered" && isPromissoryPayment(extraData?.paymentMethod)) {
+        const current = orders.find((o) => o.id === orderId);
+        const { error: pnError } = await createPromissoryFromSale({
+          clientId: (current as any)?.clientId || null,
+          clientName: current?.clientName || "Cliente",
+          value:
+            typeof extraData?.receivedValue === "number"
+              ? extraData.receivedValue
+              : Number(current?.price) || 0,
+          referenceId: orderId,
+          description: `Entrega - ${current?.quantity ?? ""}x ${current?.product ?? ""}`.trim(),
+        });
+        if (pnError) {
+          toast({ title: "Promissória não criada", description: pnError, variant: "destructive" });
+        } else {
+          toast({ title: "Nota promissória gerada", description: "Vencimento em 30 dias." });
+        }
+      }
+
+
       setOrders(prevOrders => 
         prevOrders.map((order) => {
           if (order.id === orderId) {
