@@ -41,7 +41,11 @@ export function OfflineSyncToasts() {
         );
       }
     });
+    return () => {
+      unsub();
+    };
   }, []);
+
 
   return null;
 }
