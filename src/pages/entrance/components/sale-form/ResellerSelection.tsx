@@ -64,7 +64,7 @@ export function ResellerSelection({ selectedReseller, onSelectReseller, reseller
                         <span>{reseller.name}</span>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           {reseller.phone} 
-                          {showPrices && (
+                          {showPrices && reseller.priceP13 > 0 && (
                             <span className="ml-2 text-green-600">
                               P13: R${reseller.priceP13.toFixed(2)}
                             </span>
