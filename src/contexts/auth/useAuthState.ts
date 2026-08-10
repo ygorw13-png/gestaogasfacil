@@ -4,17 +4,20 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchUserProfile } from './services';
 import { logger } from '@/utils/logger';
+import { getCachedUser, saveCachedUser } from '@/lib/offline/userCache';
 
 export function useAuthState() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const [offlineMode, setOfflineMode] = useState<boolean>(false);
   const [organization, setOrganization] = useState<{
     id: string;
     name: string;
     owner_id: string;
   } | null>(null);
+
 
   // Function to handle auth state changes
   const handleAuthStateChange = (session: Session | null) => {
