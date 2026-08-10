@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Order, OrderStatus } from "../types";
 import { supabase } from "@/integrations/supabase/client";
+import { createPromissoryFromSale, isPromissoryPayment } from "@/lib/promissory";
 
 export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<React.SetStateAction<Order[]>>) {
   const { toast } = useToast();
