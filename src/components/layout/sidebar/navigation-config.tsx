@@ -1,6 +1,6 @@
 
 import { BarChart3, Users, Store, Package, ReceiptText, ListChecks,
-        Truck, CalendarCheck, Settings, Repeat, FileBarChart, MapPin, Printer } from "lucide-react";
+        Truck, CalendarCheck, Settings, Repeat, FileBarChart, MapPin, Printer , CloudOff } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
 export interface NavigationItem {
@@ -67,6 +67,12 @@ export const adminNavItems: NavigationItem[] = [
     icon: Users, 
     label: "Colaboradores", 
     ariaLabel: "Gerenciar colaboradores"
+  },
+  { 
+    to: "/offline", 
+    icon: CloudOff, 
+    label: "Modo Offline", 
+    ariaLabel: "Status do modo offline e sincronização"
   },
   { 
     to: "/settings", 
