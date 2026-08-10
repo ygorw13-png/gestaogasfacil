@@ -37,8 +37,18 @@ export default function RelatorioVasilhames() {
   const saidas = linhas.reduce((s, r) => s + Number(r.vasilhames_entregues ?? 0), 0);
   const entradas = linhas.reduce((s, r) => s + Number(r.vasilhames_recebidos ?? 0), 0);
 
-  const porTipo = ["completa", "recarga", "vasilhame"].map((t) => {
-    const itens = linhas.filter((r) => (r.tipo_venda ?? "completa") === t);
+  // Cada venda de gás (não vasilhame avulso) deve gerar um casco vazio de volta,
+  // exceto quando o casco saiu como comodato/venda completa.
+  const unidadesGas = linhas
+    .filter((r) => (r.tipo_venda ?? "recarga") !== "vasilhame")
+    .reduce((s, r) => s + Number(r.quantity ?? 0), 0);
+  const esperadoVolta = unidadesGas - linhas
+    .filter((r) => (r.tipo_venda ?? "recarga") === "completa")
+    .reduce((s, r) => s + Number(r.quantity ?? 0), 0);
+  const divergencia = entradas - esperadoVolta;
+
+  const porTipo = ["recarga", "completa", "vasilhame"].map((t) => {
+    const itens = linhas.filter((r) => (r.tipo_venda ?? "recarga") === t);
     return {
       tipo: t,
       qtd: itens.length,
@@ -104,6 +114,20 @@ export default function RelatorioVasilhames() {
           <p className="text-2xl font-bold">{entradas}</p>
         </CardContent></Card>
       </div>
+
+      <Card>
+        <CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm text-muted-foreground">Conferência de cascos</p>
+            <p className="text-sm">
+              {unidadesGas} vendas de gás · esperados {esperadoVolta} vasilhames de volta · recebidos {entradas}
+            </p>
+          </div>
+          <Badge variant={divergencia === 0 ? "outline" : "destructive"}>
+            {divergencia === 0 ? "Conferido" : `Divergência: ${divergencia > 0 ? "+" : ""}${divergencia}`}
+          </Badge>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
