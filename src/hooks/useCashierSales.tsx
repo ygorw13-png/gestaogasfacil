@@ -108,11 +108,29 @@ export function useCashierSales() {
       return prevStartTime;
     });
     
-    // Atualiza contadores locais de estoque (mock legado)
-    if (newSale.product.includes('P13')) updateInventorySales('P13', newSale.quantity);
-    else if (newSale.product.includes('P20')) updateInventorySales('P20', newSale.quantity);
-    else if (newSale.product.includes('P45')) updateInventorySales('P45', newSale.quantity);
-    else if (newSale.product.includes('Água')) updateInventorySales('Água', newSale.quantity);
+    const tipoVenda = newSale.tipoVenda || 'completa';
+    const isVasilhame = tipoVenda === 'vasilhame';
+
+    // Atualiza contadores locais de estoque (mock legado) — só para gás/água
+    if (!isVasilhame) {
+      if (newSale.product.includes('P13')) updateInventorySales('P13', newSale.quantity);
+      else if (newSale.product.includes('P20')) updateInventorySales('P20', newSale.quantity);
+      else if (newSale.product.includes('P45')) updateInventorySales('P45', newSale.quantity);
+      else if (newSale.product.includes('Água')) updateInventorySales('Água', newSale.quantity);
+    }
+
+    // Movimentação de vasilhames desta venda
+    const vasilhamesEntregues = isVasilhame
+      ? newSale.quantity
+      : tipoVenda === 'completa'
+      ? newSale.quantity
+      : 0;
+    const vasilhamesRecebidos =
+      tipoVenda === 'recarga'
+        ? newSale.quantity
+        : newSale.cylinderMovement === 'return'
+        ? newSale.movementQuantity ?? 0
+        : 0;
 
     // Persiste a venda da portaria em orders para entrar nos totais do dia
     const paymentCodeMap: Record<string, string> = {
@@ -133,6 +151,7 @@ export function useCashierSales() {
         await supabase.from('orders').insert({
           user_id: userId,
           client_name: newSale.client,
+          client_id: newSale.clientId || null,
           address: {},
           product: newSale.product,
           quantity: newSale.quantity,
@@ -141,33 +160,54 @@ export function useCashierSales() {
           status: 'delivered',
           delivered_at: now,
           origem_venda: 'portaria',
+          tipo_venda: tipoVenda,
+          vasilhames_entregues: vasilhamesEntregues,
+          vasilhames_recebidos: vasilhamesRecebidos,
           has_empty_cylinder: newSale.cylinderMovement !== 'loan',
-          notes: 'Venda registrada na portaria',
+          notes: isVasilhame
+            ? 'Venda de vasilhame vazio na portaria'
+            : 'Venda registrada na portaria',
         } as any);
         queryClient.invalidateQueries({ queryKey: ['vendas_hoje'] });
+        queryClient.invalidateQueries({ queryKey: ['relatorio-vasilhames'] });
       } catch (e) {
         console.error('Erro ao registrar venda no banco:', e);
       }
     })();
     
     // Registrar movimentação no estoque da portaria (Supabase)
-    const codeToProduto: Record<string, PortariaProduto> = {
-      p13: 'P13', p20: 'P20', p45: 'P45', water: 'agua',
-    };
-    const produto = newSale.productCode ? codeToProduto[newSale.productCode] : undefined;
-    if (produto) {
-      const isLoan = newSale.cylinderMovement === 'loan';
+    if (isVasilhame) {
+      // Venda só do casco: sai um vasilhame vazio do estoque
       registrarMov.mutate({
-        tipo: isLoan ? 'venda_comodato' : 'venda',
-        produto,
-        delta_cheios: -newSale.quantity,
-        delta_vazios: isLoan ? 0 : newSale.quantity,
-        delta_emprestados: isLoan ? newSale.quantity : 0,
+        tipo: 'venda',
+        produto: 'P13',
+        delta_cheios: 0,
+        delta_vazios: -newSale.quantity,
+        delta_emprestados: 0,
         cliente_id: newSale.clientId || null,
         cliente_nome: newSale.client !== 'Venda Avulsa' ? newSale.client : null,
-        observacoes: `Venda #${newSale.id} - ${newSale.payment}`,
+        observacoes: `Venda de vasilhame vazio P13 #${newSale.id} - ${newSale.payment}`,
       });
+    } else {
+      const codeToProduto: Record<string, PortariaProduto> = {
+        p13: 'P13', p20: 'P20', p45: 'P45', water: 'agua',
+      };
+      const produto = newSale.productCode ? codeToProduto[newSale.productCode] : undefined;
+      if (produto) {
+        const isLoan = newSale.cylinderMovement === 'loan';
+        registrarMov.mutate({
+          tipo: isLoan ? 'venda_comodato' : 'venda',
+          produto,
+          delta_cheios: -newSale.quantity,
+          delta_vazios: isLoan ? 0 : vasilhamesRecebidos,
+          delta_emprestados: isLoan ? newSale.quantity : 0,
+          cliente_id: newSale.clientId || null,
+          cliente_nome: newSale.client !== 'Venda Avulsa' ? newSale.client : null,
+          observacoes: `Venda #${newSale.id} - ${newSale.payment}`,
+        });
+      }
     }
+
     
     toast({
       title: "Venda registrada",
