@@ -10,9 +10,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Package, Receipt, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SalesFilters } from "./components/sales/SalesFilters";
+import { CancelSaleButton } from "./components/sales/CancelSaleButton";
 import { DateRange } from "react-day-picker";
 import { useSalesHistory } from "./hooks/useSalesHistory";
 
@@ -87,24 +88,82 @@ export default function SalesHistory() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Vendas</CardTitle>
+            <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-2xl font-bold">{filteredSales.length}</CardContent>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredSales.length}</div>
+            <p className="text-xs text-muted-foreground">no período filtrado</p>
+          </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Itens vendidos</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-2xl font-bold">{summary.totalQty}</CardContent>
+          <CardContent>
+            <div className="text-2xl font-bold">{summary.totalQty}</div>
+            <p className="text-xs text-muted-foreground">unidades entregues</p>
+          </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Faturamento</CardTitle>
+            <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="text-2xl font-bold">{brl(summary.totalValue)}</CardContent>
+          <CardContent>
+            <div className="text-2xl font-bold">{brl(summary.totalValue)}</div>
+            <p className="text-xs text-muted-foreground">
+              ticket médio{" "}
+              {brl(filteredSales.length ? summary.totalValue / filteredSales.length : 0)}
+            </p>
+          </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Recebimentos por forma de pagamento</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {summary.paymentList.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Sem dados no período selecionado.</p>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {summary.paymentList.map((pay) => {
+                const total = summary.productList.reduce(
+                  (a, prod) => a + (cell(prod, pay)?.total || 0),
+                  0,
+                );
+                const qty = summary.productList.reduce(
+                  (a, prod) => a + (cell(prod, pay)?.qty || 0),
+                  0,
+                );
+                const perc = summary.totalValue ? (total / summary.totalValue) * 100 : 0;
+                return (
+                  <div key={pay} className="rounded-lg border p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{pay}</span>
+                      <span className="text-xs text-muted-foreground">{qty} un.</span>
+                    </div>
+                    <div className="mt-1 text-xl font-bold">{brl(total)}</div>
+                    <div className="mt-2 h-1.5 w-full rounded-full bg-muted">
+                      <div
+                        className="h-1.5 rounded-full bg-primary"
+                        style={{ width: `${Math.min(perc, 100)}%` }}
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {perc.toFixed(1)}% do faturamento
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="pb-3">
@@ -141,6 +200,7 @@ export default function SalesHistory() {
                       <TableHead className="text-center">Qtd</TableHead>
                       <TableHead>Pagamento</TableHead>
                       <TableHead className="text-right">Valor</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -153,6 +213,14 @@ export default function SalesHistory() {
                         <TableCell className="text-center">{sale.quantity}</TableCell>
                         <TableCell>{sale.payment}</TableCell>
                         <TableCell className="text-right">{brl(sale.amount)}</TableCell>
+                        <TableCell className="text-right">
+                          <CancelSaleButton
+                            saleId={String(sale.id)}
+                            client={sale.client}
+                            product={sale.product}
+                            quantity={sale.quantity}
+                          />
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

@@ -129,6 +129,7 @@ export function useCancelarVenda() {
     onSuccess: () => {
       toast.success("Venda cancelada e valores estornados");
       qc.invalidateQueries({ queryKey: ["vendas_hoje"] });
+      qc.invalidateQueries({ queryKey: ["sales_history"] });
       qc.invalidateQueries({ queryKey: ["conta-botijoes"] });
       qc.invalidateQueries({ queryKey: ["relatorio-vasilhames"] });
       qc.invalidateQueries({ queryKey: ["saldo_portaria"] });
