@@ -311,71 +311,8 @@ export default function SalesHistory() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle>Conferência: vendas × estoque retirado na portaria</CardTitle>
-          {temDivergencia ? (
-            <Badge variant="destructive" className="gap-1">
-              <AlertTriangle className="h-3 w-3" /> Divergência
-            </Badge>
-          ) : (
-            <Badge variant="secondary" className="gap-1">
-              <CheckCircle2 className="h-3 w-3" /> Conferido
-            </Badge>
-          )}
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {filtroAtivo && (
-            <p className="text-xs text-muted-foreground">
-              Atenção: filtros ativos afetam o total vendido; o estoque retirado considera todo o
-              período.
-            </p>
-          )}
-          <div className="rounded-md border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Produto</TableHead>
-                  <TableHead className="text-center">Vendido</TableHead>
-                  <TableHead className="text-center">Retirado na portaria</TableHead>
-                  <TableHead className="text-center">Diferença</TableHead>
-                  <TableHead>Situação</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {conferencia.map((c) => (
-                  <TableRow key={c.produto}>
-                    <TableCell className="font-medium">{c.produto}</TableCell>
-                    <TableCell className="text-center">{c.vendido}</TableCell>
-                    <TableCell className="text-center">{c.retirado}</TableCell>
-                    <TableCell
-                      className={`text-center font-semibold ${
-                        c.diferenca === 0 ? "" : "text-destructive"
-                      }`}
-                    >
-                      {c.diferenca > 0 ? "+" : ""}
-                      {c.diferenca}
-                    </TableCell>
-                    <TableCell>
-                      {c.diferenca === 0 ? (
-                        <span className="text-xs text-muted-foreground">Bate certinho</span>
-                      ) : c.diferenca > 0 ? (
-                        <span className="text-xs text-destructive">
-                          Vendas sem baixa no estoque
-                        </span>
-                      ) : (
-                        <span className="text-xs text-destructive">
-                          Saída de estoque sem venda registrada
-                        </span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+
+
 
       <Card>
         <CardHeader className="pb-3">
