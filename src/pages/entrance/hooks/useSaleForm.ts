@@ -126,6 +126,8 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
     const isReseller = state.saleType === "reseller";
 
     const isVasilhame = state.product === 'vasilhame_p13';
+    const isPonto = !isReseller && state.selectedClient?.origem === 'ponto';
+    const isPontoAPrazo = isPonto && (state.paymentMethod === 'promissory' || !state.paymentMethod);
     const tipoVenda: 'completa' | 'recarga' | 'vasilhame' = isVasilhame
       ? 'vasilhame'
       : state.cylinderMovement === 'return'
