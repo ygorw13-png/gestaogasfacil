@@ -14,6 +14,7 @@ import { ArrowLeft, Droplets, Package, Receipt, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SalesFilters } from "./components/sales/SalesFilters";
 import { CancelSaleButton } from "./components/sales/CancelSaleButton";
+import { EditSaleButton } from "./components/sales/EditSaleButton";
 import { DateRange } from "react-day-picker";
 import { useSalesHistory } from "./hooks/useSalesHistory";
 import { productKey } from "./hooks/useVendasHoje";
