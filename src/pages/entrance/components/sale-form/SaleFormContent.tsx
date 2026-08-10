@@ -7,17 +7,11 @@ import { ProductSelection } from "./ProductSelection";
 import { CylinderMovement } from "./CylinderMovement";
 import { ResellerSelection } from "./ResellerSelection";
 import { useResellers } from "../../../resellers/hooks/useResellers";
+import { useSaleClients } from "../../hooks/useSaleClients";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSaleForm } from "../../hooks/useSaleForm";
 import type { Sale } from "../../types/saleTypes";
 
-const clients = [
-  { id: 1, name: "Maria Silva", phone: "(11) 98765-4321", type: "Regular" },
-  { id: 2, name: "João Oliveira", phone: "(11) 91234-5678", type: "Regular" },
-  { id: 3, name: "Supermercado ABC", phone: "(11) 3333-4444", type: "Convênio" },
-  { id: 4, name: "José Distribuidora", phone: "(11) 97777-8888", type: "Agregado" },
-  { id: 5, name: "Restaurante Sabor", phone: "(11) 95555-6666", type: "Convênio" },
-];
 
 interface SaleFormContentProps {
   onSubmit: (sale: Sale) => void;
