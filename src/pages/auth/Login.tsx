@@ -12,38 +12,39 @@ import waterImg from '@/assets/galao-agua.png';
 function ProductShowcase({ className = '' }: { className?: string }) {
   return (
     <div className={`relative w-full ${className}`}>
-      <div className="absolute inset-x-6 bottom-2 h-10 rounded-[50%] bg-black/50 blur-2xl" />
-      <div className="relative flex items-end justify-center gap-[2%]">
+      <div className="absolute inset-x-[15%] bottom-1 h-6 rounded-[50%] bg-black/50 blur-2xl sm:h-10" />
+      <div className="relative flex h-[38vw] max-h-[300px] min-h-[130px] items-end justify-center gap-[3%] lg:h-[340px] lg:max-h-none">
         {/* P45 - fundo esquerda */}
         <img
           src={p45Img}
           alt="Botijão de gás P45"
           loading="lazy"
-          className="w-[20%] origin-bottom translate-y-1 scale-95 opacity-70 blur-[1px] drop-shadow-[0_18px_35px_rgba(0,0,0,0.55)] animate-[float_9s_ease-in-out_infinite]"
+          className="h-[62%] w-auto max-w-[22%] origin-bottom object-contain object-bottom opacity-80 drop-shadow-[0_18px_35px_rgba(0,0,0,0.55)] animate-[float_9s_ease-in-out_infinite]"
         />
         {/* P13 - principal */}
         <img
           src={p13Img}
           alt="Botijão de gás P13"
-          className="relative z-10 w-[34%] drop-shadow-[0_28px_60px_rgba(0,0,0,0.65)] animate-[float_6s_ease-in-out_infinite]"
+          className="relative z-10 h-[80%] w-auto max-w-[34%] object-contain object-bottom drop-shadow-[0_28px_60px_rgba(0,0,0,0.65)] animate-[float_6s_ease-in-out_infinite]"
         />
         {/* P20 - fundo direita */}
         <img
           src={p20Img}
           alt="Botijão de gás P20"
           loading="lazy"
-          className="w-[15%] origin-bottom translate-y-1 scale-95 opacity-70 blur-[1px] drop-shadow-[0_18px_35px_rgba(0,0,0,0.55)] animate-[float_11s_ease-in-out_infinite_reverse]"
+          className="h-[58%] w-auto max-w-[18%] origin-bottom object-contain object-bottom opacity-80 drop-shadow-[0_18px_35px_rgba(0,0,0,0.55)] animate-[float_11s_ease-in-out_infinite_reverse]"
         />
         {/* Galão de água */}
         <img
           src={waterImg}
           alt="Galão de água 20 litros"
-          className="relative z-10 w-[26%] drop-shadow-[0_24px_50px_rgba(0,0,0,0.6)] animate-[float_7s_ease-in-out_infinite_reverse]"
+          className="relative z-10 h-[72%] w-auto max-w-[26%] object-contain object-bottom drop-shadow-[0_24px_50px_rgba(0,0,0,0.6)] animate-[float_7s_ease-in-out_infinite_reverse]"
         />
       </div>
     </div>
   );
 }
+
 
 export default function Login() {
   const { loading, error, user, handleSubmit } = useLoginForm();
