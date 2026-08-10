@@ -1,101 +1,106 @@
-
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useMemo, useState } from "react";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Search } from "lucide-react";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Check, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-interface Client {
-  id: number;
+export interface SaleFormClient {
+  id: string;
   name: string;
   phone: string;
-  type: string;
 }
 
 interface ClientSelectionProps {
-  selectedClient: Client | null;
-  onSelectClient: (client: Client | null) => void;
-  clients: Client[];
+  selectedClient: SaleFormClient | null;
+  onSelectClient: (client: SaleFormClient | null) => void;
+  clients: SaleFormClient[];
+  loading?: boolean;
 }
 
-export function ClientSelection({ selectedClient, onSelectClient, clients }: ClientSelectionProps) {
-  const [clientSearchOpen, setClientSearchOpen] = useState(false);
+export function ClientSelection({
+  selectedClient,
+  onSelectClient,
+  clients,
+  loading = false,
+}: ClientSelectionProps) {
+  const [search, setSearch] = useState("");
 
-  const handleSelectClient = (client: Client) => {
-    onSelectClient(client);
-    setClientSearchOpen(false);
-  };
-
-  const handleAnonymousSale = () => {
-    onSelectClient(null);
-    setClientSearchOpen(false);
-  };
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return clients;
+    return clients.filter(
+      (c) => c.name.toLowerCase().includes(q) || (c.phone || "").includes(q)
+    );
+  }, [clients, search]);
 
   return (
     <div className="space-y-2">
       <Label>Cliente</Label>
-      <div className="flex gap-2">
-        <Popover open={clientSearchOpen} onOpenChange={setClientSearchOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              className="w-full justify-between"
-            >
-              {selectedClient ? selectedClient.name : "Venda Avulsa"}
-              <Search className="h-4 w-4 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[300px] p-0">
-            <Command>
-              <CommandInput placeholder="Buscar cliente..." />
-              <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
-              <CommandList>
-                <CommandGroup>
-                  <CommandItem
-                    onSelect={handleAnonymousSale}
-                    className="cursor-pointer font-medium"
-                  >
-                    Venda Avulsa
-                  </CommandItem>
-                </CommandGroup>
-                <CommandGroup heading="Clientes">
-                  {clients.map((client) => (
-                    <CommandItem
-                      key={client.id}
-                      onSelect={() => handleSelectClient(client)}
-                      className="cursor-pointer"
-                    >
-                      <div className="flex flex-col">
-                        <span>{client.name}</span>
-                        <span className="text-xs text-muted-foreground">{client.phone}</span>
-                      </div>
-                      <span className="text-xs ml-auto bg-muted px-2 py-0.5 rounded-full">
-                        {client.type}
-                      </span>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-        <Button type="button" variant="outline" size="icon">
-          <Users className="h-4 w-4" />
-        </Button>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar cliente por nome ou telefone..."
+          className="pl-9"
+        />
       </div>
+
+      <div className="rounded-md border">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => onSelectClient(null)}
+          className={cn(
+            "w-full justify-start rounded-none border-b font-medium",
+            !selectedClient && "bg-accent"
+          )}
+        >
+          {!selectedClient && <Check className="mr-2 h-4 w-4" />}
+          Venda Avulsa
+        </Button>
+
+        <ScrollArea className="h-40">
+          {loading ? (
+            <p className="p-3 text-sm text-muted-foreground">Carregando clientes...</p>
+          ) : filtered.length === 0 ? (
+            <p className="p-3 text-sm text-muted-foreground">Nenhum cliente encontrado.</p>
+          ) : (
+            filtered.map((client) => {
+              const active = selectedClient?.id === client.id;
+              return (
+                <Button
+                  key={client.id}
+                  type="button"
+                  variant="ghost"
+                  onClick={() => onSelectClient(client)}
+                  className={cn(
+                    "w-full justify-start rounded-none h-auto py-2",
+                    active && "bg-accent"
+                  )}
+                >
+                  {active && <Check className="mr-2 h-4 w-4 shrink-0" />}
+                  <span className="flex flex-col items-start">
+                    <span className="text-sm">{client.name}</span>
+                    {client.phone && (
+                      <span className="text-xs text-muted-foreground">{client.phone}</span>
+                    )}
+                  </span>
+                </Button>
+              );
+            })
+          )}
+        </ScrollArea>
+      </div>
+
+      {selectedClient && (
+        <p className="text-xs text-muted-foreground">
+          Cliente selecionado: <span className="font-medium">{selectedClient.name}</span>
+        </p>
+      )}
     </div>
   );
 }
