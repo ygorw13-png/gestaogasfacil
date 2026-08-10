@@ -90,12 +90,10 @@ export default function VendaRua() {
     if (!result.error && form.payment_method === "promissoria") {
       const due = new Date();
       due.setDate(due.getDate() + 30);
-      const org = navigator.onLine ? ((await supabase.rpc("get_my_org" as any)).data as any) : null;
       await runOrQueue({
         target: "promissory_notes",
         action: "insert",
         payload: {
-          organization_id: org,
           client_name: nome,
           value: valor || 0,
           due_date: due.toISOString().slice(0, 10),
