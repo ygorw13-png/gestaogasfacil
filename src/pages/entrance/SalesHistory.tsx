@@ -14,6 +14,7 @@ import { ArrowLeft, Droplets, Package, Receipt, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SalesFilters } from "./components/sales/SalesFilters";
 import { CancelSaleButton } from "./components/sales/CancelSaleButton";
+import { EditSaleButton } from "./components/sales/EditSaleButton";
 import { DateRange } from "react-day-picker";
 import { useSalesHistory } from "./hooks/useSalesHistory";
 import { productKey } from "./hooks/useVendasHoje";
@@ -252,12 +253,22 @@ export default function SalesHistory() {
                         <TableCell>{sale.payment}</TableCell>
                         <TableCell className="text-right">{brl(sale.amount)}</TableCell>
                         <TableCell className="text-right">
-                          <CancelSaleButton
-                            saleId={String(sale.id)}
-                            client={sale.client}
-                            product={sale.product}
-                            quantity={sale.quantity}
-                          />
+                          <div className="flex justify-end gap-1">
+                            <EditSaleButton
+                              saleId={String(sale.id)}
+                              client={sale.client}
+                              product={sale.product}
+                              quantity={sale.quantity}
+                              amount={sale.amount}
+                              paymentCode={sale.paymentCode}
+                            />
+                            <CancelSaleButton
+                              saleId={String(sale.id)}
+                              client={sale.client}
+                              product={sale.product}
+                              quantity={sale.quantity}
+                            />
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

@@ -10,6 +10,7 @@ export interface HistorySale {
   product: string;
   quantity: number;
   payment: string;
+  paymentCode: string;
   amount: number;
 }
 
@@ -53,6 +54,7 @@ export function useSalesHistory(from: Date, to: Date) {
           product: (o.product as string) || "—",
           quantity: Number(o.quantity ?? 1),
           payment: paymentLabelFromCode(o.payment_method as string | null),
+          paymentCode: (o.payment_method as string) || "money",
           amount: Number(o.price ?? 0),
         };
       });
