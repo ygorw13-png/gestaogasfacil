@@ -3,6 +3,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { AppLayout } from "./components/layout/AppLayout";
 import { Suspense, lazy } from "react";
 import { Toaster } from "sonner";
+import { OfflineSyncToasts } from "@/components/offline/OfflineSyncToasts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SidebarProvider } from "./components/ui/sidebar";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
@@ -239,6 +240,7 @@ function App() {
             </Routes>
             </ErrorBoundary>
             <Toaster richColors closeButton position="top-right" />
+            <OfflineSyncToasts />
           </div>
         </AuthProvider>
       </QueryClientProvider>
