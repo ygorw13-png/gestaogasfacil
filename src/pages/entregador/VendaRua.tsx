@@ -59,7 +59,7 @@ export default function VendaRua() {
 
     setLoading(true);
     const now = new Date().toISOString();
-    const { error } = await supabase.from("orders").insert({
+    const orderPayload = {
       user_id: user.id,
       client_name: nome,
       client_phone: form.client_phone || null,
@@ -76,31 +76,50 @@ export default function VendaRua() {
       vasilhames_entregues: vas.entregues,
       vasilhames_recebidos: vas.recebidos,
       has_empty_cylinder: vas.recebidos > 0,
-    } as any);
+    };
 
-    if (!error && form.payment_method === "promissoria") {
+    // Sem internet? A venda fica salva no aparelho e sobe sozinha depois.
+    const result = await runOrQueue({
+      target: "orders",
+      action: "insert",
+      payload: orderPayload,
+      description: `Venda na rua - ${form.quantity}x ${form.product} (${nome})`,
+    });
+
+    if (!result.error && form.payment_method === "promissoria") {
       const due = new Date();
       due.setDate(due.getDate() + 30);
-      const org = (await supabase.rpc("get_my_org" as any)).data as any;
-      await supabase.from("promissory_notes").insert({
-        organization_id: org,
-        client_name: nome,
-        value: valor || 0,
-        due_date: due.toISOString().slice(0, 10),
-        status: "pending",
-        created_by: user.id,
-        notes: `Venda na rua - ${form.quantity}x ${form.product}`,
-      } as any);
+      const org = navigator.onLine ? ((await supabase.rpc("get_my_org" as any)).data as any) : null;
+      await runOrQueue({
+        target: "promissory_notes",
+        action: "insert",
+        payload: {
+          organization_id: org,
+          client_name: nome,
+          value: valor || 0,
+          due_date: due.toISOString().slice(0, 10),
+          status: "pending",
+          created_by: user.id,
+          notes: `Venda na rua - ${form.quantity}x ${form.product}`,
+        },
+        description: `Nota promissória - ${nome}`,
+      });
     }
 
     setLoading(false);
-    if (error) {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    if (result.error) {
+      toast({ title: "Erro", description: result.error, variant: "destructive" });
       return;
     }
-    toast({ title: "Venda registrada!", description: "Já está no seu acerto do dia." });
+    toast({
+      title: result.queued ? "Venda salva no aparelho" : "Venda registrada!",
+      description: result.queued
+        ? "Sem internet agora. Ela será enviada sozinha quando a conexão voltar."
+        : "Já está no seu acerto do dia.",
+    });
     setForm({ ...form, price: "", notes: "", client_name: "", client_phone: "" });
   };
+
 
   return (
     <div className="max-w-2xl mx-auto pb-8">
