@@ -159,13 +159,22 @@ export function CorrigirEstoqueDialog({ open, onOpenChange }: Props) {
           </div>
 
           <div className="space-y-1">
-            <Label className="text-xs">Motivo da correção</Label>
+            <Label className="text-xs" htmlFor="motivo-correcao">
+              Motivo da correção <span className="text-red-500">*</span>
+            </Label>
             <Textarea
+              id="motivo-correcao"
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
               placeholder="Ex.: lancei 10 cheios por engano, o correto era 8"
               rows={2}
+              aria-invalid={motivo.trim().length < 3}
             />
+            {motivo.trim().length < 3 && (
+              <p className="text-xs text-red-500 font-medium">
+                Informe o motivo para salvar a correção.
+              </p>
+            )}
           </div>
         </div>
 
