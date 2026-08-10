@@ -252,12 +252,22 @@ export default function SalesHistory() {
                         <TableCell>{sale.payment}</TableCell>
                         <TableCell className="text-right">{brl(sale.amount)}</TableCell>
                         <TableCell className="text-right">
-                          <CancelSaleButton
-                            saleId={String(sale.id)}
-                            client={sale.client}
-                            product={sale.product}
-                            quantity={sale.quantity}
-                          />
+                          <div className="flex justify-end gap-1">
+                            <EditSaleButton
+                              saleId={String(sale.id)}
+                              client={sale.client}
+                              product={sale.product}
+                              quantity={sale.quantity}
+                              amount={sale.amount}
+                              paymentCode={sale.paymentCode}
+                            />
+                            <CancelSaleButton
+                              saleId={String(sale.id)}
+                              client={sale.client}
+                              product={sale.product}
+                              quantity={sale.quantity}
+                            />
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
