@@ -85,7 +85,7 @@ export function ResellerDetailsDialog({
                     <TableRow>
                       <TableCell>P13</TableCell>
                       <TableCell className="text-right font-medium">
-                        R$ {reseller.priceP13.toFixed(2)}
+                        {reseller.priceP13 > 0 ? `R$ ${reseller.priceP13.toFixed(2)}` : "Não informado"}
                       </TableCell>
                     </TableRow>
                   </TableBody>
