@@ -1,9 +1,8 @@
-
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Filter, X } from "lucide-react";
+import { X } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
 interface SalesFiltersProps {
@@ -15,6 +14,9 @@ interface SalesFiltersProps {
   onProductFilterChange: (value: string) => void;
   paymentFilter: string;
   onPaymentFilterChange: (value: string) => void;
+  sellerFilter?: string;
+  onSellerFilterChange?: (value: string) => void;
+  sellerOptions?: string[];
   onClearFilters: () => void;
 }
 
@@ -27,9 +29,17 @@ export function SalesFilters({
   onProductFilterChange,
   paymentFilter,
   onPaymentFilterChange,
-  onClearFilters
+  sellerFilter = "all",
+  onSellerFilterChange,
+  sellerOptions = [],
+  onClearFilters,
 }: SalesFiltersProps) {
-  const hasActiveFilters = searchTerm || dateRange || productFilter || paymentFilter;
+  const hasActiveFilters =
+    searchTerm ||
+    dateRange ||
+    (productFilter && productFilter !== "all") ||
+    (paymentFilter && paymentFilter !== "all") ||
+    (sellerFilter && sellerFilter !== "all");
 
   return (
     <div className="space-y-4">
@@ -42,14 +52,11 @@ export function SalesFilters({
             className="w-full"
           />
         </div>
-        <DateRangePicker 
-          date={dateRange}
-          onDateChange={onDateRangeChange}
-        />
+        <DateRangePicker date={dateRange} onDateChange={onDateRangeChange} />
       </div>
-      
+
       <div className="flex flex-col sm:flex-row gap-4">
-        <Select value={productFilter} onValueChange={onProductFilterChange}>
+        <Select value={productFilter || "all"} onValueChange={onProductFilterChange}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Filtrar por produto" />
           </SelectTrigger>
@@ -58,11 +65,12 @@ export function SalesFilters({
             <SelectItem value="GLP P13">GLP P13</SelectItem>
             <SelectItem value="GLP P20">GLP P20</SelectItem>
             <SelectItem value="GLP P45">GLP P45</SelectItem>
+            <SelectItem value="Vasilhame P13">Vasilhame P13</SelectItem>
             <SelectItem value="Água 20L">Água 20L</SelectItem>
           </SelectContent>
         </Select>
-        
-        <Select value={paymentFilter} onValueChange={onPaymentFilterChange}>
+
+        <Select value={paymentFilter || "all"} onValueChange={onPaymentFilterChange}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Forma de Pagamento" />
           </SelectTrigger>
@@ -73,17 +81,30 @@ export function SalesFilters({
             <SelectItem value="Débito">Débito</SelectItem>
             <SelectItem value="PIX">PIX</SelectItem>
             <SelectItem value="Vale Gás">Vale Gás</SelectItem>
+            <SelectItem value="Gás-Povo">Gás-Povo</SelectItem>
+            <SelectItem value="Convênio">Convênio</SelectItem>
             <SelectItem value="Promissória">Promissória</SelectItem>
           </SelectContent>
         </Select>
-        
+
+        {onSellerFilterChange && (
+          <Select value={sellerFilter || "all"} onValueChange={onSellerFilterChange}>
+            <SelectTrigger className="w-full sm:w-[220px]">
+              <SelectValue placeholder="Vendedor / Agregado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os vendedores</SelectItem>
+              {sellerOptions.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
         {hasActiveFilters && (
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={onClearFilters}
-            className="h-10 w-10"
-          >
+          <Button variant="outline" size="icon" onClick={onClearFilters} className="h-10 w-10">
             <X className="h-4 w-4" />
           </Button>
         )}
