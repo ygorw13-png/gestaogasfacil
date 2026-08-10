@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useRegistrarMovimentacao, type PortariaProduto } from "./usePortariaStock";
+import { vasilhameDeltas, type TipoVenda } from "@/lib/saleTypes";
 
 export const produtoFrom = (product?: string | null): PortariaProduto | null => {
   const p = (product || "").toUpperCase();
