@@ -50,6 +50,8 @@ const RelatorioVasilhames = lazy(() => import("./pages/relatorios/RelatorioVasil
 const Formularios = lazy(() => import("./pages/formularios/Formularios"));
 const PontosRevenda = lazy(() => import("./pages/pontos/PontosRevenda"));
 const PainelDoDia = lazy(() => import("./pages/admin/PainelDoDia"));
+const StatusOffline = lazy(() => import("./pages/offline/StatusOffline"));
+const ResponsiveTest = lazy(() => import("./pages/dev/ResponsiveTest"));
 
 
 // Loading component for lazy loading
@@ -219,6 +221,12 @@ function App() {
                 } />
                 <Route path="/formularios" element={
                   <Suspense fallback={<LoadingComponent />}><Formularios /></Suspense>
+                } />
+                <Route path="/offline" element={
+                  <Suspense fallback={<LoadingComponent />}><StatusOffline /></Suspense>
+                } />
+                <Route path="/dev/responsive" element={
+                  <Suspense fallback={<LoadingComponent />}><ResponsiveTest /></Suspense>
                 } />
                 <Route path="/recompra" element={
                   <Suspense fallback={<LoadingComponent />}><Recompra /></Suspense>
