@@ -11,7 +11,7 @@ const formSchema = z.object({
   phone: z.string().min(10, "Telefone inválido"),
   address: z.string().optional(),
   contactPerson: z.string().optional(),
-  priceP13: z.coerce.number().min(0, "Preço não pode ser negativo"),
+  priceP13: z.union([z.coerce.number().min(0, "Preço não pode ser negativo"), z.literal("")]).optional(),
   notes: z.string().optional(),
 });
 
