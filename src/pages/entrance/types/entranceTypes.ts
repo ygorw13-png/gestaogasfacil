@@ -29,7 +29,9 @@ export interface Sale {
   payment: string;
   amount: number;
   // Metadados opcionais para registrar movimentação no estoque da portaria
-  productCode?: 'p13' | 'p20' | 'p45' | 'water';
+  productCode?: 'p13' | 'p20' | 'p45' | 'water' | 'vasilhame_p13';
+  tipoVenda?: 'completa' | 'recarga' | 'vasilhame';
+
   clientId?: string | null;
   cylinderMovement?: 'none' | 'loan' | 'return';
   movementQuantity?: number;
