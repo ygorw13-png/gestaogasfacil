@@ -51,15 +51,15 @@ export function CylinderMovement({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="none" id="none" />
-            <Label htmlFor="none">Sem movimentação</Label>
+            <Label htmlFor="none">Troca — cliente entregou o vasilhame vazio</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="loan" id="loan" />
-            <Label htmlFor="loan">Empréstimo de vasilhame</Label>
+            <Label htmlFor="loan">Empréstimo de vasilhame (cliente leva o casco)</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="return" id="return" />
-            <Label htmlFor="return">Devolução de vasilhame</Label>
+            <Label htmlFor="return">Devolução extra de vasilhames</Label>
           </div>
         </RadioGroup>
       </div>

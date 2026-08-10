@@ -139,6 +139,11 @@ export function useEditarVenda() {
       qc.invalidateQueries({ queryKey: ["relatorio-vasilhames"] });
       qc.invalidateQueries({ queryKey: ["saldo_portaria"] });
       qc.invalidateQueries({ queryKey: ["movimentacoes_portaria"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["estoque_retirado"] });
+      qc.invalidateQueries({ queryKey: ["movimentacoes_portaria_periodo"] });
+      qc.invalidateQueries({ queryKey: ["promissory_notes"] });
+
     },
     onError: (e: Error) => toast.error(`Erro ao editar venda: ${e.message}`),
   });

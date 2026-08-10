@@ -12,7 +12,7 @@ export const TIPOS_VENDA: {
   },
   {
     value: "recarga",
-    label: "Somente carga (troca de vasilhame)",
+    label: "Somente líquido (troca de vasilhame)",
     description: "Cliente entrega um vasilhame vazio e leva um cheio.",
   },
   {
@@ -23,10 +23,10 @@ export const TIPOS_VENDA: {
 ];
 
 export const tipoVendaLabel = (t?: string | null) =>
-  TIPOS_VENDA.find((x) => x.value === t)?.label ?? "Gás completo (líquido + vasilhame)";
+  TIPOS_VENDA.find((x) => x.value === t)?.label ?? "Somente líquido (troca de vasilhame)";
 
 export const tipoVendaShort = (t?: string | null) =>
-  t === "recarga" ? "Troca" : t === "vasilhame" ? "Vasilhame" : "Completo";
+  t === "vasilhame" ? "Vasilhame" : t === "completa" ? "Completo" : "Troca";
 
 /**
  * Movimentação de vasilhame gerada por uma venda.

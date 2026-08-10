@@ -128,7 +128,10 @@ export function useCashierSales() {
       : 0;
     const vasilhamesRecebidos =
       tipoVenda === 'recarga'
-        ? newSale.quantity
+        ? Math.max(
+            newSale.quantity,
+            newSale.cylinderMovement === 'return' ? newSale.movementQuantity ?? 0 : 0
+          )
         : newSale.cylinderMovement === 'return'
         ? newSale.movementQuantity ?? 0
         : 0;
@@ -189,6 +192,9 @@ export function useCashierSales() {
         queryClient.invalidateQueries({ queryKey: ['vendas_hoje'] });
         queryClient.invalidateQueries({ queryKey: ['relatorio-vasilhames'] });
         queryClient.invalidateQueries({ queryKey: ['promissory_notes'] });
+        queryClient.invalidateQueries({ queryKey: ['sales_history'] });
+        queryClient.invalidateQueries({ queryKey: ['estoque_retirado'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
 
       } catch (e) {
         console.error('Erro ao registrar venda no banco:', e);
