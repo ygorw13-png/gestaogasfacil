@@ -37,7 +37,7 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
   const [motivo, setMotivo] = useState("");
 
   const handleViewAllSales = () => {
-    navigate("/entrance/sales");
+    navigate("/entrance/history");
   };
 
   const confirmar = () => {
