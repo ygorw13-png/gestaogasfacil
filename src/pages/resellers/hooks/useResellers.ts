@@ -34,7 +34,7 @@ export interface ResellerInput {
   phone?: string;
   contactPerson?: string;
   address?: string;
-  priceP13: number;
+  priceP13?: number;
   notes?: string;
 }
 

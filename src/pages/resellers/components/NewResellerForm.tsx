@@ -11,7 +11,7 @@ const formSchema = z.object({
   phone: z.string().min(10, "Telefone inválido"),
   address: z.string().optional(),
   contactPerson: z.string().optional(),
-  priceP13: z.coerce.number().min(0, "Preço não pode ser negativo"),
+  priceP13: z.union([z.coerce.number().min(0, "Preço não pode ser negativo"), z.literal("")]).optional(),
   notes: z.string().optional(),
 });
 
@@ -31,14 +31,14 @@ export function NewResellerForm({ onSubmit, isSubmitting }: NewResellerFormProps
       phone: "",
       address: "",
       contactPerson: "",
-      priceP13: 80,
+      priceP13: "",
       notes: "",
     },
   });
 
   const handleSubmit = (data: FormValues) => {
     // Mantém compatibilidade com tipo Reseller
-    onSubmit({ ...data, priceP20: 0, priceP45: 0, priceWater: 0 });
+    onSubmit({ ...data, priceP20: 0, priceP45: 0, priceWater: 0, priceP13: Number(data.priceP13 || 0) });
   };
 
   return (
@@ -64,8 +64,8 @@ export function NewResellerForm({ onSubmit, isSubmitting }: NewResellerFormProps
 
         <FormField control={form.control} name="priceP13" render={({ field }) => (
           <FormItem className="max-w-xs">
-            <FormLabel>Preço P13 (R$)</FormLabel>
-            <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+            <FormLabel>Preço P13 (R$) <span className="text-muted-foreground font-normal">(opcional)</span></FormLabel>
+            <FormControl><Input type="number" step="0.01" placeholder="Ex: 80,00" {...field} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />
