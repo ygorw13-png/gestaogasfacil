@@ -4,7 +4,46 @@ import { useLoginForm } from '@/hooks/useLoginForm';
 import { validateEmail } from '@/utils/inputValidation';
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import heroImage from '@/assets/gas-water-hero.png';
+import p13Asset from '@/assets/botijao-p13.png.asset.json';
+import p20Asset from '@/assets/botijao-p20.png.asset.json';
+import p45Asset from '@/assets/botijao-p45.png.asset.json';
+import waterAsset from '@/assets/galao-agua.png.asset.json';
+
+function ProductShowcase({ className = '' }: { className?: string }) {
+  return (
+    <div className={`relative w-full ${className}`}>
+      <div className="absolute inset-x-6 bottom-2 h-10 rounded-[50%] bg-black/50 blur-2xl" />
+      <div className="relative flex items-end justify-center gap-[2%]">
+        {/* P45 - fundo esquerda */}
+        <img
+          src={p45Asset.url}
+          alt="Botijão de gás P45"
+          loading="lazy"
+          className="w-[20%] origin-bottom translate-y-1 scale-95 opacity-70 blur-[1px] drop-shadow-[0_18px_35px_rgba(0,0,0,0.55)] animate-[float_9s_ease-in-out_infinite]"
+        />
+        {/* P13 - principal */}
+        <img
+          src={p13Asset.url}
+          alt="Botijão de gás P13"
+          className="relative z-10 w-[34%] drop-shadow-[0_28px_60px_rgba(0,0,0,0.65)] animate-[float_6s_ease-in-out_infinite]"
+        />
+        {/* P20 - fundo direita */}
+        <img
+          src={p20Asset.url}
+          alt="Botijão de gás P20"
+          loading="lazy"
+          className="w-[15%] origin-bottom translate-y-1 scale-95 opacity-70 blur-[1px] drop-shadow-[0_18px_35px_rgba(0,0,0,0.55)] animate-[float_11s_ease-in-out_infinite_reverse]"
+        />
+        {/* Galão de água */}
+        <img
+          src={waterAsset.url}
+          alt="Galão de água 20 litros"
+          className="relative z-10 w-[26%] drop-shadow-[0_24px_50px_rgba(0,0,0,0.6)] animate-[float_7s_ease-in-out_infinite_reverse]"
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function Login() {
   const { loading, error, user, handleSubmit } = useLoginForm();
@@ -39,15 +78,9 @@ export default function Login() {
       <div className="m-auto grid w-full max-w-6xl grid-cols-1 items-center gap-10 px-6 py-12 lg:grid-cols-2">
         {/* Hero image side */}
         <div className="relative hidden lg:flex flex-col items-center justify-center animate-[fade-in_0.8s_ease-out]">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-t from-orange-500/30 via-transparent to-sky-400/20 blur-3xl scale-110" />
-            <img
-              src={heroImage}
-              alt="Botijão de gás P13 e galão de água 20 litros"
-              width={1024}
-              height={1024}
-              className="relative w-full max-w-md drop-shadow-[0_25px_60px_rgba(0,0,0,0.6)] animate-[float_6s_ease-in-out_infinite]"
-            />
+          <div className="relative w-full max-w-xl">
+            <div className="absolute inset-0 bg-gradient-to-t from-orange-500/25 via-transparent to-sky-400/20 blur-3xl scale-110" />
+            <ProductShowcase />
           </div>
           <div className="mt-8 text-center animate-[fade-in_1s_ease-out_0.3s_both]">
             <h2 className="text-2xl font-semibold text-white/90">Gás & Água</h2>
@@ -58,13 +91,7 @@ export default function Login() {
         {/* Form side */}
         <div className="flex flex-col items-center w-full animate-[fade-in_0.8s_ease-out_0.2s_both]">
           {/* Mobile hero */}
-          <img
-            src={heroImage}
-            alt="Botijão de gás e galão de água"
-            width={1024}
-            height={1024}
-            className="lg:hidden w-40 mb-6 drop-shadow-2xl animate-[float_6s_ease-in-out_infinite]"
-          />
+          <ProductShowcase className="lg:hidden max-w-xs mb-6" />
 
           <h1 className="text-4xl font-bold text-center text-white mb-2 tracking-tight">
             GasFlow <span className="bg-gradient-to-r from-orange-400 to-sky-400 bg-clip-text text-transparent">Aqua</span>
