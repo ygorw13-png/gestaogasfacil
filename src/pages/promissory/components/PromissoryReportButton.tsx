@@ -46,7 +46,7 @@ export function PromissoryReportButton({
       
       // Configuração para download do arquivo Excel
       link.href = url;
-      link.download = `Promissorias_GasFlow${statusText}_${today}.xlsx`;
+      link.download = `Promissorias_GásFácil${statusText}_${today}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

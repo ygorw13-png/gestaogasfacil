@@ -96,7 +96,7 @@ export function AppLayout() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background" role="status" aria-live="polite">
-        <LoadingSpinner size="lg" message="GasFlow Aqua Manager" />
+        <LoadingSpinner size="lg" message="GásFácil Manager" />
       </div>
     );
   }

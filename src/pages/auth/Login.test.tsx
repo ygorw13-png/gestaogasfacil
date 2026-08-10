@@ -58,7 +58,7 @@ describe('Login Page', () => {
       </BrowserRouter>
     );
     
-    expect(screen.getByText('GasFlow Aqua')).toBeInTheDocument();
+    expect(screen.getByText('GásFácil')).toBeInTheDocument();
     expect(screen.getByText('Faça login para acessar o sistema')).toBeInTheDocument();
   });
 
