@@ -21,6 +21,8 @@ interface SaleFormContentProps {
 export function SaleFormContent({ onSubmit, onOpenChange }: SaleFormContentProps) {
   const { user } = useAuth();
   const { resellers } = useResellers();
+  const { data: clients = [], isLoading: loadingClients } = useSaleClients();
+
   const {
     saleType,
     setSaleType,
@@ -64,6 +66,8 @@ export function SaleFormContent({ onSubmit, onOpenChange }: SaleFormContentProps
           selectedClient={selectedClient}
           onSelectClient={setSelectedClient}
           clients={clients}
+          loading={loadingClients}
+
         />
       ) : (
         <ResellerSelection
