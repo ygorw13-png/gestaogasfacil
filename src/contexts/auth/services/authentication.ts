@@ -22,6 +22,7 @@ export const signInWithEmail = async (email: string, password: string, options?:
       logger.auth.loginFailure(sanitizedEmail, error.message);
       throw error;
     }
+
     
     // Log de sucesso com ID do usuário (não o email para maior privacidade)
     if (data.user) {
@@ -29,12 +30,20 @@ export const signInWithEmail = async (email: string, password: string, options?:
     }
     
     return { success: true };
-  } catch (err) {
+  } catch (err: any) {
     logger.error("Erro ao fazer login", { module: 'auth' }, err);
-    return { 
-      success: false, 
-      error: err instanceof Error ? err.message : 'Erro ao fazer login' 
-    };
+    let message = err instanceof Error ? err.message : 'Erro ao fazer login';
+    const code = err?.code || err?.error_code;
+    if (code === 'invalid_credentials' || /invalid login credentials/i.test(message)) {
+      message = 'E-mail ou senha incorretos. Verifique os dados e tente novamente.';
+    } else if (code === 'email_not_confirmed' || /email not confirmed/i.test(message)) {
+      message = 'Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.';
+    } else if (/failed to fetch|network/i.test(message)) {
+      message = 'Sem conexão com o servidor. Verifique sua internet e tente novamente.';
+    } else if (code === 'over_request_rate_limit' || /rate limit/i.test(message)) {
+      message = 'Muitas tentativas. Aguarde alguns instantes e tente novamente.';
+    }
+    return { success: false, error: message };
   }
 };
 
