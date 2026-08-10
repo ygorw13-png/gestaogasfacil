@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useRegistrarMovimentacao, type PortariaProduto } from "./usePortariaStock";
+import { vasilhameDeltas, type TipoVenda } from "@/lib/saleTypes";
 
 export const produtoFrom = (product?: string | null): PortariaProduto | null => {
   const p = (product || "").toUpperCase();
@@ -119,6 +120,9 @@ export function useEditarVenda() {
         }
       }
 
+      const tipo = (o.tipo_venda || "recarga") as TipoVenda;
+      const deltas = vasilhameDeltas(tipo, newQty);
+
       const { error: upErr } = await supabase
         .from("orders")
         .update({
@@ -126,6 +130,8 @@ export function useEditarVenda() {
           quantity: newQty,
           price: input.price,
           payment_method: input.payment_method,
+          vasilhames_entregues: deltas.entregues,
+          vasilhames_recebidos: deltas.recebidos,
           notes: `${o.notes ? `${o.notes} | ` : ""}EDITADA: ${input.motivo}`,
         } as any)
         .eq("id", input.orderId);
