@@ -4,10 +4,10 @@ import { useLoginForm } from '@/hooks/useLoginForm';
 import { validateEmail } from '@/utils/inputValidation';
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import p13Asset from '@/assets/botijao-p13.png.asset.json';
-import p20Asset from '@/assets/botijao-p20.png.asset.json';
-import p45Asset from '@/assets/botijao-p45.png.asset.json';
-import waterAsset from '@/assets/galao-agua.png.asset.json';
+import p13Img from '@/assets/botijao-p13.png';
+import p20Img from '@/assets/botijao-p20.png';
+import p45Img from '@/assets/botijao-p45.png';
+import waterImg from '@/assets/galao-agua.png';
 
 function ProductShowcase({ className = '' }: { className?: string }) {
   return (
@@ -16,27 +16,27 @@ function ProductShowcase({ className = '' }: { className?: string }) {
       <div className="relative flex items-end justify-center gap-[2%]">
         {/* P45 - fundo esquerda */}
         <img
-          src={p45Asset.url}
+          src={p45Img}
           alt="Botijão de gás P45"
           loading="lazy"
           className="w-[20%] origin-bottom translate-y-1 scale-95 opacity-70 blur-[1px] drop-shadow-[0_18px_35px_rgba(0,0,0,0.55)] animate-[float_9s_ease-in-out_infinite]"
         />
         {/* P13 - principal */}
         <img
-          src={p13Asset.url}
+          src={p13Img}
           alt="Botijão de gás P13"
           className="relative z-10 w-[34%] drop-shadow-[0_28px_60px_rgba(0,0,0,0.65)] animate-[float_6s_ease-in-out_infinite]"
         />
         {/* P20 - fundo direita */}
         <img
-          src={p20Asset.url}
+          src={p20Img}
           alt="Botijão de gás P20"
           loading="lazy"
           className="w-[15%] origin-bottom translate-y-1 scale-95 opacity-70 blur-[1px] drop-shadow-[0_18px_35px_rgba(0,0,0,0.55)] animate-[float_11s_ease-in-out_infinite_reverse]"
         />
         {/* Galão de água */}
         <img
-          src={waterAsset.url}
+          src={waterImg}
           alt="Galão de água 20 litros"
           className="relative z-10 w-[26%] drop-shadow-[0_24px_50px_rgba(0,0,0,0.6)] animate-[float_7s_ease-in-out_infinite_reverse]"
         />
