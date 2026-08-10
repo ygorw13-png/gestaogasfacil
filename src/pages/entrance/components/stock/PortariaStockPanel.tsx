@@ -1,20 +1,52 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowDownToLine, ArrowUpFromLine, History, RotateCcw, Package } from "lucide-react";
-import { useSaldoPortaria, produtoLabel, type PortariaProduto } from "../../hooks/usePortariaStock";
+import { ArrowDownToLine, ArrowUpFromLine, History, RotateCcw, Package, Wrench } from "lucide-react";
+import {
+  useSaldoPortaria,
+  useMovimentacoesPortaria,
+  produtoLabel,
+  type PortariaProduto,
+} from "../../hooks/usePortariaStock";
 import { TransferDialog } from "./TransferDialog";
 import { ReturnCylinderDialog } from "./ReturnCylinderDialog";
 import { MovementsHistory } from "./MovementsHistory";
+import { CorrigirEstoqueDialog } from "./CorrigirEstoqueDialog";
+import { DailyAdjustmentsStrip, type AdjustmentItem } from "@/components/stock/DailyAdjustmentsStrip";
 
 const PRODUCTS: PortariaProduto[] = ["P13", "P20", "P45", "agua"];
 
 export function PortariaStockPanel() {
   const { data: saldo, isLoading } = useSaldoPortaria();
+  const { data: movimentos } = useMovimentacoesPortaria();
   const [transferOpen, setTransferOpen] = useState<null | "in" | "out">(null);
   const [returnOpen, setReturnOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [fixOpen, setFixOpen] = useState(false);
+
+  const ajustesHoje: AdjustmentItem[] = useMemo(
+    () =>
+      (movimentos || [])
+        .filter((m) => m.tipo === "ajuste")
+        .map((m) => ({
+          id: m.id,
+          at: m.criado_em,
+          who: m.registrado_por_nome || "",
+          label: `${produtoLabel(m.produto)}: ${[
+            m.delta_cheios !== 0 ? `${m.delta_cheios > 0 ? "+" : ""}${m.delta_cheios} cheios` : null,
+            m.delta_vazios !== 0 ? `${m.delta_vazios > 0 ? "+" : ""}${m.delta_vazios} vazios` : null,
+            m.delta_emprestados !== 0
+              ? `${m.delta_emprestados > 0 ? "+" : ""}${m.delta_emprestados} empr.`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(", ")}`,
+          motivo: m.observacoes,
+        })),
+    [movimentos]
+  );
+
 
   return (
     <>
