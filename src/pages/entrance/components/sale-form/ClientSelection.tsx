@@ -85,7 +85,14 @@ export function ClientSelection({
                 >
                   {active && <Check className="mr-2 h-4 w-4 shrink-0" />}
                   <span className="flex flex-col items-start">
-                    <span className="text-sm">{client.name}</span>
+                    <span className="text-sm flex items-center gap-2">
+                      {client.name}
+                      {client.origem === "ponto" && (
+                        <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground">
+                          Ponto de revenda
+                        </span>
+                      )}
+                    </span>
                     {client.phone && (
                       <span className="text-xs text-muted-foreground">{client.phone}</span>
                     )}
