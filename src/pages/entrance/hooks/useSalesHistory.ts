@@ -10,6 +10,7 @@ export interface HistorySale {
   product: string;
   quantity: number;
   payment: string;
+  paymentCode: string;
   amount: number;
 }
 
