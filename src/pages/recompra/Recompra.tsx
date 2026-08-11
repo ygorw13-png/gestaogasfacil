@@ -10,7 +10,9 @@ import { MessageCircle, Phone, Cake, AlertCircle, CheckCircle2, Clock, UserPlus,
 import { useRecompraInsights, ClienteInsight } from "./hooks/useRecompraInsights";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { msgRecompra, resumoUltimoPedido, openWhatsApp, normalizePhone } from "@/utils/whatsappLinks";
+import { msgRecompra, resumoUltimoPedido, normalizePhone } from "@/utils/whatsappLinks";
+import { useEnviarWhatsApp } from "@/hooks/useEnviarWhatsApp";
+
 
 const statusConfig = {
   em_dia:       { label: "Em dia",         className: "bg-green-100 text-green-800",   icon: CheckCircle2 },
@@ -40,7 +42,9 @@ function mensagemPara(i: ClienteInsight, tipo: TipoContato) {
 
 export default function Recompra() {
   const { insights, loading } = useRecompraInsights();
+  const { enviar, enviarLote, enviando } = useEnviarWhatsApp();
   const [status, setStatus] = useState<string>("all");
+
   const [search, setSearch] = useState("");
   const [fila, setFila] = useState<ClienteInsight[]>([]);
   const [filaIndex, setFilaIndex] = useState(0);
@@ -83,10 +87,35 @@ export default function Recompra() {
     if (error) toast.error("Erro ao registrar: " + error.message);
   };
 
-  const handleWhats = (ins: ClienteInsight, tipo: TipoContato) => {
-    const ok = openWhatsApp(ins.cliente_phone, mensagemPara(ins, tipo));
-    if (!ok) { toast.error("Cliente sem telefone válido"); return; }
+  const handleWhats = async (ins: ClienteInsight, tipo: TipoContato) => {
+    if (!normalizePhone(ins.cliente_phone)) { toast.error("Cliente sem telefone válido"); return; }
+    await enviar({
+      telefone: ins.cliente_phone,
+      mensagem: mensagemPara(ins, tipo),
+      nome: ins.cliente_nome,
+      tipo: `recompra_${tipo}`,
+      referencia_id: ins.cliente_id,
+    });
     registrarContato(ins, tipo, "whatsapp");
+  };
+
+  /** Dispara todas as mensagens de uma vez pelo backend. */
+  const dispararTodos = async () => {
+    if (elegiveis.length === 0) { toast.error("Nenhum cliente elegível no filtro atual"); return; }
+    const lista = elegiveis.map(ins => {
+      const tipo = tipoParaCliente(ins);
+      return {
+        telefone: ins.cliente_phone,
+        mensagem: mensagemPara(ins, tipo),
+        nome: ins.cliente_nome,
+        tipo: `recompra_${tipo}`,
+        referencia_id: ins.cliente_id,
+      };
+    });
+    const res = await enviarLote(lista);
+    if (res?.enviados > 0) {
+      await Promise.all(elegiveis.map(ins => registrarContato(ins, tipoParaCliente(ins), "whatsapp")));
+    }
   };
 
   const iniciarDisparos = () => {
@@ -95,6 +124,7 @@ export default function Recompra() {
     setFilaIndex(0);
     handleWhats(elegiveis[0], tipoParaCliente(elegiveis[0]));
   };
+
 
   const proximoDisparo = () => {
     const next = filaIndex + 1;
@@ -146,9 +176,13 @@ export default function Recompra() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button onClick={iniciarDisparos} disabled={elegiveis.length === 0}>
-              <Send className="h-4 w-4 mr-2" /> Iniciar disparos ({elegiveis.length})
+            <Button onClick={dispararTodos} disabled={elegiveis.length === 0 || enviando}>
+              <Send className="h-4 w-4 mr-2" /> Enviar todos ({elegiveis.length})
             </Button>
+            <Button variant="outline" onClick={iniciarDisparos} disabled={elegiveis.length === 0 || enviando}>
+              <MessageCircle className="h-4 w-4 mr-2" /> Um a um
+            </Button>
+
             {fila.length > 0 && (
               <Button variant="outline" onClick={proximoDisparo}>
                 <SkipForward className="h-4 w-4 mr-2" /> Próximo
