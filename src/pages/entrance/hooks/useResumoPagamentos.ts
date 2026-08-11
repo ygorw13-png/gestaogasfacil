@@ -1,0 +1,79 @@
+import { useMemo } from "react";
+import { useSalesHistory } from "./useSalesHistory";
+import { productKey } from "./useVendasHoje";
+
+export interface ResumoCategoria {
+  /** Código do grupo: money | pix | card | <código original> */
+  key: string;
+  label: string;
+  quantidade: number;
+  valor: number;
+  valorGas: number;
+  valorAgua: number;
+  /** Categorias que exigem conferência de valor em espécie/extrato */
+  conferivel: boolean;
+}
+
+const GRUPOS: Record<string, { key: string; label: string; conferivel: boolean }> = {
+  money: { key: "money", label: "Dinheiro", conferivel: true },
+  cash: { key: "money", label: "Dinheiro", conferivel: true },
+  pix: { key: "pix", label: "PIX", conferivel: true },
+  credit: { key: "card", label: "Cartão (crédito/débito)", conferivel: true },
+  debit: { key: "card", label: "Cartão (crédito/débito)", conferivel: true },
+};
+
+/**
+ * Resumo das vendas da data por categoria de pagamento (quantidade e valor),
+ * separando o valor do gás do valor da água.
+ */
+export function useResumoPagamentos(date: string) {
+  const dateObj = useMemo(() => new Date(`${date}T00:00:00`), [date]);
+  const { data: sales = [], isLoading } = useSalesHistory(dateObj, dateObj);
+
+  return useMemo(() => {
+    const map = new Map<string, ResumoCategoria>();
+    let totalValor = 0;
+    let totalQtd = 0;
+
+    sales
+      .filter((s) => s.status !== "cancelled")
+      .forEach((s) => {
+        const grupo = GRUPOS[s.paymentCode] || {
+          key: s.paymentCode || "outros",
+          label: s.payment,
+          conferivel: false,
+        };
+        const atual =
+          map.get(grupo.key) ||
+          ({
+            key: grupo.key,
+            label: grupo.label,
+            quantidade: 0,
+            valor: 0,
+            valorGas: 0,
+            valorAgua: 0,
+            conferivel: grupo.conferivel,
+          } as ResumoCategoria);
+
+        const isAgua = productKey(s.product) === "water";
+        atual.quantidade += s.quantity || 0;
+        atual.valor += s.amount || 0;
+        if (isAgua) atual.valorAgua += s.amount || 0;
+        else atual.valorGas += s.amount || 0;
+
+        map.set(grupo.key, atual);
+        totalValor += s.amount || 0;
+        totalQtd += s.quantity || 0;
+      });
+
+    const categorias = Array.from(map.values()).sort((a, b) => b.valor - a.valor);
+    return {
+      isLoading,
+      categorias,
+      conferiveis: categorias.filter((c) => c.conferivel),
+      outras: categorias.filter((c) => !c.conferivel),
+      totalValor,
+      totalQtd,
+    };
+  }, [sales, isLoading]);
+}
