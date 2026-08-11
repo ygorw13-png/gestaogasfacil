@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Package, AlertTriangle, CheckCircle2 } from "lucide-react";
-import { useSaldoPortaria, produtoLabel, type PortariaProduto } from "../../../hooks/usePortariaStock";
+import { useSaldoPortariaDia, produtoLabel, type PortariaProduto } from "../../../hooks/usePortariaStock";
 
 export interface RemainingCount {
   cheios: number;
@@ -16,26 +16,28 @@ export type RemainingStockMap = Record<PortariaProduto, RemainingCount>;
 interface Props {
   value: RemainingStockMap;
   onChange: (value: RemainingStockMap) => void;
+  /** Data do fechamento (YYYY-MM-DD) */
+  date: string;
 }
 
 const PRODUCTS: PortariaProduto[] = ["P13", "P20", "P45", "agua"];
 
-export function RemainingStockSection({ value, onChange }: Props) {
-  const { data: saldo } = useSaldoPortaria();
+export function RemainingStockSection({ value, onChange, date }: Props) {
+  const { data: saldo } = useSaldoPortariaDia(date);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  // Pré-preencher com saldo do sistema na primeira carga
+  // Pré-preencher com o esperado (abertura do dia − vendas) enquanto o campo não foi editado
   useEffect(() => {
     if (!saldo) return;
     const next: RemainingStockMap = { ...value };
     let changed = false;
     PRODUCTS.forEach((p) => {
-      if (!touched[`${p}-cheios`] && next[p].cheios === 0 && saldo[p].cheios > 0) {
-        next[p] = { ...next[p], cheios: saldo[p].cheios };
+      if (!touched[`${p}-cheios`] && next[p].cheios !== saldo[p].esperado_cheios) {
+        next[p] = { ...next[p], cheios: saldo[p].esperado_cheios };
         changed = true;
       }
-      if (!touched[`${p}-vazios`] && next[p].vazios === 0 && saldo[p].vazios > 0) {
-        next[p] = { ...next[p], vazios: saldo[p].vazios };
+      if (!touched[`${p}-vazios`] && next[p].vazios !== saldo[p].esperado_vazios) {
+        next[p] = { ...next[p], vazios: saldo[p].esperado_vazios };
         changed = true;
       }
     });
@@ -52,21 +54,23 @@ export function RemainingStockSection({ value, onChange }: Props) {
   return (
     <Card>
       <CardContent className="p-4 space-y-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Package className="h-4 w-4 text-primary" />
           <h4 className="font-semibold text-sm">Contagem de estoque final</h4>
           <span className="text-xs text-muted-foreground">
-            (informe o que sobrou na portaria)
+            (base: quantidade confirmada na abertura do dia − vendas)
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {PRODUCTS.map((p) => {
-            const sistemaCheios = saldo?.[p].cheios ?? 0;
-            const sistemaVazios = saldo?.[p].vazios ?? 0;
+            const abertura = saldo?.[p].abertura_cheios ?? 0;
+            const vendas = saldo?.[p].vendas_dia ?? 0;
+            const esperadoCheios = saldo?.[p].esperado_cheios ?? 0;
+            const esperadoVazios = saldo?.[p].esperado_vazios ?? 0;
             const emprestados = saldo?.[p].emprestados ?? 0;
-            const divCheios = value[p].cheios - sistemaCheios;
-            const divVazios = value[p].vazios - sistemaVazios;
+            const divCheios = value[p].cheios - esperadoCheios;
+            const divVazios = value[p].vazios - esperadoVazios;
             const hasDivergence = divCheios !== 0 || divVazios !== 0;
 
             return (
@@ -84,6 +88,10 @@ export function RemainingStockSection({ value, onChange }: Props) {
                   )}
                 </div>
 
+                <p className="text-[10px] text-muted-foreground">
+                  Abertura: {abertura} · Vendas: {vendas} · Esperado: {esperadoCheios}
+                </p>
+
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label className="text-xs">Cheios restantes</Label>
@@ -94,7 +102,7 @@ export function RemainingStockSection({ value, onChange }: Props) {
                       onChange={(e) => handle(p, "cheios", e.target.value)}
                     />
                     <p className="text-[10px] text-muted-foreground mt-1">
-                      Sistema: {sistemaCheios}
+                      Esperado: {esperadoCheios}
                       {divCheios !== 0 && (
                         <span className={divCheios > 0 ? "text-emerald-600 ml-1" : "text-destructive ml-1"}>
                           ({divCheios > 0 ? "+" : ""}{divCheios})
@@ -111,7 +119,7 @@ export function RemainingStockSection({ value, onChange }: Props) {
                       onChange={(e) => handle(p, "vazios", e.target.value)}
                     />
                     <p className="text-[10px] text-muted-foreground mt-1">
-                      Sistema: {sistemaVazios}
+                      Esperado: {esperadoVazios}
                       {divVazios !== 0 && (
                         <span className={divVazios > 0 ? "text-emerald-600 ml-1" : "text-destructive ml-1"}>
                           ({divVazios > 0 ? "+" : ""}{divVazios})
