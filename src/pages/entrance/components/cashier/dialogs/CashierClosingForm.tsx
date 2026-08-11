@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { ObservationsSection } from "../../ObservationsSection";
 import { useEffect, useMemo, useState } from "react";
-import { FileText, CalendarIcon, AlertTriangle, Save } from "lucide-react";
+import { FileText, CalendarIcon, AlertTriangle, Save, Loader2 } from "lucide-react";
 import { ClosingTypeTabs } from "../ClosingTypeTabs";
 import { CashierData, PartialClosing } from "../../../types/cashierTypes";
 import { SummarySection } from "./SummarySection";
@@ -22,7 +22,10 @@ import {
   type PortariaProduto,
 } from "../../../hooks/usePortariaStock";
 import { useVendasPorData } from "../../../hooks/useVendasPorData";
+import { useResumoPagamentos } from "../../../hooks/useResumoPagamentos";
+import { useDespesasPorData } from "../../../hooks/useDespesasPorData";
 import { useSalvarFechamento, useFechamentoPorData } from "../../../hooks/useFechamentosCaixa";
+
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -79,13 +82,19 @@ export function CashierClosingForm({
   const [selectedDateObj, setSelectedDateObj] = useState<Date | undefined>(new Date());
   const [draftInfo, setDraftInfo] = useState<string | null>(null);
   const [motivoAlteracao, setMotivoAlteracao] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+
 
   const registrar = useRegistrarMovimentacao();
   const salvarFechamento = useSalvarFechamento();
   const { data: vendasPorData } = useVendasPorData(closingDate);
   const { data: saldo } = useSaldoPortariaDia(closingDate);
   const { data: fechamentoExistente } = useFechamentoPorData(closingDate);
+  const { categorias, agregados, totalAgregadosQtd, totalAgregadosValor, totalAgregadosProdutos } =
+    useResumoPagamentos(closingDate);
+  const { data: despesasDia = [] } = useDespesasPorData(closingDate);
   const { toast } = useToast();
+
 
   const isRetroactive = !isSameDayAsToday(closingDate);
 
@@ -177,6 +186,21 @@ export function CashierClosingForm({
       };
     });
 
+  const buildMovimento = () =>
+    PRODUCTS.map((p) => {
+      const s = saldo?.[p];
+      return {
+        produto: produtoLabel(p),
+        aberturaCheios: s?.abertura_cheios ?? 0,
+        aberturaVazios: s?.abertura_vazios ?? 0,
+        patioRecebidoCheios: s?.patio_recebido_cheios ?? 0,
+        patioEnviadoCheios: s?.patio_enviado_cheios ?? 0,
+        patioVazios: s?.patio_vazios ?? 0,
+        devolucoesVazios: s?.devolucoes_vazios ?? 0,
+        vendas: s?.vendas_dia ?? 0,
+      };
+    });
+
   const handleGerarPdf = () => {
     const baseData = isRetroactive ? selectedDateCashierData : cashierData;
     gerarPdfFechamento({
@@ -186,6 +210,29 @@ export function CashierClosingForm({
       motivoAlteracao: fechamentoExistente ? motivoAlteracao : undefined,
       dataFechamento: closingDate,
       estoque: buildEstoque(),
+      categorias: categorias
+        .filter((c) => !c.agregado)
+        .map((c) => ({
+          label: c.label,
+          quantidade: c.quantidade,
+          valor: c.valor,
+          produtos: c.produtos,
+        })),
+      agregados:
+        agregados.length > 0
+          ? {
+              quantidade: totalAgregadosQtd,
+              valor: totalAgregadosValor,
+              produtos: totalAgregadosProdutos,
+            }
+          : undefined,
+      despesas: despesasDia.map((d) => ({
+        descricao: d.descricao,
+        categoria: d.categoria,
+        origem: d.origem_dinheiro,
+        valor: d.valor,
+      })),
+      movimento: buildMovimento(),
     });
     toast({
       title: "PDF gerado",
@@ -193,12 +240,16 @@ export function CashierClosingForm({
     });
   };
 
+
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) {
       // Evita que o submit de formulários internos (ex.: lançar venda) feche o caixa
       if (e.target !== e.currentTarget) return;
       e.preventDefault();
     }
+
+    if (submitting) return;
+
 
     if (fechamentoExistente && motivoAlteracao.trim().length < 5) {
       toast({
@@ -219,6 +270,12 @@ export function CashierClosingForm({
       });
       return;
     }
+
+    setSubmitting(true);
+    toast({
+      title: closingType === "total" ? "Fechando o caixa..." : "Registrando fechamento parcial...",
+      description: "Aguarde enquanto salvamos os dados e geramos o PDF.",
+    });
 
     // Para fechamento total, registrar snapshot por produto (com ajuste se houver divergência)
     if (closingType === "total") {
@@ -252,6 +309,7 @@ export function CashierClosingForm({
           }
         }
       } catch (err: any) {
+        setSubmitting(false);
         toast({
           title: "Erro ao registrar fechamento",
           description: err?.message || "Tente novamente",
@@ -275,6 +333,7 @@ export function CashierClosingForm({
         retroativo: isRetroactive,
       });
     } catch (err: any) {
+      setSubmitting(false);
       toast({
         title: "Erro ao salvar fechamento",
         description: err?.message || "Não foi possível salvar. Tente novamente.",
@@ -292,9 +351,16 @@ export function CashierClosingForm({
       /* ignora */
     }
     setDraftInfo(null);
+    setSubmitting(false);
+
+    toast({
+      title: closingType === "total" ? "Caixa fechado com sucesso" : "Fechamento parcial salvo",
+      description: `Fechamento de ${format(new Date(closingDate + "T00:00:00"), "dd/MM/yyyy", { locale: ptBR })} salvo no histórico e PDF baixado.`,
+    });
 
     onSubmit(closingType, observations, isRetroactive);
   };
+
 
 
   // Converter totalSalesSinceLastPartial para um formato compatível com CashierData
@@ -313,7 +379,7 @@ export function CashierClosingForm({
     final: remaining[p].cheios,
   }));
 
-  const isSaving = registrar.isPending || salvarFechamento.isPending;
+  const isSaving = submitting || registrar.isPending || salvarFechamento.isPending;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -458,13 +524,15 @@ export function CashierClosingForm({
           <FileText className="h-4 w-4" />
           Gerar PDF
         </Button>
-        <Button type="button" onClick={() => handleSubmit()} disabled={isSaving}>
+        <Button type="button" onClick={() => handleSubmit()} disabled={isSaving} className="gap-2">
+          {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
           {isSaving
-            ? "Registrando..."
+            ? "Registrando fechamento..."
             : closingType === "partial"
               ? "Confirmar Fechamento Parcial"
               : "Confirmar Fechamento Total"}
         </Button>
+
       </DialogFooter>
     </form>
   );
