@@ -81,17 +81,18 @@ export function gerarPdfFechamento(input: ClosingPdfInput) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  doc.setFontSize(16);
-  doc.text("Fechamento de Caixa - Portaria", pageWidth / 2, 16, { align: "center" });
-  doc.setFontSize(10);
+  // Header
+  doc.setFontSize(14);
+  doc.text("Fechamento de Caixa - Portaria", pageWidth / 2, 12, { align: "center" });
+  doc.setFontSize(9);
   doc.text(
     `${tipo === "total" ? "Fechamento total" : "Fechamento parcial"}  |  ${dataHora(dataFechamento)}`,
     pageWidth / 2,
-    22,
+    17,
     { align: "center" }
   );
   if (operador) {
-    doc.text(`Operador: ${operador}`, pageWidth / 2, 27, { align: "center" });
+    doc.text(`Operador: ${operador}`, pageWidth / 2, 21, { align: "center" });
   }
 
   // 1) Formas de pagamento — valor + quantidade por produto
@@ -141,22 +142,21 @@ export function gerarPdfFechamento(input: ClosingPdfInput) {
     });
   }
 
-  const yTitulo1 = operador ? 34 : 29;
-  doc.setFontSize(11);
+  const yTitulo1 = operador ? 27 : 23;
+  doc.setFontSize(9);
   doc.setTextColor(AZUL[0], AZUL[1], AZUL[2]);
-  doc.text("1. Vendas por forma de pagamento (quantidade e valor)", 14, yTitulo1);
+  doc.text("1. Vendas por forma de pagamento (qtd. e valor)", 14, yTitulo1);
   doc.setTextColor(0, 0, 0);
 
   autoTable(doc, {
-    startY: yTitulo1 + 2.5,
-
+    startY: yTitulo1 + 2,
     head: [["Forma de pagamento", "P13", "P20", "P45", "Água", "Qtd.", "Valor R$"]],
     body: linhasPagamento,
     foot: [["TOTAL", "", "", "", "", somaQtd || "-", formatCurrency(somaValor || cashierData.totalSales)]],
     theme: "grid",
-    headStyles: { fillColor: AZUL },
-    footStyles: { fillColor: [230, 230, 230], textColor: 20, fontStyle: "bold" },
-    styles: { fontSize: 9 },
+    headStyles: { fillColor: AZUL, fontSize: 8, minCellHeight: 5 },
+    footStyles: { fillColor: [230, 230, 230], textColor: 20, fontStyle: "bold", fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 1.5 },
     columnStyles: {
       0: { cellWidth: 58 },
       1: { halign: "center" },
@@ -169,29 +169,20 @@ export function gerarPdfFechamento(input: ClosingPdfInput) {
   });
 
   const titulo = (texto: string) => {
-    const yT = finalY(doc) + 8;
-    doc.setFontSize(11);
+    const yT = finalY(doc) + 5;
+    doc.setFontSize(9);
     doc.setTextColor(AZUL[0], AZUL[1], AZUL[2]);
     doc.text(texto, 14, yT);
     doc.setTextColor(0, 0, 0);
-    return yT + 2.5;
+    return yT + 2;
   };
 
-  // 2) Movimentação do dia (abertura, pátio, vazios)
+  // 2) Movimentação do dia (abertura, pátio, vazios) — compacta
   if (movimento && movimento.length > 0) {
     autoTable(doc, {
       startY: titulo("2. Movimentação do dia (início, pátio e vasilhames)"),
       head: [
-        [
-          "Produto",
-          "Cheios início do dia",
-          "Desceu do pátio",
-          "Voltou ao pátio",
-          "Vendidos",
-          "Vazios início",
-          "Vazios do pátio",
-          "Vazios devolvidos",
-        ],
+        ["Produto", "Cheios início", "Desceu pátio", "Voltou pátio", "Vendidos", "Vazios início", "Vazios pátio", "Devolvidos"],
       ],
       body: movimento.map((m) => [
         m.produto,
@@ -204,17 +195,16 @@ export function gerarPdfFechamento(input: ClosingPdfInput) {
         m.devolucoesVazios,
       ]),
       theme: "grid",
-      headStyles: { fillColor: AZUL, fontSize: 7.5 },
-      styles: { fontSize: 8, halign: "center" },
-      columnStyles: { 0: { halign: "left", cellWidth: 26 } },
+      headStyles: { fillColor: AZUL, fontSize: 7, minCellHeight: 5 },
+      styles: { fontSize: 7, halign: "center", cellPadding: 1.5 },
+      columnStyles: { 0: { halign: "left", cellWidth: 22 } },
     });
   }
 
   // 3) Contagem física x sistema
   autoTable(doc, {
     startY: titulo("3. Contagem física do estoque x sistema"),
-    head: [["Produto", "Vendas", "Cheios (sist.)", "Cheios (contado)", "Vazios (sist.)", "Vazios (contado)", "Diverg."]],
-
+    head: [["Produto", "Vendas", "Cheios sist.", "Cheios cont.", "Vazios sist.", "Vazios cont.", "Diverg."]],
     body: estoque.map((e) => {
       const div = e.contadoCheios - e.sistemaCheios + (e.contadoVazios - e.sistemaVazios);
       return [
@@ -228,77 +218,65 @@ export function gerarPdfFechamento(input: ClosingPdfInput) {
       ];
     }),
     theme: "grid",
-    headStyles: { fillColor: AZUL },
-    styles: { fontSize: 9 },
+    headStyles: { fillColor: AZUL, fontSize: 8, minCellHeight: 5 },
+    styles: { fontSize: 8, cellPadding: 1.5 },
+    columnStyles: { 6: { halign: "center" } },
   });
 
   // 4) Despesas do dia
   const totalDespesas = (despesas || []).reduce((a, d) => a + d.valor, 0);
   autoTable(doc, {
     startY: titulo("4. Despesas do dia"),
-    head: [["Descrição", "Categoria", "Origem do dinheiro", "Valor R$"]],
-
+    head: [["Descrição", "Categoria", "Origem", "Valor R$"]],
     body:
       despesas && despesas.length > 0
         ? despesas.map((d) => [d.descricao, d.categoria || "-", d.origem || "-", formatCurrency(d.valor)])
         : [["Nenhuma despesa lançada nesta data", "-", "-", formatCurrency(0)]],
     foot: [["TOTAL DE DESPESAS", "", "", formatCurrency(totalDespesas)]],
     theme: "grid",
-    headStyles: { fillColor: AZUL },
-    footStyles: { fillColor: [230, 230, 230], textColor: 20, fontStyle: "bold" },
-    styles: { fontSize: 9 },
+    headStyles: { fillColor: AZUL, fontSize: 8, minCellHeight: 5 },
+    footStyles: { fillColor: [230, 230, 230], textColor: 20, fontStyle: "bold", fontSize: 8 },
+    styles: { fontSize: 8, cellPadding: 1.5 },
     columnStyles: { 3: { halign: "right", cellWidth: 28 } },
   });
 
-  let y = finalY(doc) + 10;
-  const pageH = doc.internal.pageSize.getHeight();
-  const quebra = (necessario: number) => {
-    if (y + necessario > pageH - 20) {
-      doc.addPage();
-      y = 20;
-    }
-  };
+  let y = finalY(doc) + 6;
 
+  // Motivo da alteração e observações (sem quebra de página)
   if (motivoAlteracao?.trim()) {
-    quebra(20);
-    doc.setFontSize(10);
-    doc.text("Motivo da alteração após o fechamento:", 14, y);
-    y += 5;
     doc.setFontSize(9);
+    doc.text("Motivo da alteração após o fechamento:", 14, y);
+    y += 4;
+    doc.setFontSize(8);
     doc.text(doc.splitTextToSize(motivoAlteracao, pageWidth - 28), 14, y);
-    y += 12;
+    y += 7;
   }
 
   if (observacoes?.trim()) {
-    quebra(20);
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.text("Observações:", 14, y);
-    y += 5;
-    doc.setFontSize(9);
+    y += 4;
+    doc.setFontSize(8);
     doc.text(doc.splitTextToSize(observacoes, pageWidth - 28), 14, y);
-    y += 12;
+    y += 7;
   }
 
-  quebra(40);
-  doc.setFontSize(11);
-  doc.text(`Valor em dinheiro no envelope: R$ ${formatCurrency(cashierData.cash)}`, 14, y + 6);
+  // Valor em dinheiro no envelope e assinaturas
+  doc.setFontSize(9);
+  doc.text(`Valor em dinheiro no envelope: ${formatCurrency(cashierData.cash)}`, 14, y);
   if (totalDespesas > 0) {
-    doc.setFontSize(9);
-    doc.text(
-      `(Total de despesas do dia: R$ ${formatCurrency(totalDespesas)})`,
-      14,
-      y + 12
-    );
+    y += 4;
+    doc.setFontSize(8);
+    doc.text(`(Total de despesas do dia: ${formatCurrency(totalDespesas)})`, 14, y);
   }
 
-  y += 32;
-  quebra(20);
+  y += 14;
   doc.setLineWidth(0.3);
   doc.line(20, y, 90, y);
   doc.line(pageWidth - 90, y, pageWidth - 20, y);
-  doc.setFontSize(9);
-  doc.text("Conferido por (portaria)", 55, y + 5, { align: "center" });
-  doc.text("Recebido por (administração)", pageWidth - 55, y + 5, { align: "center" });
+  doc.setFontSize(8);
+  doc.text("Conferido por (portaria)", 55, y + 4, { align: "center" });
+  doc.text("Recebido por (administração)", pageWidth - 55, y + 4, { align: "center" });
 
   const nome = `fechamento-portaria-${(dataFechamento || new Date().toISOString().slice(0, 10))}.pdf`;
   doc.save(nome);
