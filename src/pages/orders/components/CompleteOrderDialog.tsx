@@ -73,14 +73,18 @@ export function CompleteOrderDialog({
     }
   }, [isOpen, expectedPayment, expectedValue]);
 
-  const received = Number((value || "").replace(",", "."));
-  const valueDiffers = expectedValue > 0 && !!received && Math.abs(received - expectedValue) > 0.009;
+  const received = Number((value || "").replace(",", ".")) || 0;
+  const requiresValue = VALUE_REQUIRED.includes(paymentMethod);
+  const valueDiffers =
+    requiresValue && expectedValue > 0 && !!received && Math.abs(received - expectedValue) > 0.009;
   const paymentDiffers = !!expectedPayment && !!paymentMethod && paymentMethod !== expectedPayment;
   const hasDivergence = valueDiffers || paymentDiffers;
   const reasonMissing = hasDivergence && reason.trim().length < 5;
+  const valueMissing = requiresValue && received <= 0;
+  const canSubmit = !!paymentMethod && !valueMissing && !reasonMissing;
 
   const handleSubmit = () => {
-    if (!paymentMethod || !received || received <= 0 || reasonMissing) return;
+    if (!canSubmit) return;
     onSubmit({
       paymentMethod,
       receivedValue: received,
