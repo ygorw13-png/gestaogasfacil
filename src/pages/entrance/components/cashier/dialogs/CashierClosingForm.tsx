@@ -7,6 +7,7 @@ import { ClosingTypeTabs } from "../ClosingTypeTabs";
 import { CashierData, PartialClosing } from "../../../types/cashierTypes";
 import { SummarySection } from "./SummarySection";
 import { ClosingSalesEditor } from "./ClosingSalesEditor";
+import { PaymentBreakdownPanel } from "./PaymentBreakdownPanel";
 import { prepareAdaptedSalesData, buildCashierDataFromVendasPorData } from "../../../utils/closingCalculations";
 import { gerarPdfFechamento } from "../../../utils/closingPdf";
 import {
@@ -16,7 +17,7 @@ import {
 } from "./RemainingStockSection";
 import {
   useRegistrarMovimentacao,
-  useSaldoPortaria,
+  useSaldoPortariaDia,
   produtoLabel,
   type PortariaProduto,
 } from "../../../hooks/usePortariaStock";
@@ -82,7 +83,7 @@ export function CashierClosingForm({
   const registrar = useRegistrarMovimentacao();
   const salvarFechamento = useSalvarFechamento();
   const { data: vendasPorData } = useVendasPorData(closingDate);
-  const { data: saldo } = useSaldoPortaria();
+  const { data: saldo } = useSaldoPortariaDia(closingDate);
   const { data: fechamentoExistente } = useFechamentoPorData(closingDate);
   const { toast } = useToast();
 
@@ -144,13 +145,13 @@ export function CashierClosingForm({
 
   // Divergências entre a contagem informada e o saldo do sistema
   const divergencias = useMemo(() => {
-    if (isRetroactive || !saldo) return [];
+    if (!saldo) return [];
     return PRODUCTS.map((p) => ({
       produto: produtoLabel(p),
-      cheios: remaining[p].cheios - (saldo[p]?.cheios ?? 0),
-      vazios: remaining[p].vazios - (saldo[p]?.vazios ?? 0),
+      cheios: remaining[p].cheios - (saldo[p]?.esperado_cheios ?? 0),
+      vazios: remaining[p].vazios - (saldo[p]?.esperado_vazios ?? 0),
     })).filter((d) => d.cheios !== 0 || d.vazios !== 0);
-  }, [isRetroactive, saldo, remaining]);
+  }, [saldo, remaining]);
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDateObj(date);
@@ -169,9 +170,9 @@ export function CashierClosingForm({
       return {
         produto: produtoLabel(p),
         vendas,
-        sistemaCheios: isRetroactive ? 0 : saldo?.[p]?.cheios ?? 0,
+        sistemaCheios: saldo?.[p]?.esperado_cheios ?? 0,
         contadoCheios: remaining[p].cheios,
-        sistemaVazios: isRetroactive ? 0 : saldo?.[p]?.vazios ?? 0,
+        sistemaVazios: saldo?.[p]?.esperado_vazios ?? 0,
         contadoVazios: remaining[p].vazios,
       };
     });
@@ -192,10 +193,12 @@ export function CashierClosingForm({
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    // Evita que o submit de formulários internos (ex.: lançar venda) feche o caixa
-    if (e.target !== e.currentTarget) return;
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      // Evita que o submit de formulários internos (ex.: lançar venda) feche o caixa
+      if (e.target !== e.currentTarget) return;
+      e.preventDefault();
+    }
 
     if (fechamentoExistente && motivoAlteracao.trim().length < 5) {
       toast({
@@ -271,7 +274,12 @@ export function CashierClosingForm({
           : observations,
         retroativo: isRetroactive,
       });
-    } catch {
+    } catch (err: any) {
+      toast({
+        title: "Erro ao salvar fechamento",
+        description: err?.message || "Não foi possível salvar. Tente novamente.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -404,13 +412,16 @@ export function CashierClosingForm({
         cashierData={selectedDateCashierData}
         adaptedSalesData={adaptedSalesData}
         inventoryData={inventoryData}
+        date={closingDate}
       />
 
       <ClosingSalesEditor date={closingDate} />
 
+      <PaymentBreakdownPanel date={closingDate} />
+
 
       {closingType === "total" && (
-        <RemainingStockSection value={remaining} onChange={setRemaining} />
+        <RemainingStockSection value={remaining} onChange={setRemaining} date={closingDate} />
       )}
 
       {fechamentoExistente && (
@@ -447,7 +458,7 @@ export function CashierClosingForm({
           <FileText className="h-4 w-4" />
           Gerar PDF
         </Button>
-        <Button type="submit" disabled={isSaving}>
+        <Button type="button" onClick={() => handleSubmit()} disabled={isSaving}>
           {isSaving
             ? "Registrando..."
             : closingType === "partial"
