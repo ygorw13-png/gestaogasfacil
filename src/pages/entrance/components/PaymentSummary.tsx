@@ -1,25 +1,13 @@
 
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { PaymentSummaryProps } from "../types/cashierTypes";
 import { formatCurrency, formatQuantities } from "@/lib/formatUtils";
-import { useState } from "react";
 
 export const PaymentSummary = ({ 
   data, 
   formatCurrency: customFormatCurrency = formatCurrency, 
   formatQuantities: customFormatQuantities = formatQuantities 
 }: PaymentSummaryProps) => {
-  const [countedTotal, setCountedTotal] = useState(data.totalSales.toString());
-  const difference = data.totalSales - Number(countedTotal);
-  const formattedDifference = Math.abs(difference);
-
-  const getDifferenceMessage = () => {
-    if (difference === 0) return "";
-    if (difference > 0) return "Faltando";
-    return "Sobra";
-  };
-
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Valores Recebidos</h3>
@@ -85,30 +73,6 @@ export const PaymentSummary = ({
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <div className="bg-secondary rounded-md p-3 w-full sm:w-64">
-          <div className="flex justify-between font-medium">
-            <span>Total em Sistema:</span>
-            <span>R$ {customFormatCurrency(data.totalSales)}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>Total Conferido:</span>
-            <Input
-              type="number"
-              value={countedTotal}
-              onChange={(e) => setCountedTotal(e.target.value)}
-              className="w-28 text-right bg-background"
-              step="0.01"
-            />
-          </div>
-          {difference !== 0 && (
-            <div className={`flex justify-between mt-2 pt-2 border-t ${difference > 0 ? 'text-red-600' : 'text-green-600'} font-medium`}>
-              <span>{getDifferenceMessage()}:</span>
-              <span>R$ {customFormatCurrency(formattedDifference)}</span>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 };
