@@ -33,6 +33,9 @@ const PAYMENTS = [
   { value: "promissoria", label: "Nota Promissória" },
 ];
 
+/** Formas de pagamento que exigem informar o valor recebido. */
+const VALUE_REQUIRED = ["money", "pix", "credit", "debit"];
+
 const paymentLabel = (v?: string) =>
   PAYMENTS.find((p) => p.value === v)?.label || v || "não informada";
 
@@ -73,14 +76,18 @@ export function CompleteOrderDialog({
     }
   }, [isOpen, expectedPayment, expectedValue]);
 
-  const received = Number((value || "").replace(",", "."));
-  const valueDiffers = expectedValue > 0 && !!received && Math.abs(received - expectedValue) > 0.009;
+  const received = Number((value || "").replace(",", ".")) || 0;
+  const requiresValue = VALUE_REQUIRED.includes(paymentMethod);
+  const valueDiffers =
+    requiresValue && expectedValue > 0 && !!received && Math.abs(received - expectedValue) > 0.009;
   const paymentDiffers = !!expectedPayment && !!paymentMethod && paymentMethod !== expectedPayment;
   const hasDivergence = valueDiffers || paymentDiffers;
   const reasonMissing = hasDivergence && reason.trim().length < 5;
+  const valueMissing = requiresValue && received <= 0;
+  const canSubmit = !!paymentMethod && !valueMissing && !reasonMissing;
 
   const handleSubmit = () => {
-    if (!paymentMethod || !received || received <= 0 || reasonMissing) return;
+    if (!canSubmit) return;
     onSubmit({
       paymentMethod,
       receivedValue: received,
@@ -116,7 +123,9 @@ export function CompleteOrderDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="receivedValue">Valor recebido (R$)</Label>
+            <Label htmlFor="receivedValue">
+              Valor recebido (R$) {requiresValue ? "*" : "(opcional)"}
+            </Label>
             <Input
               id="receivedValue"
               inputMode="decimal"
@@ -124,7 +133,13 @@ export function CompleteOrderDialog({
               value={value}
               onChange={(e) => setValue(e.target.value)}
             />
+            {!requiresValue && paymentMethod && (
+              <p className="text-xs text-muted-foreground">
+                Para {paymentLabel(paymentMethod)} não é obrigatório informar o valor.
+              </p>
+            )}
           </div>
+
 
           {hasDivergence && (
             <Alert variant="destructive">
@@ -170,10 +185,7 @@ export function CompleteOrderDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!paymentMethod || !received || received <= 0 || reasonMissing}
-          >
+          <Button onClick={handleSubmit} disabled={!canSubmit}>
             Confirmar Entrega
           </Button>
         </DialogFooter>
