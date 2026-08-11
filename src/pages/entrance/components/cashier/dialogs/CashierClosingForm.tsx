@@ -6,6 +6,7 @@ import { FileText, CalendarIcon, AlertTriangle, Save } from "lucide-react";
 import { ClosingTypeTabs } from "../ClosingTypeTabs";
 import { CashierData, PartialClosing } from "../../../types/cashierTypes";
 import { SummarySection } from "./SummarySection";
+import { ClosingSalesEditor } from "./ClosingSalesEditor";
 import { prepareAdaptedSalesData, buildCashierDataFromVendasPorData } from "../../../utils/closingCalculations";
 import { gerarPdfFechamento } from "../../../utils/closingPdf";
 import {
