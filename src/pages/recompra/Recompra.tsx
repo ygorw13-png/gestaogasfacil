@@ -42,7 +42,9 @@ function mensagemPara(i: ClienteInsight, tipo: TipoContato) {
 
 export default function Recompra() {
   const { insights, loading } = useRecompraInsights();
+  const { enviar, enviarLote, enviando } = useEnviarWhatsApp();
   const [status, setStatus] = useState<string>("all");
+
   const [search, setSearch] = useState("");
   const [fila, setFila] = useState<ClienteInsight[]>([]);
   const [filaIndex, setFilaIndex] = useState(0);
