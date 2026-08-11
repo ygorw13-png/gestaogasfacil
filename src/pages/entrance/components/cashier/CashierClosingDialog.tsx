@@ -18,7 +18,7 @@ import { useCashier } from "@/contexts/CashierContext";
 interface CashierClosingDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit?: (type: "partial" | "total", observations?: string) => void;
+  onSubmit?: (type: "partial" | "total", observations?: string, isRetroactive?: boolean) => void;
 }
 
 export function CashierClosingDialog({ 
@@ -35,13 +35,14 @@ export function CashierClosingDialog({
   };
 
   // Função que lida com o submit, usando o onSubmit da prop ou o handleCashierClosingSubmit do contexto
-  const handleSubmit = (type: "partial" | "total", observations?: string) => {
+  const handleSubmit = (type: "partial" | "total", observations?: string, isRetroactive?: boolean) => {
     if (onSubmit) {
-      onSubmit(type, observations);
+      onSubmit(type, observations, isRetroactive);
     } else {
-      handleCashierClosingSubmit(type, observations);
+      handleCashierClosingSubmit(type, observations, isRetroactive);
     }
   };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

@@ -1,13 +1,12 @@
-
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { ObservationsSection } from "../../ObservationsSection";
-import { useState } from "react";
-import { FileText } from "lucide-react";
+import { useState, useMemo } from "react";
+import { FileText, CalendarIcon, AlertTriangle } from "lucide-react";
 import { ClosingTypeTabs } from "../ClosingTypeTabs";
 import { CashierData, PartialClosing } from "../../../types/cashierTypes";
 import { SummarySection } from "./SummarySection";
-import { prepareAdaptedSalesData } from "../../../utils/closingCalculations";
+import { prepareAdaptedSalesData, buildCashierDataFromVendasPorData } from "../../../utils/closingCalculations";
 import { gerarPdfFechamento } from "../../../utils/closingPdf";
 import {
   RemainingStockSection,
@@ -16,14 +15,20 @@ import {
 } from "./RemainingStockSection";
 import {
   useRegistrarMovimentacao,
-  useSaldoPortaria,
   produtoLabel,
   type PortariaProduto,
 } from "../../../hooks/usePortariaStock";
+import { useVendasPorData } from "../../../hooks/useVendasPorData";
 import { useToast } from "@/hooks/use-toast";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CashierClosingFormProps {
-  onSubmit: (type: "partial" | "total", observations?: string) => void;
+  onSubmit: (type: "partial" | "total", observations?: string, isRetroactive?: boolean) => void;
   onCancel: () => void;
   cashierData: CashierData;
   partialClosings: PartialClosing[];
@@ -33,33 +38,70 @@ interface CashierClosingFormProps {
   };
 }
 
+
 const PRODUCTS: PortariaProduto[] = ["P13", "P20", "P45", "agua"];
+
+const todayStr = () => new Date().toISOString().slice(0, 10);
+const isSameDayAsToday = (dateStr: string) => dateStr === todayStr();
 
 export function CashierClosingForm({
   onSubmit,
   onCancel,
   cashierData,
   partialClosings,
-  totalSalesSinceLastPartial
+  totalSalesSinceLastPartial,
 }: CashierClosingFormProps) {
   const [closingType, setClosingType] = useState<"partial" | "total">("partial");
   const [observations, setObservations] = useState<string>("");
   const [remaining, setRemaining] = useState<RemainingStockMap>(emptyRemainingStock());
-  const { data: saldo } = useSaldoPortaria();
+  const [closingDate, setClosingDate] = useState<string>(todayStr());
+  const [selectedDateObj, setSelectedDateObj] = useState<Date | undefined>(new Date());
+
   const registrar = useRegistrarMovimentacao();
+  const { data: vendasPorData } = useVendasPorData(closingDate);
   const { toast } = useToast();
 
+  const isRetroactive = !isSameDayAsToday(closingDate);
+  const selectedDateCashierData = useMemo(
+    () => (isRetroactive ? buildCashierDataFromVendasPorData(vendasPorData) : cashierData),
+    [isRetroactive, vendasPorData, cashierData]
+  );
+
+  const selectedDateSales = useMemo(() => {
+    if (!isRetroactive) return null;
+    return {
+      p13: vendasPorData?.glpSales.p13 ?? 0,
+      p20: vendasPorData?.glpSales.p20 ?? 0,
+      p45: vendasPorData?.glpSales.p45 ?? 0,
+      water: vendasPorData?.waterSales ?? 0,
+    };
+  }, [isRetroactive, vendasPorData]);
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDateObj(date);
+    if (date) {
+      setClosingDate(date.toISOString().slice(0, 10));
+    }
+  };
+
   const handleGerarPdf = () => {
+    const baseData = isRetroactive ? selectedDateCashierData : cashierData;
+    const salesForProduct = (p: PortariaProduto) => {
+      if (!isRetroactive) return undefined;
+      return p === "agua" ? selectedDateSales?.water : selectedDateSales?.[p.toLowerCase() as "p13" | "p20" | "p45"];
+    };
+
     gerarPdfFechamento({
       tipo: closingType,
-      cashierData,
+      cashierData: baseData,
       observacoes: observations,
+      dataFechamento: closingDate,
       estoque: PRODUCTS.map((p) => ({
         produto: produtoLabel(p),
-        vendas: saldo?.[p].vendas_dia ?? 0,
-        sistemaCheios: saldo?.[p].cheios ?? 0,
+        vendas: salesForProduct(p) ?? baseData.totalSales,
+        sistemaCheios: 0,
         contadoCheios: remaining[p].cheios,
-        sistemaVazios: saldo?.[p].vazios ?? 0,
+        sistemaVazios: 0,
         contadoVazios: remaining[p].vazios,
       })),
     });
@@ -69,38 +111,39 @@ export function CashierClosingForm({
     });
   };
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Para fechamento total, registrar snapshot por produto (com ajuste se houver divergência)
-    if (closingType === "total" && saldo) {
+    if (closingType === "total") {
       try {
         for (const p of PRODUCTS) {
-          const sysCheios = saldo[p].cheios;
-          const sysVazios = saldo[p].vazios;
           const infCheios = remaining[p].cheios;
           const infVazios = remaining[p].vazios;
-          const diffCheios = infCheios - sysCheios;
-          const diffVazios = infVazios - sysVazios;
+          const observacaoBase = isRetroactive
+            ? `Fechamento retroativo de ${format(new Date(closingDate + "T00:00:00"), "dd/MM/yyyy", { locale: ptBR })}`
+            : "Fechamento de caixa";
 
-          if (diffCheios !== 0 || diffVazios !== 0) {
+          // Para fechamento retroativo, ajuste baseado na contagem informada (sem saldo atual do sistema)
+          if (isRetroactive) {
             await registrar.mutateAsync({
-              tipo: "ajuste",
+              tipo: "fechamento",
               produto: p,
-              delta_cheios: diffCheios,
-              delta_vazios: diffVazios,
-              observacoes: `Ajuste no fechamento — divergência de contagem`,
+              delta_cheios: 0,
+              delta_vazios: 0,
+              observacoes: `${observacaoBase} — contagem final: ${infCheios} cheios / ${infVazios} vazios`,
+              data_operacao: closingDate,
+            });
+          } else {
+            // Fechamento normal do dia atual
+            await registrar.mutateAsync({
+              tipo: "fechamento",
+              produto: p,
+              delta_cheios: 0,
+              delta_vazios: 0,
+              observacoes: `Fechamento: ${infCheios} cheios / ${infVazios} vazios`,
             });
           }
-
-          await registrar.mutateAsync({
-            tipo: "fechamento",
-            produto: p,
-            delta_cheios: 0,
-            delta_vazios: 0,
-            observacoes: `Fechamento: ${infCheios} cheios / ${infVazios} vazios`,
-          });
         }
       } catch (err: any) {
         toast({
@@ -115,32 +158,81 @@ export function CashierClosingForm({
     // Gera automaticamente o PDF para imprimir e anexar ao envelope
     handleGerarPdf();
 
-    onSubmit(closingType, observations);
+    onSubmit(closingType, observations, isRetroactive);
   };
 
+
   // Converter totalSalesSinceLastPartial para um formato compatível com CashierData
-  const adaptedSalesData = prepareAdaptedSalesData(cashierData, totalSalesSinceLastPartial.amount);
+  const adaptedSalesData = prepareAdaptedSalesData(selectedDateCashierData, totalSalesSinceLastPartial.amount);
 
   const inventoryData = PRODUCTS.map((p) => ({
     product: p === "agua" ? "Água" : p,
     initial: 0,
     additions: 0,
-    sales: saldo?.[p].vendas_dia ?? 0,
+    sales:
+      isRetroactive && selectedDateSales
+        ? p === "agua"
+          ? selectedDateSales.water
+          : selectedDateSales[p.toLowerCase() as "p13" | "p20" | "p45"]
+        : selectedDateCashierData.totalSales,
     final: remaining[p].cheios,
   }));
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <ClosingTypeTabs 
-        type={closingType} 
-        setType={setClosingType} 
-        partialCount={partialClosings.length}
-      />
-      
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <ClosingTypeTabs
+          type={closingType}
+          setType={setClosingType}
+          partialCount={partialClosings.length}
+        />
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted- whitespace-nowrap">Data do fechamento:</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full sm:w-[180px] justify-start text-left font-normal",
+                  !selectedDateObj && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDateObj ? (
+                  format(selectedDateObj, "dd/MM/yyyy", { locale: ptBR })
+                ) : (
+                  <span>Selecione uma data</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDateObj}
+                onSelect={handleDateSelect}
+                initialFocus
+                locale={ptBR}
+                disabled={(date) => date > new Date()}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+
+      {isRetroactive && (
+        <Alert variant="warning" className="border-amber-500 text-amber-800 dark:text-amber-200">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Você está fechando o caixa de um dia anterior. Os valores exibidos são as vendas registradas
+            naquela data. A contagem de estoque deve ser a que restou no final daquele dia.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <SummarySection
         isPartialClosing={closingType === "partial"}
         partialClosings={partialClosings}
-        cashierData={cashierData}
+        cashierData={selectedDateCashierData}
         adaptedSalesData={adaptedSalesData}
         inventoryData={inventoryData}
       />
@@ -148,9 +240,9 @@ export function CashierClosingForm({
       {closingType === "total" && (
         <RemainingStockSection value={remaining} onChange={setRemaining} />
       )}
-      
+
       <ObservationsSection value={observations} onChange={setObservations} />
-      
+
       <DialogFooter className="gap-2 sm:gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar

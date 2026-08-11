@@ -22,7 +22,18 @@ export function useCashierClosing(
   const [partialClosings, setPartialClosings] = useState<PartialClosing[]>([]);
   const [cashierClosingOpen, setCashierClosingOpen] = useState(false);
   
-  const handleCashierClosingSubmit = useCallback((type: "partial" | "total", observations?: string) => {
+  const handleCashierClosingSubmit = useCallback((type: "partial" | "total", observations?: string, isRetroactive = false) => {
+    // Fechamento retroativo: apenas notifica e fecha o dialog. O registro no banco já foi feito no formulário.
+    if (isRetroactive) {
+      toast({
+        title: type === "total" ? "Fechamento retroativo registrado" : "Fechamento parcial retroativo registrado",
+        description: "O fechamento foi salvo na data selecionada.",
+        variant: "default",
+      });
+      setCashierClosingOpen(false);
+      return;
+    }
+
     // Para fechamento parcial, vamos adicionar um registro no histórico de fechamentos
     if (type === "partial") {
       const newPartialClosing: PartialClosing = {
@@ -103,6 +114,7 @@ export function useCashierClosing(
     setHoursElapsed,
     toast
   ]);
+
 
   return {
     previousDaySales,

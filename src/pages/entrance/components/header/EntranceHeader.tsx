@@ -13,7 +13,8 @@ interface EntranceHeaderProps {
   setNewSaleOpen: (open: boolean) => void;
   setCashierClosingOpen: (open: boolean) => void;
   onNewSaleSubmit: (sale: Sale) => void;
-  onCashierClosingSubmit: (type: "partial" | "total", observations?: string) => void;
+  onCashierClosingSubmit: (type: "partial" | "total", observations?: string, isRetroactive?: boolean) => void;
+
   cashierData: CashierData;
 }
 

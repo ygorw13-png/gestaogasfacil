@@ -20,7 +20,8 @@ interface CashierContextProps {
   setNewSaleOpen: (open: boolean) => void;
   setCashierClosingOpen: (open: boolean) => void;
   handleNewSaleSubmit: (newSale: Sale) => void;
-  handleCashierClosingSubmit: (type: "partial" | "total", observations?: string) => void;
+  handleCashierClosingSubmit: (type: "partial" | "total", observations?: string, isRetroactive?: boolean) => void;
+
 }
 
 export const CashierContext = createContext<CashierContextProps | undefined>(undefined);

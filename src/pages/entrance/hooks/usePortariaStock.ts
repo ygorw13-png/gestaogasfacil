@@ -108,6 +108,7 @@ interface RegistrarParams {
   cliente_nome?: string | null;
   referencia_id?: string | null;
   observacoes?: string | null;
+  data_operacao?: string | null;
 }
 
 export function useRegistrarMovimentacao() {
@@ -116,7 +117,7 @@ export function useRegistrarMovimentacao() {
 
   return useMutation({
     mutationFn: async (params: RegistrarParams) => {
-      const { data, error } = await (supabase as any).rpc("registrar_movimentacao_portaria", {
+      const rpcArgs: any = {
         _tipo: params.tipo,
         _produto: params.produto,
         _delta_cheios: params.delta_cheios ?? 0,
@@ -126,7 +127,11 @@ export function useRegistrarMovimentacao() {
         _cliente_nome: params.cliente_nome ?? null,
         _referencia_id: params.referencia_id ?? null,
         _observacoes: params.observacoes ?? null,
-      });
+      };
+      if (params.data_operacao) {
+        rpcArgs._data_operacao = params.data_operacao;
+      }
+      const { data, error } = await (supabase as any).rpc("registrar_movimentacao_portaria", rpcArgs);
       if (error) throw error;
       return data;
     },
@@ -143,6 +148,7 @@ export function useRegistrarMovimentacao() {
     },
   });
 }
+
 
 export const produtoLabel = (p: PortariaProduto) =>
   p === "agua" ? "Água 20L" : `GLP ${p}`;

@@ -8,6 +8,7 @@ export interface ClosingPdfInput {
   cashierData: CashierData;
   operador?: string;
   observacoes?: string;
+  dataFechamento?: string;
   estoque: {
     produto: string;
     sistemaCheios: number;
@@ -18,11 +19,17 @@ export interface ClosingPdfInput {
   }[];
 }
 
-const dataHora = () =>
-  new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+const dataHora = (dataFechamento?: string) => {
+  if (dataFechamento) {
+    return new Date(dataFechamento + "T00:00:00").toLocaleDateString("pt-BR", {
+      dateStyle: "long",
+    });
+  }
+  return new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+};
 
 export function gerarPdfFechamento(input: ClosingPdfInput) {
-  const { tipo, cashierData, estoque, observacoes, operador } = input;
+  const { tipo, cashierData, estoque, observacoes, operador, dataFechamento } = input;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -30,7 +37,7 @@ export function gerarPdfFechamento(input: ClosingPdfInput) {
   doc.text("Fechamento de Caixa - Portaria", pageWidth / 2, 16, { align: "center" });
   doc.setFontSize(10);
   doc.text(
-    `${tipo === "total" ? "Fechamento total do dia" : "Fechamento parcial"}  |  ${dataHora()}`,
+    `${tipo === "total" ? "Fechamento total" : "Fechamento parcial"}  |  ${dataHora(dataFechamento)}`,
     pageWidth / 2,
     22,
     { align: "center" }
@@ -38,6 +45,7 @@ export function gerarPdfFechamento(input: ClosingPdfInput) {
   if (operador) {
     doc.text(`Operador: ${operador}`, pageWidth / 2, 27, { align: "center" });
   }
+
 
   const pagamentos: [string, number][] = [
     ["Dinheiro", cashierData.cash],

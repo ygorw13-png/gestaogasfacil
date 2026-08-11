@@ -1,0 +1,1 @@
+SELECT proname, pg_get_function_identity_arguments(oid) as args, pg_get_functiondef(oid) as def FROM pg_proc WHERE proname = 'registrar_movimentacao_portaria' AND pronamespace = 'public'::regnamespace;

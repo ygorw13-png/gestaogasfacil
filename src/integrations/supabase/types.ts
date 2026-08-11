@@ -1792,6 +1792,7 @@ export type Database = {
         Args: {
           _cliente_id?: string
           _cliente_nome?: string
+          _data_operacao?: string
           _delta_cheios: number
           _delta_emprestados: number
           _delta_vazios: number
