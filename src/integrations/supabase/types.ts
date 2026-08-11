@@ -1712,6 +1712,57 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_mensagens: {
+        Row: {
+          created_at: string
+          destinatario_nome: string | null
+          enviado_em: string | null
+          enviado_por: string | null
+          erro: string | null
+          id: string
+          mensagem: string
+          organization_id: string
+          provedor: string | null
+          provider_message_id: string | null
+          referencia_id: string | null
+          status: string
+          telefone: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          destinatario_nome?: string | null
+          enviado_em?: string | null
+          enviado_por?: string | null
+          erro?: string | null
+          id?: string
+          mensagem: string
+          organization_id: string
+          provedor?: string | null
+          provider_message_id?: string | null
+          referencia_id?: string | null
+          status?: string
+          telefone: string
+          tipo?: string
+        }
+        Update: {
+          created_at?: string
+          destinatario_nome?: string | null
+          enviado_em?: string | null
+          enviado_por?: string | null
+          erro?: string | null
+          id?: string
+          mensagem?: string
+          organization_id?: string
+          provedor?: string | null
+          provider_message_id?: string | null
+          referencia_id?: string | null
+          status?: string
+          telefone?: string
+          tipo?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       saldo_portaria_atual: {
