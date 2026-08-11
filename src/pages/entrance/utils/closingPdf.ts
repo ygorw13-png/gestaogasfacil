@@ -8,6 +8,7 @@ export interface ClosingPdfInput {
   cashierData: CashierData;
   operador?: string;
   observacoes?: string;
+  motivoAlteracao?: string;
   dataFechamento?: string;
   estoque: {
     produto: string;
