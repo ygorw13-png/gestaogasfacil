@@ -21,7 +21,9 @@ import {
   type PortariaProduto,
 } from "../../../hooks/usePortariaStock";
 import { useVendasPorData } from "../../../hooks/useVendasPorData";
-import { useSalvarFechamento } from "../../../hooks/useFechamentosCaixa";
+import { useSalvarFechamento, useFechamentoPorData } from "../../../hooks/useFechamentosCaixa";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -75,11 +77,13 @@ export function CashierClosingForm({
   const [closingDate, setClosingDate] = useState<string>(todayStr());
   const [selectedDateObj, setSelectedDateObj] = useState<Date | undefined>(new Date());
   const [draftInfo, setDraftInfo] = useState<string | null>(null);
+  const [motivoAlteracao, setMotivoAlteracao] = useState<string>("");
 
   const registrar = useRegistrarMovimentacao();
   const salvarFechamento = useSalvarFechamento();
   const { data: vendasPorData } = useVendasPorData(closingDate);
   const { data: saldo } = useSaldoPortaria();
+  const { data: fechamentoExistente } = useFechamentoPorData(closingDate);
   const { toast } = useToast();
 
   const isRetroactive = !isSameDayAsToday(closingDate);
@@ -178,6 +182,7 @@ export function CashierClosingForm({
       tipo: closingType,
       cashierData: baseData,
       observacoes: observations,
+      motivoAlteracao: fechamentoExistente ? motivoAlteracao : undefined,
       dataFechamento: closingDate,
       estoque: buildEstoque(),
     });
@@ -188,7 +193,19 @@ export function CashierClosingForm({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    // Evita que o submit de formulários internos (ex.: lançar venda) feche o caixa
+    if (e.target !== e.currentTarget) return;
     e.preventDefault();
+
+    if (fechamentoExistente && motivoAlteracao.trim().length < 5) {
+      toast({
+        title: "Motivo obrigatório",
+        description:
+          "Já existe um fechamento salvo nesta data. Informe o motivo da alteração antes de salvar novamente.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (closingType === "total" && divergencias.length > 0 && !observations.trim()) {
       toast({
@@ -249,7 +266,9 @@ export function CashierClosingForm({
         cashierData: selectedDateCashierData,
         estoque: buildEstoque(),
         divergencias,
-        observacoes: observations,
+        observacoes: fechamentoExistente
+          ? `${observations}${observations ? "\n" : ""}[Alteração após fechamento] ${motivoAlteracao}`
+          : observations,
         retroativo: isRetroactive,
       });
     } catch {
@@ -392,6 +411,30 @@ export function CashierClosingForm({
 
       {closingType === "total" && (
         <RemainingStockSection value={remaining} onChange={setRemaining} />
+      )}
+
+      {fechamentoExistente && (
+        <div className="space-y-2 rounded-md border border-amber-500/50 bg-amber-500/10 p-3">
+          <Label htmlFor="motivo-alteracao" className="flex items-center gap-2 text-sm font-medium">
+            <AlertTriangle className="h-4 w-4" />
+            Motivo da alteração (obrigatório)
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Esta data já possui um fechamento salvo em{" "}
+            {new Date(fechamentoExistente.created_at).toLocaleString("pt-BR", {
+              dateStyle: "short",
+              timeStyle: "short",
+            })}
+            . Explique o motivo — ele será impresso no PDF.
+          </p>
+          <Textarea
+            id="motivo-alteracao"
+            value={motivoAlteracao}
+            onChange={(e) => setMotivoAlteracao(e.target.value)}
+            placeholder="Ex.: venda lançada com atraso pelo entregador"
+            className="min-h-[70px] resize-none"
+          />
+        </div>
       )}
 
       <ObservationsSection value={observations} onChange={setObservations} />
