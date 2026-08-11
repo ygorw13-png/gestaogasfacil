@@ -77,12 +77,16 @@ export function CashierClosingForm({
   const [closingDate, setClosingDate] = useState<string>(todayStr());
   const [selectedDateObj, setSelectedDateObj] = useState<Date | undefined>(new Date());
   const [draftInfo, setDraftInfo] = useState<string | null>(null);
+  const [motivoAlteracao, setMotivoAlteracao] = useState<string>("");
 
   const registrar = useRegistrarMovimentacao();
   const salvarFechamento = useSalvarFechamento();
   const { data: vendasPorData } = useVendasPorData(closingDate);
   const { data: saldo } = useSaldoPortaria();
+  const { data: fechamentoExistente } = useFechamentoExistente(closingDate, closingType);
   const { toast } = useToast();
+
+  const jaFechado = !!fechamentoExistente;
 
   const isRetroactive = !isSameDayAsToday(closingDate);
 
