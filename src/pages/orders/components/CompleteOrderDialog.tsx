@@ -185,10 +185,7 @@ export function CompleteOrderDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!paymentMethod || !received || received <= 0 || reasonMissing}
-          >
+          <Button onClick={handleSubmit} disabled={!canSubmit}>
             Confirmar Entrega
           </Button>
         </DialogFooter>
