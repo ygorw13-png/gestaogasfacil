@@ -1,0 +1,4 @@
+ALTER TABLE public.movimentacoes_portaria DROP CONSTRAINT IF EXISTS movimentacoes_portaria_tipo_check;
+ALTER TABLE public.movimentacoes_portaria ADD CONSTRAINT movimentacoes_portaria_tipo_check CHECK (tipo = ANY (ARRAY['abertura','transferencia_patio_para_portaria','transferencia_portaria_para_patio','venda','venda_comodato','devolucao_vasilhame','fechamento','ajuste','sangria_despesa']));
+ALTER TABLE public.movimentacoes_portaria DROP CONSTRAINT IF EXISTS movimentacoes_portaria_produto_check;
+ALTER TABLE public.movimentacoes_portaria ADD CONSTRAINT movimentacoes_portaria_produto_check CHECK (produto = ANY (ARRAY['P13','P20','P45','agua','dinheiro']));
