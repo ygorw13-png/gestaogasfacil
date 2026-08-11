@@ -3,20 +3,6 @@ import { CashierData, PartialClosing } from "../types/cashierTypes";
 import { VendasPorData } from "../hooks/useVendasPorData";
 import { getTotalSalesFromPartials } from "./cashierUtils";
 
-/**
- * Mapeia rótulos de pagamento usados no histórico para códigos do CashierData
- */
-const paymentCodeMap: Record<string, keyof CashierData> = {
-  Dinheiro: "cash",
-  Crédito: "credit",
-  Débito: "debit",
-  PIX: "pix",
-  Promissória: "promissory",
-  "Vale Gás": "gasVoucher",
-  "Gás-Povo": "gasVoucher",
-  Convênio: "gasVoucher",
-  Outros: "cash",
-};
 
 const emptyQuantities = () => ({ p13: 0, p20: 0, p45: 0, water: 0 });
 
