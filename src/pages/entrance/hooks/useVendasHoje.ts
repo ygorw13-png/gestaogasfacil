@@ -105,6 +105,9 @@ export function useVendasHoje() {
         payment: paymentLabelFromCode(o.payment_method),
         paymentCode: o.payment_method || "money",
         amount: Number(o.price) || 0,
+        tipoVenda: (o.tipo_venda || "recarga") as Sale["tipoVenda"],
+        vasilhamesEntregues: Number(o.vasilhames_entregues) || 0,
+        vasilhamesRecebidos: Number(o.vasilhames_recebidos) || 0,
       })) as Sale[];
 
       return result;
