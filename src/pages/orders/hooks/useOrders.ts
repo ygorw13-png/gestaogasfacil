@@ -38,6 +38,22 @@ export function useOrders() {
 
       if (error) throw error;
 
+      const deliveryPersonIds = Array.from(
+        new Set(data.map((order) => order.delivery_person).filter((id): id is string => Boolean(id)))
+      );
+      const deliveryNames = new Map<string, string>();
+
+      if (deliveryPersonIds.length > 0) {
+        const { data: collaborators } = await supabase
+          .from("colaboradores")
+          .select("id, nome")
+          .in("id", deliveryPersonIds);
+
+        collaborators?.forEach((collaborator) => {
+          deliveryNames.set(collaborator.id, collaborator.nome);
+        });
+      }
+
       const formattedOrders: Order[] = data.map(order => {
         // Certifique-se de que o formato do endereço seja compatível
         let address = {
@@ -70,6 +86,9 @@ export function useOrders() {
           createdAt: new Date(order.created_at),
           status: order.status as OrderStatus,
           deliveryPerson: order.delivery_person,
+          deliveryPersonName: order.delivery_person
+            ? deliveryNames.get(order.delivery_person) || "Entregador"
+            : undefined,
           assignedAt: order.assigned_at ? new Date(order.assigned_at) : undefined,
           deliveredAt: order.delivered_at ? new Date(order.delivered_at) : undefined,
           paymentMethod: order.payment_method,

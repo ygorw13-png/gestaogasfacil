@@ -16,7 +16,8 @@ export function normalizePhone(phone?: string | null): string | null {
 export function waUrl(phone: string | null | undefined, message: string): string | null {
   const digits = normalizePhone(phone);
   if (!digits) return null;
-  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+  const cleanMessage = message.replace(/\uFFFD/g, "").trim();
+  return `https://web.whatsapp.com/send?phone=${digits}&text=${encodeURIComponent(cleanMessage)}`;
 }
 
 /**
