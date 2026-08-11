@@ -33,6 +33,9 @@ const PAYMENTS = [
   { value: "promissoria", label: "Nota Promissória" },
 ];
 
+/** Formas de pagamento que exigem informar o valor recebido. */
+const VALUE_REQUIRED = ["money", "pix", "credit", "debit"];
+
 const paymentLabel = (v?: string) =>
   PAYMENTS.find((p) => p.value === v)?.label || v || "não informada";
 
