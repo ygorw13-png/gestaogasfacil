@@ -306,7 +306,7 @@ export function CashierClosingForm({
   const isSaving = registrar.isPending || salvarFechamento.isPending;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <ClosingTypeTabs
           type={closingType}
