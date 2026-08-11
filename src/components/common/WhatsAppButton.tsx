@@ -28,7 +28,8 @@ export function WhatsAppButton({
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!openWhatsApp(phone, message)) {
-      toast.error("Telefone inválido ou não cadastrado");
+      navigator.clipboard?.writeText(message).catch(() => {});
+      toast.error("Não foi possível abrir o WhatsApp. Mensagem copiada — cole no app.");
       return;
     }
     onSent?.();
