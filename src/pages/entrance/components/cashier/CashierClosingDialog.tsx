@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle, History } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ClosingHistoryTable } from "./ClosingHistoryTable";
+import { FechamentosHistory } from "./FechamentosHistory";
 import { CashierClosingForm } from "./dialogs/CashierClosingForm";
 import { calculateSalesAmountSinceLastPartial } from "../../utils/closingCalculations";
 import { useCashier } from "@/contexts/CashierContext";
@@ -77,7 +77,7 @@ export function CashierClosingDialog({
           </TabsContent>
           
           <TabsContent value="history">
-            <ClosingHistoryTable partialClosings={partialClosings} />
+            <FechamentosHistory />
           </TabsContent>
         </Tabs>
       </DialogContent>
