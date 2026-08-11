@@ -100,7 +100,10 @@ export function useCashierSales() {
     }
   }, [vendasHoje]);
 
-  const handleNewSaleSubmit = useCallback((newSale: Sale) => {
+  const handleNewSaleSubmit = useCallback((newSale: Sale, saleDate?: string) => {
+    const hojeStr = new Date().toLocaleDateString('sv-SE');
+    // Data em que a venda deve ser registrada (permite lançar em fechamento retroativo)
+    const dataVenda = saleDate && saleDate !== hojeStr ? saleDate : null;
     // Set start time if this is the first sale after reset
     setStartTime(prevStartTime => {
       if (!prevStartTime) {
@@ -151,7 +154,9 @@ export function useCashierSales() {
         const { data: authData } = await supabase.auth.getUser();
         const userId = authData?.user?.id;
         if (!userId) return;
-        const now = new Date().toISOString();
+        const now = dataVenda
+          ? new Date(`${dataVenda}T12:00:00`).toISOString()
+          : new Date().toISOString();
         const { data: inserted } = await supabase.from('orders').insert({
           user_id: userId,
           client_name: newSale.client,
@@ -168,9 +173,9 @@ export function useCashierSales() {
           vasilhames_entregues: vasilhamesEntregues,
           vasilhames_recebidos: vasilhamesRecebidos,
           has_empty_cylinder: newSale.cylinderMovement !== 'loan',
-          notes: isVasilhame
-            ? 'Venda de vasilhame vazio na portaria'
-            : 'Venda registrada na portaria',
+          notes: `${
+            isVasilhame ? 'Venda de vasilhame vazio na portaria' : 'Venda registrada na portaria'
+          }${dataVenda ? ` (lançada no fechamento de ${dataVenda.split('-').reverse().join('/')})` : ''}`,
         } as any).select('id').maybeSingle();
 
         // Venda a prazo: gera nota promissória com vencimento em 30 dias
@@ -190,6 +195,7 @@ export function useCashierSales() {
         }
 
         queryClient.invalidateQueries({ queryKey: ['vendas_hoje'] });
+        queryClient.invalidateQueries({ queryKey: ['vendas_por_data'] });
         queryClient.invalidateQueries({ queryKey: ['relatorio-vasilhames'] });
         queryClient.invalidateQueries({ queryKey: ['promissory_notes'] });
         queryClient.invalidateQueries({ queryKey: ['sales_history'] });
@@ -213,6 +219,7 @@ export function useCashierSales() {
         cliente_id: newSale.clientId || null,
         cliente_nome: newSale.client !== 'Venda Avulsa' ? newSale.client : null,
         observacoes: `Venda de vasilhame vazio P13 #${newSale.id} - ${newSale.payment}`,
+        ...(dataVenda ? { data_operacao: dataVenda } : {}),
       });
     } else {
       const codeToProduto: Record<string, PortariaProduto> = {
@@ -230,6 +237,7 @@ export function useCashierSales() {
           cliente_id: newSale.clientId || null,
           cliente_nome: newSale.client !== 'Venda Avulsa' ? newSale.client : null,
           observacoes: `Venda #${newSale.id} - ${newSale.payment}`,
+          ...(dataVenda ? { data_operacao: dataVenda } : {}),
         });
       }
     }
