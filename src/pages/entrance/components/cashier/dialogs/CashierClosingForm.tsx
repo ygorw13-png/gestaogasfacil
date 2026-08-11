@@ -413,6 +413,31 @@ export function CashierClosingForm({
 
       <ObservationsSection value={observations} onChange={setObservations} />
 
+      {jaFechado && (
+        <div className="space-y-2 rounded-md border border-amber-500/60 bg-amber-500/5 p-3">
+          <Label htmlFor="motivo-alteracao" className="text-base font-medium">
+            Motivo da alteração (obrigatório)
+          </Label>
+          <p className="text-sm text-muted-foreground">
+            Este caixa já foi fechado
+            {fechamentoExistente?.created_at
+              ? ` em ${new Date(fechamentoExistente.created_at).toLocaleString("pt-BR", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                })}`
+              : ""}
+            . Descreva o motivo da alteração — ele será impresso no PDF.
+          </p>
+          <Textarea
+            id="motivo-alteracao"
+            value={motivoAlteracao}
+            onChange={(e) => setMotivoAlteracao(e.target.value)}
+            placeholder="Ex.: venda lançada depois do fechamento"
+            className="min-h-[80px] resize-none"
+          />
+        </div>
+      )}
+
       <DialogFooter className="gap-2 sm:gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
@@ -421,7 +446,7 @@ export function CashierClosingForm({
           <FileText className="h-4 w-4" />
           Gerar PDF
         </Button>
-        <Button type="submit" disabled={isSaving}>
+        <Button type="button" onClick={handleSubmit} disabled={isSaving}>
           {isSaving
             ? "Registrando..."
             : closingType === "partial"
@@ -429,6 +454,7 @@ export function CashierClosingForm({
               : "Confirmar Fechamento Total"}
         </Button>
       </DialogFooter>
-    </form>
+    </div>
+
   );
 }
