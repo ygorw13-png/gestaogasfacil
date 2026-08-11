@@ -47,19 +47,64 @@ export const buildCashierDataFromVendasPorData = (vendas: VendasPorData | undefi
   if (!vendas) return data;
 
   Object.entries(vendas.byPayment).forEach(([label, amount]) => {
-    const key = paymentCodeMap[label] || "cash";
-    data[key] = (data[key] || 0) + amount;
+    switch (label) {
+      case "Dinheiro":
+        data.cash += amount;
+        break;
+      case "Crédito":
+        data.credit += amount;
+        break;
+      case "Débito":
+        data.debit += amount;
+        break;
+      case "PIX":
+        data.pix += amount;
+        break;
+      case "Promissória":
+        data.promissory += amount;
+        break;
+      case "Vale Gás":
+      case "Gás-Povo":
+      case "Convênio":
+      case "Outros":
+        data.gasVoucher += amount;
+        break;
+    }
   });
 
+  const applyQuantities = (target: typeof data.quantities.cash, qts: typeof data.quantities.cash) => {
+    target.p13 += qts.p13 || 0;
+    target.p20 += qts.p20 || 0;
+    target.p45 += qts.p45 || 0;
+    target.water += qts.water || 0;
+  };
+
   Object.entries(vendas.quantitiesByPayment).forEach(([label, qts]) => {
-    const key = paymentCodeMap[label] || "cash";
-    data.quantities[key] = {
-      p13: (data.quantities[key]?.p13 ?? 0) + (qts.p13 || 0),
-      p20: (data.quantities[key]?.p20 ?? 0) + (qts.p20 || 0),
-      p45: (data.quantities[key]?.p45 ?? 0) + (qts.p45 || 0),
-      water: (data.quantities[key]?.water ?? 0) + (qts.water || 0),
-    };
+    switch (label) {
+      case "Dinheiro":
+        applyQuantities(data.quantities.cash, qts);
+        break;
+      case "Crédito":
+        applyQuantities(data.quantities.credit, qts);
+        break;
+      case "Débito":
+        applyQuantities(data.quantities.debit, qts);
+        break;
+      case "PIX":
+        applyQuantities(data.quantities.pix, qts);
+        break;
+      case "Promissória":
+        applyQuantities(data.quantities.promissory, qts);
+        break;
+      case "Vale Gás":
+      case "Gás-Povo":
+      case "Convênio":
+      case "Outros":
+        applyQuantities(data.quantities.gasVoucher, qts);
+        break;
+    }
   });
+
 
   return data;
 };
