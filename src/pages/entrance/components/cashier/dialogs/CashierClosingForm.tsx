@@ -21,7 +21,9 @@ import {
   type PortariaProduto,
 } from "../../../hooks/usePortariaStock";
 import { useVendasPorData } from "../../../hooks/useVendasPorData";
-import { useSalvarFechamento } from "../../../hooks/useFechamentosCaixa";
+import { useSalvarFechamento, useFechamentoExistente } from "../../../hooks/useFechamentosCaixa";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
