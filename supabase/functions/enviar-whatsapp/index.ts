@@ -39,11 +39,37 @@ function normalizePhone(phone: string): string | null {
   return d;
 }
 
-function providerConfigured(): "evolution" | "twilio" | null {
+function providerConfigured(): "evolution" | "custom" | "twilio" | null {
   if (EVOLUTION_API_URL && EVOLUTION_API_KEY && EVOLUTION_INSTANCE) return "evolution";
+  if (WHATSAPP_API_URL) return "custom";
   if (LOVABLE_API_KEY && TWILIO_API_KEY && TWILIO_WHATSAPP_FROM) return "twilio";
   return null;
 }
+
+/** Envio por API HTTP genérica (BotBot.chat, Z-API, UltraMsg...). */
+async function sendCustom(phone: string, text: string) {
+  const [phoneField = "phone", msgField = "message"] = WHATSAPP_API_FORMAT.split(":");
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (WHATSAPP_API_KEY) {
+    headers.Authorization = `Bearer ${WHATSAPP_API_KEY}`;
+    headers.apikey = WHATSAPP_API_KEY;
+    headers.token = WHATSAPP_API_KEY;
+  }
+  const res = await fetch(WHATSAPP_API_URL!, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ [phoneField]: phone, [msgField]: text }),
+  });
+  const body = await res.text();
+  if (!res.ok) throw new Error(`[${res.status}] ${body}`);
+  try {
+    const j = JSON.parse(body);
+    return j?.id ?? j?.messageId ?? j?.key?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 
 async function sendEvolution(phone: string, text: string) {
   const base = EVOLUTION_API_URL!.replace(/\/+$/, "");
