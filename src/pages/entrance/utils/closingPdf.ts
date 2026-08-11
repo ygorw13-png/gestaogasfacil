@@ -8,6 +8,7 @@ export interface ClosingPdfInput {
   cashierData: CashierData;
   operador?: string;
   observacoes?: string;
+  motivoAlteracao?: string;
   dataFechamento?: string;
   estoque: {
     produto: string;
@@ -29,7 +30,7 @@ const dataHora = (dataFechamento?: string) => {
 };
 
 export function gerarPdfFechamento(input: ClosingPdfInput) {
-  const { tipo, cashierData, estoque, observacoes, operador, dataFechamento } = input;
+  const { tipo, cashierData, estoque, observacoes, motivoAlteracao, operador, dataFechamento } = input;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -91,6 +92,15 @@ export function gerarPdfFechamento(input: ClosingPdfInput) {
 
   let y = (doc as any).lastAutoTable.finalY + 10;
 
+  if (motivoAlteracao?.trim()) {
+    doc.setFontSize(10);
+    doc.text("Motivo da alteração após o fechamento:", 14, y);
+    y += 5;
+    doc.setFontSize(9);
+    doc.text(doc.splitTextToSize(motivoAlteracao, pageWidth - 28), 14, y);
+    y += 12;
+  }
+
   if (observacoes?.trim()) {
     doc.setFontSize(10);
     doc.text("Observações:", 14, y);
@@ -99,6 +109,7 @@ export function gerarPdfFechamento(input: ClosingPdfInput) {
     doc.text(doc.splitTextToSize(observacoes, pageWidth - 28), 14, y);
     y += 12;
   }
+
 
   doc.setFontSize(11);
   doc.text(`Valor em dinheiro no envelope: ${formatCurrency(cashierData.cash)}`, 14, y + 6);
