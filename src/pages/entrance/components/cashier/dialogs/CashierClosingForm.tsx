@@ -184,6 +184,7 @@ export function CashierClosingForm({
       tipo: closingType,
       cashierData: baseData,
       observacoes: observations,
+      motivoAlteracao: jaFechado ? motivoAlteracao : undefined,
       dataFechamento: closingDate,
       estoque: buildEstoque(),
     });
@@ -193,8 +194,16 @@ export function CashierClosingForm({
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    if (jaFechado && motivoAlteracao.trim().length < 5) {
+      toast({
+        title: "Motivo obrigatório",
+        description:
+          "Este caixa já foi fechado. Descreva o motivo da alteração para salvar novamente.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (closingType === "total" && divergencias.length > 0 && !observations.trim()) {
       toast({
