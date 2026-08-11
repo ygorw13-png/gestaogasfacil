@@ -3,7 +3,7 @@ import { useSalesHistory } from "./useSalesHistory";
 import { productKey } from "./useVendasHoje";
 
 export interface ResumoCategoria {
-  /** Código do grupo: money | pix | card | <código original> */
+  /** Código do grupo: money | pix | card | agregado:<id> | <código original> */
   key: string;
   label: string;
   quantidade: number;
@@ -12,6 +12,8 @@ export interface ResumoCategoria {
   valorAgua: number;
   /** Categorias que exigem conferência de valor em espécie/extrato */
   conferivel: boolean;
+  /** Venda para agregado/revendedor */
+  agregado?: boolean;
 }
 
 const GRUPOS: Record<string, { key: string; label: string; conferivel: boolean }> = {
@@ -24,7 +26,8 @@ const GRUPOS: Record<string, { key: string; label: string; conferivel: boolean }
 
 /**
  * Resumo das vendas da data por categoria de pagamento (quantidade e valor),
- * separando o valor do gás do valor da água.
+ * separando o valor do gás do valor da água e os agregados (revendedores),
+ * que aparecem como categoria própria por nome.
  */
 export function useResumoPagamentos(date: string) {
   const dateObj = useMemo(() => new Date(`${date}T00:00:00`), [date]);
@@ -38,11 +41,18 @@ export function useResumoPagamentos(date: string) {
     sales
       .filter((s) => s.status !== "cancelled")
       .forEach((s) => {
-        const grupo = GRUPOS[s.paymentCode] || {
-          key: s.paymentCode || "outros",
-          label: s.payment,
-          conferivel: false,
-        };
+        const isAgregado = Boolean(s.resellerId);
+        const grupo = isAgregado
+          ? {
+              key: `agregado:${s.resellerId}`,
+              label: s.resellerName || "Agregado",
+              conferivel: false,
+            }
+          : GRUPOS[s.paymentCode] || {
+              key: s.paymentCode || "outros",
+              label: s.payment,
+              conferivel: false,
+            };
         const atual =
           map.get(grupo.key) ||
           ({
@@ -53,6 +63,7 @@ export function useResumoPagamentos(date: string) {
             valorGas: 0,
             valorAgua: 0,
             conferivel: grupo.conferivel,
+            agregado: isAgregado,
           } as ResumoCategoria);
 
         const isAgua = productKey(s.product) === "water";
@@ -67,11 +78,15 @@ export function useResumoPagamentos(date: string) {
       });
 
     const categorias = Array.from(map.values()).sort((a, b) => b.valor - a.valor);
+    const agregados = categorias.filter((c) => c.agregado);
     return {
       isLoading,
       categorias,
+      agregados,
+      totalAgregadosValor: agregados.reduce((a, c) => a + c.valor, 0),
+      totalAgregadosQtd: agregados.reduce((a, c) => a + c.quantidade, 0),
       conferiveis: categorias.filter((c) => c.conferivel),
-      outras: categorias.filter((c) => !c.conferivel),
+      outras: categorias.filter((c) => !c.conferivel && !c.agregado),
       totalValor,
       totalQtd,
     };
