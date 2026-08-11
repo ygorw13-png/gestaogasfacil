@@ -835,6 +835,72 @@ export type Database = {
         }
         Relationships: []
       }
+      fechamentos_caixa: {
+        Row: {
+          created_at: string
+          data_fechamento: string
+          divergencias: Json
+          estoque_final: Json
+          fechado_por: string | null
+          fechado_por_nome: string | null
+          id: string
+          observacoes: string | null
+          organization_id: string
+          quantidades: Json
+          retroativo: boolean
+          tem_divergencia: boolean
+          tipo: string
+          total_cartao: number
+          total_dinheiro: number
+          total_outros: number
+          total_pix: number
+          total_vendas: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_fechamento: string
+          divergencias?: Json
+          estoque_final?: Json
+          fechado_por?: string | null
+          fechado_por_nome?: string | null
+          id?: string
+          observacoes?: string | null
+          organization_id?: string
+          quantidades?: Json
+          retroativo?: boolean
+          tem_divergencia?: boolean
+          tipo?: string
+          total_cartao?: number
+          total_dinheiro?: number
+          total_outros?: number
+          total_pix?: number
+          total_vendas?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_fechamento?: string
+          divergencias?: Json
+          estoque_final?: Json
+          fechado_por?: string | null
+          fechado_por_nome?: string | null
+          id?: string
+          observacoes?: string | null
+          organization_id?: string
+          quantidades?: Json
+          retroativo?: boolean
+          tem_divergencia?: boolean
+          tipo?: string
+          total_cartao?: number
+          total_dinheiro?: number
+          total_outros?: number
+          total_pix?: number
+          total_vendas?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lembretes_manutencao: {
         Row: {
           ativo: boolean
