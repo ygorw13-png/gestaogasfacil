@@ -19,12 +19,29 @@ export function waUrl(phone: string | null | undefined, message: string): string
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
-/** Abre o WhatsApp em nova aba. Retorna false se não foi possível (telefone inválido). */
+/**
+ * Abre o WhatsApp em nova aba (fora do iframe do preview).
+ * Usa um link real com target="_blank" — window.open dentro de iframe
+ * costuma ser bloqueado (ERR_BLOCKED_BY_RESPONSE).
+ */
 export function openWhatsApp(phone: string | null | undefined, message: string): boolean {
   const url = waUrl(phone, message);
   if (!url) return false;
-  window.open(url, "_blank", "noopener,noreferrer");
-  return true;
+
+  try {
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return true;
+  } catch {
+    const win = window.open(url, "_blank", "noopener,noreferrer");
+    return !!win;
+  }
 }
 
 type OrderLike = {
