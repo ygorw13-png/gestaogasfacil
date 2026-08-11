@@ -15,23 +15,23 @@ export function MobileSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleFormPr
           <span>Nova Venda</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="bottom" className="h-[90vh]">
-        <SheetHeader>
+      <SheetContent side="bottom" className="h-[90vh] flex flex-col overflow-hidden">
+        <SheetHeader className="shrink-0">
           <SheetTitle>Registrar Nova Venda</SheetTitle>
           <SheetDescription>
             Preencha os campos abaixo para registrar uma nova venda na portaria.
           </SheetDescription>
         </SheetHeader>
         
-        <div className="py-4 flex-1 h-[calc(90vh-180px)]">
+        <div className="flex-1 min-h-0 py-2">
           <ScrollArea className="h-full">
-            <div className="pr-4">
+            <div className="pr-4 pb-2">
               <SaleFormContent onSubmit={onSubmit} onOpenChange={onOpenChange} />
             </div>
           </ScrollArea>
         </div>
         
-        <SheetFooter className="border-t pt-4">
+        <SheetFooter className="border-t pt-4 shrink-0">
           <div className="flex w-full gap-2 justify-end">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
