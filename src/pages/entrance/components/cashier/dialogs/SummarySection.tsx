@@ -3,6 +3,7 @@ import { PaymentSummary } from "../../PaymentSummary";
 import { InventoryTable } from "../../InventoryTable";
 import { CashierData, PartialClosing } from "../../../types/cashierTypes";
 import { formatCurrency, formatQuantities } from "@/lib/formatUtils";
+import { ValueConferenceSection } from "./ValueConferenceSection";
 import { getTotalSalesFromPartials, getTotalQuantityFromPartials } from "../../../utils/cashierUtils";
 
 interface SummarySectionProps {
@@ -11,6 +12,8 @@ interface SummarySectionProps {
   cashierData: CashierData;
   adaptedSalesData: CashierData;
   inventoryData: any;
+  /** Data do fechamento (YYYY-MM-DD) */
+  date: string;
 }
 
 export function SummarySection({
@@ -19,6 +22,7 @@ export function SummarySection({
   cashierData,
   adaptedSalesData,
   inventoryData,
+  date,
 }: SummarySectionProps) {
   // Create default inventory data if none is provided
   const defaultInventoryData = [
@@ -67,6 +71,8 @@ export function SummarySection({
         formatQuantities={formatQuantities}
       />
       
+      <ValueConferenceSection date={date} />
+
       <InventoryTable 
         data={defaultInventoryData} 
         inventoryMovements={[]}

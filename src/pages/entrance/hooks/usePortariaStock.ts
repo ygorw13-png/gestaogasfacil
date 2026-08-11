@@ -149,6 +149,91 @@ export function useRegistrarMovimentacao() {
   });
 }
 
+export interface SaldoDiaProduto {
+  produto: PortariaProduto;
+  /** Quantidade confirmada na abertura do dia (primeiro lançamento) */
+  abertura_cheios: number;
+  abertura_vazios: number;
+  /** Cheios vendidos no dia */
+  vendas_dia: number;
+  /** Vazios movimentados no dia (devoluções/trocas) */
+  vazios_dia: number;
+  emprestados: number;
+  /** Esperado no fim do dia = abertura − vendas (transferências do pátio não entram) */
+  esperado_cheios: number;
+  esperado_vazios: number;
+}
+
+const emptySaldoDia = (p: PortariaProduto): SaldoDiaProduto => ({
+  produto: p,
+  abertura_cheios: 0,
+  abertura_vazios: 0,
+  vendas_dia: 0,
+  vazios_dia: 0,
+  emprestados: 0,
+  esperado_cheios: 0,
+  esperado_vazios: 0,
+});
+
+/**
+ * Saldo da portaria de uma data específica, baseado na abertura do dia.
+ * O esperado no fechamento considera apenas a abertura menos as vendas —
+ * o que desceu do pátio durante o dia não conta como saldo do dia anterior.
+ */
+export function useSaldoPortariaDia(dataOperacao?: string) {
+  const dia = dataOperacao || today();
+  return useQuery({
+    queryKey: ["saldo_portaria", "dia", dia],
+    queryFn: async (): Promise<Record<PortariaProduto, SaldoDiaProduto>> => {
+      const { data, error } = await (supabase as any)
+        .from("movimentacoes_portaria")
+        .select("tipo, produto, delta_cheios, delta_vazios, delta_emprestados, criado_em")
+        .eq("data_operacao", dia)
+        .order("criado_em", { ascending: true });
+
+      if (error) throw error;
+
+      const map: Record<PortariaProduto, SaldoDiaProduto> = {
+        P13: emptySaldoDia("P13"),
+        P20: emptySaldoDia("P20"),
+        P45: emptySaldoDia("P45"),
+        agua: emptySaldoDia("agua"),
+      };
+      const aberturaVista: Partial<Record<PortariaProduto, boolean>> = {};
+
+      (data || []).forEach((row: any) => {
+        const p = row.produto as PortariaProduto;
+        if (!PRODUTOS.includes(p)) return;
+        const alvo = map[p];
+        const cheios = Number(row.delta_cheios) || 0;
+        const vazios = Number(row.delta_vazios) || 0;
+
+        if (row.tipo === "abertura" && !aberturaVista[p]) {
+          // Considera apenas a PRIMEIRA abertura do dia
+          aberturaVista[p] = true;
+          alvo.abertura_cheios = cheios;
+          alvo.abertura_vazios = vazios;
+        }
+        if (row.tipo === "venda" || row.tipo === "venda_comodato") {
+          alvo.vendas_dia += -cheios;
+        }
+        if (row.tipo !== "abertura") {
+          alvo.vazios_dia += vazios;
+        }
+        alvo.emprestados += Number(row.delta_emprestados) || 0;
+      });
+
+      PRODUTOS.forEach((p) => {
+        const alvo = map[p];
+        alvo.esperado_cheios = Math.max(0, alvo.abertura_cheios - alvo.vendas_dia);
+        alvo.esperado_vazios = Math.max(0, alvo.abertura_vazios + alvo.vazios_dia);
+      });
+
+      return map;
+    },
+  });
+}
+
 
 export const produtoLabel = (p: PortariaProduto) =>
   p === "agua" ? "Água 20L" : `GLP ${p}`;
