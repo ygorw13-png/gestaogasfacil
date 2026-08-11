@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CashierClosingFormProps {
-  onSubmit: (type: "partial" | "total", observations?: string) => void;
+  onSubmit: (type: "partial" | "total", observations?: string, isRetroactive?: boolean) => void;
   onCancel: () => void;
   cashierData: CashierData;
   partialClosings: PartialClosing[];
@@ -37,6 +37,7 @@ interface CashierClosingFormProps {
     amount: number;
   };
 }
+
 
 const PRODUCTS: PortariaProduto[] = ["P13", "P20", "P45", "agua"];
 
