@@ -83,10 +83,35 @@ export default function Recompra() {
     if (error) toast.error("Erro ao registrar: " + error.message);
   };
 
-  const handleWhats = (ins: ClienteInsight, tipo: TipoContato) => {
-    const ok = openWhatsApp(ins.cliente_phone, mensagemPara(ins, tipo));
-    if (!ok) { toast.error("Cliente sem telefone válido"); return; }
+  const handleWhats = async (ins: ClienteInsight, tipo: TipoContato) => {
+    if (!normalizePhone(ins.cliente_phone)) { toast.error("Cliente sem telefone válido"); return; }
+    await enviar({
+      telefone: ins.cliente_phone,
+      mensagem: mensagemPara(ins, tipo),
+      nome: ins.cliente_nome,
+      tipo: `recompra_${tipo}`,
+      referencia_id: ins.cliente_id,
+    });
     registrarContato(ins, tipo, "whatsapp");
+  };
+
+  /** Dispara todas as mensagens de uma vez pelo backend. */
+  const dispararTodos = async () => {
+    if (elegiveis.length === 0) { toast.error("Nenhum cliente elegível no filtro atual"); return; }
+    const lista = elegiveis.map(ins => {
+      const tipo = tipoParaCliente(ins);
+      return {
+        telefone: ins.cliente_phone,
+        mensagem: mensagemPara(ins, tipo),
+        nome: ins.cliente_nome,
+        tipo: `recompra_${tipo}`,
+        referencia_id: ins.cliente_id,
+      };
+    });
+    const res = await enviarLote(lista);
+    if (res?.enviados > 0) {
+      await Promise.all(elegiveis.map(ins => registrarContato(ins, tipoParaCliente(ins), "whatsapp")));
+    }
   };
 
   const iniciarDisparos = () => {
@@ -95,6 +120,7 @@ export default function Recompra() {
     setFilaIndex(0);
     handleWhats(elegiveis[0], tipoParaCliente(elegiveis[0]));
   };
+
 
   const proximoDisparo = () => {
     const next = filaIndex + 1;
