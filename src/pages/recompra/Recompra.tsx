@@ -10,7 +10,9 @@ import { MessageCircle, Phone, Cake, AlertCircle, CheckCircle2, Clock, UserPlus,
 import { useRecompraInsights, ClienteInsight } from "./hooks/useRecompraInsights";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { msgRecompra, resumoUltimoPedido, openWhatsApp, normalizePhone } from "@/utils/whatsappLinks";
+import { msgRecompra, resumoUltimoPedido, normalizePhone } from "@/utils/whatsappLinks";
+import { useEnviarWhatsApp } from "@/hooks/useEnviarWhatsApp";
+
 
 const statusConfig = {
   em_dia:       { label: "Em dia",         className: "bg-green-100 text-green-800",   icon: CheckCircle2 },
