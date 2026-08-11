@@ -18,7 +18,8 @@ interface Props {
  * As demais formas de pagamento entram apenas como conferência de quantidade.
  */
 export function ValueConferenceSection({ date }: Props) {
-  const { conferiveis, outras } = useResumoPagamentos(date);
+  const { conferiveis, outras, agregados, totalAgregadosQtd, totalAgregadosValor } =
+    useResumoPagamentos(date);
   const [conferido, setConferido] = useState<Record<string, string>>({});
 
   return (
@@ -85,6 +86,23 @@ export function ValueConferenceSection({ date }: Props) {
             );
           })}
         </div>
+
+        {agregados.length > 0 && (
+          <div className="rounded-md border p-3 space-y-2">
+            <p className="text-xs font-medium">Agregados (revendedores)</p>
+            <div className="flex flex-wrap gap-2">
+              {agregados.map((c) => (
+                <Badge key={c.key} variant="outline" className="text-xs">
+                  {c.label}: {c.quantidade} · {brl(c.valor)}
+                </Badge>
+              ))}
+            </div>
+            <div className="flex justify-between border-t pt-2 text-xs font-medium">
+              <span>Total agregados ({totalAgregadosQtd} itens)</span>
+              <span>{brl(totalAgregadosValor)}</span>
+            </div>
+          </div>
+        )}
 
         {outras.length > 0 && (
           <div className="rounded-md border p-3">

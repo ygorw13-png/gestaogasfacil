@@ -11,7 +11,10 @@ interface Props {
 
 /** Painel compacto com a quantidade e o valor vendido por categoria de pagamento. */
 export function PaymentBreakdownPanel({ date }: Props) {
-  const { categorias, totalQtd, totalValor, isLoading } = useResumoPagamentos(date);
+  const { categorias, agregados, totalAgregadosQtd, totalAgregadosValor, totalQtd, totalValor, isLoading } =
+    useResumoPagamentos(date);
+
+  const pagamentos = categorias.filter((c) => !c.agregado);
 
   return (
     <Card>
@@ -27,7 +30,7 @@ export function PaymentBreakdownPanel({ date }: Props) {
           <p className="text-sm text-muted-foreground">Nenhuma venda registrada nesta data.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {categorias.map((c) => (
+            {pagamentos.map((c) => (
               <div key={c.key} className="rounded-md border p-2.5">
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-sm font-medium">{c.label}</span>
@@ -41,6 +44,27 @@ export function PaymentBreakdownPanel({ date }: Props) {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {agregados.length > 0 && (
+          <div className="rounded-md border p-3 space-y-2">
+            <p className="text-xs font-medium">Agregados (revendedores)</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {agregados.map((c) => (
+                <div key={c.key} className="rounded-md border p-2.5">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-sm font-medium">{c.label}</span>
+                    <span className="text-sm font-semibold">{c.quantidade}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">{brl(c.valor)}</div>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between border-t pt-2 text-xs font-medium">
+              <span>Total agregados ({totalAgregadosQtd} itens)</span>
+              <span>{brl(totalAgregadosValor)}</span>
+            </div>
           </div>
         )}
 

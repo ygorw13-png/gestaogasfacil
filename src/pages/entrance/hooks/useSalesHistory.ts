@@ -14,6 +14,9 @@ export interface HistorySale {
   amount: number;
   status: "delivered" | "cancelled";
   seller: string;
+  /** Preenchido quando a venda foi feita para um agregado/revendedor */
+  resellerId?: string | null;
+  resellerName?: string | null;
 }
 
 const startOf = (d: Date) => {
@@ -93,6 +96,8 @@ export function useSalesHistory(from: Date, to: Date) {
               | "delivered"
               | "cancelled",
             seller,
+            resellerId: (o.reseller_id as string) || null,
+            resellerName: o.reseller_id ? resellerMap.get(o.reseller_id) || "Agregado" : null,
           };
         })
         .sort((a, b) => b.date.getTime() - a.date.getTime());
