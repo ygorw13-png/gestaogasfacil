@@ -9,10 +9,19 @@ const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
 const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
 const EVOLUTION_INSTANCE = Deno.env.get("EVOLUTION_INSTANCE");
 
+// Provedor genérico (BotBot.chat, Z-API, UltraMsg, Chat-API, etc.)
+// WHATSAPP_API_URL: endpoint completo de envio de texto
+// WHATSAPP_API_KEY: token (enviado como Bearer e também em apikey/token)
+// WHATSAPP_API_FORMAT: nomes dos campos, ex "phone:message" (padrão) ou "number:text"
+const WHATSAPP_API_URL = Deno.env.get("WHATSAPP_API_URL");
+const WHATSAPP_API_KEY = Deno.env.get("WHATSAPP_API_KEY");
+const WHATSAPP_API_FORMAT = Deno.env.get("WHATSAPP_API_FORMAT") ?? "phone:message";
+
 // Twilio (WhatsApp Business API oficial, via connector gateway)
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const TWILIO_API_KEY = Deno.env.get("TWILIO_API_KEY");
 const TWILIO_WHATSAPP_FROM = Deno.env.get("TWILIO_WHATSAPP_FROM");
+
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
