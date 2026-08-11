@@ -1,6 +1,68 @@
 
 import { CashierData, PartialClosing } from "../types/cashierTypes";
+import { VendasPorData } from "../hooks/useVendasPorData";
 import { getTotalSalesFromPartials } from "./cashierUtils";
+
+/**
+ * Mapeia rótulos de pagamento usados no histórico para códigos do CashierData
+ */
+const paymentCodeMap: Record<string, keyof CashierData> = {
+  Dinheiro: "cash",
+  Crédito: "credit",
+  Débito: "debit",
+  PIX: "pix",
+  Promissória: "promissory",
+  "Vale Gás": "gasVoucher",
+  "Gás-Povo": "gasVoucher",
+  Convênio: "gasVoucher",
+  Outros: "cash",
+};
+
+const emptyQuantities = () => ({ p13: 0, p20: 0, p45: 0, water: 0 });
+
+/**
+ * Constrói um CashierData a partir das vendas reais de uma data específica.
+ * Usado para fechamentos retroativos de dias anteriores.
+ */
+export const buildCashierDataFromVendasPorData = (vendas: VendasPorData | undefined): CashierData => {
+  const data: CashierData = {
+    cash: 0,
+    credit: 0,
+    debit: 0,
+    pix: 0,
+    promissory: 0,
+    gasVoucher: 0,
+    totalSales: vendas?.totalSales ?? 0,
+    quantities: {
+      cash: emptyQuantities(),
+      credit: emptyQuantities(),
+      debit: emptyQuantities(),
+      pix: emptyQuantities(),
+      promissory: emptyQuantities(),
+      gasVoucher: emptyQuantities(),
+    },
+    inventoryMovements: [],
+  };
+
+  if (!vendas) return data;
+
+  Object.entries(vendas.byPayment).forEach(([label, amount]) => {
+    const key = paymentCodeMap[label] || "cash";
+    data[key] = (data[key] || 0) + amount;
+  });
+
+  Object.entries(vendas.quantitiesByPayment).forEach(([label, qts]) => {
+    const key = paymentCodeMap[label] || "cash";
+    data.quantities[key] = {
+      p13: (data.quantities[key]?.p13 ?? 0) + (qts.p13 || 0),
+      p20: (data.quantities[key]?.p20 ?? 0) + (qts.p20 || 0),
+      p45: (data.quantities[key]?.p45 ?? 0) + (qts.p45 || 0),
+      water: (data.quantities[key]?.water ?? 0) + (qts.water || 0),
+    };
+  });
+
+  return data;
+};
 
 /**
  * Calcula o valor total de vendas desde o último fechamento parcial
@@ -45,3 +107,4 @@ export const prepareAdaptedSalesData = (
     inventoryMovements: []
   };
 };
+
