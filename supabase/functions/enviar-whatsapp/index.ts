@@ -159,7 +159,12 @@ Deno.serve(async (req) => {
       let providerId: string | null = null;
 
       try {
-        providerId = provider === "evolution" ? await sendEvolution(telefone, mensagem) : await sendTwilio(telefone, mensagem);
+        providerId = provider === "evolution"
+          ? await sendEvolution(telefone, mensagem)
+          : provider === "custom"
+            ? await sendCustom(telefone, mensagem)
+            : await sendTwilio(telefone, mensagem);
+
       } catch (e) {
         status = "erro";
         erro = e instanceof Error ? e.message : String(e);
