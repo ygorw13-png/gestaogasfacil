@@ -26,11 +26,32 @@ interface Sale {
   payment: string;
   paymentCode?: string;
   amount: number;
+  tipoVenda?: "completa" | "recarga" | "vasilhame";
+  vasilhamesEntregues?: number;
+  vasilhamesRecebidos?: number;
 }
 
 interface RecentSalesTableProps {
   sales: Sale[];
 }
+
+function VasilhameCell({ sale }: { sale: Sale }) {
+  const entregues = sale.vasilhamesEntregues ?? 0;
+  const recebidos = sale.vasilhamesRecebidos ?? 0;
+
+  if (sale.tipoVenda === "vasilhame") {
+    return <Badge variant="secondary">Só vasilhame ({entregues || sale.quantity})</Badge>;
+  }
+  if (sale.tipoVenda === "completa" || entregues > 0) {
+    return <Badge>Com vasilhame ({entregues || sale.quantity})</Badge>;
+  }
+  return (
+    <Badge variant="outline" className="text-muted-foreground">
+      Troca{recebidos ? ` (${recebidos} vazio${recebidos > 1 ? "s" : ""})` : ""}
+    </Badge>
+  );
+}
+
 
 export function RecentSalesTable({ sales }: RecentSalesTableProps) {
   const navigate = useNavigate();
