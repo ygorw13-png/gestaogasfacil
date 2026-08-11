@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   useRegistrarDespesa,
@@ -96,6 +97,7 @@ export function DespesaPortariaDialog({ open, onOpenChange }: Props) {
   const [veiculoId, setVeiculoId] = useState("");
   const [origem, setOrigem] = useState<OrigemDinheiro>("caixa_portaria");
   const [obs, setObs] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
 
   const colaborador = useMemo(
     () => (colaboradores ?? []).find((c) => c.id === colaboradorId),
@@ -255,12 +257,16 @@ export function DespesaPortariaDialog({ open, onOpenChange }: Props) {
           </div>
         </div>
 
+        {erro && (
+          <p className="text-sm font-medium text-destructive">{erro}</p>
+        )}
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button onClick={handleSave} disabled={registrar.isPending || valorNum <= 0}>
-            Lançar despesa
+            {registrar.isPending ? "Salvando..." : "Lançar despesa"}
           </Button>
         </DialogFooter>
       </DialogContent>
