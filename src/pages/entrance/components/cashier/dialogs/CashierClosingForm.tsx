@@ -387,6 +387,9 @@ export function CashierClosingForm({
         inventoryData={inventoryData}
       />
 
+      <ClosingSalesEditor date={closingDate} />
+
+
       {closingType === "total" && (
         <RemainingStockSection value={remaining} onChange={setRemaining} />
       )}
