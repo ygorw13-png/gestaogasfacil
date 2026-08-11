@@ -3,9 +3,17 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Sale } from "../types/entranceTypes";
 import { paymentLabelFromCode, productKey } from "./useVendasHoje";
 
+export interface QuantitiesByPayment {
+  p13: number;
+  p20: number;
+  p45: number;
+  water: number;
+}
+
 export interface VendasPorData {
   totalSales: number;
   byPayment: Record<string, number>;
+  quantitiesByPayment: Record<string, QuantitiesByPayment>;
   glpSales: { p13: number; p20: number; p45: number };
   waterSales: number;
   recentSales: Sale[];
@@ -21,6 +29,8 @@ const dayBounds = (dateStr: string) => {
   return { start, end };
 };
 
+const emptyQuantities = (): QuantitiesByPayment => ({ p13: 0, p20: 0, p45: 0, water: 0 });
+
 export function useVendasPorData(dateStr: string | null) {
   return useQuery({
     queryKey: ["vendas_por_data", dateStr],
@@ -30,6 +40,7 @@ export function useVendasPorData(dateStr: string | null) {
         return {
           totalSales: 0,
           byPayment: {},
+          quantitiesByPayment: {},
           glpSales: { p13: 0, p20: 0, p45: 0 },
           waterSales: 0,
           recentSales: [],
@@ -51,6 +62,7 @@ export function useVendasPorData(dateStr: string | null) {
       const result: VendasPorData = {
         totalSales: 0,
         byPayment: {},
+        quantitiesByPayment: {},
         glpSales: { p13: 0, p20: 0, p45: 0 },
         waterSales: 0,
         recentSales: [],
@@ -65,9 +77,15 @@ export function useVendasPorData(dateStr: string | null) {
         const label = paymentLabelFromCode(o.payment_method);
         result.byPayment[label] = (result.byPayment[label] || 0) + amount;
 
+        const qts = result.quantitiesByPayment[label] || emptyQuantities();
         const key = productKey(o.product);
-        if (key === "water") result.waterSales += qty;
-        else if (key) result.glpSales[key] += qty;
+        if (key === "water") qts.water += qty;
+        else if (key) qts[key] += qty;
+        result.quantitiesByPayment[label] = qts;
+
+        const globalKey = productKey(o.product);
+        if (globalKey === "water") result.waterSales += qty;
+        else if (globalKey) result.glpSales[globalKey] += qty;
       });
 
       const oldest = rows[rows.length - 1];
@@ -90,3 +108,4 @@ export function useVendasPorData(dateStr: string | null) {
     },
   });
 }
+
