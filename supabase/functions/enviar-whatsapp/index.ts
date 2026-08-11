@@ -9,10 +9,19 @@ const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
 const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
 const EVOLUTION_INSTANCE = Deno.env.get("EVOLUTION_INSTANCE");
 
+// Provedor genérico (BotBot.chat, Z-API, UltraMsg, Chat-API, etc.)
+// WHATSAPP_API_URL: endpoint completo de envio de texto
+// WHATSAPP_API_KEY: token (enviado como Bearer e também em apikey/token)
+// WHATSAPP_API_FORMAT: nomes dos campos, ex "phone:message" (padrão) ou "number:text"
+const WHATSAPP_API_URL = Deno.env.get("WHATSAPP_API_URL");
+const WHATSAPP_API_KEY = Deno.env.get("WHATSAPP_API_KEY");
+const WHATSAPP_API_FORMAT = Deno.env.get("WHATSAPP_API_FORMAT") ?? "phone:message";
+
 // Twilio (WhatsApp Business API oficial, via connector gateway)
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const TWILIO_API_KEY = Deno.env.get("TWILIO_API_KEY");
 const TWILIO_WHATSAPP_FROM = Deno.env.get("TWILIO_WHATSAPP_FROM");
+
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -30,11 +39,37 @@ function normalizePhone(phone: string): string | null {
   return d;
 }
 
-function providerConfigured(): "evolution" | "twilio" | null {
+function providerConfigured(): "evolution" | "custom" | "twilio" | null {
   if (EVOLUTION_API_URL && EVOLUTION_API_KEY && EVOLUTION_INSTANCE) return "evolution";
+  if (WHATSAPP_API_URL) return "custom";
   if (LOVABLE_API_KEY && TWILIO_API_KEY && TWILIO_WHATSAPP_FROM) return "twilio";
   return null;
 }
+
+/** Envio por API HTTP genérica (BotBot.chat, Z-API, UltraMsg...). */
+async function sendCustom(phone: string, text: string) {
+  const [phoneField = "phone", msgField = "message"] = WHATSAPP_API_FORMAT.split(":");
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (WHATSAPP_API_KEY) {
+    headers.Authorization = `Bearer ${WHATSAPP_API_KEY}`;
+    headers.apikey = WHATSAPP_API_KEY;
+    headers.token = WHATSAPP_API_KEY;
+  }
+  const res = await fetch(WHATSAPP_API_URL!, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ [phoneField]: phone, [msgField]: text }),
+  });
+  const body = await res.text();
+  if (!res.ok) throw new Error(`[${res.status}] ${body}`);
+  try {
+    const j = JSON.parse(body);
+    return j?.id ?? j?.messageId ?? j?.key?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 
 async function sendEvolution(phone: string, text: string) {
   const base = EVOLUTION_API_URL!.replace(/\/+$/, "");
@@ -124,7 +159,12 @@ Deno.serve(async (req) => {
       let providerId: string | null = null;
 
       try {
-        providerId = provider === "evolution" ? await sendEvolution(telefone, mensagem) : await sendTwilio(telefone, mensagem);
+        providerId = provider === "evolution"
+          ? await sendEvolution(telefone, mensagem)
+          : provider === "custom"
+            ? await sendCustom(telefone, mensagem)
+            : await sendTwilio(telefone, mensagem);
+
       } catch (e) {
         status = "erro";
         erro = e instanceof Error ? e.message : String(e);
