@@ -63,23 +63,26 @@ export function useSalesHistory(from: Date, to: Date) {
 
       const rows = [...(entregues.data || []), ...(cancelados.data || [])] as any[];
 
-      const resellerIds = Array.from(
-        new Set(rows.map((r) => r.reseller_id).filter(Boolean)),
-      ) as string[];
+      // Todos os agregados/revendedores: usados para identificar vendas feitas
+      // para eles mesmo quando o pedido não gravou o reseller_id (venda pelo nome).
+      const { data: rs } = await supabase.from("resellers").select("id, name");
       const resellerMap = new Map<string, string>();
-      if (resellerIds.length) {
-        const { data: rs } = await supabase
-          .from("resellers")
-          .select("id, name")
-          .in("id", resellerIds);
-        (rs || []).forEach((r: any) => resellerMap.set(r.id, r.name));
-      }
+      const resellerByName = new Map<string, { id: string; name: string }>();
+      (rs || []).forEach((r: any) => {
+        resellerMap.set(r.id, r.name);
+        resellerByName.set(String(r.name).trim().toLowerCase(), { id: r.id, name: r.name });
+      });
 
       return rows
         .map((o) => {
           const dt = new Date((o.delivered_at as string) || (o.created_at as string));
+          const nomeCliente = ((o.client_name as string) || "").trim().toLowerCase();
+          const agregado =
+            (o.reseller_id && { id: o.reseller_id as string, name: resellerMap.get(o.reseller_id) || "Agregado" }) ||
+            resellerByName.get(nomeCliente) ||
+            null;
           const seller =
-            (o.reseller_id && resellerMap.get(o.reseller_id)) ||
+            agregado?.name ||
             (o.delivery_person as string) ||
             "Portaria";
           return {
@@ -96,8 +99,8 @@ export function useSalesHistory(from: Date, to: Date) {
               | "delivered"
               | "cancelled",
             seller,
-            resellerId: (o.reseller_id as string) || null,
-            resellerName: o.reseller_id ? resellerMap.get(o.reseller_id) || "Agregado" : null,
+            resellerId: agregado?.id || null,
+            resellerName: agregado?.name || null,
           };
         })
         .sort((a, b) => b.date.getTime() - a.date.getTime());
