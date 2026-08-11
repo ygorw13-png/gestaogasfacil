@@ -176,9 +176,13 @@ export default function Recompra() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button onClick={iniciarDisparos} disabled={elegiveis.length === 0}>
-              <Send className="h-4 w-4 mr-2" /> Iniciar disparos ({elegiveis.length})
+            <Button onClick={dispararTodos} disabled={elegiveis.length === 0 || enviando}>
+              <Send className="h-4 w-4 mr-2" /> Enviar todos ({elegiveis.length})
             </Button>
+            <Button variant="outline" onClick={iniciarDisparos} disabled={elegiveis.length === 0 || enviando}>
+              <MessageCircle className="h-4 w-4 mr-2" /> Um a um
+            </Button>
+
             {fila.length > 0 && (
               <Button variant="outline" onClick={proximoDisparo}>
                 <SkipForward className="h-4 w-4 mr-2" /> Próximo
