@@ -158,8 +158,9 @@ export function CashierClosingForm({
     // Gera automaticamente o PDF para imprimir e anexar ao envelope
     handleGerarPdf();
 
-    onSubmit(closingType, observations);
+    onSubmit(closingType, observations, isRetroactive);
   };
+
 
   // Converter totalSalesSinceLastPartial para um formato compatível com CashierData
   const adaptedSalesData = prepareAdaptedSalesData(selectedDateCashierData, totalSalesSinceLastPartial.amount);
