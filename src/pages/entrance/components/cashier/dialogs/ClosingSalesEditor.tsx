@@ -115,11 +115,19 @@ export function ClosingSalesEditor({ date }: ClosingSalesEditorProps) {
       </CardContent>
 
       <Dialog open={novaVendaOpen} onOpenChange={setNovaVendaOpen}>
-        <DialogContent className="sm:max-w-[700px]">
+        <DialogContent
+          className="sm:max-w-[700px]"
+          onSubmit={(e) => e.stopPropagation()}
+        >
           <DialogHeader>
-            <DialogTitle>Lançar venda antes do fechamento</DialogTitle>
+            <DialogTitle>
+              Lançar venda em {date.split("-").reverse().join("/")}
+            </DialogTitle>
           </DialogHeader>
-          <SaleFormContent onSubmit={handleNewSaleSubmit} onOpenChange={setNovaVendaOpen} />
+          <SaleFormContent
+            onSubmit={(sale) => handleNewSaleSubmit(sale, date)}
+            onOpenChange={setNovaVendaOpen}
+          />
           <DialogFooter className="border-t pt-4">
             <Button type="button" variant="outline" onClick={() => setNovaVendaOpen(false)}>
               Cancelar

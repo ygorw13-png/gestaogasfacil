@@ -188,6 +188,8 @@ export function CashierClosingForm({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    // Evita que o submit de formulários internos (ex.: lançar venda) feche o caixa
+    if (e.target !== e.currentTarget) return;
     e.preventDefault();
 
     if (closingType === "total" && divergencias.length > 0 && !observations.trim()) {
