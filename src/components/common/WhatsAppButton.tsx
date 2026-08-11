@@ -1,7 +1,7 @@
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
 import { toast } from "sonner";
-import { openWhatsApp, normalizePhone } from "@/utils/whatsappLinks";
+import { normalizePhone, waUrl } from "@/utils/whatsappLinks";
 import { cn } from "@/lib/utils";
 
 interface WhatsAppButtonProps extends Omit<ButtonProps, "onClick"> {
@@ -24,10 +24,12 @@ export function WhatsAppButton({
   ...rest
 }: WhatsAppButtonProps) {
   const valid = !!normalizePhone(phone);
+  const url = waUrl(phone, message);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!openWhatsApp(phone, message)) {
+    if (!url) {
+      e.preventDefault();
       navigator.clipboard?.writeText(message).catch(() => {});
       toast.error("Não foi possível abrir o WhatsApp. Mensagem copiada — cole no app.");
       return;
@@ -37,6 +39,7 @@ export function WhatsAppButton({
 
   return (
     <Button
+      asChild={valid}
       type="button"
       variant={variant}
       size={size}
@@ -46,8 +49,17 @@ export function WhatsAppButton({
       className={cn("text-emerald-700 hover:text-emerald-800", className)}
       {...rest}
     >
-      <MessageCircle className={cn("h-4 w-4", !iconOnly && "mr-1")} />
-      {!iconOnly && label}
+      {valid && url ? (
+        <a href={url} target="_blank" rel="noopener noreferrer">
+          <MessageCircle className={cn("h-4 w-4", !iconOnly && "mr-1")} />
+          {!iconOnly && label}
+        </a>
+      ) : (
+        <>
+          <MessageCircle className={cn("h-4 w-4", !iconOnly && "mr-1")} />
+          {!iconOnly && label}
+        </>
+      )}
     </Button>
   );
 }

@@ -122,7 +122,7 @@ function OrderTableRowComponent({
             iconOnly
             message={
               order.status === "delivering" || order.status === "assigned"
-                ? msgSaiuParaEntrega(order, order.deliveryPerson)
+                ? msgSaiuParaEntrega(order, order.deliveryPersonName)
                 : msgPedidoConfirmado(order)
             }
             variant="ghost"

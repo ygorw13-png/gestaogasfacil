@@ -19,6 +19,7 @@ export type Order = {
   createdAt: Date;
   status: OrderStatus;
   deliveryPerson?: string;
+  deliveryPersonName?: string;
   assignedAt?: Date;
   deliveredAt?: Date;
   paymentMethod?: string;
