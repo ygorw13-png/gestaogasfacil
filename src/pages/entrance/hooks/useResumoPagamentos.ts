@@ -2,6 +2,13 @@ import { useMemo } from "react";
 import { useSalesHistory } from "./useSalesHistory";
 import { productKey } from "./useVendasHoje";
 
+export interface ProdutoQtd {
+  p13: number;
+  p20: number;
+  p45: number;
+  water: number;
+}
+
 export interface ResumoCategoria {
   /** Código do grupo: money | pix | card | agregado:<id> | <código original> */
   key: string;
@@ -10,11 +17,16 @@ export interface ResumoCategoria {
   valor: number;
   valorGas: number;
   valorAgua: number;
+  /** Quantidade vendida por produto */
+  produtos: ProdutoQtd;
   /** Categorias que exigem conferência de valor em espécie/extrato */
   conferivel: boolean;
   /** Venda para agregado/revendedor */
   agregado?: boolean;
 }
+
+const zeroProdutos = (): ProdutoQtd => ({ p13: 0, p20: 0, p45: 0, water: 0 });
+
 
 const GRUPOS: Record<string, { key: string; label: string; conferivel: boolean }> = {
   money: { key: "money", label: "Dinheiro", conferivel: true },
@@ -62,13 +74,16 @@ export function useResumoPagamentos(date: string) {
             valor: 0,
             valorGas: 0,
             valorAgua: 0,
+            produtos: zeroProdutos(),
             conferivel: grupo.conferivel,
             agregado: isAgregado,
           } as ResumoCategoria);
 
-        const isAgua = productKey(s.product) === "water";
+        const pKey = productKey(s.product);
+        const isAgua = pKey === "water";
         atual.quantidade += s.quantity || 0;
         atual.valor += s.amount || 0;
+        if (pKey) atual.produtos[pKey] += s.quantity || 0;
         if (isAgua) atual.valorAgua += s.amount || 0;
         else atual.valorGas += s.amount || 0;
 
@@ -79,16 +94,29 @@ export function useResumoPagamentos(date: string) {
 
     const categorias = Array.from(map.values()).sort((a, b) => b.valor - a.valor);
     const agregados = categorias.filter((c) => c.agregado);
+    const somaProdutos = (list: ResumoCategoria[]): ProdutoQtd =>
+      list.reduce(
+        (acc, c) => ({
+          p13: acc.p13 + c.produtos.p13,
+          p20: acc.p20 + c.produtos.p20,
+          p45: acc.p45 + c.produtos.p45,
+          water: acc.water + c.produtos.water,
+        }),
+        zeroProdutos()
+      );
     return {
       isLoading,
       categorias,
       agregados,
       totalAgregadosValor: agregados.reduce((a, c) => a + c.valor, 0),
       totalAgregadosQtd: agregados.reduce((a, c) => a + c.quantidade, 0),
+      totalAgregadosProdutos: somaProdutos(agregados),
       conferiveis: categorias.filter((c) => c.conferivel),
       outras: categorias.filter((c) => !c.conferivel && !c.agregado),
+      totalProdutos: somaProdutos(categorias),
       totalValor,
       totalQtd,
     };
+
   }, [sales, isLoading]);
 }

@@ -158,6 +158,14 @@ export interface SaldoDiaProduto {
   vendas_dia: number;
   /** Vazios movimentados no dia (devoluções/trocas) */
   vazios_dia: number;
+  /** Cheios recebidos do pátio durante o dia */
+  patio_recebido_cheios: number;
+  /** Cheios devolvidos ao pátio durante o dia */
+  patio_enviado_cheios: number;
+  /** Vazios que subiram/desceram do pátio (positivo = entrou na portaria) */
+  patio_vazios: number;
+  /** Vazios devolvidos por clientes */
+  devolucoes_vazios: number;
   emprestados: number;
   /** Esperado no fim do dia = abertura − vendas (transferências do pátio não entram) */
   esperado_cheios: number;
@@ -170,10 +178,15 @@ const emptySaldoDia = (p: PortariaProduto): SaldoDiaProduto => ({
   abertura_vazios: 0,
   vendas_dia: 0,
   vazios_dia: 0,
+  patio_recebido_cheios: 0,
+  patio_enviado_cheios: 0,
+  patio_vazios: 0,
+  devolucoes_vazios: 0,
   emprestados: 0,
   esperado_cheios: 0,
   esperado_vazios: 0,
 });
+
 
 /**
  * Saldo da portaria de uma data específica, baseado na abertura do dia.
@@ -217,10 +230,22 @@ export function useSaldoPortariaDia(dataOperacao?: string) {
         if (row.tipo === "venda" || row.tipo === "venda_comodato") {
           alvo.vendas_dia += -cheios;
         }
+        if (row.tipo === "transferencia_patio_para_portaria") {
+          alvo.patio_recebido_cheios += Math.max(0, cheios);
+          alvo.patio_vazios += vazios;
+        }
+        if (row.tipo === "transferencia_portaria_para_patio") {
+          alvo.patio_enviado_cheios += Math.abs(Math.min(0, cheios)) || Math.abs(cheios);
+          alvo.patio_vazios += vazios;
+        }
+        if (row.tipo === "devolucao_vasilhame") {
+          alvo.devolucoes_vazios += vazios;
+        }
         if (row.tipo !== "abertura") {
           alvo.vazios_dia += vazios;
         }
         alvo.emprestados += Number(row.delta_emprestados) || 0;
+
       });
 
       PRODUTOS.forEach((p) => {
