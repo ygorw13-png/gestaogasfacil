@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { Ban } from "lucide-react";
 import {
@@ -26,11 +27,32 @@ interface Sale {
   payment: string;
   paymentCode?: string;
   amount: number;
+  tipoVenda?: "completa" | "recarga" | "vasilhame";
+  vasilhamesEntregues?: number;
+  vasilhamesRecebidos?: number;
 }
 
 interface RecentSalesTableProps {
   sales: Sale[];
 }
+
+function VasilhameCell({ sale }: { sale: Sale }) {
+  const entregues = sale.vasilhamesEntregues ?? 0;
+  const recebidos = sale.vasilhamesRecebidos ?? 0;
+
+  if (sale.tipoVenda === "vasilhame") {
+    return <Badge variant="secondary">Só vasilhame ({entregues || sale.quantity})</Badge>;
+  }
+  if (sale.tipoVenda === "completa" || entregues > 0) {
+    return <Badge>Com vasilhame ({entregues || sale.quantity})</Badge>;
+  }
+  return (
+    <Badge variant="outline" className="text-muted-foreground">
+      Troca{recebidos ? ` (${recebidos} vazio${recebidos > 1 ? "s" : ""})` : ""}
+    </Badge>
+  );
+}
+
 
 export function RecentSalesTable({ sales }: RecentSalesTableProps) {
   const navigate = useNavigate();
@@ -64,6 +86,7 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
             <th className="text-left font-medium py-2">Cliente</th>
             <th className="text-left font-medium py-2">Produto</th>
             <th className="text-center font-medium py-2">Qtd</th>
+            <th className="text-left font-medium py-2">Vasilhame</th>
             <th className="text-left font-medium py-2">Pagamento</th>
             <th className="text-right font-medium py-2">Valor</th>
             <th className="text-right font-medium py-2">Ações</th>
@@ -76,6 +99,7 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
               <td className="py-2">{sale.client}</td>
               <td className="py-2">{sale.product}</td>
               <td className="py-2 text-center">{sale.quantity}</td>
+              <td className="py-2"><VasilhameCell sale={sale} /></td>
               <td className="py-2">{sale.payment}</td>
               <td className="py-2 text-right">R$ {sale.amount.toFixed(2).replace('.', ',')}</td>
               <td className="py-2 text-right">
