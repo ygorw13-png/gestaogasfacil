@@ -80,6 +80,24 @@ export function useFechamentoDeHoje() {
   });
 }
 
+/** Verifica se já existe fechamento salvo para uma data (para exigir motivo em alterações). */
+export function useFechamentoPorData(dateStr: string | null) {
+  return useQuery({
+    queryKey: ["fechamento_por_data", dateStr],
+    enabled: !!dateStr,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("fechamentos_caixa")
+        .select("id, tipo, created_at, observacoes")
+        .eq("data_fechamento", dateStr)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      return (data?.[0] ?? null) as { id: string; tipo: string; created_at: string } | null;
+    },
+  });
+}
+
 export interface SalvarFechamentoParams {
   data_fechamento: string;
   tipo: "partial" | "total";
@@ -137,6 +155,7 @@ export function useSalvarFechamento() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["fechamentos_caixa"] });
       qc.invalidateQueries({ queryKey: ["fechamento_hoje"] });
+      qc.invalidateQueries({ queryKey: ["fechamento_por_data"] });
     },
     onError: (err: any) => {
       toast({
