@@ -15,6 +15,7 @@ import Orders from "@/pages/orders/Orders";
 import AcertoEntregadores from "./AcertoEntregadores";
 import HistoricoPortaria from "./HistoricoPortaria";
 import { DespesasPortariaTab } from "./components/despesas/DespesasPortariaTab";
+import { useSearchParams } from "react-router-dom";
 
 
 function EntranceSalesContent() {
@@ -37,6 +38,16 @@ function EntranceSalesContent() {
   const { data: movimentacoes, isLoading: loadingMovs } = useMovimentacoesPortaria();
   const lateCount = useLateOrdersCount();
   const [openingDialogOpen, setOpeningDialogOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Abre o fechamento direto pelo lembrete das 17h (/entrance?fechamento=1)
+  useEffect(() => {
+    if (searchParams.get("fechamento") === "1") {
+      setCashierClosingOpen(true);
+      searchParams.delete("fechamento");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, setCashierClosingOpen]);
 
   const hasOpening = !loadingMovs && !!movimentacoes?.some((m) => m.tipo === "abertura");
 
