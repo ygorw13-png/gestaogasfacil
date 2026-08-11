@@ -264,7 +264,9 @@ export function CashierClosingForm({
         cashierData: selectedDateCashierData,
         estoque: buildEstoque(),
         divergencias,
-        observacoes: observations,
+        observacoes: jaFechado
+          ? `${observations}${observations.trim() ? "\n" : ""}[Alteração após fechamento] ${motivoAlteracao}`
+          : observations,
         retroativo: isRetroactive,
       });
     } catch {
