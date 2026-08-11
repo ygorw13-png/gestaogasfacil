@@ -123,7 +123,9 @@ export function CompleteOrderDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="receivedValue">Valor recebido (R$)</Label>
+            <Label htmlFor="receivedValue">
+              Valor recebido (R$) {requiresValue ? "*" : "(opcional)"}
+            </Label>
             <Input
               id="receivedValue"
               inputMode="decimal"
@@ -131,7 +133,13 @@ export function CompleteOrderDialog({
               value={value}
               onChange={(e) => setValue(e.target.value)}
             />
+            {!requiresValue && paymentMethod && (
+              <p className="text-xs text-muted-foreground">
+                Para {paymentLabel(paymentMethod)} não é obrigatório informar o valor.
+              </p>
+            )}
           </div>
+
 
           {hasDivergence && (
             <Alert variant="destructive">
