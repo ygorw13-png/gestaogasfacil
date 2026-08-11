@@ -21,9 +21,7 @@ import {
   type PortariaProduto,
 } from "../../../hooks/usePortariaStock";
 import { useVendasPorData } from "../../../hooks/useVendasPorData";
-import { useSalvarFechamento, useFechamentoExistente } from "../../../hooks/useFechamentosCaixa";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { useSalvarFechamento } from "../../../hooks/useFechamentosCaixa";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -77,16 +75,12 @@ export function CashierClosingForm({
   const [closingDate, setClosingDate] = useState<string>(todayStr());
   const [selectedDateObj, setSelectedDateObj] = useState<Date | undefined>(new Date());
   const [draftInfo, setDraftInfo] = useState<string | null>(null);
-  const [motivoAlteracao, setMotivoAlteracao] = useState<string>("");
 
   const registrar = useRegistrarMovimentacao();
   const salvarFechamento = useSalvarFechamento();
   const { data: vendasPorData } = useVendasPorData(closingDate);
   const { data: saldo } = useSaldoPortaria();
-  const { data: fechamentoExistente } = useFechamentoExistente(closingDate, closingType);
   const { toast } = useToast();
-
-  const jaFechado = !!fechamentoExistente;
 
   const isRetroactive = !isSameDayAsToday(closingDate);
 
@@ -184,7 +178,6 @@ export function CashierClosingForm({
       tipo: closingType,
       cashierData: baseData,
       observacoes: observations,
-      motivoAlteracao: jaFechado ? motivoAlteracao : undefined,
       dataFechamento: closingDate,
       estoque: buildEstoque(),
     });
@@ -194,16 +187,8 @@ export function CashierClosingForm({
     });
   };
 
-  const handleSubmit = async () => {
-    if (jaFechado && motivoAlteracao.trim().length < 5) {
-      toast({
-        title: "Motivo obrigatório",
-        description:
-          "Este caixa já foi fechado. Descreva o motivo da alteração para salvar novamente.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
     if (closingType === "total" && divergencias.length > 0 && !observations.trim()) {
       toast({
@@ -264,9 +249,7 @@ export function CashierClosingForm({
         cashierData: selectedDateCashierData,
         estoque: buildEstoque(),
         divergencias,
-        observacoes: jaFechado
-          ? `${observations}${observations.trim() ? "\n" : ""}[Alteração após fechamento] ${motivoAlteracao}`
-          : observations,
+        observacoes: observations,
         retroativo: isRetroactive,
       });
     } catch {
@@ -306,7 +289,7 @@ export function CashierClosingForm({
   const isSaving = registrar.isPending || salvarFechamento.isPending;
 
   return (
-    <div className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <ClosingTypeTabs
           type={closingType}
@@ -413,31 +396,6 @@ export function CashierClosingForm({
 
       <ObservationsSection value={observations} onChange={setObservations} />
 
-      {jaFechado && (
-        <div className="space-y-2 rounded-md border border-amber-500/60 bg-amber-500/5 p-3">
-          <Label htmlFor="motivo-alteracao" className="text-base font-medium">
-            Motivo da alteração (obrigatório)
-          </Label>
-          <p className="text-sm text-muted-foreground">
-            Este caixa já foi fechado
-            {fechamentoExistente?.created_at
-              ? ` em ${new Date(fechamentoExistente.created_at).toLocaleString("pt-BR", {
-                  dateStyle: "short",
-                  timeStyle: "short",
-                })}`
-              : ""}
-            . Descreva o motivo da alteração — ele será impresso no PDF.
-          </p>
-          <Textarea
-            id="motivo-alteracao"
-            value={motivoAlteracao}
-            onChange={(e) => setMotivoAlteracao(e.target.value)}
-            placeholder="Ex.: venda lançada depois do fechamento"
-            className="min-h-[80px] resize-none"
-          />
-        </div>
-      )}
-
       <DialogFooter className="gap-2 sm:gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
@@ -446,7 +404,7 @@ export function CashierClosingForm({
           <FileText className="h-4 w-4" />
           Gerar PDF
         </Button>
-        <Button type="button" onClick={handleSubmit} disabled={isSaving}>
+        <Button type="submit" disabled={isSaving}>
           {isSaving
             ? "Registrando..."
             : closingType === "partial"
@@ -454,7 +412,6 @@ export function CashierClosingForm({
               : "Confirmar Fechamento Total"}
         </Button>
       </DialogFooter>
-    </div>
-
+    </form>
   );
 }

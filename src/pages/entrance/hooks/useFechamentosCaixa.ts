@@ -80,26 +80,6 @@ export function useFechamentoDeHoje() {
   });
 }
 
-/** Retorna o último fechamento já salvo para uma data/tipo (se existir). */
-export function useFechamentoExistente(data: string, tipo: "partial" | "total") {
-  return useQuery({
-    queryKey: ["fechamento_existente", data, tipo],
-    queryFn: async () => {
-      const { data: rows, error } = await (supabase as any)
-        .from("fechamentos_caixa")
-        .select("id, created_at, fechado_por_nome")
-        .eq("data_fechamento", data)
-        .eq("tipo", tipo)
-        .order("created_at", { ascending: false })
-        .limit(1);
-      if (error) throw error;
-      return (rows?.[0] ?? null) as
-        | { id: string; created_at: string; fechado_por_nome: string | null }
-        | null;
-    },
-  });
-}
-
 export interface SalvarFechamentoParams {
   data_fechamento: string;
   tipo: "partial" | "total";
