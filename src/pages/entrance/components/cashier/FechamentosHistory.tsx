@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileDown, Search, X, AlertTriangle, MessageCircle } from "lucide-react";
+import { FileDown, Search, X, AlertTriangle, Copy } from "lucide-react";
 import { formatCurrency } from "@/lib/formatUtils";
 import { gerarPdfFechamento } from "../../utils/closingPdf";
 import { useFechamentosCaixa, type FechamentoCaixa } from "../../hooks/useFechamentosCaixa";
-import { openWhatsApp } from "@/utils/whatsappLinks";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -24,6 +24,7 @@ export function FechamentosHistory() {
   const [search, setSearch] = useState("");
   const [tipo, setTipo] = useState<"all" | "partial" | "total">("all");
   const [somenteDivergencia, setSomenteDivergencia] = useState(false);
+  const { toast } = useToast();
 
   const { data: fechamentos = [], isLoading } = useFechamentosCaixa({
     search,
@@ -54,7 +55,11 @@ export function FechamentosHistory() {
       `Cartão: ${formatCurrency(f.total_cartao)}\n` +
       `Outros: ${formatCurrency(f.total_outros)}` +
       (f.tem_divergencia ? `\n⚠️ Fechamento com divergência de estoque` : "");
-    openWhatsApp("", msg);
+    navigator.clipboard?.writeText(msg);
+    toast({
+      title: "Resumo copiado",
+      description: "Cole no WhatsApp ou e-mail para reenviar o fechamento.",
+    });
   };
 
   const hasFilters = search !== "" || tipo !== "all" || somenteDivergencia;
@@ -184,9 +189,9 @@ export function FechamentosHistory() {
                         size="sm"
                         variant="ghost"
                         onClick={() => reenviar(f)}
-                        title="Enviar resumo por WhatsApp"
+                        title="Copiar resumo para reenviar"
                       >
-                        <MessageCircle className="h-3.5 w-3.5" />
+                        <Copy className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </TableCell>
