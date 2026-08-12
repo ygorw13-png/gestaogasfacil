@@ -102,27 +102,33 @@ export const FleetProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }))
     );
     setExpenses(
-      (e.data || []).map((r: any) => ({
-        id: r.id,
-        vehiclePlate: vMap.get(r.vehicle_id) || "",
-        date: r.date,
-        description: r.description || "",
-        type: (r.type as VehicleExpense["type"]) || "other",
-        amount: Number(r.amount) || 0,
-        notes: r.notes || undefined,
-      }))
+      [
+        ...(e.data || []).map((r: any) => ({
+          id: r.id,
+          vehiclePlate: vMap.get(r.vehicle_id) || "",
+          date: r.date,
+          description: r.description || "",
+          type: (r.type as VehicleExpense["type"]) || "other",
+          amount: Number(r.amount) || 0,
+          notes: r.notes || undefined,
+        })),
+        ...despesasFrota,
+      ].sort((x, y) => (x.date < y.date ? 1 : -1))
     );
     setFuelEntries(
-      (f.data || []).map((r: any) => ({
-        id: r.id,
-        vehiclePlate: vMap.get(r.vehicle_id) || "",
-        date: r.date,
-        mileage: r.km || 0,
-        fuelType: r.fuel_type || "gasolina",
-        liters: Number(r.liters) || 0,
-        cost: Number(r.total) || 0,
-        notes: r.notes || undefined,
-      }))
+      [
+        ...(f.data || []).map((r: any) => ({
+          id: r.id,
+          vehiclePlate: vMap.get(r.vehicle_id) || "",
+          date: r.date,
+          mileage: r.km || 0,
+          fuelType: r.fuel_type || "gasolina",
+          liters: Number(r.liters) || 0,
+          cost: Number(r.total) || 0,
+          notes: r.notes || undefined,
+        })),
+        ...despesasCombustivel,
+      ].sort((x, y) => (x.date < y.date ? 1 : -1))
     );
     setAssignments(
       (a.data || []).map((r: any) => ({
