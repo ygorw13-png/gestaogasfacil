@@ -16,10 +16,12 @@ import OrderStats from "./components/OrderStats";
 import PendingAlert from "./components/PendingAlert";
 import QuickSaleDialog from "./components/QuickSaleDialog";
 import { useOrders } from "./hooks/useOrders";
+import SaveClientPrompt, { type PendingClient } from "./components/SaveClientPrompt";
 
 export default function Orders() {
   const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
   const [isQuickSaleOpen, setIsQuickSaleOpen] = useState(false);
+  const [pendingClient, setPendingClient] = useState<PendingClient | null>(null);
   const {
     orders,
     loading,
@@ -31,9 +33,16 @@ export default function Orders() {
     handleCancelOrder,
   } = useOrders();
 
-  const onNewOrderSubmit = (order: any) => {
-    handleAddOrder(order);
+  const onNewOrderSubmit = async (order: any) => {
+    await handleAddOrder(order);
     setIsNewOrderOpen(false);
+    if (order?.clientName) {
+      setPendingClient({
+        name: order.clientName,
+        phone: order.clientPhone || "",
+        address: order.address || {},
+      });
+    }
   };
 
   return (
@@ -62,6 +71,8 @@ export default function Orders() {
           <NewOrderForm onSubmit={onNewOrderSubmit} />
         </DialogContent>
       </Dialog>
+
+      <SaveClientPrompt pending={pendingClient} onClose={() => setPendingClient(null)} />
 
       <QuickSaleDialog
         isOpen={isQuickSaleOpen}
