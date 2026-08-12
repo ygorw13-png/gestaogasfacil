@@ -38,6 +38,11 @@ export function usePromissoryNotes() {
     }
     // Buscar telefones dos clientes para contato via WhatsApp
     const { data: clientRows } = await supabase.from("clients").select("id, name, phone");
+    // Agregados possuem menu próprio de acerto: não entram na gestão de promissórias
+    const { data: resellerRows } = await supabase.from("resellers").select("name");
+    const resellerNames = new Set(
+      (resellerRows || []).map((r: any) => (r.name || "").toLowerCase().trim())
+    );
     const byId = new Map<string, string>();
     const byName = new Map<string, string>();
     (clientRows || []).forEach((c: any) => {
@@ -49,7 +54,11 @@ export function usePromissoryNotes() {
 
     // Marcar atrasadas no client-side
     const today = new Date();
-    const list = (data || []).map(mapRow).map((n) => {
+    const isExcluded = (name: string) => {
+      const n = (name || "").toLowerCase().trim();
+      return !n || n.includes("avulso") || n.includes("avulsa") || resellerNames.has(n);
+    };
+    const list = (data || []).map(mapRow).filter((n) => !isExcluded(n.clientName)).map((n) => {
       const phone =
         (n.clientId ? byId.get(n.clientId) : undefined) ??
         byName.get(n.clientName.toLowerCase().trim());
