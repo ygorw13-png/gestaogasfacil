@@ -7,11 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Car, FileText, Fuel } from "lucide-react";
 import NewFuelEntryForm from "./forms/NewFuelEntryForm";
 import { useToast } from "@/hooks/use-toast";
-import { mockFuelEntries } from "../data";
+import { useFleet } from "../context/FleetContext";
 
 export default function FuelTracking() {
   const [open, setOpen] = useState(false);
-  const [fuelEntries, setFuelEntries] = useState(mockFuelEntries);
+  const { fuelEntries, refreshVehicles } = useFleet();
   const { toast } = useToast();
 
   const formatDate = (dateString) => {
@@ -51,6 +51,7 @@ export default function FuelTracking() {
               <NewFuelEntryForm 
                 onSuccess={() => {
                   setOpen(false);
+                  refreshVehicles();
                   toast({
                     title: "Abastecimento registrado",
                     description: "O abastecimento foi registrado com sucesso."
@@ -85,9 +86,9 @@ export default function FuelTracking() {
                   </div>
                 </TableCell>
                 <TableCell>{formatDate(entry.date)}</TableCell>
-                <TableCell>{entry.mileage} km</TableCell>
+                <TableCell>{entry.mileage ? `${entry.mileage} km` : "-"}</TableCell>
                 <TableCell>{entry.fuelType}</TableCell>
-                <TableCell>{entry.liters.toFixed(2)} L</TableCell>
+                <TableCell>{entry.liters ? `${entry.liters.toFixed(2)} L` : "-"}</TableCell>
                 <TableCell>R$ {entry.cost.toFixed(2)}</TableCell>
                 <TableCell>{calculateEfficiency(entry)}</TableCell>
                 <TableCell className="text-right">
