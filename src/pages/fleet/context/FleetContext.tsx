@@ -50,16 +50,42 @@ export const FleetProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [v, m, e, f, a] = await Promise.all([
+    const [v, m, e, f, a, d] = await Promise.all([
       supabase.from("vehicles").select("*").order("created_at", { ascending: false }),
       supabase.from("vehicle_maintenances").select("*").order("date", { ascending: false }),
       supabase.from("vehicle_expenses").select("*").order("date", { ascending: false }),
       supabase.from("vehicle_fuels").select("*").order("date", { ascending: false }),
       supabase.from("vehicle_assignments").select("*").order("start_date", { ascending: false }),
+      supabase.from("despesas" as any).select("*").order("data", { ascending: false }),
     ]);
     const vMap = new Map<string, string>();
     (v.data || []).forEach((r: any) => vMap.set(r.id, r.plate));
     setVehicles((v.data || []).map(mapVehicle));
+
+    // Despesas lançadas em outros módulos (ex: portaria) também entram na frota
+    const despesas = (d.data || []) as any[];
+    const despesaPlaca = (r: any) => r.veiculo_placa || vMap.get(r.veiculo_id) || "—";
+    const despesasFrota: VehicleExpense[] = despesas.map((r: any) => ({
+      id: `despesa-${r.id}`,
+      vehiclePlate: despesaPlaca(r),
+      date: r.data,
+      description: r.descricao || "",
+      type: r.tipo === "combustivel" ? "fuel" : r.tipo === "manutencao" ? "maintenance" : "other",
+      amount: Number(r.valor) || 0,
+      notes: r.observacoes || undefined,
+    }));
+    const despesasCombustivel: FuelEntry[] = despesas
+      .filter((r: any) => r.tipo === "combustivel")
+      .map((r: any) => ({
+        id: `despesa-${r.id}`,
+        vehiclePlate: despesaPlaca(r),
+        date: r.data,
+        mileage: 0,
+        fuelType: r.categoria || "combustível",
+        liters: 0,
+        cost: Number(r.valor) || 0,
+        notes: r.descricao || undefined,
+      }));
     setMaintenances(
       (m.data || []).map((r: any) => ({
         id: r.id,
