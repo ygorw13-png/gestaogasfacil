@@ -9,6 +9,8 @@ import { NewClientDialog } from "./components/NewClientDialog";
 import { CylinderDialog } from "./components/CylinderDialog";
 import { ClientsAlertDialog } from "./components/AlertDialog";
 import { ClientDetailDialog } from "./components/client-details/ClientDetailDialog";
+import { EditClientDialog } from "./components/EditClientDialog";
+import { useState } from "react";
 
 export default function Clients() {
   const {
@@ -34,6 +36,8 @@ export default function Clients() {
     handleGenerateReport,
     handleViewClientDetails
   } = useClients();
+
+  const [editClient, setEditClient] = useState<any>(null);
 
   return (
     <div className="space-y-6">
@@ -64,6 +68,7 @@ export default function Clients() {
             }}
             onReturnCylinders={handleReturnCylinders}
             onViewClientDetails={handleViewClientDetails}
+            onEditClient={(c) => setEditClient(c)}
           />
         </TabsContent>
         
@@ -75,6 +80,13 @@ export default function Clients() {
           />
         </TabsContent>
       </Tabs>
+
+      <EditClientDialog
+        open={!!editClient}
+        onOpenChange={(o) => !o && setEditClient(null)}
+        client={editClient}
+        onSaved={handleAddNewClient}
+      />
 
       <NewClientDialog 
         open={isNewClientDialogOpen} 

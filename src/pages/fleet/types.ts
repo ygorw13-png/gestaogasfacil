@@ -50,7 +50,7 @@ export interface Vehicle {
   plate: string;
   model: string;
   year: number;
-  type: "car" | "truck" | "van";
+  type: "car" | "truck" | "van" | "moto";
   status: "active" | "maintenance" | "inactive";
   mileage: number;
   lastMaintenance?: string;

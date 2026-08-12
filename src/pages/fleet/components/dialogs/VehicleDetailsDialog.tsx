@@ -31,6 +31,8 @@ export default function VehicleDetailsDialog({ vehicle }: VehicleDetailsDialogPr
         return "Caminhão";
       case "van":
         return "Van";
+      case "moto":
+        return "Moto";
       default:
         return "Desconhecido";
     }

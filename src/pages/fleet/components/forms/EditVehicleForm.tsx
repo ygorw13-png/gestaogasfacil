@@ -14,7 +14,7 @@ const vehicleSchema = z.object({
   plate: z.string().min(7, "A placa deve ter no mínimo 7 caracteres").max(8, "A placa deve ter no máximo 8 caracteres"),
   model: z.string().min(2, "O modelo deve ter no mínimo 2 caracteres"),
   year: z.coerce.number().min(1950, "O ano deve ser maior que 1950").max(new Date().getFullYear() + 1, "O ano não pode ser no futuro"),
-  type: z.enum(["car", "truck", "van"]),
+  type: z.enum(["car", "truck", "van", "moto"]),
   mileage: z.coerce.number().min(0, "A quilometragem não pode ser negativa"),
   status: z.enum(["active", "maintenance", "inactive"]),
   lastMaintenance: z.string().nullable(),
@@ -123,6 +123,7 @@ export default function EditVehicleForm({ vehicle, onSuccess }: EditVehicleFormP
                     <SelectItem value="car">Carro</SelectItem>
                     <SelectItem value="truck">Caminhão</SelectItem>
                     <SelectItem value="van">Van</SelectItem>
+                    <SelectItem value="moto">Moto</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

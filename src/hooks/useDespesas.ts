@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-export type OrigemDinheiro = "caixa_portaria" | "cofre" | "banco" | "pessoal";
+export type OrigemDinheiro = "caixa_portaria" | "cofre" | "banco" | "pessoal" | "promissoria_estabelecimento";
 export type TipoDespesa = "combustivel" | "manutencao" | "diversa" | "fixa";
 
 export const ORIGEM_DINHEIRO_LABELS: Record<OrigemDinheiro, string> = {
@@ -10,6 +10,7 @@ export const ORIGEM_DINHEIRO_LABELS: Record<OrigemDinheiro, string> = {
   cofre: "Cofre / Caixa da Empresa",
   banco: "Conta Bancária / PIX da Empresa",
   pessoal: "Pessoal (a reembolsar)",
+  promissoria_estabelecimento: "Nota promissória no Estabelecimento",
 };
 
 export interface DespesaInput {

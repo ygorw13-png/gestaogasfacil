@@ -16,6 +16,7 @@ const origemBadgeVariant: Record<OrigemDinheiro, "default" | "secondary" | "outl
   cofre: "secondary",
   banco: "default",
   pessoal: "outline",
+  promissoria_estabelecimento: "secondary",
 };
 
 export default function FuelExpenses({ dateRange }: Props) {

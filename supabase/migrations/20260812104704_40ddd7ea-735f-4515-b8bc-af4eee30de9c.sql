@@ -1,0 +1,2 @@
+ALTER TABLE public.despesas DROP CONSTRAINT IF EXISTS despesas_origem_dinheiro_check;
+ALTER TABLE public.despesas ADD CONSTRAINT despesas_origem_dinheiro_check CHECK (origem_dinheiro = ANY (ARRAY['caixa_portaria'::text, 'cofre'::text, 'banco'::text, 'pessoal'::text, 'promissoria_estabelecimento'::text]));
