@@ -1553,6 +1553,57 @@ export type Database = {
         }
         Relationships: []
       }
+      trocas_cheque: {
+        Row: {
+          created_at: string
+          criado_por: string | null
+          criado_por_nome: string | null
+          data: string
+          descricao: string | null
+          id: string
+          itens: Json
+          observacoes: string | null
+          organization_id: string
+          taxa_juros_mensal: number
+          total_juros: number
+          total_liquido: number
+          total_valor: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criado_por?: string | null
+          criado_por_nome?: string | null
+          data?: string
+          descricao?: string | null
+          id?: string
+          itens?: Json
+          observacoes?: string | null
+          organization_id?: string
+          taxa_juros_mensal?: number
+          total_juros?: number
+          total_liquido?: number
+          total_valor?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string | null
+          criado_por_nome?: string | null
+          data?: string
+          descricao?: string | null
+          id?: string
+          itens?: Json
+          observacoes?: string | null
+          organization_id?: string
+          taxa_juros_mensal?: number
+          total_juros?: number
+          total_liquido?: number
+          total_valor?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
