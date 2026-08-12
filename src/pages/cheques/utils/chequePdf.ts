@@ -30,9 +30,7 @@ export function gerarPdfTrocaCheques({
   doc.text("Troca de Cheques", w / 2, 16, { align: "center" });
   doc.setFontSize(9);
   doc.text(
-    `Data: ${dataBR(data)}    Taxa de juros: ${taxa.toString().replace(".", ",")}% ao mês${
-      descricao ? `    Ref.: ${descricao}` : ""
-    }`,
+    `Data: ${dataBR(data)}${descricao ? `    Ref.: ${descricao}` : ""}`,
     w / 2,
     22,
     { align: "center" }
