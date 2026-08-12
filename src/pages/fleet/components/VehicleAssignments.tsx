@@ -11,18 +11,14 @@ import { useFleet } from "../context/FleetContext";
 
 export default function VehicleAssignments() {
   const [open, setOpen] = useState(false);
-  const { assignments } = useFleet();
+  const { assignments, endAssignment } = useFleet();
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleDelete = (id) => {
-    if (confirm("Tem certeza que deseja excluir esta atribuição?")) {
-      setAssignments(assignments.filter(assignment => assignment.id !== id));
-      toast({
-        title: "Atribuição removida",
-        description: "A atribuição foi removida com sucesso.",
-      });
+  const handleDelete = async (id) => {
+    if (confirm("Tem certeza que deseja encerrar esta atribuição?")) {
+      await endAssignment(id);
     }
   };
 
