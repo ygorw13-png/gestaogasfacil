@@ -192,6 +192,12 @@ function App() {
                     <Comissoes />
                   </Suspense>
                 } />
+                <Route path="/finance/cheques" element={
+                  <Suspense fallback={<LoadingComponent />}>
+                    <TrocaCheques />
+                  </Suspense>
+                } />
+
                 <Route path="/settings" element={
                   <Suspense fallback={<LoadingComponent />}>
                     <Settings />
