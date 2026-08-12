@@ -13,7 +13,7 @@ import { useRegistrarDespesa, type OrigemDinheiro } from "@/hooks/useDespesas";
 const schema = z.object({
   vehicleId: z.string().min(1, "Selecione um veículo"),
   valor: z.coerce.number().positive("Informe o valor do abastecimento"),
-  origem_dinheiro: z.enum(["caixa_portaria", "cofre", "banco", "pessoal"]),
+  origem_dinheiro: z.enum(["caixa_portaria", "cofre", "banco", "pessoal", "promissoria_estabelecimento"]),
   data: z.string().min(1, "Informe a data"),
   observacoes: z.string().optional(),
 });

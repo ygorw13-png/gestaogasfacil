@@ -15,7 +15,7 @@ const schema = z.object({
   category: z.string().min(1, "Categoria obrigatória"),
   amount: z.coerce.number().positive("Valor inválido"),
   data: z.string().min(1),
-  origem_dinheiro: z.enum(["caixa_portaria", "cofre", "banco", "pessoal"]),
+  origem_dinheiro: z.enum(["caixa_portaria", "cofre", "banco", "pessoal", "promissoria_estabelecimento"]),
   notes: z.string().optional(),
 });
 
