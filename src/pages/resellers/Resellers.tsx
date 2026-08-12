@@ -13,7 +13,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ResellersList } from "./components/ResellersList";
 import { NewResellerForm } from "./components/NewResellerForm";
 import { ContaAgregadosTab } from "./components/ContaAgregadosTab";
-import { ResellersSalesHistory } from "./components/ResellersSalesHistory";
 import { Reseller } from "./types";
 import { ResellerDetailsDialog } from "./components/ResellerDetailsDialog";
 import { useResellers } from "./hooks/useResellers";
@@ -75,7 +74,6 @@ export default function Resellers() {
         <TabsList>
           <TabsTrigger value="list">Agregados</TabsTrigger>
           <TabsTrigger value="conta">Conta / Acerto</TabsTrigger>
-          <TabsTrigger value="sales">Histórico de Vendas</TabsTrigger>
         </TabsList>
         <TabsContent value="list" className="mt-0">
           <Card>
@@ -107,16 +105,6 @@ export default function Resellers() {
             </CardHeader>
             <CardContent>
               <ContaAgregadosTab />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="sales" className="mt-0">
-          <Card>
-            <CardHeader>
-              <CardTitle>Histórico de Vendas para Agregados</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResellersSalesHistory canViewPrices={canManageResellers} />
             </CardContent>
           </Card>
         </TabsContent>
