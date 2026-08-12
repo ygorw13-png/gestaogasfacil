@@ -77,7 +77,7 @@ function useVinculos() {
       const { data, error } = await supabase
         .from("vehicle_assignments")
         .select("vehicle_id, driver_name, status")
-        .eq("status", "active");
+        .eq("status", "ativo");
       if (error) throw error;
       return (data ?? []) as any[];
     },
