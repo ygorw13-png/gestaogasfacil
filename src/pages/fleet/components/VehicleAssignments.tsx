@@ -7,11 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, User, Edit, Trash2, Car } from "lucide-react";
 import NewAssignmentForm from "./forms/NewAssignmentForm";
 import { useToast } from "@/hooks/use-toast";
-import { mockAssignments } from "../data";
+import { useFleet } from "../context/FleetContext";
 
 export default function VehicleAssignments() {
   const [open, setOpen] = useState(false);
-  const [assignments, setAssignments] = useState(mockAssignments);
+  const { assignments } = useFleet();
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
