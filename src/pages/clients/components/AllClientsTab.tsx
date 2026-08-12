@@ -7,13 +7,15 @@ interface AllClientsTabProps {
   onAddCylinders: (client: Client) => void;
   onReturnCylinders: (clientId: string) => void;
   onViewClientDetails: (client: Client) => void;
+  onEditClient?: (client: Client) => void;
 }
 
 export function AllClientsTab({
   filteredClients,
   onAddCylinders,
   onReturnCylinders,
-  onViewClientDetails
+  onViewClientDetails,
+  onEditClient
 }: AllClientsTabProps) {
   return (
     <ClientsList
@@ -24,6 +26,7 @@ export function AllClientsTab({
       onAddCylinders={onAddCylinders}
       onReturnCylinders={onReturnCylinders}
       onViewClientDetails={onViewClientDetails}
+      onEditClient={onEditClient}
     />
   );
 }

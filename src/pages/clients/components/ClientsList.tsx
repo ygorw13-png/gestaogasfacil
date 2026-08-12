@@ -16,6 +16,7 @@ interface ClientsListProps {
   onAddCylinders?: (client: Client) => void;
   onReturnCylinders: (clientId: string) => void;
   onViewClientDetails: (client: Client) => void;
+  onEditClient?: (client: Client) => void;
 }
 
 export function ClientsList({
@@ -25,7 +26,8 @@ export function ClientsList({
   showAddButton = false,
   onAddCylinders,
   onReturnCylinders,
-  onViewClientDetails
+  onViewClientDetails,
+  onEditClient
 }: ClientsListProps) {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
@@ -168,6 +170,18 @@ export function ClientsList({
                         >
                           Devolver
                         </Button>
+                        {onEditClient && (
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditClient(client);
+                            }}
+                            variant="ghost"
+                            size="sm"
+                          >
+                            Editar
+                          </Button>
+                        )}
                       </div>
                     ) : (
                       <Button 
