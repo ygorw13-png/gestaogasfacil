@@ -85,6 +85,10 @@ export function useRecompraInsights() {
       byClient.get(key)!.push(o);
     }
 
+    // Só contabiliza clientes com histórico relevante (3+ compras),
+    // para a média de tempo entre compras não ficar distorcida.
+    const MIN_COMPRAS = 3;
+
     return clientes.map(c => {
       const key = (c.phone || c.name || "").toLowerCase().trim();
       const list = (byClient.get(key) || []).sort((a, b) =>
@@ -140,7 +144,7 @@ export function useRecompraInsights() {
         data_nascimento: c.data_nascimento,
         ultimo_pedido: ultimoPedido,
       };
-    }).sort((a, b) => {
+    }).filter(i => i.total_compras >= MIN_COMPRAS).sort((a, b) => {
       const order = { atrasado: 0, hora_comprar: 1, em_dia: 2, novo: 3 };
       return order[a.status] - order[b.status];
     });
