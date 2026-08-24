@@ -138,7 +138,9 @@ export function useRegistrarMovimentacao() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["saldo_portaria"] });
       qc.invalidateQueries({ queryKey: ["movimentacoes_portaria"] });
+      qc.invalidateQueries({ queryKey: ["estoque_geral"] });
     },
+
     onError: (err: any) => {
       toast({
         title: "Erro ao registrar movimentação",
