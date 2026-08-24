@@ -38,9 +38,9 @@ const initialState: SaleFormState = {
   selectedClient: null,
   selectedReseller: null,
   paymentMethod: "",
-  product: "",
+  product: "p13",
   quantity: 1,
-  unitPrice: 120,
+  unitPrice: 0,
   loanGas: false,
   cylinderMovement: 'none',
   movementQuantity: 1
