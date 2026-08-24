@@ -29,7 +29,7 @@ export function QuickClientDialog({ open, onOpenChange, onCreated }: Props) {
   const [phone, setPhone] = useState("");
   const [street, setStreet] = useState("");
   const [number, setNumber] = useState("");
-  const [neighborhood, setNeighborhood] = useState("");
+  const [complement, setComplement] = useState("");
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
@@ -37,7 +37,7 @@ export function QuickClientDialog({ open, onOpenChange, onCreated }: Props) {
     setPhone("");
     setStreet("");
     setNumber("");
-    setNeighborhood("");
+    setComplement("");
   };
 
   const handleSave = async () => {
@@ -74,7 +74,7 @@ export function QuickClientDialog({ open, onOpenChange, onCreated }: Props) {
         .insert({
           name: nome,
           phone: digits || null,
-          address: { street, number, neighborhood },
+          address: { street, number, complement },
         } as any)
         .select("id, name, phone")
         .single();
