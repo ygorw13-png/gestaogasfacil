@@ -138,11 +138,12 @@ export function QuickClientDialog({ open, onOpenChange, onCreated }: Props) {
             </div>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="qc-bairro">Bairro / Povoado</Label>
+            <Label htmlFor="qc-complemento">Complemento</Label>
             <Input
-              id="qc-bairro"
-              value={neighborhood}
-              onChange={(e) => setNeighborhood(e.target.value)}
+              id="qc-complemento"
+              value={complement}
+              onChange={(e) => setComplement(e.target.value)}
+              placeholder="Apto, bloco, ponto de referência"
             />
           </div>
         </div>
