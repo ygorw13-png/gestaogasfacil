@@ -1,8 +1,9 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, Plus, Truck, Zap } from "lucide-react";
+import { CalendarDays, Package, Plus, Truck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +32,14 @@ export default function Orders() {
     handleStartDelivery,
     handleCompleteOrder,
     handleCancelOrder,
+    dateFrom,
+    dateTo,
+    setDateFrom,
+    setDateTo,
+    isToday,
+    resetToToday,
   } = useOrders();
+
 
   const onNewOrderSubmit = async (order: any) => {
     await handleAddOrder(order);
@@ -61,7 +69,38 @@ export default function Orders() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border bg-card p-3">
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">De</label>
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="h-9 w-[160px]"
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Até</label>
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="h-9 w-[160px]"
+          />
+        </div>
+        <Button variant="outline" size="sm" onClick={resetToToday} disabled={isToday}>
+          <CalendarDays className="mr-2 h-4 w-4" />
+          Hoje
+        </Button>
+        <span className="text-xs text-muted-foreground">
+          {isToday
+            ? "Mostrando apenas os pedidos de hoje"
+            : "Filtro de período ativo (dias anteriores)"}
+        </span>
+      </div>
+
       <PendingAlert orders={orders} />
+
 
       <Dialog open={isNewOrderOpen} onOpenChange={setIsNewOrderOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
