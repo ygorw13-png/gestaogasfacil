@@ -21,6 +21,7 @@ import { StockData, defaultStockData } from "./components/stock/StockData";
 import { InventoryTableSkeleton } from "./components/InventoryTableSkeleton";
 import { exportToCsv } from "@/utils/csvExport";
 import { CorrigirEstoqueGeralDialog } from "./components/CorrigirEstoqueGeralDialog";
+import { EstoqueGeralPanel } from "./components/estoque/EstoqueGeralPanel";
 import { DailyAdjustmentsStrip, type AdjustmentItem } from "@/components/stock/DailyAdjustmentsStrip";
 import { getDailyAdjustments } from "@/lib/dailyAdjustLog";
 
@@ -134,48 +135,8 @@ const Inventory = () => {
 
               <TabsContent value="overview" className="mt-4">
                 <Card className="p-4">
-                  <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-                    <h2 className="text-xl font-semibold">Estoque Atual</h2>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setFixOpen(true)}
-                        disabled={loading}
-                      >
-                        <Wrench className="h-4 w-4 mr-2" />
-                        Corrigir estoque
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleExportStock}
-                        disabled={loading}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Exportar CSV
-                      </Button>
-                    </div>
-                  </div>
-
                   <DailyAdjustmentsStrip items={ajustes} className="mb-4" />
-
-                  {loading ? (
-                    <InventoryTableSkeleton rows={4} columns={5} />
-                  ) : (
-                    <>
-                      <InventoryItemTable
-                        currentStock={currentStock}
-                        minStock={minStock}
-                      />
-                      <div className="mt-6">
-                        <StockUpdateForm
-                          currentStock={currentStock}
-                          onUpdateStock={handleUpdateStock}
-                        />
-                      </div>
-                    </>
-                  )}
+                  <EstoqueGeralPanel minStock={minStock} />
                 </Card>
               </TabsContent>
 
