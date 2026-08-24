@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, Search } from "lucide-react";
+import { Check, Search, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { QuickClientDialog } from "./QuickClientDialog";
 
 export interface SaleFormClient {
   id: string;
@@ -27,6 +29,8 @@ export function ClientSelection({
   loading = false,
 }: ClientSelectionProps) {
   const [search, setSearch] = useState("");
+  const [quickOpen, setQuickOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -38,7 +42,29 @@ export function ClientSelection({
 
   return (
     <div className="space-y-2">
-      <Label>Cliente</Label>
+      <div className="flex items-center justify-between">
+        <Label>Cliente</Label>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-7"
+          onClick={() => setQuickOpen(true)}
+        >
+          <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+          Cadastro rápido
+        </Button>
+      </div>
+
+      <QuickClientDialog
+        open={quickOpen}
+        onOpenChange={setQuickOpen}
+        onCreated={(client) => {
+          queryClient.invalidateQueries({ queryKey: ["sale_clients"] });
+          onSelectClient(client);
+          setSearch("");
+        }}
+      />
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -49,6 +75,7 @@ export function ClientSelection({
           className="pl-9"
         />
       </div>
+
 
       <div className="rounded-md border">
         <Button
