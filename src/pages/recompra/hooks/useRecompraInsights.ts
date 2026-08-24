@@ -144,7 +144,7 @@ export function useRecompraInsights() {
         data_nascimento: c.data_nascimento,
         ultimo_pedido: ultimoPedido,
       };
-    }).sort((a, b) => {
+    }).filter(i => i.total_compras >= MIN_COMPRAS).sort((a, b) => {
       const order = { atrasado: 0, hora_comprar: 1, em_dia: 2, novo: 3 };
       return order[a.status] - order[b.status];
     });
