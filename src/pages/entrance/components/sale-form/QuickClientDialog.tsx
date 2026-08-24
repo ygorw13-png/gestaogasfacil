@@ -29,7 +29,7 @@ export function QuickClientDialog({ open, onOpenChange, onCreated }: Props) {
   const [phone, setPhone] = useState("");
   const [street, setStreet] = useState("");
   const [number, setNumber] = useState("");
-  const [neighborhood, setNeighborhood] = useState("");
+  const [complement, setComplement] = useState("");
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
@@ -37,7 +37,7 @@ export function QuickClientDialog({ open, onOpenChange, onCreated }: Props) {
     setPhone("");
     setStreet("");
     setNumber("");
-    setNeighborhood("");
+    setComplement("");
   };
 
   const handleSave = async () => {
@@ -74,7 +74,7 @@ export function QuickClientDialog({ open, onOpenChange, onCreated }: Props) {
         .insert({
           name: nome,
           phone: digits || null,
-          address: { street, number, neighborhood },
+          address: { street, number, complement },
         } as any)
         .select("id, name, phone")
         .single();
@@ -138,11 +138,12 @@ export function QuickClientDialog({ open, onOpenChange, onCreated }: Props) {
             </div>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="qc-bairro">Bairro / Povoado</Label>
+            <Label htmlFor="qc-complemento">Complemento</Label>
             <Input
-              id="qc-bairro"
-              value={neighborhood}
-              onChange={(e) => setNeighborhood(e.target.value)}
+              id="qc-complemento"
+              value={complement}
+              onChange={(e) => setComplement(e.target.value)}
+              placeholder="Apto, bloco, ponto de referência"
             />
           </div>
         </div>
