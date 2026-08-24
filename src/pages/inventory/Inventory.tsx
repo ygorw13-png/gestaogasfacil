@@ -1,15 +1,9 @@
-
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { InventoryHeader } from "./components/stock/InventoryHeader";
-import { useStockData } from "./hooks/useStockData";
 import { useMinStockLevels } from "./hooks/useMinStockLevels";
-import { InventoryItemTable } from "./components/stock/InventoryItemTable";
-import { StockUpdateForm } from "./components/StockUpdateForm";
 import { StockAlert } from "./components/StockAlert";
 import { StockRequestsList } from "./components/StockRequestsList";
 import { StockRequest } from "./components/StockRequest";
@@ -17,56 +11,39 @@ import { CylinderControl } from "./components/CylinderControl";
 import { useAuth } from "@/contexts/auth";
 import { InventoryApp } from "./components/inventory";
 import { UserRole } from "@/types/userTypes";
-import { StockData, defaultStockData } from "./components/stock/StockData";
-import { InventoryTableSkeleton } from "./components/InventoryTableSkeleton";
-import { exportToCsv } from "@/utils/csvExport";
-import { CorrigirEstoqueGeralDialog } from "./components/CorrigirEstoqueGeralDialog";
 import { EstoqueGeralPanel } from "./components/estoque/EstoqueGeralPanel";
-import { DailyAdjustmentsStrip, type AdjustmentItem } from "@/components/stock/DailyAdjustmentsStrip";
-import { getDailyAdjustments } from "@/lib/dailyAdjustLog";
-
+import { useEstoqueGeral } from "./hooks/useEstoqueGeral";
 
 const Inventory = () => {
   const [showRequestForm, setShowRequestForm] = useState(false);
-  const [refreshCounter, setRefreshCounter] = useState(0);
-  const [fixOpen, setFixOpen] = useState(false);
-  const [ajustes, setAjustes] = useState<AdjustmentItem[]>([]);
+  const [, setRefreshCounter] = useState(0);
 
-  const refreshAjustes = React.useCallback(() => {
-    setAjustes(
-      getDailyAdjustments("estoque_geral").map((a) => ({
-        id: a.id,
-        at: a.at,
-        who: a.who,
-        label: `${a.produto}: ${a.de} → ${a.para}`,
-        motivo: a.motivo,
-      }))
-    );
-  }, []);
-
-  useEffect(() => {
-    refreshAjustes();
-  }, [refreshAjustes]);
-
-  
   // Get user role from auth context
   const { user } = useAuth();
   const userRole = user?.role as UserRole | undefined;
-  
-  // Get stock data and stock levels
-  const { currentStock, loading, fetchCurrentStock } = useStockData();
-  const { minStock, fetchMinStockLevels } = useMinStockLevels();
 
-  // Load data on component mount
+  const { minStock, fetchMinStockLevels } = useMinStockLevels();
+  const { linhas, isLoading } = useEstoqueGeral();
+
   useEffect(() => {
-    fetchCurrentStock();
     fetchMinStockLevels();
-  }, [fetchCurrentStock, fetchMinStockLevels]);
+  }, [fetchMinStockLevels]);
+
+  // Totais reais (pátio + portaria) para os alertas de estoque mínimo
+  const currentStock = useMemo(
+    () => ({
+      p13: linhas.find((l) => l.produto === "P13")?.total_cheios ?? 0,
+      p20: linhas.find((l) => l.produto === "P20")?.total_cheios ?? 0,
+      p45: linhas.find((l) => l.produto === "P45")?.total_cheios ?? 0,
+      water: linhas.find((l) => l.produto === "agua")?.total_cheios ?? 0,
+    }),
+    [linhas]
+  );
 
   // Toast notification when stock drops below minimum
   const notifiedRef = useRef(false);
   useEffect(() => {
-    if (loading || notifiedRef.current) return;
+    if (isLoading || notifiedRef.current) return;
     const low: string[] = [];
     if (currentStock.p13 < minStock.p13) low.push("GLP P13");
     if (currentStock.p20 < minStock.p20) low.push("GLP P20");
@@ -78,42 +55,19 @@ const Inventory = () => {
       });
       notifiedRef.current = true;
     }
-  }, [loading, currentStock, minStock]);
-
-  const handleExportStock = () => {
-    type StockRow = { product: string; stock: number; min: number };
-    exportToCsv<StockRow>(
-      `estoque-${new Date().toISOString().slice(0, 10)}`,
-      [
-        { header: "Produto", accessor: (r) => r.product },
-        { header: "Estoque Atual", accessor: (r) => r.stock },
-        { header: "Estoque Mínimo", accessor: (r) => r.min },
-      ],
-      [
-        { product: "GLP P13", stock: currentStock.p13, min: minStock.p13 },
-        { product: "GLP P20", stock: currentStock.p20, min: minStock.p20 },
-        { product: "GLP P45", stock: currentStock.p45, min: minStock.p45 },
-        { product: "Água 20L", stock: currentStock.water, min: minStock.water },
-      ]
-    );
-  };
-
-  const handleUpdateStock = async (newStock: StockData) => {
-    await fetchCurrentStock();
-    notifiedRef.current = false;
-  };
+  }, [isLoading, currentStock, minStock]);
 
   const handleRequestCreated = () => {
     setShowRequestForm(false);
-    setRefreshCounter(prev => prev + 1);
+    setRefreshCounter((prev) => prev + 1);
   };
 
   return (
     <div className="container mx-auto py-6">
       {showRequestForm ? (
-        <StockRequest 
-          onRequestCreated={handleRequestCreated} 
-          onCancel={() => setShowRequestForm(false)} 
+        <StockRequest
+          onRequestCreated={handleRequestCreated}
+          onCancel={() => setShowRequestForm(false)}
         />
       ) : (
         <>
@@ -123,7 +77,7 @@ const Inventory = () => {
           />
 
           <div className="mt-6">
-            {!loading && <StockAlert currentStock={currentStock} minStock={minStock} />}
+            {!isLoading && <StockAlert currentStock={currentStock} minStock={minStock} />}
 
             <Tabs defaultValue="overview" className="mt-6">
               <TabsList>
@@ -135,7 +89,6 @@ const Inventory = () => {
 
               <TabsContent value="overview" className="mt-4">
                 <Card className="p-4">
-                  <DailyAdjustmentsStrip items={ajustes} className="mb-4" />
                   <EstoqueGeralPanel minStock={minStock} />
                 </Card>
               </TabsContent>
@@ -155,18 +108,7 @@ const Inventory = () => {
           </div>
         </>
       )}
-
-      <CorrigirEstoqueGeralDialog
-        open={fixOpen}
-        onOpenChange={setFixOpen}
-        currentStock={currentStock}
-        onCorrected={() => {
-          refreshAjustes();
-          fetchCurrentStock();
-        }}
-      />
     </div>
-
   );
 };
 
