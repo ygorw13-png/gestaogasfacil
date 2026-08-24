@@ -278,6 +278,8 @@ export const tipoLabel = (t: MovimentacaoTipo): string => {
     devolucao_vasilhame: "Devolução de vasilhame",
     fechamento: "Fechamento",
     ajuste: "Ajuste manual",
+    entrada_patio: "Entrada no pátio",
+    ajuste_patio: "Ajuste do pátio",
   };
   return map[t];
 };
