@@ -124,6 +124,16 @@ export function useOrders() {
     orders,
     loading: loading || orderMutations.loading,
     fetchOrders,
+    dateFrom,
+    dateTo,
+    setDateFrom,
+    setDateTo,
+    isToday: dateFrom === today && dateTo === today,
+    resetToToday: () => {
+      setDateFrom(today);
+      setDateTo(today);
+    },
+
     ...orderMutations
   };
 }
