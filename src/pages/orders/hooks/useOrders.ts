@@ -5,11 +5,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrderMutations } from "./useOrderMutations";
 
+const toLocalISODate = (d: Date) => {
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
+};
+
 export function useOrders() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const today = toLocalISODate(new Date());
+  const [dateFrom, setDateFrom] = useState(today);
+  const [dateTo, setDateTo] = useState(today);
 
   const orderMutations = useOrderMutations(orders, setOrders);
 
@@ -17,22 +25,24 @@ export function useOrders() {
     if (user) {
       fetchOrders();
     }
-  }, [user]);
+  }, [user, dateFrom, dateTo]);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const inicioDoDia = new Date();
-      inicioDoDia.setHours(0, 0, 0, 0);
+      const inicio = new Date(`${dateFrom}T00:00:00`);
+      const fim = new Date(`${dateTo}T23:59:59.999`);
 
       const { data, error } = await supabase
         .from('orders')
         .select('*')
         // Vendas avulsas (balcão da portaria / venda na rua) não entram na gestão de pedidos
         .or('origem_venda.is.null,origem_venda.not.in.(portaria,venda_rua,balcao),delivery_person.not.is.null')
-        // Somente pedidos do dia ou pedidos ainda em aberto (pendentes/em rota)
-        .or(`created_at.gte.${inicioDoDia.toISOString()},status.not.in.(delivered,cancelled)`)
+        // Somente pedidos dentro do período selecionado (padrão: hoje)
+        .gte('created_at', inicio.toISOString())
+        .lte('created_at', fim.toISOString())
         .order('created_at', { ascending: false });
+
 
 
 
