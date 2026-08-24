@@ -12,7 +12,10 @@ export type MovimentacaoTipo =
   | "venda_comodato"
   | "devolucao_vasilhame"
   | "fechamento"
+  | "entrada_patio"
+  | "ajuste_patio"
   | "ajuste";
+
 
 export interface SaldoPortaria {
   produto: PortariaProduto;
