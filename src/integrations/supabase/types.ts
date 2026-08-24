@@ -1882,6 +1882,15 @@ export type Database = {
       }
     }
     Views: {
+      saldo_patio: {
+        Row: {
+          cheios: number | null
+          organization_id: string | null
+          produto: string | null
+          vazios: number | null
+        }
+        Relationships: []
+      }
       saldo_portaria_atual: {
         Row: {
           cheios: number | null

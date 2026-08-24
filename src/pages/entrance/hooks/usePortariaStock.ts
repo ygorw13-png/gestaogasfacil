@@ -12,7 +12,10 @@ export type MovimentacaoTipo =
   | "venda_comodato"
   | "devolucao_vasilhame"
   | "fechamento"
+  | "entrada_patio"
+  | "ajuste_patio"
   | "ajuste";
+
 
 export interface SaldoPortaria {
   produto: PortariaProduto;
@@ -138,7 +141,9 @@ export function useRegistrarMovimentacao() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["saldo_portaria"] });
       qc.invalidateQueries({ queryKey: ["movimentacoes_portaria"] });
+      qc.invalidateQueries({ queryKey: ["estoque_geral"] });
     },
+
     onError: (err: any) => {
       toast({
         title: "Erro ao registrar movimentação",
@@ -273,6 +278,8 @@ export const tipoLabel = (t: MovimentacaoTipo): string => {
     devolucao_vasilhame: "Devolução de vasilhame",
     fechamento: "Fechamento",
     ajuste: "Ajuste manual",
+    entrada_patio: "Entrada no pátio",
+    ajuste_patio: "Ajuste do pátio",
   };
   return map[t];
 };
