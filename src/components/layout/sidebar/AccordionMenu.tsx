@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 import { LucideIcon } from "lucide-react";
+import { SHORTCUT_BY_PATH } from "@/lib/shortcuts";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface AccordionMenuItemProps {
@@ -14,6 +15,7 @@ interface AccordionMenuItemProps {
 }
 
 const AccordionMenuItem = ({ to, label, isEnd = false, badge }: AccordionMenuItemProps) => {
+  const shortcut = SHORTCUT_BY_PATH[to];
   return (
     <NavLink
       to={to}
@@ -25,7 +27,12 @@ const AccordionMenuItem = ({ to, label, isEnd = false, badge }: AccordionMenuIte
       }
       end={isEnd}
     >
-      <span>{label}</span>
+      <span className="flex items-center gap-2">
+        {label}
+        {shortcut && (
+          <span className="text-[10px] leading-none text-muted-foreground/70">{shortcut}</span>
+        )}
+      </span>
       {!!badge && badge > 0 && (
         <span className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-semibold leading-none text-destructive-foreground">
           {badge}

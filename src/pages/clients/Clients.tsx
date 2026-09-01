@@ -10,7 +10,8 @@ import { CylinderDialog } from "./components/CylinderDialog";
 import { ClientsAlertDialog } from "./components/AlertDialog";
 import { ClientDetailDialog } from "./components/client-details/ClientDetailDialog";
 import { EditClientDialog } from "./components/EditClientDialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 export default function Clients() {
   const {
@@ -38,6 +39,16 @@ export default function Clients() {
   } = useClients();
 
   const [editClient, setEditClient] = useState<any>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Atalho F4: /clients?new=1 abre o cadastro de cliente
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setIsNewClientDialogOpen(true);
+      searchParams.delete("new");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, setIsNewClientDialogOpen]);
 
   return (
     <div className="space-y-6">
