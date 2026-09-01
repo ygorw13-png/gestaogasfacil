@@ -8,6 +8,7 @@ import { NotificationSettings } from "./components/NotificationSettings";
 import { FinanceSettings } from "./components/FinanceSettings";
 import { DeliverySettings } from "./components/DeliverySettings";
 import { SecuritySettings } from "./components/SecuritySettings";
+import { PrinterSettings } from "./components/PrinterSettings";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("usuarios");
@@ -21,15 +22,18 @@ export default function Settings() {
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
+
           <TabsTrigger value="usuarios">Usuários</TabsTrigger>
           <TabsTrigger value="estoque">Estoque</TabsTrigger>
           <TabsTrigger value="sistema">Sistema</TabsTrigger>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
           <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
           <TabsTrigger value="entregas">Entregas</TabsTrigger>
+          <TabsTrigger value="impressora">Impressora</TabsTrigger>
           <TabsTrigger value="seguranca">Segurança</TabsTrigger>
         </TabsList>
+
         
         <TabsContent value="usuarios" className="mt-4">
           <UserManagement />
@@ -54,6 +58,11 @@ export default function Settings() {
         <TabsContent value="entregas" className="mt-4">
           <DeliverySettings />
         </TabsContent>
+
+        <TabsContent value="impressora" className="mt-4">
+          <PrinterSettings />
+        </TabsContent>
+
 
         <TabsContent value="seguranca" className="mt-4">
           <SecuritySettings />

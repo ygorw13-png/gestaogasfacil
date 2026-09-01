@@ -1,19 +1,20 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Wrench } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DateRange } from "react-day-picker";
 import NewMaintenanceExpenseForm from "./forms/NewMaintenanceExpenseForm";
+import { useDespesas, ORIGEM_DINHEIRO_LABELS, type OrigemDinheiro } from "@/hooks/useDespesas";
 
 interface MaintenanceExpensesProps {
-  dateRange?: DateRange;
+  range?: { from?: string; to?: string };
 }
 
-export default function MaintenanceExpenses({ dateRange }: MaintenanceExpensesProps) {
+export default function MaintenanceExpenses({ range }: MaintenanceExpensesProps) {
   const [open, setOpen] = useState(false);
+  const { data: despesas = [], isLoading } = useDespesas("manutencao", range);
 
   return (
     <Card>
@@ -48,14 +49,32 @@ export default function MaintenanceExpenses({ dateRange }: MaintenanceExpensesPr
               <TableHead>Data</TableHead>
               <TableHead>Veículo</TableHead>
               <TableHead>Descrição</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Prestador</TableHead>
+              <TableHead>Categoria</TableHead>
               <TableHead>Valor</TableHead>
-              <TableHead>Nota/Comprovante</TableHead>
+              <TableHead>Origem do $</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {/* Dados serão preenchidos aqui */}
+            {isLoading ? (
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">Carregando...</TableCell></TableRow>
+            ) : despesas.length === 0 ? (
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma manutenção no período</TableCell></TableRow>
+            ) : (
+              despesas.map((d: any) => (
+                <TableRow key={d.id}>
+                  <TableCell>{new Date(`${d.data}T00:00:00`).toLocaleDateString("pt-BR")}</TableCell>
+                  <TableCell>{d.veiculo_placa ?? "-"}</TableCell>
+                  <TableCell className="font-medium">{d.descricao}</TableCell>
+                  <TableCell>{d.categoria ?? "-"}</TableCell>
+                  <TableCell className="font-semibold">R$ {Number(d.valor).toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {ORIGEM_DINHEIRO_LABELS[d.origem_dinheiro as OrigemDinheiro]?.split(" (")[0] ?? "-"}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </CardContent>

@@ -18,6 +18,8 @@ import PendingAlert from "./components/PendingAlert";
 import QuickSaleDialog from "./components/QuickSaleDialog";
 import { useOrders } from "./hooks/useOrders";
 import SaveClientPrompt, { type PendingClient } from "./components/SaveClientPrompt";
+import { printReceipt } from "@/lib/receiptPrint";
+import { readPrinterSettings } from "@/hooks/usePrinterSettings";
 
 export default function Orders() {
   const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
@@ -44,6 +46,21 @@ export default function Orders() {
   const onNewOrderSubmit = async (order: any) => {
     await handleAddOrder(order);
     setIsNewOrderOpen(false);
+    const printer = readPrinterSettings();
+    if (printer.enabled && printer.autoPrint) {
+      printReceipt({
+        id: order?.id,
+        clientName: order?.clientName,
+        clientPhone: order?.clientPhone,
+        address: order?.address,
+        product: order?.product,
+        quantity: order?.quantity,
+        price: order?.price,
+        paymentMethod: order?.paymentMethod,
+        notes: order?.notes,
+        createdAt: new Date(),
+      });
+    }
     if (order?.clientName) {
       setPendingClient({
         name: order.clientName,

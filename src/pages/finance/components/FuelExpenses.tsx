@@ -7,9 +7,7 @@ import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import NewFuelExpenseForm from "./forms/NewFuelExpenseForm";
 import { useDespesas, ORIGEM_DINHEIRO_LABELS, type OrigemDinheiro } from "@/hooks/useDespesas";
-import { DateRange } from "react-day-picker";
-
-interface Props { dateRange?: DateRange }
+interface Props { range?: { from?: string; to?: string } }
 
 const origemBadgeVariant: Record<OrigemDinheiro, "default" | "secondary" | "outline" | "destructive"> = {
   caixa_portaria: "destructive",
@@ -19,9 +17,9 @@ const origemBadgeVariant: Record<OrigemDinheiro, "default" | "secondary" | "outl
   promissoria_estabelecimento: "secondary",
 };
 
-export default function FuelExpenses({ dateRange }: Props) {
+export default function FuelExpenses({ range }: Props) {
   const [open, setOpen] = useState(false);
-  const { data: despesas = [], isLoading } = useDespesas("combustivel");
+  const { data: despesas = [], isLoading } = useDespesas("combustivel", range);
 
   return (
     <Card>
