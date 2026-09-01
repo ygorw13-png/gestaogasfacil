@@ -23,14 +23,17 @@ export default function Settings() {
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="usuarios">Usuários</TabsTrigger>
           <TabsTrigger value="estoque">Estoque</TabsTrigger>
           <TabsTrigger value="sistema">Sistema</TabsTrigger>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
           <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
           <TabsTrigger value="entregas">Entregas</TabsTrigger>
+          <TabsTrigger value="impressora">Impressora</TabsTrigger>
           <TabsTrigger value="seguranca">Segurança</TabsTrigger>
         </TabsList>
+
         
         <TabsContent value="usuarios" className="mt-4">
           <UserManagement />
