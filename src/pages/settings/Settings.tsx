@@ -8,6 +8,7 @@ import { NotificationSettings } from "./components/NotificationSettings";
 import { FinanceSettings } from "./components/FinanceSettings";
 import { DeliverySettings } from "./components/DeliverySettings";
 import { SecuritySettings } from "./components/SecuritySettings";
+import { PrinterSettings } from "./components/PrinterSettings";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("usuarios");
