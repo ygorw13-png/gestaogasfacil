@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DateRange } from "react-day-picker";
 import NewMiscExpenseForm from "./forms/NewMiscExpenseForm";
 import { useDespesas, ORIGEM_DINHEIRO_LABELS, type OrigemDinheiro } from "@/hooks/useDespesas";
 
-interface Props { dateRange?: DateRange }
+interface Props { range?: { from?: string; to?: string } }
 
 const origemBadgeVariant: Record<OrigemDinheiro, "default" | "secondary" | "outline" | "destructive"> = {
   caixa_portaria: "destructive",
@@ -19,9 +18,9 @@ const origemBadgeVariant: Record<OrigemDinheiro, "default" | "secondary" | "outl
   promissoria_estabelecimento: "secondary",
 };
 
-export default function MiscExpenses({ dateRange }: Props) {
+export default function MiscExpenses({ range }: Props) {
   const [open, setOpen] = useState(false);
-  const { data: despesas = [], isLoading } = useDespesas("diversa");
+  const { data: despesas = [], isLoading } = useDespesas("diversa", range);
 
   return (
     <Card>
