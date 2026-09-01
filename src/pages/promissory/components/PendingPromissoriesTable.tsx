@@ -1,12 +1,18 @@
-import React, { memo, useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { CreditCard, FileText, ChevronDown, ChevronRight } from "lucide-react";
+import { AlertTriangle, ChevronRight, Clock } from "lucide-react";
 import { PromissoryNote } from "../types";
-import { WhatsAppButton } from "@/components/common/WhatsAppButton";
-import { msgPromissoria } from "@/utils/whatsappLinks";
+import { ClientPromissoryDialog } from "./ClientPromissoryDialog";
+import {
+  diasAtraso,
+  severityBadgeClass,
+  severityLabel,
+  severityRowClass,
+  worstSeverity,
+} from "../utils/promissoryStatus";
 
 interface PendingPromissoriesTableProps {
   promissories: PromissoryNote[];
@@ -14,15 +20,8 @@ interface PendingPromissoriesTableProps {
   onPayment: (id: string) => void;
 }
 
-const statusLabel = (s: PromissoryNote["status"]) =>
-  s === "pending" ? "Pendente" : s === "overdue" ? "Atrasada" : s === "assigned" ? "Atribuída" : "Paga";
-
-function PendingPromissoriesTableComponent({
-  promissories,
-  onAssign,
-  onPayment,
-}: PendingPromissoriesTableProps) {
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+function PendingPromissoriesTableComponent({ promissories, onAssign, onPayment }: PendingPromissoriesTableProps) {
+  const [selected, setSelected] = useState<string | null>(null);
 
   const groups = useMemo(() => {
     const map = new Map<string, PromissoryNote[]>();
@@ -30,101 +29,94 @@ function PendingPromissoriesTableComponent({
       const key = n.clientName.trim();
       map.set(key, [...(map.get(key) || []), n]);
     });
+    const order = { critico: 0, vencido: 1, proximo: 2, emdia: 3 } as const;
     return Array.from(map.entries())
-      .map(([name, notes]) => ({
-        name,
-        notes: [...notes].sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime()),
-        total: notes.reduce((s, n) => s + n.value, 0),
-        hasOverdue: notes.some((n) => n.status === "overdue"),
-        phone: notes.find((n) => n.clientPhone)?.clientPhone,
-      }))
-      .sort((a, b) => b.total - a.total);
+      .map(([name, notes]) => {
+        const sorted = [...notes].sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+        return {
+          name,
+          notes: sorted,
+          total: notes.reduce((s, n) => s + n.value, 0),
+          severity: worstSeverity(notes),
+          nextDue: sorted[0].dueDate,
+          phone: notes.find((n) => n.clientPhone)?.clientPhone,
+        };
+      })
+      .sort((a, b) => order[a.severity] - order[b.severity] || b.total - a.total);
   }, [promissories]);
+
+  const current = groups.find((g) => g.name === selected);
 
   if (groups.length === 0) {
     return <p className="text-sm text-muted-foreground py-6 text-center">Nenhuma promissória pendente.</p>;
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Cliente</TableHead>
-          <TableHead>Notas</TableHead>
-          <TableHead>Total</TableHead>
-          <TableHead>Vencimento mais próximo</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Ações</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {groups.map((g) => {
-          const isOpen = !!expanded[g.name];
-          const first = g.notes[0];
-          return (
-            <React.Fragment key={g.name}>
-              <TableRow className="cursor-pointer" onClick={() => setExpanded((p) => ({ ...p, [g.name]: !isOpen }))}>
-                <TableCell className="font-medium">
-                  <span className="inline-flex items-center gap-1">
-                    {g.notes.length > 1 ? (
-                      isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />
-                    ) : (
-                      <span className="w-4" />
-                    )}
-                    {g.name}
-                  </span>
-                </TableCell>
-                <TableCell>{g.notes.length}</TableCell>
-                <TableCell>R$ {g.total.toFixed(2)}</TableCell>
-                <TableCell>{format(first.dueDate, "dd/MM/yyyy")}</TableCell>
-                <TableCell>
-                  <Badge variant={g.hasOverdue ? "destructive" : "outline"}>
-                    {g.hasOverdue ? "Atrasada" : "Pendente"}
-                  </Badge>
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <WhatsAppButton
-                    phone={g.phone}
-                    label="Cobrar"
-                    message={msgPromissoria({
-                      clientName: g.name,
-                      value: g.total,
-                      dueDate: first.dueDate,
-                      vencida: g.hasOverdue,
-                    })}
-                  />
-                </TableCell>
-              </TableRow>
+    <>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Cliente</TableHead>
+              <TableHead className="hidden sm:table-cell">Notas</TableHead>
+              <TableHead>Total</TableHead>
+              <TableHead className="hidden md:table-cell">Próx. vencimento</TableHead>
+              <TableHead>Situação</TableHead>
+              <TableHead className="w-10" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {groups.map((g) => {
+              const atraso = diasAtraso(g.nextDue);
+              return (
+                <TableRow
+                  key={g.name}
+                  className={`cursor-pointer ${severityRowClass(g.severity)}`}
+                  onClick={() => setSelected(g.name)}
+                >
+                  <TableCell className="font-medium">
+                    <span className="inline-flex items-center gap-2">
+                      {g.severity === "critico" && <AlertTriangle className="h-4 w-4 text-destructive" />}
+                      {g.severity === "proximo" && <Clock className="h-4 w-4 text-warning" />}
+                      {g.name}
+                    </span>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">{g.notes.length}</TableCell>
+                  <TableCell className="font-semibold">R$ {g.total.toFixed(2)}</TableCell>
+                  <TableCell className="hidden md:table-cell">{format(g.nextDue, "dd/MM/yyyy")}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={severityBadgeClass(g.severity)}>
+                      {severityLabel(g.severity, atraso)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" aria-label={`Abrir ${g.name}`}>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
 
-              {(isOpen || g.notes.length === 1) &&
-                g.notes.map((note) => (
-                  <TableRow key={note.id} className="bg-muted/40">
-                    <TableCell className="pl-10 text-sm text-muted-foreground">Nota</TableCell>
-                    <TableCell />
-                    <TableCell>R$ {note.value.toFixed(2)}</TableCell>
-                    <TableCell>{format(note.dueDate, "dd/MM/yyyy")}</TableCell>
-                    <TableCell>
-                      <Badge variant={note.status === "overdue" ? "destructive" : "outline"}>
-                        {statusLabel(note.status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="flex flex-wrap gap-2">
-                      <Button size="sm" variant="outline" onClick={() => onAssign(note.id)} className="flex items-center gap-1">
-                        <FileText className="h-4 w-4" />
-                        Atribuir
-                      </Button>
-                      <Button size="sm" onClick={() => onPayment(note.id)} className="flex items-center gap-1">
-                        <CreditCard className="h-4 w-4" />
-                        Pagamento
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </React.Fragment>
-          );
-        })}
-      </TableBody>
-    </Table>
+      <ClientPromissoryDialog
+        open={!!current}
+        onOpenChange={(v) => !v && setSelected(null)}
+        clientName={current?.name}
+        phone={current?.phone}
+        notes={current?.notes || []}
+        onAssign={(id) => {
+          setSelected(null);
+          onAssign(id);
+        }}
+        onPayment={(id) => {
+          setSelected(null);
+          onPayment(id);
+        }}
+      />
+    </>
   );
 }
 
