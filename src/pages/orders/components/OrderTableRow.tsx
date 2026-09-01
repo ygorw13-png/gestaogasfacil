@@ -4,11 +4,13 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Order } from "../types";
 import { StatusBadge } from "./StatusBadge";
-import { Clipboard, Check, X, Truck, PhoneCall } from "lucide-react";
+import { Clipboard, Check, X, Truck, PhoneCall, Printer } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { WhatsAppButton } from "@/components/common/WhatsAppButton";
 import { msgPedidoConfirmado, msgSaiuParaEntrega } from "@/utils/whatsappLinks";
+import { printReceipt } from "@/lib/receiptPrint";
+import { readPrinterSettings } from "@/hooks/usePrinterSettings";
 
 interface OrderTableRowProps {
   order: Order;
@@ -115,6 +117,30 @@ function OrderTableRowComponent({
               onClick={() => onComplete(order.id)}
             >
               <Check size={14} className="mr-1" /> Concluir
+            </Button>
+          )}
+          {readPrinterSettings().enabled && (
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Imprimir cupom"
+              onClick={(e) => {
+                e.stopPropagation();
+                printReceipt({
+                  id: order.id,
+                  clientName: order.clientName,
+                  clientPhone: order.clientPhone,
+                  address: order.address,
+                  product: order.product,
+                  quantity: order.quantity,
+                  price: order.price,
+                  paymentMethod: order.paymentMethod,
+                  notes: order.notes,
+                  createdAt: order.createdAt,
+                });
+              }}
+            >
+              <Printer size={14} />
             </Button>
           )}
           <WhatsAppButton
