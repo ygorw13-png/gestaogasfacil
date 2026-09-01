@@ -27,18 +27,28 @@ export interface DespesaInput {
   observacoes?: string | null;
 }
 
-export function useDespesas(tipo?: TipoDespesa) {
+export interface DespesaDateRange {
+  from?: string | null; // yyyy-mm-dd
+  to?: string | null;
+}
+
+export function useDespesas(tipo?: TipoDespesa, range?: DespesaDateRange) {
+  const from = range?.from ?? null;
+  const to = range?.to ?? null;
   return useQuery({
-    queryKey: ["despesas", tipo ?? "all"],
+    queryKey: ["despesas", tipo ?? "all", from, to],
     queryFn: async () => {
       let q = supabase.from("despesas" as any).select("*").order("data", { ascending: false });
       if (tipo) q = q.eq("tipo", tipo);
+      if (from) q = q.gte("data", from);
+      if (to) q = q.lte("data", to);
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as any[];
     },
   });
 }
+
 
 export function useRegistrarDespesa() {
   const qc = useQueryClient();
