@@ -59,6 +59,11 @@ export default function Settings() {
           <DeliverySettings />
         </TabsContent>
 
+        <TabsContent value="impressora" className="mt-4">
+          <PrinterSettings />
+        </TabsContent>
+
+
         <TabsContent value="seguranca" className="mt-4">
           <SecuritySettings />
         </TabsContent>
