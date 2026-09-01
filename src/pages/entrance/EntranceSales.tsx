@@ -49,6 +49,17 @@ function EntranceSalesContent() {
     }
   }, [searchParams, setSearchParams, setCashierClosingOpen]);
 
+  // Atalho F3: /entrance?tab=despesas
+  const [tab, setTab] = useState("balcao");
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t) {
+      setTab(t);
+      searchParams.delete("tab");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   const hasOpening = !loadingMovs && !!movimentacoes?.some((m) => m.tipo === "abertura");
 
   // Sugerir abertura do dia se não houver movimentação de abertura hoje
@@ -61,7 +72,7 @@ function EntranceSalesContent() {
 
   return (
     <div className="space-y-6 animate-in pb-20">
-      <Tabs defaultValue="balcao" className="space-y-6">
+      <Tabs value={tab} onValueChange={setTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="balcao" className="flex items-center gap-2">
             <Store size={14} />
