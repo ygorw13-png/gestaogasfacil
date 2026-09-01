@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 import { LucideIcon } from "lucide-react";
+import { SHORTCUT_BY_PATH } from "@/lib/shortcuts";
 
 interface SidebarLinkProps {
   to: string;
@@ -14,7 +15,8 @@ interface SidebarLinkProps {
 export const SidebarLink = ({ to, icon: Icon, label, className }: SidebarLinkProps) => {
   const sidebar = useSidebar();
   const isOpen = sidebar.state === "expanded";
-  
+  const shortcut = SHORTCUT_BY_PATH[to];
+
   return (
     <NavLink
       to={to}
@@ -28,6 +30,11 @@ export const SidebarLink = ({ to, icon: Icon, label, className }: SidebarLinkPro
     >
       <Icon className="h-4 w-4 flex-shrink-0" />
       {isOpen && label && <span className="truncate">{label}</span>}
+      {isOpen && shortcut && (
+        <span className="ml-auto text-[10px] leading-none text-muted-foreground/70">
+          {shortcut}
+        </span>
+      )}
     </NavLink>
   );
 };

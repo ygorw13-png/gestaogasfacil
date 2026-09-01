@@ -1,7 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AppLayout } from "./components/layout/AppLayout";
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
+import { lazyRetry as lazy } from "./utils/lazyRetry";
 import { Toaster } from "sonner";
 import { OfflineSyncToasts } from "@/components/offline/OfflineSyncToasts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
