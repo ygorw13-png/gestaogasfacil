@@ -6,16 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Plus, Calendar, BellRing, FilePlus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DateRange } from "react-day-picker";
 import NewFixedExpenseForm from "./forms/NewFixedExpenseForm";
 import LembretesTab from "./LembretesTab";
+import { useDespesas, ORIGEM_DINHEIRO_LABELS, type OrigemDinheiro } from "@/hooks/useDespesas";
 
 interface FixedExpensesProps {
-  dateRange?: DateRange;
+  range?: { from?: string; to?: string };
 }
 
-export default function FixedExpenses({ dateRange }: FixedExpensesProps) {
+export default function FixedExpenses({ range }: FixedExpensesProps) {
   const [open, setOpen] = useState(false);
+  const { data: despesas = [], isLoading } = useDespesas("fixa", range);
 
   return (
     <Tabs defaultValue="despesas" className="w-full space-y-4">
