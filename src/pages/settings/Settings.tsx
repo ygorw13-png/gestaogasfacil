@@ -22,8 +22,8 @@ export default function Settings() {
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
         <TabsList className="grid w-full grid-cols-8">
+
           <TabsTrigger value="usuarios">Usuários</TabsTrigger>
           <TabsTrigger value="estoque">Estoque</TabsTrigger>
           <TabsTrigger value="sistema">Sistema</TabsTrigger>
