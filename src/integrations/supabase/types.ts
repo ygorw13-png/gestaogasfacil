@@ -1906,6 +1906,7 @@ export type Database = {
       }
     }
     Functions: {
+      current_profile_role: { Args: never; Returns: string }
       get_my_org: { Args: never; Returns: string }
       has_role: {
         Args: {
