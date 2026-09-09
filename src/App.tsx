@@ -48,6 +48,7 @@ const Colaboradores = lazy(() => import("./pages/colaboradores/Colaboradores"));
 const MinhasEntregas = lazy(() => import("./pages/entregador/MinhasEntregas"));
 const CadastroRapido = lazy(() => import("./pages/entregador/CadastroRapido"));
 const VendaRua = lazy(() => import("./pages/entregador/VendaRua"));
+const PerfilEntregador = lazy(() => import("./pages/entregador/PerfilEntregador"));
 const AcertoEntregadores = lazy(() => import("./pages/entrance/AcertoEntregadores"));
 const HistoricoPortaria = lazy(() => import("./pages/entrance/HistoricoPortaria"));
 const Recompra = lazy(() => import("./pages/recompra/Recompra"));
@@ -220,6 +221,9 @@ function App() {
                 } />
                 <Route path="/entregador/venda-rua" element={
                   <Suspense fallback={<LoadingComponent />}><VendaRua /></Suspense>
+                } />
+                <Route path="/entregador/perfil" element={
+                  <Suspense fallback={<LoadingComponent />}><PerfilEntregador /></Suspense>
                 } />
                 <Route path="/entrance/acerto-entregadores" element={
                   <Suspense fallback={<LoadingComponent />}><AcertoEntregadores /></Suspense>

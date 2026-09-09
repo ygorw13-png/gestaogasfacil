@@ -7,6 +7,7 @@ const ENTREGADOR_ALLOWED = [
   "/entregador/entregas",
   "/entregador/venda-rua",
   "/entregador/cadastro",
+  "/entregador/perfil",
 ];
 
 export function RoleGuard({ children }: { children: React.ReactNode }) {
