@@ -96,8 +96,14 @@ export default function OrdersMap() {
           {entregas.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">Nenhuma entrega em aberto.</p>
           ) : (
-            entregas.map((o) => (
-              <div key={o.id} className="flex flex-wrap items-center justify-between gap-2 border rounded-md p-3">
+            entregas.map((o) => {
+              const min = minutosAtras(o.created_at);
+              const atrasada = min >= 30;
+              return (
+              <div
+                key={o.id}
+                className={`flex flex-wrap items-center justify-between gap-2 border rounded-md p-3 ${atrasada ? "border-destructive border-2" : ""}`}
+              >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium">{o.client_name}</p>
@@ -105,6 +111,7 @@ export default function OrdersMap() {
                       {statusLabel[o.status] ?? o.status}
                     </Badge>
                     <Badge variant="outline">{tipoVendaShort(o.tipo_venda)}</Badge>
+                    <Badge variant={atrasada ? "destructive" : "outline"}>há {min} min</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {formatAddress(o.address) || "Endereço não informado"}
