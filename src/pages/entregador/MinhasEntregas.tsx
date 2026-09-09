@@ -239,12 +239,6 @@ export default function MinhasEntregas() {
       </div>
 
 
-      <Button asChild size="lg" className="h-14 w-full text-base">
-        <Link to="/entregador/venda-rua">
-          <Bike className="mr-2 h-5 w-5" /> Lançar venda na rua
-        </Link>
-      </Button>
-
       <div className="grid grid-cols-3 gap-2">
         <Card><CardContent className="p-3 text-center">
           <p className="text-xs text-muted-foreground">Entregues hoje</p>
@@ -285,6 +279,16 @@ export default function MinhasEntregas() {
             concluidas.map((o) => <DeliveryCard key={o.id} order={o} />)}
         </TabsContent>
       </Tabs>
+
+      <Button
+        asChild
+        size="lg"
+        className="fixed bottom-24 right-4 z-40 h-14 rounded-full px-5 shadow-lg"
+      >
+        <Link to="/entregador/venda-rua" aria-label="Nova venda na rua">
+          <Bike className="mr-2 h-5 w-5" /> Nova venda
+        </Link>
+      </Button>
     </div>
   );
 }
