@@ -194,23 +194,31 @@ export default function MinhasEntregas() {
   // Relembra a cada 2 min se houver entrega parada há mais de 5/10 minutos
   useEffect(() => {
     const timer = setInterval(() => {
-      const atrasadas = [
-        ...pendentes.filter((o) => minutesSince(o.created_at) >= 5),
-        ...emRota.filter((o) => minutesSince(o.accepted_at) >= 15),
-      ];
-      if (atrasadas.length && Date.now() - lastReminder.current > 120000) {
+      // Não aceitou em 5 minutos: alerta sem parar, a cada 20 segundos
+      const naoAceitas = pendentes.filter((o) => minutesSince(o.created_at) >= 5);
+      const paradas = emRota.filter((o) => minutesSince(o.accepted_at) >= 15);
+      const insistente = naoAceitas.length > 0;
+      const intervalo = insistente ? 20000 : 120000;
+      const atrasadas = [...naoAceitas, ...paradas];
+
+      if (atrasadas.length && Date.now() - lastReminder.current > intervalo) {
         lastReminder.current = Date.now();
         playDeliveryAlert();
         toast({
-          title: "⏰ Entrega pendente",
+          title: insistente ? "🚨 Aceite a entrega!" : "⏰ Entrega pendente",
           description: `${atrasadas.length} entrega(s) aguardando sua ação.`,
           variant: "destructive",
         });
         if ("Notification" in window && Notification.permission === "granted") {
-          new Notification("Entrega pendente", { body: `${atrasadas.length} entrega(s) aguardando você.` });
+          new Notification(insistente ? "Aceite a entrega!" : "Entrega pendente", {
+            body: `${atrasadas.length} entrega(s) aguardando você.`,
+            tag: "entrega-pendente",
+            renotify: true,
+            requireInteraction: true,
+          } as NotificationOptions);
         }
       }
-    }, 30000);
+    }, 10000);
     return () => clearInterval(timer);
   }, [pendentes, emRota, toast]);
 
