@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 export function useAcceptedOrdersAlert(enabled: boolean) {
   const { toast } = useToast();
   const qc = useQueryClient();
+  const avisados = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!enabled) return;
@@ -19,8 +20,8 @@ export function useAcceptedOrdersAlert(enabled: boolean) {
         { event: "UPDATE", schema: "public", table: "orders" },
         (payload) => {
           const novo = payload.new as any;
-          const antigo = payload.old as any;
-          if (novo?.accepted_at && !antigo?.accepted_at) {
+          if (novo?.accepted_at && novo?.id && !avisados.current.has(novo.id)) {
+            avisados.current.add(novo.id);
             toast({
               title: "✅ Entrega aceita",
               description: `${novo.client_name} — o entregador saiu para entregar.`,
