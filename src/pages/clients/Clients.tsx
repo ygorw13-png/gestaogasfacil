@@ -10,6 +10,7 @@ import { CylinderDialog } from "./components/CylinderDialog";
 import { ClientsAlertDialog } from "./components/AlertDialog";
 import { ClientDetailDialog } from "./components/client-details/ClientDetailDialog";
 import { EditClientDialog } from "./components/EditClientDialog";
+import { ClientesRuaTab } from "./components/ClientesRuaTab";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
@@ -68,7 +69,12 @@ export default function Clients() {
         <TabsList>
           <TabsTrigger value="all">Todos os Clientes</TabsTrigger>
           <TabsTrigger value="with-cylinders">Com Vasilhames</TabsTrigger>
+          <TabsTrigger value="rua">Vendas na rua (sem cadastro)</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="rua" className="space-y-4">
+          <ClientesRuaTab />
+        </TabsContent>
         
         <TabsContent value="all" className="space-y-4">
           <AllClientsTab 

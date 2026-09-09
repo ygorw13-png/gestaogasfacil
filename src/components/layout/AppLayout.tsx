@@ -12,6 +12,9 @@ import { cn } from "@/lib/utils";
 import { GlobalQuickSale } from "./GlobalQuickSale";
 import { OfflineBanner } from "@/components/offline/OfflineBanner";
 import { FechamentoReminder } from "@/components/portaria/FechamentoReminder";
+import { useUserRole } from "@/hooks/useUserRole";
+import { EntregadorLayout } from "./EntregadorLayout";
+import { useAcceptedOrdersAlert } from "@/hooks/useAcceptedOrdersAlert";
 
 
 // Content component to manage layout based on sidebar state
@@ -19,6 +22,7 @@ const MainContent = memo(() => {
   const sidebar = useSidebar();
   const isOpen = sidebar.state === "expanded";
   const isMobile = useIsMobile();
+  useAcceptedOrdersAlert(true);
 
   return (
     <div className={cn(
@@ -44,6 +48,7 @@ MainContent.displayName = 'MainContent';
 export function AppLayout() {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { isEntregador, isLoading: roleLoading } = useUserRole();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
@@ -86,13 +91,16 @@ export function AppLayout() {
     }
   }, [isLoading]);
 
-  if (isLoading) {
+  if (isLoading || roleLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background" role="status" aria-live="polite">
         <LoadingSpinner size="lg" message="GásFácil Manager" />
       </div>
     );
   }
+
+  // Entregador tem uma tela própria, sem menu e sem dashboard
+  if (isEntregador) return <EntregadorLayout />;
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
