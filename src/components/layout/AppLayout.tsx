@@ -14,6 +14,7 @@ import { OfflineBanner } from "@/components/offline/OfflineBanner";
 import { FechamentoReminder } from "@/components/portaria/FechamentoReminder";
 import { useUserRole } from "@/hooks/useUserRole";
 import { EntregadorLayout } from "./EntregadorLayout";
+import { useAcceptedOrdersAlert } from "@/hooks/useAcceptedOrdersAlert";
 
 
 // Content component to manage layout based on sidebar state
@@ -21,6 +22,7 @@ const MainContent = memo(() => {
   const sidebar = useSidebar();
   const isOpen = sidebar.state === "expanded";
   const isMobile = useIsMobile();
+  useAcceptedOrdersAlert(true);
 
   return (
     <div className={cn(
