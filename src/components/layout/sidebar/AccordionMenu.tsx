@@ -16,7 +16,8 @@ interface AccordionMenuItemProps {
 }
 
 const AccordionMenuItem = ({ to, label, isEnd = false, badge }: AccordionMenuItemProps) => {
-  const shortcut = SHORTCUT_BY_PATH[to];
+  const { isMobile } = useSidebarOpen();
+  const shortcut = isMobile ? undefined : SHORTCUT_BY_PATH[to];
   return (
     <NavLink
       to={to}
