@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { GlobalQuickSale } from "./GlobalQuickSale";
 import { OfflineBanner } from "@/components/offline/OfflineBanner";
 import { FechamentoReminder } from "@/components/portaria/FechamentoReminder";
+import { useUserRole } from "@/hooks/useUserRole";
+import { EntregadorLayout } from "./EntregadorLayout";
 
 
 // Content component to manage layout based on sidebar state
@@ -44,6 +46,7 @@ MainContent.displayName = 'MainContent';
 export function AppLayout() {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { isEntregador, isLoading: roleLoading } = useUserRole();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
