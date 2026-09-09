@@ -15,10 +15,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { roleColors, roleLabels } from "@/types/userTypes";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export function TopBar() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { isEntregador } = useUserRole();
   
   const handleLogout = async () => {
     await signOut();
@@ -89,8 +91,10 @@ export function TopBar() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/profile')}>Perfil</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/settings')}>Configurações</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate(isEntregador ? '/entregador/perfil' : '/profile')}>Perfil</DropdownMenuItem>
+              {!isEntregador && (
+                <DropdownMenuItem onClick={() => navigate('/settings')}>Configurações</DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                 <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />
