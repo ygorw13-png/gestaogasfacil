@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,10 +8,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { ColaboradorSelect } from "@/components/inputs/ColaboradorSelect";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { WhatsAppButton } from "@/components/common/WhatsAppButton";
-import { customTables } from "@/integrations/supabase/customClient";
-import { Colaborador } from "@/types/supabaseTypes";
+import { useEntregadoresApp } from "@/hooks/useEntregadoresApp";
 import { msgEntregaAtribuida } from "@/utils/whatsappLinks";
 import type { Order } from "../types";
 
@@ -33,17 +32,9 @@ export function AssignOrderDialog({
   onSubmit,
   order,
 }: AssignOrderDialogProps) {
-  const [colaboradores, setColaboradores] = useState<Colaborador[]>([]);
+  const { data: entregadores = [], isLoading } = useEntregadoresApp();
 
-  useEffect(() => {
-    if (!isOpen) return;
-    customTables.colaboradores
-      .selectAtivos()
-      .then(({ data }) => setColaboradores((data as Colaborador[]) || []))
-      .catch(() => setColaboradores([]));
-  }, [isOpen]);
-
-  const entregador = colaboradores.find((c) => c.id === selectedDeliveryPerson);
+  const entregador = entregadores.find((c) => c.id === selectedDeliveryPerson);
   const mensagem = order ? msgEntregaAtribuida(order, entregador?.nome) : "";
 
   return (
@@ -52,19 +43,43 @@ export function AssignOrderDialog({
         <DialogHeader>
           <DialogTitle>Atribuir Pedido</DialogTitle>
           <DialogDescription>
-            Selecione o entregador para realizar esta entrega.
+            Selecione o entregador para realizar esta entrega. Só aparecem
+            entregadores com acesso ao app — assim a entrega chega no celular dele.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="deliveryPerson">Entregador</Label>
-            <ColaboradorSelect 
-              value={selectedDeliveryPerson} 
-              onValueChange={onDeliveryPersonChange}
-              cargo="Entregador"
-              placeholder="Selecione o entregador"
-            />
+            {isLoading ? (
+              <Skeleton className="h-10 w-full" />
+            ) : (
+              <Select value={selectedDeliveryPerson} onValueChange={onDeliveryPersonChange}>
+                <SelectTrigger id="deliveryPerson">
+                  <SelectValue placeholder="Selecione o entregador" />
+                </SelectTrigger>
+                <SelectContent>
+                  {entregadores.length === 0 ? (
+                    <SelectItem value="no-option" disabled>
+                      Nenhum entregador com acesso ao app
+                    </SelectItem>
+                  ) : (
+                    entregadores.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.nome}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            )}
           </div>
+
+          {!isLoading && entregadores.length === 0 && (
+            <p className="text-xs text-destructive">
+              Nenhum usuário com perfil de entregador. Crie a conta e defina a
+              função "entregador" em Configurações {">"} Usuários.
+            </p>
+          )}
 
           {entregador && (
             <p className="text-xs text-muted-foreground">

@@ -54,13 +54,16 @@ export function useOrders() {
       const deliveryNames = new Map<string, string>();
 
       if (deliveryPersonIds.length > 0) {
-        const { data: collaborators } = await supabase
-          .from("colaboradores")
-          .select("id, nome")
-          .in("id", deliveryPersonIds);
+        const [{ data: collaborators }, { data: userProfiles }] = await Promise.all([
+          supabase.from("colaboradores").select("id, nome").in("id", deliveryPersonIds),
+          supabase.from("profiles").select("id, name").in("id", deliveryPersonIds),
+        ]);
 
         collaborators?.forEach((collaborator) => {
           deliveryNames.set(collaborator.id, collaborator.nome);
+        });
+        userProfiles?.forEach((p) => {
+          deliveryNames.set(p.id, p.name);
         });
       }
 

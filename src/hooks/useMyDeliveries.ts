@@ -98,7 +98,7 @@ export function useAcceptDelivery() {
     mutationFn: async (orderId: string) => {
       const { error } = await supabase
         .from("orders")
-        .update({ status: "in-progress", accepted_at: new Date().toISOString() })
+        .update({ status: "delivering", accepted_at: new Date().toISOString() })
         .eq("id", orderId);
       if (error) throw error;
     },

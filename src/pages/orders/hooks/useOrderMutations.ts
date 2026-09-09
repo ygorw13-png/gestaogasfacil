@@ -114,7 +114,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
       supabase.functions
         .invoke("send-push", {
           body: {
-            deliveryPersonName: deliveryPerson,
+            userIds: [deliveryPerson],
             title: "Nova entrega atribuída",
             body: "Você recebeu uma nova entrega. Abra o app para aceitar.",
             url: "/entregador/entregas",
