@@ -54,7 +54,7 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      const from = location.state?.from?.pathname || '/dashboard';
+      const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     }
   }, [user, navigate, location]);
