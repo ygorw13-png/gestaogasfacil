@@ -1,5 +1,5 @@
 /** Cidade/UF usada quando o endereço cadastrado não informa a cidade. */
-export const CIDADE_PADRAO = "";
+export const CIDADE_PADRAO = "Conceição do Coité, BA";
 
 export function formatAddress(addr: any): string {
   if (!addr) return "";
