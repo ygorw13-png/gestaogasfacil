@@ -1,12 +1,13 @@
 import { DollarSign, Truck, Wallet, BadgePercent, ScrollText } from "lucide-react";
 import { AccordionMenu, AccordionMenuItem } from "../AccordionMenu";
 import { SidebarLink } from "../SidebarLink";
-import { useSidebar } from "@/components/ui/sidebar";
+import { useSidebarOpen } from "@/hooks/useSidebarOpen";
 
 export const FinanceNavigation = () => {
-  const sidebar = useSidebar();
+  const { showLabels } = useSidebarOpen();
 
-  if (sidebar.state !== "expanded") {
+  if (!showLabels) {
+
     return (
       <>
         <SidebarLink to="/finance/expenses" icon={DollarSign} label="Despesas" />
