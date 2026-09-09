@@ -13,6 +13,7 @@ import { SecurityHeaders } from "./components/security/SecurityHeaders";
 import { HelmetProvider } from 'react-helmet-async';
 import { useEffect } from "react";
 import { AuthGuard } from "./components/ui/AuthGuard";
+import { RoleGuard } from "./components/auth/RoleGuard";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 
 // Authentication pages
@@ -99,7 +100,7 @@ function App() {
               <Route path="/404" element={<NotFound />} />
               
               {/* Protected routes with AppLayout - all accessible to authenticated users */}
-              <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
+              <Route element={<AuthGuard><RoleGuard><AppLayout /></RoleGuard></AuthGuard>}>
                 <Route path="/dashboard" element={
                   <Suspense fallback={<LoadingComponent />}>
                     <Dashboard />
