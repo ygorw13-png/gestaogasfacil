@@ -11,7 +11,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     case "pending":
       return <Badge variant="outline" className="flex items-center gap-1"><Clock size={12} /> Pendente</Badge>;
     case "assigned":
-      return <Badge variant="secondary" className="flex items-center gap-1"><Clipboard size={12} /> Atribuído</Badge>;
+      return <Badge variant="outline" className="flex items-center gap-1 border-amber-500 text-amber-600"><Clipboard size={12} /> Aguardando aceite</Badge>;
     case "delivering":
     case "in-progress":
       return <Badge variant="default" className="bg-amber-500 flex items-center gap-1"><Truck size={12} /> Aceita — em entrega</Badge>;
