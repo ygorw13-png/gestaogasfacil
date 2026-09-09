@@ -2,10 +2,11 @@
 import { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useSidebar } from "@/components/ui/sidebar";
+import { useSidebarOpen } from "@/hooks/useSidebarOpen";
 import { LucideIcon } from "lucide-react";
 import { SHORTCUT_BY_PATH } from "@/lib/shortcuts";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
 
 interface AccordionMenuItemProps {
   to: string;
