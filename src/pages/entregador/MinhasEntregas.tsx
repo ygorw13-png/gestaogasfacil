@@ -279,6 +279,16 @@ export default function MinhasEntregas() {
             concluidas.map((o) => <DeliveryCard key={o.id} order={o} />)}
         </TabsContent>
       </Tabs>
+
+      <Button
+        asChild
+        size="lg"
+        className="fixed bottom-24 right-4 z-40 h-14 rounded-full px-5 shadow-lg"
+      >
+        <Link to="/entregador/venda-rua" aria-label="Nova venda na rua">
+          <Bike className="mr-2 h-5 w-5" /> Nova venda
+        </Link>
+      </Button>
     </div>
   );
 }
