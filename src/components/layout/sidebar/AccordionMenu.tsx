@@ -62,10 +62,9 @@ export const AccordionMenu = ({
   onValueChange, 
   children 
 }: AccordionMenuProps) => {
-  const sidebar = useSidebar();
-  const isOpen = sidebar.state === "expanded";
-  
-  if (!isOpen) {
+  const { showLabels } = useSidebarOpen();
+
+  if (!showLabels) {
     return (
       <NavLink
         to={`/${value.toLowerCase()}`}
@@ -80,6 +79,7 @@ export const AccordionMenu = ({
       </NavLink>
     );
   }
+
 
   return (
     <Accordion 
