@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { runOrQueue } from "@/lib/offline/queue";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,11 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
-import { Bike } from "lucide-react";
+import { Bike, UserCheck } from "lucide-react";
 import { SaleTypeSelect } from "@/components/forms/SaleTypeSelect";
-import { exigeCliente, exigeValor, vasilhameDeltas, type TipoVenda } from "@/lib/saleTypes";
+import { exigeValor, vasilhameDeltas, type TipoVenda } from "@/lib/saleTypes";
+import { useSaleClients } from "@/pages/entrance/hooks/useSaleClients";
 
 const PRODUTOS = ["P13", "P20", "P45", "Água 20L"];
 const PAGAMENTOS = [
@@ -23,11 +23,14 @@ const PAGAMENTOS = [
   { value: "vale-gas", label: "Vale-Gás" },
 ];
 
+const onlyDigits = (v: string) => v.replace(/\D/g, "");
+
 export default function VendaRua() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [tipoVenda, setTipoVenda] = useState<TipoVenda>("recarga");
+  const [clientId, setClientId] = useState<string | null>(null);
   const [form, setForm] = useState({
     client_name: "",
     client_phone: "",
@@ -38,32 +41,59 @@ export default function VendaRua() {
     notes: "",
   });
 
+  const { data: clientes = [] } = useSaleClients();
+  const cadastrados = useMemo(
+    () => clientes.filter((c) => c.origem !== "ponto"),
+    [clientes]
+  );
+
+  const termo = `${form.client_name} ${form.client_phone}`.trim().toLowerCase();
+  const sugestoes = useMemo(() => {
+    const nome = form.client_name.trim().toLowerCase();
+    const fone = onlyDigits(form.client_phone);
+    if (clientId || (nome.length < 2 && fone.length < 4)) return [];
+    return cadastrados
+      .filter(
+        (c) =>
+          (nome.length >= 2 && c.name.toLowerCase().includes(nome)) ||
+          (fone.length >= 4 && onlyDigits(c.phone || "").includes(fone))
+      )
+      .slice(0, 5);
+  }, [cadastrados, form.client_name, form.client_phone, clientId, termo]);
+
   const precisaValor = exigeValor(form.payment_method);
-  const precisaCliente = exigeCliente(form.payment_method);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id) return;
+
+    const nome = form.client_name.trim();
+    const fone = onlyDigits(form.client_phone);
+
+    if (nome.length < 3) {
+      toast({ title: "Informe o nome do cliente", description: "Toda venda na rua precisa do nome.", variant: "destructive" });
+      return;
+    }
+    if (fone.length < 10) {
+      toast({ title: "Informe o telefone", description: "Use DDD + número, com pelo menos 10 dígitos.", variant: "destructive" });
+      return;
+    }
 
     const valor = Number(String(form.price).replace(",", "."));
     if (precisaValor && (!valor || valor <= 0)) {
       toast({ title: "Informe o valor da venda", description: "Obrigatório para dinheiro, PIX e cartão.", variant: "destructive" });
       return;
     }
-    if (precisaCliente && form.client_name.trim().length < 3) {
-      toast({ title: "Cliente obrigatório", description: "Nota promissória exige identificar o cliente.", variant: "destructive" });
-      return;
-    }
 
-    const nome = form.client_name.trim() || "Cliente avulso";
     const vas = vasilhameDeltas(tipoVenda, form.quantity);
 
     setLoading(true);
     const now = new Date().toISOString();
     const orderPayload = {
       user_id: user.id,
+      client_id: clientId,
       client_name: nome,
-      client_phone: form.client_phone || null,
+      client_phone: form.client_phone.trim(),
       product: form.product,
       quantity: form.quantity,
       price: valor || 0,
@@ -94,6 +124,7 @@ export default function VendaRua() {
         target: "promissory_notes",
         action: "insert",
         payload: {
+          client_id: clientId,
           client_name: nome,
           value: valor || 0,
           due_date: due.toISOString().slice(0, 10),
@@ -116,9 +147,9 @@ export default function VendaRua() {
         ? "Sem internet agora. Ela será enviada sozinha quando a conexão voltar."
         : "Já está no seu acerto do dia.",
     });
+    setClientId(null);
     setForm({ ...form, price: "", notes: "", client_name: "", client_phone: "" });
   };
-
 
   return (
     <div className="max-w-2xl mx-auto pb-8">
@@ -133,17 +164,45 @@ export default function VendaRua() {
             <SaleTypeSelect value={tipoVenda} onChange={setTipoVenda} />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Cliente {precisaCliente && <span className="text-destructive">*</span>}</Label>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Cliente <span className="text-destructive">*</span></Label>
                 <Input
-                  placeholder="Cliente avulso"
+                  placeholder="Nome completo"
                   value={form.client_name}
-                  onChange={(e) => setForm({ ...form, client_name: e.target.value })}
+                  onChange={(e) => { setClientId(null); setForm({ ...form, client_name: e.target.value }); }}
                 />
+                {clientId && (
+                  <p className="flex items-center gap-1 text-xs text-primary">
+                    <UserCheck className="h-3 w-3" /> Cliente já cadastrado
+                  </p>
+                )}
+                {sugestoes.length > 0 && (
+                  <div className="rounded-md border divide-y">
+                    {sugestoes.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className="flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-accent"
+                        onClick={() => {
+                          setClientId(c.id);
+                          setForm({ ...form, client_name: c.name, client_phone: c.phone || form.client_phone });
+                        }}
+                      >
+                        <span className="font-medium">{c.name}</span>
+                        {c.phone && <span className="text-xs text-muted-foreground">{c.phone}</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="space-y-2">
-                <Label>Telefone</Label>
-                <Input value={form.client_phone} onChange={(e) => setForm({ ...form, client_phone: e.target.value })} />
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Telefone <span className="text-destructive">*</span></Label>
+                <Input
+                  inputMode="tel"
+                  placeholder="(00) 00000-0000"
+                  value={form.client_phone}
+                  onChange={(e) => { setClientId(null); setForm({ ...form, client_phone: e.target.value }); }}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Produto</Label>
