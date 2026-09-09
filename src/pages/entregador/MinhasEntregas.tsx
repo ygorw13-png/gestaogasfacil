@@ -13,7 +13,7 @@ import { Link } from "react-router-dom";
 import { useMyDeliveries, useAcceptDelivery, useRejectDelivery, useConfirmDelivery, type DeliveryOrder } from "@/hooks/useMyDeliveries";
 import { useTrackMyLocation } from "@/hooks/useEntregadorLocation";
 import { useUserRole } from "@/hooks/useUserRole";
-import { formatAddress, mapsRouteUrl } from "@/utils/mapsLinks";
+import { formatAddress, mapsRouteUrl, hasMapAddress } from "@/utils/mapsLinks";
 import { tipoVendaShort } from "@/lib/saleTypes";
 import { playDeliveryAlert } from "@/utils/deliveryAlert";
 import { useToast } from "@/hooks/use-toast";
@@ -94,11 +94,17 @@ function DeliveryCard({ order }: { order: DeliveryOrder }) {
         )}
 
         <div className="grid grid-cols-2 gap-2 pt-2">
-          <Button size="lg" variant="outline" className="h-12" asChild>
-            <a href={mapsRouteUrl(order.address)} target="_blank" rel="noopener noreferrer">
-              <Navigation className="h-4 w-4 mr-1" /> Ver rota
-            </a>
-          </Button>
+          {hasMapAddress(order.address) ? (
+            <Button size="lg" variant="outline" className="h-12" asChild>
+              <a href={mapsRouteUrl(order.address)} target="_blank" rel="noopener noreferrer">
+                <Navigation className="h-4 w-4 mr-1" /> Ver rota
+              </a>
+            </Button>
+          ) : (
+            <Button size="lg" variant="outline" className="h-12" disabled>
+              <Navigation className="h-4 w-4 mr-1" /> Sem endereço
+            </Button>
+          )}
 
           {isPending && (
             <>

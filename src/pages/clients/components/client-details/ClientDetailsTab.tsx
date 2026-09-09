@@ -1,6 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { MapPin, MessageCircle } from "lucide-react";
+import { mapsSearchUrl } from "@/utils/mapsLinks";
 
 interface ClientDetails {
   id: string;
@@ -18,9 +19,7 @@ interface ClientDetailsTabProps {
 
 export function ClientDetailsTab({ client }: ClientDetailsTabProps) {
   const phoneDigits = (client.phone || "").replace(/\D/g, "");
-  const mapsUrl = client.address
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.address)}`
-    : "";
+  const mapsUrl = client.address ? mapsSearchUrl(client.address) : "";
   const whatsappUrl = phoneDigits
     ? `https://wa.me/${phoneDigits.length <= 11 ? `55${phoneDigits}` : phoneDigits}`
     : "";
