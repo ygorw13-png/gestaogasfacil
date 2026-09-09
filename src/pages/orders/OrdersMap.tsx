@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEntregadoresLocalizacoes } from "@/hooks/useEntregadorLocation";
 import { formatAddress, mapsRouteUrl, mapsCoordUrl } from "@/utils/mapsLinks";
 import { tipoVendaShort } from "@/lib/saleTypes";
+import { EntregasAtrasadasAlert } from "@/pages/entrance/components/orders/EntregasAtrasadasAlert";
 
 const statusLabel: Record<string, string> = {
   pending: "Aguardando",
@@ -26,10 +27,13 @@ export default function OrdersMap() {
     queryKey: ["entregas-em-rota"],
     refetchInterval: 30000,
     queryFn: async () => {
+      const inicioHoje = new Date();
+      inicioHoje.setHours(0, 0, 0, 0);
       const { data, error } = await supabase
         .from("orders")
         .select("id, client_name, address, product, quantity, price, status, delivery_person, tipo_venda, created_at")
         .in("status", ["pending", "assigned", "in-progress"])
+        .gte("created_at", inicioHoje.toISOString())
         .order("created_at", { ascending: true });
       if (error) throw error;
       return (data ?? []) as any[];
@@ -46,6 +50,8 @@ export default function OrdersMap() {
 
   return (
     <div className="space-y-4">
+      <EntregasAtrasadasAlert />
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
