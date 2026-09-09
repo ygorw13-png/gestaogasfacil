@@ -239,12 +239,6 @@ export default function MinhasEntregas() {
       </div>
 
 
-      <Button asChild size="lg" className="h-14 w-full text-base">
-        <Link to="/entregador/venda-rua">
-          <Bike className="mr-2 h-5 w-5" /> Lançar venda na rua
-        </Link>
-      </Button>
-
       <div className="grid grid-cols-3 gap-2">
         <Card><CardContent className="p-3 text-center">
           <p className="text-xs text-muted-foreground">Entregues hoje</p>

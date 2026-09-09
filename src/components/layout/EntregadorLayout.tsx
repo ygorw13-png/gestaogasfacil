@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { Bike, Package, LogOut } from "lucide-react";
+import { Bike, Package, LogOut, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 const tabs = [
   { to: "/entregador/entregas", icon: Package, label: "Entregas" },
   { to: "/entregador/venda-rua", icon: Bike, label: "Venda na Rua" },
+  { to: "/entregador/perfil", icon: Trophy, label: "Desempenho" },
 ];
 
 /**
@@ -46,7 +47,7 @@ export function EntregadorLayout() {
       </ErrorBoundary>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t bg-card"
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t bg-card"
         style={{ paddingBottom: "max(0.25rem, env(safe-area-inset-bottom))" }}
       >
         {tabs.map(({ to, icon: Icon, label }) => (
