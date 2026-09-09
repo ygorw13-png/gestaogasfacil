@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Phone, Package, DollarSign, CreditCard, Navigation, Check, X, Bell, BellOff, Clock } from "lucide-react";
+import { MapPin, Phone, Package, DollarSign, CreditCard, Navigation, Check, X, Bell, BellOff, Clock, Bike } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useMyDeliveries, useAcceptDelivery, useRejectDelivery, useConfirmDelivery, type DeliveryOrder } from "@/hooks/useMyDeliveries";
 import { useTrackMyLocation } from "@/hooks/useEntregadorLocation";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -237,6 +238,12 @@ export default function MinhasEntregas() {
         </Button>
       </div>
 
+
+      <Button asChild size="lg" className="h-14 w-full text-base">
+        <Link to="/entregador/venda-rua">
+          <Bike className="mr-2 h-5 w-5" /> Lançar venda na rua
+        </Link>
+      </Button>
 
       <div className="grid grid-cols-3 gap-2">
         <Card><CardContent className="p-3 text-center">
