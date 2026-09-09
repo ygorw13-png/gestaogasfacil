@@ -19,38 +19,25 @@ const MainContent = memo(() => {
   const sidebar = useSidebar();
   const isOpen = sidebar.state === "expanded";
   const isMobile = useIsMobile();
-  const location = useLocation();
-
-  // Debug logging
-  useEffect(() => {
-    console.log("MainContent - Rendered:", {
-      path: location.pathname,
-      sidebarState: sidebar.state,
-      isMobile
-    });
-  }, [location.pathname, sidebar.state, isMobile]);
 
   return (
     <div className={cn(
-      "flex flex-col min-h-screen flex-1 transition-all duration-300",
-      isOpen && !isMobile ? "ml-64" : "ml-16",
-      isMobile ? "ml-0" : ""
+      "flex min-w-0 flex-1 flex-col min-h-screen transition-all duration-300",
+      isMobile ? "ml-0" : isOpen ? "ml-64" : "ml-16"
     )}>
       <TopBar />
       <OfflineBanner />
       <FechamentoReminder />
       <ErrorBoundary>
-
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto" id="main-content" tabIndex={-1}>
+        <main className="w-full max-w-full flex-1 overflow-x-hidden p-3 sm:p-4 md:p-6" id="main-content" tabIndex={-1}>
           <Outlet />
         </main>
       </ErrorBoundary>
-      {isMobile && (
-        <div className="h-16">{/* Space for mobile navigation */}</div>
-      )}
+      {isMobile && <div className="h-16" />}
     </div>
   );
 });
+
 
 MainContent.displayName = 'MainContent';
 

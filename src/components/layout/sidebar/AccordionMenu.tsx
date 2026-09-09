@@ -2,10 +2,11 @@
 import { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useSidebar } from "@/components/ui/sidebar";
+import { useSidebarOpen } from "@/hooks/useSidebarOpen";
 import { LucideIcon } from "lucide-react";
 import { SHORTCUT_BY_PATH } from "@/lib/shortcuts";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
 
 interface AccordionMenuItemProps {
   to: string;
@@ -15,7 +16,8 @@ interface AccordionMenuItemProps {
 }
 
 const AccordionMenuItem = ({ to, label, isEnd = false, badge }: AccordionMenuItemProps) => {
-  const shortcut = SHORTCUT_BY_PATH[to];
+  const { isMobile } = useSidebarOpen();
+  const shortcut = isMobile ? undefined : SHORTCUT_BY_PATH[to];
   return (
     <NavLink
       to={to}
@@ -61,10 +63,9 @@ export const AccordionMenu = ({
   onValueChange, 
   children 
 }: AccordionMenuProps) => {
-  const sidebar = useSidebar();
-  const isOpen = sidebar.state === "expanded";
-  
-  if (!isOpen) {
+  const { showLabels } = useSidebarOpen();
+
+  if (!showLabels) {
     return (
       <NavLink
         to={`/${value.toLowerCase()}`}
@@ -79,6 +80,7 @@ export const AccordionMenu = ({
       </NavLink>
     );
   }
+
 
   return (
     <Accordion 

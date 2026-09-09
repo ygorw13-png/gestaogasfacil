@@ -22,7 +22,7 @@ export default function Settings() {
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="w-full justify-start lg:grid lg:grid-cols-8">
 
           <TabsTrigger value="usuarios">Usuários</TabsTrigger>
           <TabsTrigger value="estoque">Estoque</TabsTrigger>
