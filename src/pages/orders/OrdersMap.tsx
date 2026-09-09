@@ -126,7 +126,8 @@ export default function OrdersMap() {
                   </a>
                 </Button>
               </div>
-            ))
+              );
+            })
           )}
         </CardContent>
       </Card>
