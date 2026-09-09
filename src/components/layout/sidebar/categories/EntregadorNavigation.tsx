@@ -1,4 +1,4 @@
-import { Bike, UserPlus, Package, Map } from "lucide-react";
+import { Bike, UserPlus, Package } from "lucide-react";
 import { SidebarLink } from "../SidebarLink";
 
 export const EntregadorNavigation = () => {
@@ -7,7 +7,6 @@ export const EntregadorNavigation = () => {
       <SidebarLink to="/entregador/entregas" icon={Package} label="Minhas Entregas" />
       <SidebarLink to="/entregador/cadastro" icon={UserPlus} label="Cadastro Rápido" />
       <SidebarLink to="/entregador/venda-rua" icon={Bike} label="Venda na Rua" />
-      <SidebarLink to="/orders/map" icon={Map} label="Mapa de Entregas" />
     </>
   );
 };

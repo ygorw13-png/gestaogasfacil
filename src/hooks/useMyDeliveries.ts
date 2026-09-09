@@ -39,10 +39,13 @@ export function useMyDeliveries() {
     queryKey: ["my-deliveries", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
+      const inicioHoje = new Date();
+      inicioHoje.setHours(0, 0, 0, 0);
       const { data, error } = await supabase
         .from("orders")
         .select("*")
         .eq("delivery_person", user.id)
+        .gte("created_at", inicioHoje.toISOString())
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as DeliveryOrder[];

@@ -16,6 +16,7 @@ import AcertoEntregadores from "./AcertoEntregadores";
 import HistoricoPortaria from "./HistoricoPortaria";
 import { DespesasPortariaTab } from "./components/despesas/DespesasPortariaTab";
 import { useSearchParams } from "react-router-dom";
+import { EntregasAtrasadasAlert } from "./components/orders/EntregasAtrasadasAlert";
 
 
 function EntranceSalesContent() {
@@ -104,6 +105,8 @@ function EntranceSalesContent() {
 
         <TabsContent value="balcao" className="space-y-6">
           {!hasOpening && <OpeningLockAlert onOpen={() => setOpeningDialogOpen(true)} />}
+
+          <EntregasAtrasadasAlert />
 
           <EntranceHeader
             newSaleOpen={newSaleOpen}
