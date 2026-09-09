@@ -89,13 +89,16 @@ export function AppLayout() {
     }
   }, [isLoading]);
 
-  if (isLoading) {
+  if (isLoading || roleLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background" role="status" aria-live="polite">
         <LoadingSpinner size="lg" message="GásFácil Manager" />
       </div>
     );
   }
+
+  // Entregador tem uma tela própria, sem menu e sem dashboard
+  if (isEntregador) return <EntregadorLayout />;
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
