@@ -56,3 +56,11 @@ Verificação TypeScript executada por `tsgo` disponível no ambiente, não por 
 ## Limite da reprodução
 
 Os 59 testes candidatos + 8 legados locais não são 67 testes hospedados. Os testes de sessão e endpoints usam serviços simulados; PostgreSQL valida RPC/triggers/grants no esquema mínimo real local. Validação completa de Auth/gateway/create-user/manage-user exige o draft isolado com gateway funcional. Não substituir por gravações em produção.
+## Integração real (Auth v2.197.0 + PostgREST + esquema completo, só loopback)
+1. Baixe `auth-v2.197.0-x86.tar.gz` da release oficial `supabase/auth`; `nix build nixpkgs#postgrest`.
+2. Cluster novo (usuário sem privilégio): `initdb -D /tmp/iso/pg -A trust -U postgres`; `pg_ctl ... -o "-p 55440 -h 127.0.0.1" start`. Remova variáveis `PG*` do shell.
+3. Crie papéis `anon`, `authenticated`, `service_role`, `authenticator`, `supabase_auth_admin` e o schema `auth` do dono `supabase_auth_admin`; schema `extensions` com `pgcrypto`; `CREATE PUBLICATION supabase_realtime`.
+4. Inicie o Auth (aplica as próprias migrações) com segredo JWT gerado localmente; aplique `supabase/migrations/*.sql` (cada um com `psql -1`) e `g0.1/sql/001_profile_verification.sql`.
+5. Crie a tabela/gatilho de auditoria `public.iso_auth_audit` em `auth.users` (apenas no ambiente isolado; usado por L03/L04).
+6. Inicie PostgREST (porta 53000) e `deno run -A tests/integration/gateway.ts` (porta 58000) com `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` locais e **sem** `G01_CREATE_BANNED_VALIDATED`.
+7. `ISO_PG_URL=postgres://postgres@127.0.0.1:55440/postgres deno test -A tests/integration/live.test.ts` — o teste recusa executar fora de 127.0.0.1.

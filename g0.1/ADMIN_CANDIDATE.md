@@ -11,7 +11,7 @@ Infraestrutura: Lovable Cloud gerenciado; nenhum Supabase externo.
 
 ## Novo login × token já emitido
 - **Novo login e refresh**: impedidos pelo bloqueio no Auth.
-- **Access token já emitido** (válido até expirar, cerca de 1 h): o bloqueio **não** o revoga. Ele só é negado onde o backend verifica `ativo`/papel canônico. A migração G0.1 cobre as funções de perfil/papel (`get_my_org`, `set_user_role`, verificação de perfil) e estes endpoints administrativos. **Ela não revisa todas as políticas operacionais** (pedidos, estoque, financeiro etc.). Nessas tabelas, um token emitido antes da desativação pode continuar funcionando até expirar.
+- **Access token já emitido** (válido até expirar, cerca de 1 h): o bloqueio **não** o revoga. Ele só é negado onde o backend verifica `ativo`/papel canônico. **Correção:** a migração G0.1 (`sql/001_profile_verification.sql`) **não altera `get_my_org`** nem nenhuma das 52 políticas RLS (conferido por hash antes/depois em `INTEGRATION_RESULTS.md`). Objetos que ela protege estão listados lá, §2. Em teste real, um token emitido antes da desativação continuou lendo `orders` e `get_my_org` continuou retornando a empresa. Os endpoints administrativos o recusam (Auth rejeita token de conta bloqueada; perfil inativo dá 403).
 
 ## Comandos
 ```

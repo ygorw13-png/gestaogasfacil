@@ -1,15 +1,19 @@
-# G0.1 v2 — pacote consolidado
+# G0.1 — pacote consolidado
 
-## STATUS ÚNICO: NÃO PRONTO PARA PRODUÇÃO — INCOMPLETO E BLOQUEADO
+## STATUS ÚNICO: NÃO PRONTO PARA PRODUÇÃO
 
-Este README substitui o README anterior (que citava "50 testes"). Aquele texto está obsoleto e não faz parte deste pacote.
+Este README substitui versões anteriores (inclusive a que citava "50 testes" e a que dizia que o código administrativo estava ausente).
 
-Bloqueios que impedem qualquer indicação de "pronto":
-1. Os três candidatos administrativos (`_shared/g01-admin.ts`, `create-user/index.ts`, `manage-user/index.ts`) existem apenas no ambiente isolado (draft). Não há mecanismo, a partir da conversa principal, para ler arquivos de um draft sem aceitá-lo — e aceitar está proibido nesta etapa. Por isso o código **não está incluído**; apenas os hashes informados pelo draft (ver abaixo) estão registrados, sem conferência possível.
-2. Validação pelo gateway padrão e em navegador/celular no ambiente isolado não foi concluída (gateway retornou 503; ver ISOLATED_VALIDATION.md §3).
-3. O provisionamento de colaboradores precisa de redesenho aprovado (PROVISIONING_PROPOSAL.md). Nada foi reescrito.
+- Código administrativo: nova implementação em `candidate/supabase/functions/` (os arquivos do draft antigo não são usados).
+- Integração real isolada (Auth v2.197.0, banco com esquema completo, RPC e políticas reais): **21/21** — ver `INTEGRATION_RESULTS.md`.
+- Testes com mock: 68/68 (separados). Perfil/sessão: 59 candidatos + 8 legados.
+- Pendente antes de publicar: teste em navegador do frontend de perfil/sessão contra o ambiente isolado; aprovação explícita de produção.
+- Limitações confirmadas: `get_my_org` e as 52 políticas não foram alteradas; token antigo de conta desativada funciona nas tabelas operacionais até expirar; empresa extra no cadastro.
+- `G01_CREATE_BANNED_VALIDATED` desligada: cadastro de colaborador indisponível até ligar na implantação aprovada.
 
 Produção: nenhuma alteração, migração, publicação ou aceite de draft.
+
+> Seções abaixo são históricas; onde divergirem, valem este topo e `INTEGRATION_RESULTS.md`.
 
 ## Separação em três frentes
 
