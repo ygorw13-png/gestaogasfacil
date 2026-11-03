@@ -39,7 +39,7 @@ async function fn(name: string, token: string, body: unknown) {
 async function state(id: string) {
   return await sql(`select coalesce(p.ativo::text,'-'), coalesce(p.role,'-'), coalesce(p.organization_id::text,'-'),
     coalesce((select string_agg(role::text,',') from public.user_roles where user_id='${id}'),'-'),
-    coalesce((u.banned_until > now())::text,'nouser') from auth.users u full join public.profiles p on p.id=u.id
+    case when u.id is null then 'nouser' else coalesce(u.banned_until > now(), false)::text end from auth.users u full join public.profiles p on p.id=u.id
     where coalesce(u.id,p.id)='${id}'`);
 }
 /** Bootstrap admin through the platform's own signup trigger (new org + admin profile). */
@@ -150,8 +150,9 @@ Deno.test({ name: 'L06 deactivation via gateway; new login and refresh refused; 
   console.log('PRE-ISSUED TOKEN after deactivation:', JSON.stringify({ get_my_org: org.data === A.org ? 'returns org A' : org.error?.message ?? org.data, orders_select: orders.error ? `denied ${orders.error.code}` : `allowed (${orders.data?.length} rows)`, own_profile: ownProfile.data }));
   assertEquals(org.data, A.org, 'LIMITATION confirmed: get_my_org does not check ativo');
   assertEquals(orders.error, null, 'LIMITATION confirmed: operational policies accept the old token');
+  // Edge endpoints validate the token with Auth (getUser), which rejects banned users even with a valid JWT.
   const asAdmin = await fn('manage-user', t0.access_token, { action: 'update_profile', target_user_id: A.id, name: 'x' });
-  assertEquals(asAdmin.status, 403);
+  assertEquals([asAdmin.status, asAdmin.body.code], [401, 'AUTH_REQUIRED']);
 } });
 
 Deno.test({ name: 'L07 reactivation via gateway restores login', ...opts, fn: async () => {
@@ -181,7 +182,13 @@ Deno.test({ name: 'L09 refusals: other company 404, self-change 403, non-admin 4
   const t2 = (await login(email('admin2'))).data.session!.access_token;
   assertEquals((await fn('manage-user', tokA, { action: 'toggle_active', target_user_id: a2.v!.user.id, active: false })).status, 200);
   const denied = await fn('manage-user', t2, { action: 'toggle_active', target_user_id: courierId, active: false });
-  assertEquals(denied.status, 403); assertEquals(denied.body.code, 'ADMIN_NOT_VERIFIED');
+  assertEquals([denied.status, denied.body.code], [401, 'AUTH_REQUIRED'], 'banned: Auth rejects the pre-issued token');
+  // Inactive in profile but NOT banned in Auth (the F05 residual state): backend ativo check must refuse.
+  await sql(`update auth.users set banned_until=null where id='${a2.v!.user.id}'`);
+  const t3 = (await login(email('admin2'))).data.session!.access_token;
+  await sql(`update public.profiles set ativo=false where id='${a2.v!.user.id}'`);
+  const inactive = await fn('manage-user', t3, { action: 'toggle_active', target_user_id: courierId, active: false });
+  assertEquals([inactive.status, inactive.body.code], [403, 'ADMIN_NOT_VERIFIED']);
   const rpc = await createClient(URL_, ANON, { global: { headers: { Authorization: `Bearer ${t2}` } }, auth: { persistSession: false } })
     .rpc('set_user_role', { _user_id: courierId, _role: 'admin' });
   assert(rpc.error, 'inactive admin old token refused by set_user_role');
