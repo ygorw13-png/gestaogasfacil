@@ -11,7 +11,7 @@
 ## Sequência
 | Passo | O que | Depende de | Contenção se falhar |
 |---|---|---|---|
-| 1 | Aplicar `sql/001_profile_verification.sql` como migração | pré-condições | Não restaurar as versões antigas de `set_user_role`/guardas. Manter as revogações e corrigir avançando. Se o app quebrar no login, seguir para o passo 2 (o frontend atual depende do INSERT em `profiles`, agora revogado) |
+| 1 | Aplicar `sql/001_profile_verification.sql` como migração | pré-condições | Não restaurar as versões antigas de `set_user_role`/guardas. Manter as revogações e corrigir avançando. O fallback de cadastro do frontend atual (`useRegisterForm`: `profiles.insert` direto) passa a falhar com a revogação; o login usa `get_user_profile`. Seguir para os passos 2–3 sem intervalo |
 | 2 | Implantar `get_user_profile` e `create_profile` candidatas | 1 (`g0_recover_own_profile`) | Se falharem, o login fica bloqueado (fail-closed). Corrigir a função; não reabrir a gravação de perfil pelo cliente |
 | 3 | Publicar o frontend candidato de perfil/sessão | 1, 2 | Republicar a versão anterior do frontend só se 1–2 continuarem ativos; o frontend antigo pode falhar ao criar perfil, mas sem ganho de privilégio |
 | 4 | Implantar `manage-user` candidata | 1 (`set_user_role` novo) | Se falhar, desativar a ação na tela. Não voltar à função antiga |
