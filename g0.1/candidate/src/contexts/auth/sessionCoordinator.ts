@@ -58,6 +58,9 @@ export function createSessionCoordinator(services:Services,read:(id:string)=>Pro
     event(event:string,session:Session|null) {
       if(!active || blocked)return;
       if(event==='SIGNED_OUT'){manualLogin=false;invalidate(false);return;}
+      // During manual login, only its fresh getSession result may identify the account.
+      // An unrelated event must not lend another account's verification to this form.
+      if(manualLogin)return;
       const incoming=session?key(session):null;
       // A login event and manual login share one generation and verification.
       if(!manualLogin && incoming!==acceptedKey)invalidate(!!session);
@@ -73,8 +76,8 @@ export function createSessionCoordinator(services:Services,read:(id:string)=>Pro
         const result=await services.signIn(email,password,options);
         if(ticket!==generation || blocked || !active)return {success:false,error:'A sessão foi alterada. Entre novamente.'};
         if(!result.success){verification.fail(new Error(result.error??'Falha no login.'));return result;}
-        // Event may have already verified this very login. Join that promise.
-        const ok=verifiedPromise?await verifiedPromise:await readSession(ticket);
+        // Manual login owns verification; concurrent SIGNED_IN events are coalesced.
+        const ok=await readSession(ticket);
         return ok && ticket===generation && !blocked
           ? {success:true} : {success:false,error:'Seu acesso não foi verificado. Tente novamente ou solicite revisão administrativa.'};
       } catch {

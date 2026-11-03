@@ -43,3 +43,8 @@ it('retry after failed verification rereads profile instead of reusing failed pr
  const {c,services,last,read}=setup();services.getSession.mockResolvedValue(response(A));read.mockRejectedValueOnce(new Error('network'));
  expect(await c.initialize()).toBe(false);expect(await c.refresh()).toBe(true);expect(read).toHaveBeenCalledTimes(2);expect(last()?.ready).toBe(true);
 });
+it('unrelated account event during manual login cannot lend its identity to the form',async()=>{
+ const {c,services,last,read}=setup();const pending=deferred<{success:boolean}>();services.signIn.mockReturnValue(pending.promise);services.getSession.mockResolvedValue(response(B));
+ const form=c.signIn('b@example.invalid','fixture');c.event('TOKEN_REFRESHED',session(A));await Promise.resolve();expect(read).not.toHaveBeenCalled();pending.resolve({success:true});
+ expect(await form).toEqual({success:true});expect(read).toHaveBeenCalledWith(B);expect(last()?.profile?.id).toBe(B);
+});
