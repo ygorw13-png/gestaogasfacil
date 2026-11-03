@@ -1,5 +1,9 @@
-// G0.1 RELEASE CANDIDATE — NEW IMPLEMENTATION (main chat, 2026-11-03).
+// G0.1 RELEASE CANDIDATE — NEW IMPLEMENTATION, revision 2 (main chat, 2026-11-03).
 // Not deployed. Pure logic with an injected repository so it can be tested without a backend.
+//
+// Truthfulness rule: a write that throws may still have taken effect (lost response).
+// So after the first write, any failure is reported as an INCOMPLETE operation that needs
+// review — never as "nothing changed", "blocked" or "removed" unless a read-back confirmed it.
 
 export const ROLES = ['admin', 'user', 'entregador'] as const;
 export type Role = typeof ROLES[number];
@@ -14,24 +18,42 @@ export interface ProfileRow {
 
 /** Every method must throw on backend error; "not found" is null / 0 rows. */
 export interface AdminRepository {
+  /**
+   * True only when creating an account already banned has been validated for the
+   * effective Auth version in an isolated environment. Default deployments: false.
+   */
+  readonly createBannedSupported: boolean;
   authenticate(token: string): Promise<string | null>;
   getProfile(id: string): Promise<ProfileRow | null>;
   getRoles(id: string): Promise<string[]>;
-  // provisioning
-  createAuthUser(input: { email: string; password: string; name: string }): Promise<string>;
+  /** Auth ban state: true = banned_until in the future, false = not banned, null = account missing. */
+  getBanned(id: string): Promise<boolean | null>;
+  /** Creates the Auth account already banned. Returns the id and the banned state reported by Auth. */
+  createBannedAuthUser(input: { email: string; password: string; name: string }): Promise<{ id: string; banned: boolean }>;
   deleteAuthUser(id: string): Promise<void>;
   setBan(id: string, banned: boolean): Promise<void>;
   updateProfile(id: string, patch: Partial<Pick<ProfileRow, 'organization_id' | 'role' | 'ativo' | 'name'>>): Promise<number>;
   replaceRole(id: string, role: Role): Promise<void>;
-  /** Role change executed with the caller's own JWT (set_user_role RPC, atomic in SQL). */
+  /** Role change executed with the caller's own JWT (set_user_role RPC). */
   setRoleAsCaller(id: string, role: Role): Promise<void>;
-  deleteOrphanOrganization(ownerId: string, keepOrgId: string): Promise<void>;
   resetPassword(id: string, password: string): Promise<void>;
 }
 
 export class AdminFailure extends Error {
   constructor(public status: number, public code: string, message: string) { super(message); }
 }
+
+export const MSG = {
+  CREATE_UNAVAILABLE: 'Criação de usuários indisponível nesta versão. Nenhuma conta foi criada.',
+  PROVISIONING_INCOMPLETE: 'Operação incompleta: a conta pode ter sido criada sem todas as etapas. Confira login, perfil e papel antes de repetir.',
+  DEACTIVATION_INCOMPLETE: 'Desativação incompleta ou não confirmada. Confira perfil e login do usuário antes de repetir.',
+  REACTIVATION_INCOMPLETE: 'Reativação incompleta ou não confirmada. Confira perfil e login do usuário antes de repetir.',
+  ROLE_CHANGE_INCOMPLETE: 'Troca de papel não confirmada. Confira o papel do usuário antes de repetir.',
+  UPDATE_INCOMPLETE: 'Alteração não confirmada. Confira o cadastro antes de repetir.',
+  PASSWORD_INCOMPLETE: 'Redefinição de senha não confirmada. Confira antes de repetir.',
+  DELETE_INCOMPLETE: 'Exclusão não confirmada. Confira se a conta ainda existe antes de repetir.',
+  SERVICE_UNAVAILABLE: 'Serviço indisponível. A operação não foi confirmada; confira o estado antes de repetir.',
+} as const;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -45,7 +67,7 @@ function strictBody(body: unknown, allowed: string[]): Record<string, unknown> {
 }
 function str(v: unknown, field: string, min: number, max: number): string {
   if (typeof v !== 'string') throw new AdminFailure(400, 'INVALID_FIELD', `Campo inválido: ${field}.`);
-  const t = field === 'password' ? v : v.trim();
+  const t = field.includes('password') ? v : v.trim();
   if (t.length < min || t.length > max) throw new AdminFailure(400, 'INVALID_FIELD', `Campo inválido: ${field}.`);
   return t;
 }
@@ -57,9 +79,15 @@ function uuid(v: unknown, field: string): string {
   if (typeof v !== 'string' || !UUID.test(v)) throw new AdminFailure(400, 'INVALID_FIELD', `Campo inválido: ${field}.`);
   return v.toLowerCase();
 }
-function password(v: unknown, field = 'password') {
-  // 72 = bcrypt input limit used by the auth service.
-  return str(v, field, 8, 72);
+// 72 = bcrypt input limit used by the auth service.
+const password = (v: unknown, field = 'password') => str(v, field, 8, 72);
+
+const incomplete = (code: keyof typeof MSG) => new AdminFailure(500, code, MSG[code]);
+/** Runs a write (and its read-back); any throw or failed check becomes the given INCOMPLETE error. */
+async function step(code: keyof typeof MSG, fn: () => Promise<boolean | void>) {
+  let ok: boolean | void;
+  try { ok = await fn(); } catch { throw incomplete(code); }
+  if (ok === false) throw incomplete(code);
 }
 
 /** Canonical verification: active profile, organization set, exactly one role row, profile.role equal to it. */
@@ -95,32 +123,30 @@ export async function createUser(repo: AdminRepository, token: string, body: unk
   const name = str(f.name, 'name', 2, 100);
   const r = role(f.role);
 
-  let newId: string;
+  // No unbanned window is acceptable. Without validated banned-at-creation support, refuse before any write.
+  if (!repo.createBannedSupported) throw new AdminFailure(503, 'CREATE_UNAVAILABLE', MSG.CREATE_UNAVAILABLE);
+
+  let created: { id: string; banned: boolean };
   try {
-    newId = await repo.createAuthUser({ email, password: pwd, name });
+    created = await repo.createBannedAuthUser({ email, password: pwd, name });
   } catch (e) {
     const msg = String((e as Error)?.message ?? '');
     if (/already|registered|exists/i.test(msg)) throw new AdminFailure(409, 'EMAIL_IN_USE', 'Este e-mail já está cadastrado.');
-    throw e;
+    throw incomplete('PROVISIONING_INCOMPLETE'); // lost response: account may exist
   }
-  // Fail-closed ordering: the account is banned until every step succeeds; unban is the last write.
-  try {
-    await repo.setBan(newId, true);
-    const rows = await repo.updateProfile(newId, { organization_id: caller.organizationId, role: r, name, ativo: true });
-    if (rows !== 1) throw new Error('PROFILE_NOT_UPDATED');
-    await repo.replaceRole(newId, r);
-    const check = canonicalRole(await repo.getProfile(newId), await repo.getRoles(newId));
-    if (check !== r) throw new Error('PROVISIONING_NOT_VERIFIED');
-    await repo.deleteOrphanOrganization(newId, caller.organizationId);
-    await repo.setBan(newId, false);
-  } catch {
-    let removed = false;
-    try { await repo.deleteAuthUser(newId); removed = true; } catch { /* account stays banned */ }
-    throw new AdminFailure(500, removed ? 'PROVISIONING_FAILED' : 'PROVISIONING_INCOMPLETE',
-      removed ? 'Falha ao criar o usuário. Nada foi mantido; tente novamente.'
-              : 'Falha ao criar o usuário. A conta ficou bloqueada e precisa de revisão.');
-  }
-  return { user: { id: newId, name, role: r } };
+  const id = created.id;
+  // Auth must report the account banned at creation; otherwise stop (no compensating delete is relied on).
+  await step('PROVISIONING_INCOMPLETE', async () => created.banned === true && (await repo.getBanned(id)) === true);
+  await step('PROVISIONING_INCOMPLETE', async () =>
+    (await repo.updateProfile(id, { organization_id: caller.organizationId, role: r, name, ativo: true })) === 1);
+  await step('PROVISIONING_INCOMPLETE', () => repo.replaceRole(id, r));
+  await step('PROVISIONING_INCOMPLETE', async () => {
+    const p = await repo.getProfile(id);
+    return p?.organization_id === caller.organizationId && canonicalRole(p, await repo.getRoles(id)) === r;
+  });
+  // Organizations created by the signup trigger are NOT removed here (see PROVISIONING_LIMITATIONS.md).
+  await step('PROVISIONING_INCOMPLETE', async () => { await repo.setBan(id, false); return (await repo.getBanned(id)) === false; });
+  return { user: { id, name, role: r } };
 }
 
 export async function manageUser(repo: AdminRepository, token: string, body: unknown) {
@@ -148,39 +174,40 @@ export async function manageUser(repo: AdminRepository, token: string, body: unk
 
   switch (action) {
     case 'reset_password':
-      await repo.resetPassword(targetId, pwd);
+      await step('PASSWORD_INCOMPLETE', () => repo.resetPassword(targetId, pwd));
       break;
     case 'toggle_active':
       if (f.active === false) {
-        // Block login first; if the profile write fails the account remains blocked (fail-closed).
-        await repo.setBan(targetId, true);
-        if (await repo.updateProfile(targetId, { ativo: false }) !== 1) throw new AdminFailure(500, 'DEACTIVATION_INCOMPLETE', 'Acesso bloqueado, mas o cadastro não foi atualizado. Tente novamente.');
+        // 1) profile ativo=false: denies the existing token only where the backend checks ativo.
+        // 2) Auth ban: denies new password login and token refresh. Does not revoke issued access tokens.
+        await step('DEACTIVATION_INCOMPLETE', async () => (await repo.updateProfile(targetId, { ativo: false })) === 1);
+        await step('DEACTIVATION_INCOMPLETE', async () => { await repo.setBan(targetId, true); return true; });
+        await step('DEACTIVATION_INCOMPLETE', async () =>
+          (await repo.getProfile(targetId))?.ativo === false && (await repo.getBanned(targetId)) === true);
       } else {
-        // Reactivation only for a profile whose role data is consistent; unban is the last write.
         const roles = await repo.getRoles(targetId);
         if (roles.length !== 1 || target.role !== roles[0] || !(ROLES as readonly string[]).includes(roles[0])) {
-          throw new AdminFailure(409, 'ROLE_NOT_VERIFIED', 'Papel do usuário inconsistente; corrija o papel antes de reativar.');
+          throw new AdminFailure(409, 'ROLE_NOT_VERIFIED', 'Papel do usuário inconsistente; corrija o papel antes de reativar. Nada foi gravado.');
         }
-        if (await repo.updateProfile(targetId, { ativo: true }) !== 1) throw new AdminFailure(500, 'REACTIVATION_FAILED', 'Não foi possível reativar o usuário.');
-        try {
-          await repo.setBan(targetId, false);
-        } catch {
-          try { await repo.updateProfile(targetId, { ativo: false }); } catch { /* still banned: no access */ }
-          throw new AdminFailure(500, 'REACTIVATION_FAILED', 'Não foi possível liberar o acesso. O usuário continua bloqueado.');
-        }
+        // Profile first, unban last: login is only released after the profile is confirmed active.
+        await step('REACTIVATION_INCOMPLETE', async () => (await repo.updateProfile(targetId, { ativo: true })) === 1);
+        await step('REACTIVATION_INCOMPLETE', async () => (await repo.getProfile(targetId))?.ativo === true);
+        await step('REACTIVATION_INCOMPLETE', async () => { await repo.setBan(targetId, false); return (await repo.getBanned(targetId)) === false; });
       }
       break;
     case 'delete':
-      await repo.deleteAuthUser(targetId);
+      await step('DELETE_INCOMPLETE', async () => { await repo.deleteAuthUser(targetId); return (await repo.getBanned(targetId)) === null; });
       break;
     case 'set_role':
-      await repo.setRoleAsCaller(targetId, newRole!);
-      if (canonicalRole({ ...(await repo.getProfile(targetId))!, ativo: true }, await repo.getRoles(targetId)) !== newRole) {
-        throw new AdminFailure(500, 'ROLE_CHANGE_NOT_VERIFIED', 'A troca de papel não foi confirmada.');
-      }
+      await step('ROLE_CHANGE_INCOMPLETE', async () => {
+        await repo.setRoleAsCaller(targetId, newRole!);
+        const p = await repo.getProfile(targetId);
+        const roles = await repo.getRoles(targetId);
+        return !!p && p.role === newRole && roles.length === 1 && roles[0] === newRole;
+      });
       break;
     case 'update_profile':
-      if (await repo.updateProfile(targetId, { name: newName }) !== 1) throw new AdminFailure(500, 'UPDATE_FAILED', 'Não foi possível salvar.');
+      await step('UPDATE_INCOMPLETE', async () => (await repo.updateProfile(targetId, { name: newName })) === 1);
       break;
   }
   return { ok: true };
@@ -207,7 +234,7 @@ export function makeAdminHandler(
     } catch (e) {
       if (e instanceof AdminFailure) { log(e.code); return json({ code: e.code, error: e.message }, e.status); }
       log('SERVICE_UNAVAILABLE');
-      return json({ code: 'SERVICE_UNAVAILABLE', error: 'Serviço indisponível. Nenhuma alteração foi confirmada.' }, 503);
+      return json({ code: 'SERVICE_UNAVAILABLE', error: MSG.SERVICE_UNAVAILABLE }, 503);
     }
   };
 }
