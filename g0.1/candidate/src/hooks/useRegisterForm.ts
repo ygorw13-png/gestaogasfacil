@@ -94,23 +94,10 @@ export function useRegisterForm() {
       // The existing signup trigger is the sole initial provisioning path.
       toast({ title: "Solicitação de cadastro concluída", description: "Se solicitada, confirme seu e-mail antes de entrar." });
       navigate('/login');
-    } catch (backupError) {
-            console.error("Erro na abordagem de backup:", backupError);
-            // Mesmo com erro no backup, continuamos para tentar permitir login
-          }
-        }
-
-        toast({
-          title: "Cadastro realizado com sucesso!",
-          description: "Por favor, faça login com suas credenciais."
-        });
-        
-        navigate('/login');
-      }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erro ao fazer cadastro",
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Não foi possível concluir o cadastro.',
         variant: "destructive"
       });
     } finally {

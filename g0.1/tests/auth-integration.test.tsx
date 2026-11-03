@@ -47,7 +47,8 @@ it('15 signup without session never calls profile endpoints or direct inserts',a
  await act(async()=>{await result.current.handleRegister({name:'Cadastro Teste',email:'new@example.invalid',password:'FixtureStrong91',confirmPassword:'FixtureStrong91'});});
  expect(mocks.signup).toHaveBeenCalledTimes(1);expect(mocks.read).not.toHaveBeenCalled();expect(mocks.toast).toHaveBeenCalled();
 });
-it('protected UI remains blocked pending or failed verification',()=>{
- render(<MemoryRouter><AuthContext.Provider value={{...React.useContext /* not used */,user:ses(A).user,session:ses(A),loading:true,error:null,permissions:{ready:false,error:false,roles:[]}} as never}><AuthGuard><span>Protected result</span></AuthGuard></AuthContext.Provider></MemoryRouter>);
+it.each([true,false])('protected UI remains blocked, loading=%s',loading=>{
+ const value={user:ses(A).user,session:ses(A),loading,error:loading?null:new Error('Revisão necessária'),permissions:{ready:false,error:!loading,roles:[]},profile:null,organization:null,signIn:async()=>({success:false}),signOut:async()=>{},refresh:async()=>{},hasRole:()=>false,getUserCurrentRole:()=>null};
+ render(<MemoryRouter><AuthContext.Provider value={value}><AuthGuard><span>Protected result</span></AuthGuard></AuthContext.Provider></MemoryRouter>);
  expect(screen.queryByText('Protected result')).toBeNull();
 });
