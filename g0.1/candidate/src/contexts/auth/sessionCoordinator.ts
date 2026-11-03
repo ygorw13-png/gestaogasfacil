@@ -14,10 +14,11 @@ export function createSessionCoordinator(services:Services,read:(id:string)=>Pro
   let manualLogin=false;
   let acceptedKey:string|null=null;
   let verifiedPromise:Promise<boolean>|null=null;
+  let verificationFailed=false;
   let active=true;
   const key=(session:Session)=>`${session.user.id}:${session.access_token}`;
   function invalidate(pending:boolean) {
-    ++generation;acceptedKey=null;verifiedPromise=null;
+    ++generation;acceptedKey=null;verifiedPromise=null;verificationFailed=false;
     if(pending)verification.pending();else void verification.change(null);
     return generation;
   }
@@ -28,12 +29,17 @@ export function createSessionCoordinator(services:Services,read:(id:string)=>Pro
     const nextKey=key(session);
     if(nextKey===acceptedKey && verifiedPromise)return verifiedPromise;
     acceptedKey=nextKey;
-    verifiedPromise=verification.change(session);
+    verifiedPromise=verification.change(session).then(ok=>{
+      if(ticket===generation && acceptedKey===nextKey)verificationFailed=!ok;
+      return ok;
+    });
     return verifiedPromise;
   }
   async function readSession(ticket:number) {
     try {
-      const {data,error}=await services.getSession();
+      let timer:ReturnType<typeof setTimeout>|undefined;
+      const timeout=new Promise<never>((_resolve,reject)=>{timer=setTimeout(()=>reject(new Error('Sessão indisponível.')),10000);});
+      const {data,error}=await Promise.race([services.getSession(),timeout]).finally(()=>{if(timer)clearTimeout(timer);});
       if(!active || blocked || ticket!==generation)return false;
       if(error){verification.fail(error);return false;}
       return await accept(data.session,ticket);
@@ -44,7 +50,11 @@ export function createSessionCoordinator(services:Services,read:(id:string)=>Pro
   }
   return {
     initialize:()=>readSession(generation),
-    refresh:()=>blocked?Promise.resolve(false):readSession(generation),
+    refresh:()=>{
+      if(blocked)return Promise.resolve(false);
+      if(verificationFailed){verifiedPromise=null;acceptedKey=null;verificationFailed=false;}
+      return readSession(generation);
+    },
     event(event:string,session:Session|null) {
       if(!active || blocked)return;
       if(event==='SIGNED_OUT'){manualLogin=false;invalidate(false);return;}
@@ -74,9 +84,9 @@ export function createSessionCoordinator(services:Services,read:(id:string)=>Pro
     },
     async signOut() {
       // Local logout is irrevocable by refresh events, even if remote signOut fails.
-      blocked=true;manualLogin=false;invalidate(false);
+      blocked=true;manualLogin=false;const ticket=invalidate(false);
       try{await services.signOut();return {success:true};}
-      catch{verification.fail(new Error('Não foi possível encerrar a sessão no servidor. O acesso local permanece bloqueado.'));return {success:false};}
+      catch{if(ticket===generation && blocked)verification.fail(new Error('Não foi possível encerrar a sessão no servidor. O acesso local permanece bloqueado.'));return {success:false};}
     },
     reset(){blocked=true;manualLogin=false;invalidate(false);},
     stop(){active=false;invalidate(false);},
