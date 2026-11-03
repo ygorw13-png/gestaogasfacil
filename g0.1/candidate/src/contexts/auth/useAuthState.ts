@@ -8,21 +8,26 @@ export function useAuthState() {
   const controller=useMemo(()=>createVerificationController(fetchUserProfile,setState),[]);
   const refresh=useCallback(async()=> {
     if (controller.session) { await controller.change(controller.session); return; }
-    const {data,error}=await supabase.auth.getSession();
-    if (error) controller.fail(error); else await controller.change(data.session);
+    try {
+      const {data,error}=await supabase.auth.getSession();
+      if (error) controller.fail(error); else await controller.change(data.session);
+    } catch { controller.fail(new Error('Sessão indisponível.')); }
   },[controller]);
   useEffect(()=> {
     let stopped=false;
     let receivedEvent=false;
     const timers=new Set<ReturnType<typeof setTimeout>>();
     const watchdog=setTimeout(()=> {
-      if (!stopped && !receivedEvent) controller.fail(new Error('Não foi possível verificar a sessão. Tente novamente.'));
+      if (!stopped && !receivedEvent) {
+        receivedEvent=true;
+        controller.fail(new Error('Não foi possível verificar a sessão. Tente novamente.'));
+      }
     },10000);
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=> {
       receivedEvent=true;
       clearTimeout(watchdog);
       // Clear authorization synchronously, but defer network requests outside auth callback.
-      void controller.change(null);
+      controller.pending();
       const timer=setTimeout(()=> { timers.delete(timer); if (!stopped) void controller.change(session); },0);
       // Supersede all queued events before scheduling the newest one.
       for (const old of timers) clearTimeout(old);

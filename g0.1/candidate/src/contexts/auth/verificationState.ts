@@ -17,7 +17,11 @@ export function createVerificationController(read: (id:string)=>Promise<Verified
       reset(session,!!session);
       if (!session) return false;
       try {
-        const profile=await read(session.user.id);
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const timeout=new Promise<never>((_resolve,reject)=>{
+          timer=setTimeout(()=>reject(new Error('Verificação indisponível. Tente novamente.')),10000);
+        });
+        const profile=await Promise.race([read(session.user.id),timeout]).finally(()=>{if(timer)clearTimeout(timer);});
         if (disposed || request!==version) return false;
         if (profile.id!==session.user.id || profile.ativo!==true) throw new Error('Acesso não verificado.');
         publish({session,profile,loading:false,error:null,ready:true});
@@ -28,6 +32,7 @@ export function createVerificationController(read: (id:string)=>Promise<Verified
       }
     },
     fail(error:Error) { ++version; current=null; if (!disposed) reset(null,false,error); },
+    pending() { ++version; current=null; if (!disposed) reset(null,true); },
     get session() { return current; },
     dispose() { disposed=true; ++version; },
   };
