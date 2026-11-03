@@ -7,7 +7,8 @@ Este README substitui versões anteriores (inclusive a que citava "50 testes" e 
 - Código administrativo: nova implementação em `candidate/supabase/functions/` (os arquivos do draft antigo não são usados).
 - Integração real isolada (Auth v2.197.0, banco com esquema completo, RPC e políticas reais): **21/21** — ver `INTEGRATION_RESULTS.md`.
 - Testes com mock: 68/68 (separados). Perfil/sessão: 59 candidatos + 8 legados.
-- Pendente antes de publicar: teste em navegador do frontend de perfil/sessão contra o ambiente isolado; aprovação explícita de produção.
+- Navegador isolado (frontend candidato + funções de perfil): **14/14** — ver `BROWSER_RESULTS.md`. Validação local; gateway gerenciado do Cloud **não verificado**.
+- Pendente antes de publicar: verificação no gateway gerenciado; aprovação explícita de produção. Sequência em `PUBLICATION_SEQUENCE.md`.
 - Limitações confirmadas: `get_my_org` e as 52 políticas não foram alteradas; token antigo de conta desativada funciona nas tabelas operacionais até expirar; empresa extra no cadastro.
 - `G01_CREATE_BANNED_VALIDATED` desligada: cadastro de colaborador indisponível até ligar na implantação aprovada.
 
