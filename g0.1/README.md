@@ -1,114 +1,71 @@
-# GásFácil — G0.1: implementação candidata e validação local
+# G0.1 v2 — pacote consolidado
 
-Data: 03/11/2026. **Não aplicado nem publicado em produção.**
+## STATUS ÚNICO: NÃO PRONTO PARA PRODUÇÃO — INCOMPLETO E BLOQUEADO
 
-## Resultado e limite
+Este README substitui o README anterior (que citava "50 testes"). Aquele texto está obsoleto e não faz parte deste pacote.
 
-Foram preparados os dois endpoints de perfil, SQL de verificação, chamadores de cadastro/login, permissões sem fallback administrativo, proteção das telas e controle de respostas atrasadas. Os arquivos ativos de `src/` e `supabase/` permaneceram idênticos, verificados por SHA-256 antes/depois.
+Bloqueios que impedem qualquer indicação de "pronto":
+1. Os três candidatos administrativos (`_shared/g01-admin.ts`, `create-user/index.ts`, `manage-user/index.ts`) existem apenas no ambiente isolado (draft). Não há mecanismo, a partir da conversa principal, para ler arquivos de um draft sem aceitá-lo — e aceitar está proibido nesta etapa. Por isso o código **não está incluído**; apenas os hashes informados pelo draft (ver abaixo) estão registrados, sem conferência possível.
+2. Validação pelo gateway padrão e em navegador/celular no ambiente isolado não foi concluída (gateway retornou 503; ver ISOLATED_VALIDATION.md §3).
+3. O provisionamento de colaboradores precisa de redesenho aprovado (PROVISIONING_PROPOSAL.md). Nada foi reescrito.
 
-O projeto atual compartilha o backend entre prévia e publicação; por isso os candidatos estão fora dos caminhos de implantação automática. Não foi criado um novo ambiente Cloud, não houve migração Cloud, implantação de funções ou publicação. As únicas consultas remotas foram SELECT de políticas e definições de funções. Não foram consultados nem usados registros de clientes/pedidos como fixtures.
+Produção: nenhuma alteração, migração, publicação ou aceite de draft.
 
-**50 testes passaram em 3 arquivos.** SQL executado em PostgreSQL 17 local, descartável, porta 55439/loopback, com esquema mínimo fictício. Endpoints e integração React foram testados com dependências simuladas. Os dois entrypoints também passaram em `deno check`.
+## Separação em três frentes
 
-**Não equivale a validação hospedada ponta a ponta.** Cadastro por e-mail, JWT real/expiração, gateway HTTP, RLS completo do projeto e login no celular ainda precisam de um ambiente hospedado isolado. Não usamos produção para preencher essa lacuna. Configurações hospedadas de confirmação de e-mail não foram verificadas.
+| Frente | Conteúdo | Situação |
+|---|---|---|
+| A. Perfil/sessão | `candidate/src/contexts/auth/*` (coordenador de sessão com geração compartilhada), guards, `create_profile`/`get_user_profile`, SQL de privilégios de perfil | Código e testes neste pacote. 59 testes candidatos + 8 legados passam; build e TypeScript da cópia completa passam. Falta gateway/navegador. |
+| B. Admin — compatibilidade e autorização | `g01-admin.ts`, `create-user`, `manage-user` candidatos: admin ativo + empresa válida, rejeição de inativo com token antigo, checagem de erros, ações `edit`/`set_role` | Validado no draft (44 asserções reais). **Código ausente deste pacote** (bloqueio 1). |
+| C. Redesenho do provisionamento | Fim da empresa extra, tratamento de falhas Auth/perfil/papel | Apenas proposta. Não implementado. |
 
-## Regras implementadas
+## Dependências e entregas independentes
 
-- SQL exige `ativo IS NOT TRUE` como condição de bloqueio: false e NULL são negados, inclusive RPC direta.
-- Perfil ausente sempre gera `PROFILE_REPAIR_REQUIRED`, sem INSERT, sem empresa ou papel novo. Não existe uma fonte independente confiável de ativação no esquema atual; propriedade de empresa e papel não são comprovante de ativação.
-- Perfil existente deve ter uma empresa válida, exatamente um papel canônico existente e espelho compatível.
-- Endpoints validam o JWT via `auth.getUser`, usam chave pública e autorização do próprio usuário, nunca chave de serviço.
-- Corpo aceita apenas `user_id` opcional e igual ao autenticado; nem admin lê/cria perfil de terceiro por esses endpoints.
-- `get_user_profile` é somente leitura; `create_profile` verifica perfil existente e bloqueia reconstrução ausente.
-- Cadastro não chama `create_profile`, não faz INSERT de empresa/perfil no navegador; provisionamento inicial continua exclusivamente pelo trigger existente.
-- Permissões desconhecidas, divergentes, pendentes ou com erro não viram admin nem user autorizado.
-- Troca/logout limpam imediatamente empresa, perfil e permissões; versões de requisição ignoram resposta antiga. Inicialização atrasada não sobrescreve evento mais recente; espera de verificação tem limite de 10 segundos.
-- Identidade offline em cache não autoriza telas protegidas. Isso deliberadamente limita acesso offline até existir verificação segura.
-- Cache de consultas é limpo em troca/login/logout. Telas protegidas exibem falha controlada com tentar novamente/sair.
+- **A depende de B.** O SQL de A revoga inserts diretos em perfil e escritas diretas em papéis e endurece o trigger de perfil. As funções admin atuais ignoram erros dessas escritas; publicar A sem B pode gerar "sucesso falso" ao criar/gerir colaboradores. Também a garantia "admin inativo não age" só existe com B.
+- **B depende do SQL de A** (usa a RPC atômica de papel e a checagem de admin ativo).
+- **A + B podem ser entregues juntas, sem C**, desde que se aceite formalmente a limitação conhecida: criação continua em várias chamadas e deixa a empresa extra. Ainda assim exigem os critérios de publicação abaixo.
+- **Parte isoladamente segura:** apenas o coordenador de sessão do frontend (sem SQL), pois só restringe o cliente; não muda permissões do servidor. Mesmo assim depende de teste em navegador.
+- **C depende de A + B** e de nova migração (trigger de novo usuário).
 
-## Evidências de empresa e papel
+## Hashes dos candidatos administrativos (informados pelo draft, não conferidos aqui)
 
-Foi confirmado por leitura das políticas que usuários autenticados podem criar empresas com `owner_id` próprio. Portanto, uma linha de propriedade existente **não é origem confiável de recuperação**. O candidato não usa propriedade como prova de ativação e adiciona trigger bloqueando mudança de owner_id/id por solicitante autenticado.
-
-`user_roles` tem SELECT próprio e nenhuma política de escrita direta; a RPC administrativa existente era uma via de alteração. O SQL candidato remove grants de escrita direta, bloqueia `set_user_role` sobre a própria conta, exige administrador ativo e mesma empresa do alvo, e mantém o espelho em transação. O guard de perfil bloqueia autoalteração de papel/empresa/ativo/identidade e mudança de empresa mesmo por admin. INSERT autenticado de perfil é revogado para impedir fabricação de evidência/ativação.
-
-Consequência a revisar: transferência de propriedade/empresa e alteração do próprio papel passam a ser bloqueadas; qualquer procedimento administrativo de transferência será separado. Não adicionamos FK a auth.users, não criamos papéis gerente/portaria nem estrutura de recuperação.
-
-## Arquivos finais
-
-`candidate/` usa os caminhos de destino da futura aplicação. **Não copiar para os caminhos ativos nesta etapa.**
-
-- `supabase/functions/_shared/g0-profile-core.ts`: contrato HTTP testável.
-- `supabase/functions/_shared/g0-profile.ts`: validação JWT, RPC e consulta limitada com sessão própria.
-- `supabase/functions/create_profile/index.ts` e `get_user_profile/index.ts`: entrypoints.
-- `src/contexts/auth/services/permissions.ts`: regra única sem fallback.
-- `src/contexts/auth/services/userProfile.ts`: leitura validada, erros controlados e chamada explícita de recuperação (sem recuperação automática).
-- `src/contexts/auth/verificationState.ts`: versão das requisições, limpeza e limite de espera.
-- `src/contexts/auth/useAuthState.ts`: integração com eventos de sessão.
-- `src/contexts/auth/AuthProvider.tsx`, `AuthContext.ts`, `types.ts`: sessão, permissões verificadas e cache.
-- `src/hooks/useUserRole.ts`, `useLoginForm.ts`, `useRegisterForm.ts`: papel canônico, login condicionado e cadastro sem fallback.
-- `src/components/ui/AuthGuard.tsx`, `RoleGuard.tsx` e `src/components/auth/RoleGuard.tsx`: bloqueio protegido e restrição existente do entregador.
-- `sql/001_profile_verification.sql`: candidato de migração; aplicado **somente no PostgreSQL fictício local**.
-- Cópias inalteradas de `index.ts`, `hooks.ts`, `services/authentication.ts`, `LoadingSpinner.tsx`, `button.tsx` e `pages/auth/Login.tsx` auxiliam resolução local e compatibilidade; não são novas funcionalidades.
-- `tests/`: fixture SQL, testes e configuração isolada. Não executar bootstrap em Cloud/produção.
-
-## Testes do Documento 3: rastreabilidade
-
-| Caso | Execução e resultado |
+| Arquivo | SHA-256 |
 |---|---|
-| 1 sem token | HTTP simulado: 401, sem consulta/recuperação. Passou. |
-| 2 token inválido/expirado | Resultado de auth simulado: 401. Passou; JWT real hospedado pendente. |
-| 3 método/OPTIONS | 405/200 sem escrita. Passou. |
-| 4 JSON/campos inválidos | 400. Passou. |
-| 5/6 usuário/admin tenta outro ID | 403 antes de consultar ou verificar alvo. Passou. |
-| 7 próprio perfil | Adapter real com consultas simuladas: campos limitados/empresa/papel corretos. Passou. |
-| 8 perfil ausente leitura | 404 sem recuperação. Passou. |
-| 9 falha perfil/papel/empresa | 503, sem liberação. Passou. |
-| 10 inativo/NULL/divergente | Adapter + PostgreSQL/RPC real local bloqueiam. Passou. |
-| 11 proprietário sem perfil | **Revisado pela nova instrução:** 409/erro de revisão, zero perfil recriado mesmo com empresa/papel. Passou. |
-| 12 provas insuficientes | Sem papel, múltiplos papéis, empresa ausente bloqueados em PostgreSQL. Passou. |
-| 13 concorrência | Duas sessões PostgreSQL simultâneas: ambas bloqueadas para perfil ausente, zero escrita. Passou. |
-| 14 RPC direta | auth.uid obrigatório, anon negado, sem parâmetro de alvo, dados preservados. Passou. |
-| 15 confirmação/cadastro | Chamador React simulado não chama endpoints nem inserts; trigger SQL fictício executado. Passou localmente; e-mail real pendente. |
-| 16 nova empresa legítima | Trigger existente reproduzido no banco local cria uma empresa e admin inicial; metadata não escolhe empresa/papel. Passou localmente. |
-| 17 recuperação de senha | Verificação própria não altera empresa/papel no banco local. Fluxo completo de senha/tela ausente continua fora do escopo. |
-| 18 troca A→B atrasada | Controller + hook React: empresa/roles limpos, retorno antigo ignorado, getSession antigo ignorado. Passou. |
-| 19 erro/offline | Não autoriza; limite de espera e tela protegida testados. Passou. |
-| 20 admin/entregador | Controller preserva papéis verificados. Redirecionamento completo/login real hospedado pendente. |
-| adicionais | Tentativa de mudar owner/id, fabricar empresa, escrever papel, promover-se pela RPC, reativar-se ou inserir perfil: bloqueadas. Admin da mesma empresa consegue alterar papel de terceiro em transação; admin de outra empresa não. Passou. |
+| create-user/index.ts | fa33c3b10a761bcda5b41f8932b8cd1c1838eb5080b4e6aef0f69250e4e9a681 |
+| manage-user/index.ts | 6af8e5f193b215afa5c68e81a4bae411124089ea603cefce449e23b1cf549e97 |
+| _shared/g01-admin.ts | dc1bf27106438aa8599ed8a48c1c0a011dbd0fc899a67a0679b83ffa601b8c5a |
 
-As linhas ERROR nos logs PostgreSQL representam negações esperadas pelos testes. Resultado final: 3 arquivos, **50 passed**, duração aproximada 5,5 segundos. Não houve teste navegador contra contas reais.
+Como transportar sem aceitar o draft: no chat do draft, pedir "copie os três arquivos para /mnt/documents/g01_admin_candidates/ e gere o sha256sum, sem segredos". Depois, nesta conversa, conferir os hashes acima e incluir no pacote junto com os testes correspondentes (o roteiro das 44 asserções, sem o arquivo de contas, que contém segredos).
 
-## Pendências antes da produção
+## Resultados registrados
 
-1. Disponibilizar ambiente hospedado isolado com fixtures fictícias; validar Auth/JWT/gateway/RLS completo e fluxo real de cadastro/login/admin/entregador/retry/logout em navegador.
-2. Testar o candidato aplicado sobre o esquema completo isolado, inclusive funcionalidades administrativas dependentes dos grants alterados. O esquema local é mínimo, não clone da produção.
-3. Validar todas as transições de sessão/reautenticação com os serviços reais e atualizar testes legados que presumem acesso administrativo padrão.
-4. Recuperação de senha completa continua separada. Não há nova matriz de `user`; os acessos atuais desse papel não foram redesenhados. Não foi realizada revisão completa de segurança de todos os módulos.
-5. Backend não fica protegido contra todas as falhas de isolamento apenas com guard visual; as outras RLS do Documento 3 continuam etapas separadas.
+| Verificação | Resultado |
+|---|---|
+| Testes candidatos (sessão, adapter, segurança SQL em Postgres 17 local fictício, integração) | 59 aprovados |
+| Testes legados de auth na cópia completa | 8 aprovados |
+| Build da cópia completa (`bun run build`) | OK |
+| TypeScript (`tsgo --noEmit -p tsconfig.app.json`) | OK |
+| Deno check dos endpoints de perfil | OK |
+| Asserções reais no draft (Auth/PostgREST/esquema completo) | 44 aprovadas |
+| Gateway padrão / navegador / celular | **Não executado — bloqueado** |
 
-## Ordem de publicação proposta — depende de nova autorização
+Comandos e versões: REPRODUCE.md. Detalhes da revisão v2: REVISION_V2.md. Relatório do draft: ISOLATED_VALIDATION.md.
 
-1. Revisão deste pacote e conclusão das pendências hospedadas. Confirmar backup atual pela tela e versão publicada; não restaurar nada.
-2. Preparar janela de manutenção com bloqueio seguro do acesso, evitando frontend antigo misturado com endpoints novos.
-3. Aplicar o SQL candidato pelo mecanismo de migrações autorizado, em transação; preservar dados existentes. Nunca aplicar `tests/bootstrap.sql`.
-4. Promover como conjunto endpoints compartilhados + todos os chamadores + bloqueios/permissões. No projeto atual mover funções aos caminhos ativos causa implantação automática; só fazer isso depois da autorização explícita.
-5. Verificar leitura própria/RPC sem efeitos colaterais e testes autorizados de continuidade. Publicar frontend somente com ordem aprovada; saída da manutenção apenas após verificação.
-6. Monitorar erros de acesso sem registrar tokens ou dados sensíveis. Não inventar empresa/permissão para contornar falha.
+## Testes exatos pendentes (gateway + navegador, ambiente isolado)
 
-## Contenção segura
+1. `GET /auth/v1/health` e `/rest/v1/` via gateway = 200.
+2. `POST /functions/v1/get_user_profile` com perfil ativo = 200; perfil ausente = 404/409 sem recriar.
+3. `create-user` via gateway: admin ativo = 200; colaborador comum = 403; papel `gerente` = 400.
+4. `manage-user` via gateway: admin inativo com token antigo = 403; desativar → login 400; reativar → login 200; `edit` com papel embutido = 400.
+5. Navegador: login → painel; logout com rede cortada mantém bloqueio; renovação de token não restaura acesso; troca de conta A→B não mostra dados de A.
+6. Celular: login do entregador abre só "Minhas entregas"; conta desativada perde acesso ao recarregar.
 
-- Falha na recuperação: retornar 503 somente em `create_profile`, mantendo leitura própria segura.
-- Falha RPC: revogar EXECUTE de `g0_recover_own_profile` para authenticated; manter perfis/empresas/papéis existentes.
-- Falha leitura ou compatibilidade: manter acesso protegido bloqueado e erro visível; corrigir forward. Não republicar endpoints antigos vulneráveis nem restaurar admin no navegador.
-- Não desfazer guards/grants voltando a autorização ampla como rollback. Não apagar registros. Backup completo é último recurso com autorização específica, jamais reversão padrão.
+## Critérios objetivos para publicação
 
-SQL de contenção, **não executado**:
-
-```sql
-REVOKE EXECUTE ON FUNCTION public.g0_recover_own_profile() FROM authenticated;
-```
-
-## Confirmação de não alteração de produção
-
-Nenhuma migração, implantação de função, alteração de dados operacionais, conta real, restauração ou publicação foi executada. Os arquivos ativos `src/` e `supabase/` foram comparados por hash e permaneceram idênticos. Foram adicionados apenas candidatos, testes e documentação fora dos caminhos ativos. Os resultados não significam correção já disponível no sistema publicado.
+- [ ] Código dos três candidatos admin no pacote, com SHA-256 iguais aos acima.
+- [ ] Os 6 grupos de testes pendentes acima aprovados no ambiente isolado.
+- [ ] 59 + 8 testes locais e as 44 asserções reais reexecutados sobre a versão final.
+- [ ] Decisão registrada sobre C: implementado e testado, ou limitação aceita por escrito.
+- [ ] Comparação do esquema de produção com o snapshot do draft (sem divergência nas tabelas profiles, user_roles, organizations e funções envolvidas).
+- [ ] Backup recente confirmado e plano de reversão (migração inversa + funções anteriores) testado no ambiente isolado.
+- [ ] Aprovação explícita de produção, separada desta etapa.
