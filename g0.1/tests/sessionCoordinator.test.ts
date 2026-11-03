@@ -34,3 +34,12 @@ it('logout network error plus token refresh cannot authorize; fresh explicit log
 it('logout while manual getSession pending returns failure to form and remains blocked',async()=>{
  const {c,services,last}=setup();const late=deferred<ReturnType<typeof response>>();services.signIn.mockResolvedValue({success:true});services.getSession.mockReturnValue(late.promise);const login=c.signIn('a@example.invalid','fixture');await Promise.resolve();await c.signOut();late.resolve(response(A));expect((await login).success).toBe(false);expect(last()?.ready).toBe(false);expect(last()?.session).toBeNull();
 });
+it('late failed signOut cannot erase a newer successful manual login',async()=>{
+ const {c,services,last}=setup();const failure=deferred<void>();services.signOut.mockReturnValue(failure.promise.then(()=>{throw new Error('network');}));
+ const logout=c.signOut();services.signIn.mockResolvedValue({success:true});services.getSession.mockResolvedValue(response(B));
+ expect(await c.signIn('b@example.invalid','fixture')).toEqual({success:true});failure.resolve();expect(await logout).toEqual({success:false});expect(last()?.profile?.id).toBe(B);expect(last()?.ready).toBe(true);
+});
+it('retry after failed verification rereads profile instead of reusing failed promise',async()=>{
+ const {c,services,last,read}=setup();services.getSession.mockResolvedValue(response(A));read.mockRejectedValueOnce(new Error('network'));
+ expect(await c.initialize()).toBe(false);expect(await c.refresh()).toBe(true);expect(read).toHaveBeenCalledTimes(2);expect(last()?.ready).toBe(true);
+});
