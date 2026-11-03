@@ -55,4 +55,4 @@ Verificação TypeScript executada por `tsgo` disponível no ambiente, não por 
 
 ## Limite da reprodução
 
-Os 58 testes candidatos + 8 legados locais não são 66 testes hospedados. Os testes de sessão e endpoints usam serviços simulados; PostgreSQL valida RPC/triggers/grants no esquema mínimo real local. Validação completa de Auth/gateway/create-user/manage-user exige o draft isolado com gateway funcional. Não substituir por gravações em produção.
+Os 59 testes candidatos + 8 legados locais não são 67 testes hospedados. Os testes de sessão e endpoints usam serviços simulados; PostgreSQL valida RPC/triggers/grants no esquema mínimo real local. Validação completa de Auth/gateway/create-user/manage-user exige o draft isolado com gateway funcional. Não substituir por gravações em produção.
