@@ -43,6 +43,7 @@ deno check g0.1/candidate/supabase/functions/get_user_profile/index.ts g0.1/cand
 | React | 18.3.1 |
 | Vite | 5.4.6 |
 | TypeScript instalado | 5.6.2 |
+| tsgo usado | 7.0.0-dev.20260707.2 |
 | Vitest | 1.6.1 |
 | Cliente Cloud | 2.106.2 |
 | TanStack Query | 5.56.2 |
