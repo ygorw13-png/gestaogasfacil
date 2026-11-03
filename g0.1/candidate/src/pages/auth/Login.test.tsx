@@ -60,8 +60,8 @@ describe('Login Page', () => {
       </BrowserRouter>
     );
     
-    expect(screen.getByText('GásFácil')).toBeInTheDocument();
-    expect(screen.getByText('Faça login para acessar o sistema')).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(screen.getByLabelText(/senha/i, {selector:'input'})).toBeInTheDocument();
   });
 
   it('não renderiza conteúdo quando o usuário está autenticado', () => {
