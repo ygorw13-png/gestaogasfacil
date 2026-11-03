@@ -2,8 +2,6 @@ import React from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from './AuthContext';
 import { AuthProviderProps } from './types';
-import { supabase } from '@/integrations/supabase/client';
-import { signInWithEmail, signOut as authSignOut } from './services/authentication';
 import { canUseRole, verifiedRole } from './services/permissions';
 import { clearCachedUser } from '@/lib/offline/userCache';
 import { useAuthState } from './useAuthState';
@@ -17,18 +15,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
     if (previous.current!==id) { queries.clear(); clearCachedUser(); previous.current=id; }
   },[state.user?.id,queries]);
   const signIn=async(email:string,password:string,options?:{csrfToken?:string}) => {
-    state.resetAuthState(); queries.clear(); clearCachedUser();
-    const result=await signInWithEmail(email,password,options);
-    if (!result.success) return result;
-    const {data,error}=await supabase.auth.getSession();
-    if (error || !data.session) return {success:false,error:'Não foi possível verificar sua sessão.'};
-    const verified=await state.verifySession(data.session);
-    return verified ? {success:true} : {success:false,error:'Seu acesso não foi verificado. Tente novamente ou solicite revisão administrativa.'};
+    queries.clear(); clearCachedUser();
+    return state.signIn(email,password,options);
   };
   const signOut=async()=> {
-    state.resetAuthState(); queries.clear(); clearCachedUser();
-    try { await authSignOut(); }
-    catch { state.setError(new Error('Não foi possível encerrar a sessão no servidor. O acesso local permanece bloqueado.')); }
+    queries.clear(); clearCachedUser();
+    await state.signOut();
   };
   return <AuthContext.Provider value={{
     user:state.user,session:state.session,loading:state.loading,error:state.error,
