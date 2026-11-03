@@ -1,153 +1,137 @@
-// Failure-scenario tests for the new G0.1 admin candidate (mocks only, fictional data).
-// These are additional to the 41 tests in admin.test.ts. They assert the EFFECTIVE state
-// (Auth user exists?, banned?, profile.ativo, profile.role, user_roles) after each failure.
-import { assertEquals, assertRejects } from 'jsr:@std/assert@1';
-import { AdminFailure, AdminRepository, canonicalRole, createUser, manageUser, ProfileRow } from '../candidate/supabase/functions/_shared/g01-admin-core.ts';
+// G0.1 admin candidate, revision 2 — failure scenarios (mocks, fictional data).
+// SAFE-*: required safe outcome (must hold for release). DIAG-*: diagnostics that only DOCUMENT the
+// residual effective state after an incomplete operation; they are not safety guarantees.
+import { assertEquals } from 'jsr:@std/assert@1';
+import { createUser, manageUser } from '../candidate/supabase/functions/_shared/g01-admin-core.ts';
+import { code, Fault, NEW, NEW_ORG, ORG_A, USER, valid, world } from './admin-world.ts';
 
-const ORG_A = '00000000-0000-4000-8000-0000000000a1';
-const ADMIN = '00000000-0000-4000-8000-000000000001';
-const USER = '00000000-0000-4000-8000-000000000002';
-const NEW = '00000000-0000-4000-8000-000000000009';
-const NEW_ORG = '00000000-0000-4000-8000-0000000000c1';
+type W = ReturnType<typeof world>;
+const before: Fault = { when: 'before' }, after: Fault = { when: 'after' };
 
-// fail: method -> which call number (1-based) should throw; true = every call.
-type Fail = Partial<Record<keyof AdminRepository, true | number>>;
-function world(fail: Fail = {}) {
-  const profiles = new Map<string, ProfileRow>([
-    [ADMIN, { id: ADMIN, organization_id: ORG_A, role: 'admin', ativo: true, name: 'Ana' }],
-    [USER, { id: USER, organization_id: ORG_A, role: 'user', ativo: true, name: 'Beto' }],
-  ]);
-  const roles = new Map<string, string[]>([[ADMIN, ['admin']], [USER, ['user']]]);
-  const banned = new Set<string>();
-  const authUsers = new Set([ADMIN, USER]);
-  const orgs = new Map<string, string>([[ORG_A, ADMIN]]);
-  const calls: Record<string, number> = {};
-  const log: string[] = [];
-  const f = (k: keyof AdminRepository) => {
-    calls[k] = (calls[k] ?? 0) + 1; log.push(k);
-    const v = fail[k]; if (v === true || v === calls[k]) throw new Error('boom:' + k);
-  };
-  const repo: AdminRepository = {
-    async authenticate(t) { f('authenticate'); return t === 'admin' ? ADMIN : null; },
-    async getProfile(id) { f('getProfile'); const p = profiles.get(id); return p ? { ...p } : null; },
-    async getRoles(id) { f('getRoles'); return [...(roles.get(id) ?? [])]; },
-    async createAuthUser({ name }) {
-      f('createAuthUser'); authUsers.add(NEW); orgs.set(NEW_ORG, NEW);
-      // Simulates the current signup trigger: new org + admin role, active.
-      profiles.set(NEW, { id: NEW, organization_id: NEW_ORG, role: 'admin', ativo: true, name }); roles.set(NEW, ['admin']);
-      return NEW;
-    },
-    async deleteAuthUser(id) { f('deleteAuthUser'); authUsers.delete(id); profiles.delete(id); roles.delete(id); },
-    async setBan(id, b) { f('setBan'); b ? banned.add(id) : banned.delete(id); },
-    async updateProfile(id, patch) { f('updateProfile'); const p = profiles.get(id); if (!p) return 0; Object.assign(p, patch); return 1; },
-    async replaceRole(id, r) { f('replaceRole'); roles.set(id, [r]); },
-    async setRoleAsCaller(id, r) { f('setRoleAsCaller'); roles.set(id, [r]); profiles.get(id)!.role = r; },
-    async deleteOrphanOrganization(o, keep) { f('deleteOrphanOrganization'); for (const [k, w] of orgs) if (w === o && k !== keep) orgs.delete(k); },
-    async resetPassword() { f('resetPassword'); },
-  };
-  const state = (id: string) => ({
-    auth: authUsers.has(id), banned: banned.has(id),
-    ativo: profiles.get(id)?.ativo ?? null, role: profiles.get(id)?.role ?? null, roles: roles.get(id) ?? [],
-    canonical: canonicalRole(profiles.get(id) ?? null, roles.get(id) ?? []),
-  });
-  return { repo, profiles, roles, banned, authUsers, orgs, log, state };
-}
-const valid = { email: 'novo@exemplo.test', password: 'segura123', name: 'Novo Teste', role: 'entregador' };
-const code = async (p: Promise<unknown>, c: string) => {
-  const e = await assertRejects(() => p, AdminFailure); assertEquals((e as AdminFailure).code, c);
-};
-
-// ---------- F1: creation interrupted at every step ----------
-Deno.test('F01 createAuthUser falha -> nada criado, erro 503 genérico', async () => {
-  const w = world({ createAuthUser: true });
-  await assertRejects(() => createUser(w.repo, 'admin', valid));
-  assertEquals(w.authUsers.has(NEW), false);
+// ---------- Creation ----------
+Deno.test('SAFE-C01 createBannedAuthUser falha antes -> INCOMPLETE (resultado incerto), nenhuma exclusão tentada', async () => {
+  const w = world({ fail: { createBannedAuthUser: before } });
+  await code(createUser(w.repo, 'admin', valid), 'PROVISIONING_INCOMPLETE');
+  assertEquals(w.log.includes('deleteAuthUser'), false);
 });
-const steps: [keyof AdminRepository, number][] = [
-  ['setBan', 1], ['updateProfile', 1], ['replaceRole', 1], ['getProfile', 2], ['getRoles', 2], ['deleteOrphanOrganization', 1], ['setBan', 2],
+Deno.test('SAFE-C02 resposta perdida na criação -> INCOMPLETE; a conta criada está banida', async () => {
+  const w = world({ fail: { createBannedAuthUser: after } });
+  await code(createUser(w.repo, 'admin', valid), 'PROVISIONING_INCOMPLETE');
+  assertEquals([w.state(NEW).auth, w.state(NEW).banned], [true, true]);
+});
+Deno.test('SAFE-C03 Auth não confirma bloqueio na criação -> INCOMPLETE, nenhuma gravação de perfil/papel', async () => {
+  const w = world({ authReportsBanned: false });
+  await code(createUser(w.repo, 'admin', valid), 'PROVISIONING_INCOMPLETE');
+  assertEquals(w.log.includes('updateProfile') || w.log.includes('replaceRole') || w.log.includes('setBan'), false);
+});
+// Every post-creation step, before and after effect: account must still be banned (never unbanned early).
+const createSteps: [Parameters<typeof world>[0] & object, string][] = [
+  [{ fail: { getBanned: { when: 'before', n: 1 } } }, 'getBanned#1'],
+  [{ fail: { updateProfile: before } }, 'updateProfile antes'],
+  [{ fail: { updateProfile: after } }, 'updateProfile depois'],
+  [{ fail: { replaceRole: before } }, 'replaceRole antes'],
+  [{ fail: { replaceRole: after } }, 'replaceRole depois'],
+  [{ fail: { getProfile: { when: 'before', n: 2 } } }, 'verificação'],
+  [{ fail: { setBan: before } }, 'desbloqueio antes'],
 ];
-for (const [step, n] of steps) {
-  Deno.test(`F02 falha em ${step}#${n}, exclusão OK -> conta removida`, async () => {
-    const w = world({ [step]: n });
-    await code(createUser(w.repo, 'admin', valid), 'PROVISIONING_FAILED');
-    assertEquals(w.state(NEW).auth, false);
-  });
-  Deno.test(`F03 falha em ${step}#${n} + exclusão falha -> INCOMPLETE; estado efetivo`, async () => {
-    const w = world({ [step]: n, deleteAuthUser: true });
+for (const [opts, label] of createSteps) {
+  Deno.test(`SAFE-C04 falha em ${label} -> INCOMPLETE; conta continua banida; sem exclusão nem limpeza de empresa`, async () => {
+    const w = world(opts);
     await code(createUser(w.repo, 'admin', valid), 'PROVISIONING_INCOMPLETE');
-    const s = w.state(NEW);
-    assertEquals(s.auth, true);
-    if (step === 'setBan' && n === 1) {
-      // Ban never applied: the account is NOT blocked in Auth. Only the trigger-created org/admin row exists.
-      assertEquals(s.banned, false);
-      assertEquals([s.role, s.roles, w.profiles.get(NEW)!.organization_id], ['admin', ['admin'], NEW_ORG]);
-    } else if (step === 'setBan' && n === 2) {
-      // Fully provisioned but unban failed: still banned, profile canonical in caller org.
-      assertEquals(s.banned, true); assertEquals(s.canonical, 'entregador');
-    } else {
-      assertEquals(s.banned, true);
-    }
+    assertEquals([w.state(NEW).auth, w.state(NEW).banned], [true, true]);
+    assertEquals(w.log.includes('deleteAuthUser'), false);
+    assertEquals(w.orgs.has(NEW_ORG), true);
   });
 }
-
-// ---------- F2: deactivation ----------
-Deno.test('F04 desativação: setBan falha -> nada alterado (perfil ativo, sem ban)', async () => {
-  const w = world({ setBan: true });
-  await assertRejects(() => manageUser(w.repo, 'admin', { action: 'toggle_active', target_user_id: USER, active: false }));
-  assertEquals([w.state(USER).banned, w.state(USER).ativo], [false, true]);
+Deno.test('SAFE-C05 desbloqueio com resposta perdida -> INCOMPLETE (não sucesso), mesmo que o efeito tenha ocorrido', async () => {
+  const w = world({ fail: { setBan: after } });
+  await code(createUser(w.repo, 'admin', valid), 'PROVISIONING_INCOMPLETE');
 });
-Deno.test('F05 desativação: perfil falha -> ban aplicado, perfil ainda ativo', async () => {
-  const w = world({ updateProfile: true });
-  await assertRejects(() => manageUser(w.repo, 'admin', { action: 'toggle_active', target_user_id: USER, active: false }));
-  const s = w.state(USER); assertEquals([s.banned, s.ativo, s.canonical], [true, true, 'user']);
+Deno.test('DIAG-C06 desbloqueio com resposta perdida: estado efetivo = completo e desbloqueado', async () => {
+  const w = world({ fail: { setBan: after } });
+  await code(createUser(w.repo, 'admin', valid), 'PROVISIONING_INCOMPLETE');
+  const s = w.state(NEW); assertEquals([s.banned, s.canonical, s.org], [false, 'entregador', ORG_A]);
 });
-Deno.test('F06 desativação: perfil retorna 0 linhas -> DEACTIVATION_INCOMPLETE, ban mantido', async () => {
-  const w = world(); w.repo.updateProfile = async () => 0;
-  await code(manageUser(w.repo, 'admin', { action: 'toggle_active', target_user_id: USER, active: false }), 'DEACTIVATION_INCOMPLETE');
-  assertEquals(w.state(USER).banned, true);
+Deno.test('DIAG-C07 falha em updateProfile: perfil do trigger = admin da empresa nova (banido)', async () => {
+  const w = world({ fail: { updateProfile: before } });
+  await code(createUser(w.repo, 'admin', valid), 'PROVISIONING_INCOMPLETE');
+  const s = w.state(NEW); assertEquals([s.role, s.org, s.ativo, s.banned], ['admin', NEW_ORG, true, true]);
 });
 
-// ---------- F3: reactivation ----------
-const inactive = (fail: Fail) => { const w = world(fail); w.profiles.get(USER)!.ativo = false; w.banned.add(USER); return w; };
-Deno.test('F07 reativação: perfil falha -> continua inativo e banido', async () => {
-  const w = inactive({ updateProfile: true });
-  await assertRejects(() => manageUser(w.repo, 'admin', { action: 'toggle_active', target_user_id: USER, active: true }));
+// ---------- Deactivation ----------
+const deact = (w: W) => manageUser(w.repo, 'admin', { action: 'toggle_active', target_user_id: USER, active: false });
+for (const [f, label] of [
+  [{ updateProfile: before }, 'perfil antes'], [{ updateProfile: after }, 'perfil depois (resposta perdida)'],
+  [{ setBan: before }, 'ban antes'], [{ setBan: after }, 'ban depois (resposta perdida)'],
+  [{ getBanned: before }, 'leitura de confirmação'],
+] as [Record<string, Fault>, string][]) {
+  Deno.test(`SAFE-D01 desativação falha em ${label} -> DEACTIVATION_INCOMPLETE`, async () => {
+    const w = world({ fail: f });
+    await code(deact(w), 'DEACTIVATION_INCOMPLETE');
+  });
+}
+Deno.test('SAFE-D02 perfil falha antes -> ban não é tentado; nada indica sucesso', async () => {
+  const w = world({ fail: { updateProfile: before } });
+  await code(deact(w), 'DEACTIVATION_INCOMPLETE');
+  assertEquals(w.log.includes('setBan'), false);
+});
+Deno.test('DIAG-D03 ban falha antes: perfil inativo, novo login ainda possível', async () => {
+  const w = world({ fail: { setBan: before } });
+  await code(deact(w), 'DEACTIVATION_INCOMPLETE');
+  assertEquals([w.state(USER).ativo, w.state(USER).banned], [false, false]);
+});
+Deno.test('DIAG-D04 ban com resposta perdida: estado efetivo inativo + banido, porém reportado incompleto', async () => {
+  const w = world({ fail: { setBan: after } });
+  await code(deact(w), 'DEACTIVATION_INCOMPLETE');
   assertEquals([w.state(USER).ativo, w.state(USER).banned], [false, true]);
 });
-Deno.test('F08 reativação: desbanir falha, reversão OK -> inativo e banido', async () => {
-  const w = inactive({ setBan: true });
-  await code(manageUser(w.repo, 'admin', { action: 'toggle_active', target_user_id: USER, active: true }), 'REACTIVATION_FAILED');
-  assertEquals([w.state(USER).ativo, w.state(USER).banned], [false, true]);
+
+// ---------- Reactivation ----------
+const inactive = (fail: Record<string, Fault> = {}) => { const w = world({ fail }); w.profiles.get(USER)!.ativo = false; w.banned.add(USER); return w; };
+const react = (w: W) => manageUser(w.repo, 'admin', { action: 'toggle_active', target_user_id: USER, active: true });
+for (const [f, label] of [
+  [{ updateProfile: before }, 'perfil antes'], [{ updateProfile: after }, 'perfil depois'],
+  [{ getProfile: { when: 'before', n: 3 } }, 'leitura do perfil'], [{ setBan: before }, 'desbloqueio antes'],
+  [{ setBan: after }, 'desbloqueio depois'], [{ getBanned: before }, 'leitura do ban'],
+] as [Record<string, Fault>, string][]) {
+  Deno.test(`SAFE-R01 reativação falha em ${label} -> REACTIVATION_INCOMPLETE`, async () => {
+    await code(react(inactive(f)), 'REACTIVATION_INCOMPLETE');
+  });
+}
+Deno.test('SAFE-R02 falha no perfil -> desbloqueio nunca tentado; login segue banido', async () => {
+  for (const f of [before, after]) {
+    const w = inactive({ updateProfile: f });
+    await code(react(w), 'REACTIVATION_INCOMPLETE');
+    assertEquals([w.log.includes('setBan'), w.state(USER).banned], [false, true]);
+  }
 });
-Deno.test('F09 reativação: desbanir falha E reversão falha -> perfil ativo, mas banido', async () => {
-  const w = inactive({ setBan: true, updateProfile: 2 });
-  await code(manageUser(w.repo, 'admin', { action: 'toggle_active', target_user_id: USER, active: true }), 'REACTIVATION_FAILED');
+Deno.test('DIAG-R03 desbloqueio falha antes: perfil ativo, login banido (inconsistente, exige conferência)', async () => {
+  const w = inactive({ setBan: before });
+  await code(react(w), 'REACTIVATION_INCOMPLETE');
   assertEquals([w.state(USER).ativo, w.state(USER).banned], [true, true]);
 });
 
-// ---------- F4: role change concurrent with deactivation ----------
-Deno.test('F10 set_role e desativação intercalados -> fim: inativo + banido + papel novo coerente', async () => {
+// ---------- Other writes: lost responses ----------
+Deno.test('SAFE-O01 set_role/update/reset/delete com resposta perdida -> erro INCOMPLETE específico', async () => {
+  await code(manageUser(world({ fail: { setRoleAsCaller: after } }).repo, 'admin', { action: 'set_role', target_user_id: USER, role: 'entregador' }), 'ROLE_CHANGE_INCOMPLETE');
+  await code(manageUser(world({ fail: { updateProfile: after } }).repo, 'admin', { action: 'update_profile', target_user_id: USER, name: 'Beto S' }), 'UPDATE_INCOMPLETE');
+  await code(manageUser(world({ fail: { resetPassword: after } }).repo, 'admin', { action: 'reset_password', target_user_id: USER, new_password: 'novasenha1' }), 'PASSWORD_INCOMPLETE');
+  await code(manageUser(world({ fail: { deleteAuthUser: after } }).repo, 'admin', { action: 'delete', target_user_id: USER }), 'DELETE_INCOMPLETE');
+});
+
+// ---------- Role change concurrent with deactivation ----------
+Deno.test('SAFE-X01 set_role intercalado com desativação -> fim inativo + banido; papel coerente', async () => {
   const w = world();
-  // Deactivation's ban/profile write lands between set_role's RPC and its verification read.
-  const rpc = w.repo.setRoleAsCaller.bind(w.repo);
-  w.repo.setRoleAsCaller = async (id, r) => {
-    await rpc(id, r);
-    await manageUser(w.repo, 'admin', { action: 'toggle_active', target_user_id: USER, active: false });
-  };
-  const res = await manageUser(w.repo, 'admin', { action: 'set_role', target_user_id: USER, role: 'entregador' });
-  assertEquals(res, { ok: true }); // verification ignores ativo by design
+  const rpc = w.repo.setRoleAsCaller;
+  w.repo.setRoleAsCaller = async (id, r) => { await rpc(id, r); await deact(w); };
+  assertEquals(await manageUser(w.repo, 'admin', { action: 'set_role', target_user_id: USER, role: 'entregador' }), { ok: true });
   const s = w.state(USER);
   assertEquals([s.banned, s.ativo, s.role, s.roles, s.canonical], [true, false, 'entregador', ['entregador'], null]);
 });
-Deno.test('F11 reativação lê papel e set_role muda antes do update -> ainda coerente (RPC atômica)', async () => {
-  const w = inactive({});
-  const gr = w.repo.getRoles.bind(w.repo);
-  let once = false;
-  w.repo.getRoles = async (id) => {
-    const r = await gr(id);
-    if (!once && id === USER) { once = true; w.roles.set(USER, ['entregador']); w.profiles.get(USER)!.role = 'entregador'; }
-    return r;
-  };
-  await manageUser(w.repo, 'admin', { action: 'toggle_active', target_user_id: USER, active: true });
-  assertEquals(w.state(USER).canonical, 'entregador');
+Deno.test('SAFE-X02 desativação intercalada antes do set_role -> continua inativo + banido', async () => {
+  const w = world();
+  const rpc = w.repo.setRoleAsCaller;
+  w.repo.setRoleAsCaller = async (id, r) => { await deact(w); await rpc(id, r); };
+  await manageUser(w.repo, 'admin', { action: 'set_role', target_user_id: USER, role: 'admin' });
+  assertEquals([w.state(USER).ativo, w.state(USER).banned, w.state(USER).canonical], [false, true, null]);
 });
