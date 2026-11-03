@@ -1,0 +1,72 @@
+[
+ {
+  "test": "B01 admin login -> /painel or admin area",
+  "ok": true,
+  "detail": "http://127.0.0.1:8091/painel"
+ },
+ {
+  "test": "B02 admin may open courier screens (by design: only entregador is restricted)",
+  "ok": true,
+  "detail": "http://127.0.0.1:8091/entregador/entregas"
+ },
+ {
+  "test": "B03 admin A sees own company client",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "test": "B04 logout returns to login",
+  "ok": true,
+  "detail": "http://127.0.0.1:8091/login"
+ },
+ {
+  "test": "B05 protected route after logout -> login",
+  "ok": true,
+  "detail": "http://127.0.0.1:8091/login"
+ },
+ {
+  "test": "B06 account switch: previous company data absent",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "test": "B07 courier login -> /entregador/entregas",
+  "ok": true,
+  "detail": "http://127.0.0.1:8091/entregador/entregas"
+ },
+ {
+  "test": "B08 courier blocked from admin route",
+  "ok": true,
+  "detail": "http://127.0.0.1:8091/entregador/entregas"
+ },
+ {
+  "test": "B09 network failure: no access granted, error/retry shown",
+  "ok": true,
+  "detail": "http://127.0.0.1:8091/login | 'Gás & Água\\n\\nGestão completa para sua distribuidora\\n\\nGásFácil\\n\\nSistema de gestão para distribuição de gás e água\\n\\nNão foi possível verificar seu acesso. Tente no'"
+ },
+ {
+  "test": "B10 retry after network recovery reaches courier home",
+  "ok": true,
+  "detail": "http://127.0.0.1:8091/entregador/entregas"
+ },
+ {
+  "test": "B11 inactive profile blocked",
+  "ok": true,
+  "detail": "http://127.0.0.1:8091/login | 'Gás & Água\\n\\nGestão completa para sua distribuidora\\n\\nGásFácil\\n\\nSistema de gestão para distribuição de gás e água\\n\\nNão foi possível verificar seu acesso. Tente novamente.\\nE-mail\\nSenha\\nEntrar\\n\\nNão tem um'"
+ },
+ {
+  "test": "B12 inactive profile cannot open courier route",
+  "ok": true,
+  "detail": "http://127.0.0.1:8091/login | 'Gás & Água\\n\\nGestão completa para sua distribuidora\\n\\nGásFácil\\n\\nSistema de gestão para distribuição de gás e água\\n\\nNão foi possível verificar seu acesso. Tente no'"
+ },
+ {
+  "test": "B13 missing profile blocked",
+  "ok": true,
+  "detail": "http://127.0.0.1:8091/login | 'Gás & Água\\n\\nGestão completa para sua distribuidora\\n\\nGásFácil\\n\\nSistema de gestão para distribuição de gás e água\\n\\nSeu cadastro precisa de revisão administrativa.\\nE-mail\\nSenha\\nEntrar\\n\\nNão tem uma conta?'"
+ },
+ {
+  "test": "B14 no app request left loopback (cdn script excluded)",
+  "ok": true,
+  "detail": "['https://cdn.gpteng.co/gptengineer.js', 'https://cdn.gpteng.co/gptengineer.js', 'https://cdn.gpteng.co/gptengineer.js']"
+ }
+]
