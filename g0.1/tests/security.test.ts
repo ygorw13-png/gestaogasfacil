@@ -1,5 +1,6 @@
 import { describe,it,expect } from 'vitest';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { makeProfileHandler,Failure } from '../candidate/supabase/functions/_shared/g0-profile-core';
 import { createVerificationController, type VerificationState } from '../candidate/src/contexts/auth/verificationState';
 import { canUseRole,verifiedRole } from '../candidate/src/contexts/auth/services/permissions';
@@ -44,14 +45,25 @@ describe('real disposable PostgreSQL / direct RPC / evidence',()=> {
  it.each(['DELETE FROM user_roles WHERE user_id=','UPDATE profiles SET organization_id=NULL WHERE id='])('12 unverifiable existing profile denied: %s',change=>{fixture();sql(`${change}'${A}'`);expect(()=>asUser(A,'SELECT g0_recover_own_profile()')).toThrow(/ROLE_NOT_VERIFIED|PROFILE_NOT_VERIFIED/);});
  it('12 multiple canonical roles denied',()=>{fixture();sql(`INSERT INTO user_roles(user_id,role) VALUES('${A}','user')`);expect(()=>asUser(A,'SELECT g0_recover_own_profile()')).toThrow(/ROLE_NOT_VERIFIED/);});
  it('14 no-token direct RPC denied',()=>{fixture();expect(()=>sql("BEGIN;SET LOCAL ROLE authenticated;SELECT set_config('request.jwt.claim.sub','',true);SELECT g0_recover_own_profile();ROLLBACK;")).toThrow(/AUTH_REQUIRED/);expect(()=>sql('SET ROLE anon;SELECT g0_recover_own_profile()')).toThrow(/permission denied/);});
+ it('13 simultaneous missing-profile requests are consistently blocked without writes',async()=>{
+  fixture();sql(`DELETE FROM profiles WHERE id='${A}'`);
+  const run=promisify(execFile);
+  const query=`BEGIN; SET LOCAL ROLE authenticated; SELECT set_config('request.jwt.claim.sub','${A}',true); SELECT g0_recover_own_profile(); COMMIT;`;
+  const results=await Promise.allSettled([1,2].map(()=>run('psql',['postgresql://g0test@127.0.0.1:55439/postgres?sslmode=disable','-X','-qAt','-v','ON_ERROR_STOP=1','-c',query],{env:{PATH:process.env.PATH}})));
+  expect(results.every(r=>r.status==='rejected')).toBe(true);
+  expect(sql(`SELECT count(*) FROM profiles WHERE id='${A}'`)).toBe('0');
+  expect(sql('SELECT count(*) FROM organizations')).toBe('2');expect(sql('SELECT count(*) FROM user_roles')).toBe('2');
+ });
  it('14 RPC has no target argument and never changes either company or role',()=>{fixture();const before=sql("SELECT json_agg(t)::text FROM (SELECT * FROM profiles ORDER BY id)t");asUser(A,'SELECT g0_recover_own_profile()');expect(sql("SELECT json_agg(t)::text FROM (SELECT * FROM profiles ORDER BY id)t")).toBe(before);expect(()=>asUser(A,`SELECT g0_recover_own_profile('${B}')`)).toThrow(/does not exist/);});
  it('15/16 legitimate signup trigger creates one owner organization and admin; metadata cannot select company or role',()=>{fixture();const C='10000000-0000-4000-8000-000000000003';sql(`INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('${C}','signup@example.invalid','{"name":"Cadastro Teste","role":"entregador","organization_id":"${OB}"}')`);expect(sql(`SELECT role||':'||ativo FROM profiles WHERE id='${C}'`)).toBe('admin:true');expect(sql(`SELECT count(*) FROM organizations WHERE owner_id='${C}'`)).toBe('1');expect(sql(`SELECT count(*) FROM user_roles WHERE user_id='${C}' AND role='admin'`)).toBe('1');asUser(C,'SELECT g0_recover_own_profile()');});
  it('21 owner cannot transfer company or alter identity',()=>{fixture();expect(()=>asUser(A,`UPDATE organizations SET owner_id='${B}' WHERE id='${OA}'`)).toThrow(/OWNERSHIP_CHANGE_FORBIDDEN/);expect(()=>asUser(A,`UPDATE organizations SET id=gen_random_uuid() WHERE id='${OA}'`)).toThrow(/OWNERSHIP_CHANGE_FORBIDDEN/);});
  it('22 fabricated company cannot activate a missing profile',()=>{fixture();sql(`DELETE FROM profiles WHERE id='${A}'`);expect(()=>asUser(A,`INSERT INTO organizations(name,owner_id) VALUES('Fabricated Test','${A}'); SELECT g0_recover_own_profile()`)).toThrow(/PROFILE_REPAIR_REQUIRED/);expect(sql(`SELECT count(*) FROM profiles WHERE id='${A}'`)).toBe('0');});
  it('23 direct role writes and self role RPC are blocked',()=>{fixture();expect(()=>asUser(A,`INSERT INTO user_roles(user_id,role) VALUES('${A}','user')`)).toThrow(/permission denied/);expect(()=>asUser(A,`UPDATE user_roles SET role='user' WHERE user_id='${A}'`)).toThrow(/permission denied/);expect(()=>asUser(A,`SELECT set_user_role('${A}','user')`)).toThrow(/ROLE_CHANGE_FORBIDDEN/);});
  it('24 self profile activation/company/role/insert cannot forge evidence',()=>{fixture();sql(`UPDATE profiles SET ativo=NULL WHERE id='${A}'`);for(const change of ['ativo=true',"role='user'",`organization_id='${OB}'`])expect(()=>asUser(A,`UPDATE profiles SET ${change} WHERE id='${A}'`)).toThrow(/PROFILE_CHANGE_FORBIDDEN/);expect(()=>asUser(A,`INSERT INTO profiles(id,name,role,ativo) VALUES('${A}','Fake','user',true)`)).toThrow(/permission denied/);});
- it('25 cross-company role changes blocked; legitimate same-company admin change works',()=>{fixture();expect(()=>asUser(A,`SELECT set_user_role('${B}','user')`)).toThrow(/ROLE_CHANGE_FORBIDDEN/);sql(`UPDATE profiles SET organization_id='${OA}' WHERE id='${B}'`);asUser(A,`SELECT set_user_role('${B}','user')`); // rolled back intentionally
- expect(sql(`SELECT role FROM profiles WHERE id='${B}'`)).toBe('entregador');});
+ it('25 cross-company role changes blocked; legitimate same-company admin change works',()=>{fixture();expect(()=>asUser(A,`SELECT set_user_role('${B}','user')`)).toThrow(/ROLE_CHANGE_FORBIDDEN/);sql(`UPDATE profiles SET organization_id='${OA}' WHERE id='${B}'`);
+ const result=asUser(A,`SELECT set_user_role('${B}','user'); SELECT role FROM profiles WHERE id='${B}'; SELECT role FROM user_roles WHERE user_id='${B}'`);
+ expect(result.split('\n').filter(v=>v==='user')).toHaveLength(2);});
+ it('17 recovery session self-read RPC leaves organization and role unchanged',()=>{fixture();const before=sql("SELECT json_agg(t)::text FROM (SELECT * FROM profiles ORDER BY id)t");asUser(A,'SELECT g0_recover_own_profile()');expect(sql("SELECT json_agg(t)::text FROM (SELECT * FROM profiles ORDER BY id)t")).toBe(before);});
 });
 describe('authentication race and permission controller',()=> {
  it('18 switching A to B clears authorization and ignores late A',async()=>{const states:VerificationState[]=[];let resolveA:(p:VerifiedProfile)=>void=()=>{};const late=new Promise<VerifiedProfile>(r=>resolveA=r);const c=createVerificationController(id=>id===A?late:Promise.resolve(profile(B,'entregador')),s=>states.push(s));const a=c.change(session(A));const b=c.change(session(B));expect(states.at(-1)?.profile).toBeNull();expect(states.at(-1)?.ready).toBe(false);await b;resolveA(profile());await a;expect(states.at(-1)?.profile?.id).toBe(B);expect(states.at(-1)?.profile?.role).toBe('entregador');});
