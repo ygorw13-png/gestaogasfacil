@@ -4,7 +4,8 @@ import { AdminRepository, Role } from './g01-admin-core.ts';
 
 const BAN_FOREVER = '876000h';
 
-function must<T>(r: { data: T; error: unknown }): T {
+// deno-lint-ignore no-explicit-any
+function must(r: { data: any; error: unknown }): any {
   if (r.error) throw r.error;
   return r.data;
 }
