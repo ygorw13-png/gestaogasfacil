@@ -67,5 +67,5 @@ Comandos e versões: REPRODUCE.md. Detalhes da revisão v2: REVISION_V2.md. Rela
 - [ ] 59 + 8 testes locais e as 44 asserções reais reexecutados sobre a versão final.
 - [ ] Decisão registrada sobre C: implementado e testado, ou limitação aceita por escrito.
 - [ ] Comparação do esquema de produção com o snapshot do draft (sem divergência nas tabelas profiles, user_roles, organizations e funções envolvidas).
-- [ ] Backup recente confirmado e plano de reversão (migração inversa + funções anteriores) testado no ambiente isolado.
+- [ ] Backup recente confirmado e plano de contenção testado no ambiente isolado. A contenção **não** restaura funções antigas vulneráveis nem permissões amplas: em caso de problema, manter revogações e bloqueios, desativar a ação afetada (função administrativa retorna 503 controlado) e corrigir para frente com nova versão revisada.
 - [ ] Aprovação explícita de produção, separada desta etapa.
