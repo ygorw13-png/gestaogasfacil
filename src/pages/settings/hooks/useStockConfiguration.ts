@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { stockConfigTable } from "@/integrations/supabase/tables/stockConfig";
 import { StockSettings } from "../components/stock-config/StockLevelInputs";
 import { fetchFromTable } from "@/services/supabaseSDK";
+import { supabase } from "@/integrations/supabase/client";
+import { findStockConfig, type StockConfigRow } from "@/lib/stockConfig";
 
 export function useStockConfiguration() {
   const { user } = useAuth();
@@ -38,10 +40,11 @@ export function useStockConfiguration() {
       
       if (response.data && Array.isArray(response.data) && response.data.length > 0) {
         // Map configurations
-        const p13Setting = response.data.find(item => item.id === 'P13');
-        const p20Setting = response.data.find(item => item.id === 'P20');
-        const p45Setting = response.data.find(item => item.id === 'P45');
-        const aguaSetting = response.data.find(item => item.id === 'agua');
+        const rows = response.data as StockConfigRow[];
+        const p13Setting = findStockConfig(rows, 'p13');
+        const p20Setting = findStockConfig(rows, 'p20');
+        const p45Setting = findStockConfig(rows, 'p45');
+        const aguaSetting = findStockConfig(rows, 'agua');
         
         console.log("Found configurations:", { p13Setting, p20Setting, p45Setting, aguaSetting });
         
@@ -78,18 +81,23 @@ export function useStockConfiguration() {
     console.log(`Updating configuration ${id} with min stock ${minStock}`);
     
     try {
-      // Prepare data for upsert
-      const stockConfigData = {
-        id,
+      // O id é gerado pelo banco (uuid); o registro é localizado pelo produto
+      const values = {
         produto: produto.toLowerCase(),
         estoque_minimo: minStock,
         alerta_ativo: alertEnabled,
-        atualizado_por: user.id || 'sistema',
+        atualizado_por: user.id,
         atualizado_em: new Date().toISOString()
       };
-      
-      // Use the upsert method
-      const result = await stockConfigTable.upsert(stockConfigData);
+      const existing = await supabase
+        .from('configuracoes_estoque')
+        .select('id')
+        .eq('produto', values.produto)
+        .maybeSingle();
+      if (existing.error) return { error: existing.error, data: null };
+      const result = existing.data
+        ? await supabase.from('configuracoes_estoque').update(values).eq('id', existing.data.id).select().single()
+        : await supabase.from('configuracoes_estoque').insert(values).select().single();
       
       console.log(`Result of updating ${id}:`, result);
       return result;
