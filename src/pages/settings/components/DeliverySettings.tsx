@@ -34,9 +34,10 @@ export function DeliverySettings() {
         }
         
         if (response.data) {
-          setDeliveryFee(response.data.taxa_entrega ? response.data.taxa_entrega.toString() : "5.00");
-          setMinFreeDelivery(response.data.valor_min_entrega_gratis ? response.data.valor_min_entrega_gratis.toString() : "100.00");
-          setMaxRadius(response.data.raio_maximo_km ? response.data.raio_maximo_km.toString() : "15");
+          // ?? preserva zero configurado; o padrão só vale quando o campo é nulo
+          setDeliveryFee(response.data.taxa_entrega != null ? response.data.taxa_entrega.toString() : "5.00");
+          setMinFreeDelivery(response.data.valor_min_entrega_gratis != null ? response.data.valor_min_entrega_gratis.toString() : "100.00");
+          setMaxRadius(response.data.raio_maximo_km != null ? response.data.raio_maximo_km.toString() : "15");
           setEnableTracking(response.data.rastreamento_ativo !== false);
         }
       } catch (error) {

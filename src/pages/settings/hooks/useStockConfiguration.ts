@@ -46,10 +46,11 @@ export function useStockConfiguration() {
         console.log("Found configurations:", { p13Setting, p20Setting, p45Setting, aguaSetting });
         
         setStoreSettings({
-          p13Min: p13Setting?.estoque_minimo || 20,
-          p20Min: p20Setting?.estoque_minimo || 5,
-          p45Min: p45Setting?.estoque_minimo || 5,
-          aguaMin: aguaSetting?.estoque_minimo || 20,
+          // ?? preserva zero configurado; o padrão só vale quando não há registro
+          p13Min: p13Setting?.estoque_minimo ?? 20,
+          p20Min: p20Setting?.estoque_minimo ?? 5,
+          p45Min: p45Setting?.estoque_minimo ?? 5,
+          aguaMin: aguaSetting?.estoque_minimo ?? 20,
           alertsEnabled: p13Setting?.alerta_ativo !== false // Default to true if undefined
         });
       } else {
