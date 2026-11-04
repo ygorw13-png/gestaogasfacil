@@ -87,7 +87,7 @@ export function CashierClosingForm({
 
   const registrar = useRegistrarMovimentacao();
   const salvarFechamento = useSalvarFechamento();
-  const { data: vendasPorData } = useVendasPorData(closingDate);
+  const { data: vendasPorData, refetch: refetchVendasPorData } = useVendasPorData(closingDate);
   const { data: saldo } = useSaldoPortariaDia(closingDate);
   const { data: fechamentoExistente } = useFechamentoPorData(closingDate);
   const { categorias, agregados, totalAgregadosQtd, totalAgregadosValor, totalAgregadosProdutos } =
@@ -137,8 +137,13 @@ export function CashierClosingForm({
     return () => clearTimeout(t);
   }, [closingType, observations, remaining, closingDate]);
 
+  // Dia atual e retroativo usam a mesma fonte (vendas entregues no dia, com
+  // divisão por forma de pagamento). O estado local do caixa só guarda o total.
   const selectedDateCashierData = useMemo(
-    () => (isRetroactive ? buildCashierDataFromVendasPorData(vendasPorData) : cashierData),
+    () =>
+      vendasPorData || isRetroactive
+        ? buildCashierDataFromVendasPorData(vendasPorData)
+        : cashierData,
     [isRetroactive, vendasPorData, cashierData]
   );
 
