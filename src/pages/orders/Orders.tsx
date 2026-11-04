@@ -44,28 +44,30 @@ export default function Orders() {
 
 
   const onNewOrderSubmit = async (order: any) => {
-    await handleAddOrder(order);
+    // Só confirma, fecha e imprime depois da gravação comprovada, com o ID real
+    const saved = await handleAddOrder(order);
+    if (!saved) return;
     setIsNewOrderOpen(false);
     const printer = readPrinterSettings();
     if (printer.enabled && printer.autoPrint) {
       printReceipt({
-        id: order?.id,
-        clientName: order?.clientName,
-        clientPhone: order?.clientPhone,
-        address: order?.address,
-        product: order?.product,
-        quantity: order?.quantity,
-        price: order?.price,
-        paymentMethod: order?.paymentMethod,
-        notes: order?.notes,
-        createdAt: new Date(),
+        id: saved.id,
+        clientName: saved.clientName,
+        clientPhone: saved.clientPhone,
+        address: saved.address,
+        product: saved.product,
+        quantity: saved.quantity,
+        price: saved.price,
+        paymentMethod: saved.paymentMethod,
+        notes: saved.notes,
+        createdAt: saved.createdAt,
       });
     }
-    if (order?.clientName) {
+    if (saved.clientName) {
       setPendingClient({
-        name: order.clientName,
-        phone: order.clientPhone || "",
-        address: order.address || {},
+        name: saved.clientName,
+        phone: saved.clientPhone || "",
+        address: saved.address || {},
       });
     }
   };

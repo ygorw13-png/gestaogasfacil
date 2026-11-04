@@ -11,7 +11,7 @@ import { formSchema, type FormValues } from "./types/formTypes";
 import { Order } from "./types";
 
 interface NewOrderFormProps {
-  onSubmit: (order: Order) => void;
+  onSubmit: (order: Order) => void | Promise<void>;
 }
 
 export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
@@ -66,7 +66,7 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
     }
   };
 
-  const handleSubmit = (values: FormValues) => {
+  const handleSubmit = async (values: FormValues) => {
     const hasProducts = values.gasP13 || values.gasP20 || values.gasP45 || values.water;
     
     if (!hasProducts) {
