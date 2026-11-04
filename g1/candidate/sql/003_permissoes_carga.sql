@@ -267,7 +267,9 @@ BEGIN
   SELECT id INTO c FROM public.cargas WHERE organization_id=o AND entregador_id=_entregador_id AND status='aberta' FOR UPDATE;
   INSERT INTO public.carga_movimentos(organization_id, carga_id, tipo, produto, delta_cheios, registrado_por)
     VALUES (o, c, 'saida_portaria', _produto, _cheios, auth.uid());
+  PERFORM set_config('g1.acao_controlada','on',true);
   PERFORM public.registrar_movimentacao_portaria('saida_carga', _produto, -_cheios, 0, 0, NULL, NULL, c, 'Transferência para carga');
+  PERFORM set_config('g1.acao_controlada','off',true);
   PERFORM public._reenvio_fim(o, _chave, c);
   RETURN c;
 END $$;
@@ -383,7 +385,9 @@ DECLARE o uuid := public._ctx_org(); k record; prev uuid; mid uuid; BEGIN
     RAISE EXCEPTION 'Vazios maiores que os recolhidos'; END IF;
   INSERT INTO public.carga_movimentos(organization_id, carga_id, tipo, produto, delta_cheios, delta_vazios, registrado_por)
     VALUES (o, _carga_id, 'devolucao', _produto, -coalesce(_cheios,0), -coalesce(_vazios,0), auth.uid()) RETURNING id INTO mid;
+  PERFORM set_config('g1.acao_controlada','on',true);
   PERFORM public.registrar_movimentacao_portaria('retorno_carga', _produto, coalesce(_cheios,0), coalesce(_vazios,0), 0, NULL, NULL, _carga_id, 'Retorno de carga');
+  PERFORM set_config('g1.acao_controlada','off',true);
   PERFORM public._reenvio_fim(o, _chave, mid);
   RETURN mid; END $$;
 
@@ -442,6 +446,22 @@ DECLARE o uuid := public._ctx_org(); r record; n text; BEGIN
   IF r.status NOT IN ('pending','assigned') THEN RAISE EXCEPTION 'Transição inválida: % -> assigned', r.status; END IF;
   UPDATE public.orders SET status='assigned', delivery_person=n, delivery_person_id=_entregador_id, assigned_at=now(), rejection_reason=NULL WHERE id=_order_id;
 END $$;
+
+-- 5k. Portaria: movimentação direta só por operador; tipos de carga só por ação controlada.
+CREATE OR REPLACE FUNCTION public.registrar_movimentacao_portaria(_tipo text, _produto text, _delta_cheios integer, _delta_vazios integer, _delta_emprestados integer, _cliente_id uuid DEFAULT NULL::uuid, _cliente_nome text DEFAULT NULL::text, _referencia_id uuid DEFAULT NULL::uuid, _observacoes text DEFAULT NULL::text, _data_operacao date DEFAULT CURRENT_DATE)
+RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $function$
+DECLARE _id uuid; _user_name text; _org uuid := public.get_my_org(); _ctl boolean := current_setting('g1.acao_controlada', true) = 'on';
+BEGIN
+  IF _org IS NULL THEN RAISE EXCEPTION 'Conta inativa ou sem empresa' USING ERRCODE = '42501'; END IF;
+  IF NOT _ctl AND NOT public.is_operador() THEN RAISE EXCEPTION 'Sem permissão para movimentar estoque' USING ERRCODE = '42501'; END IF;
+  IF NOT _ctl AND _tipo IN ('saida_carga','retorno_carga') THEN RAISE EXCEPTION 'Use a ação de carga' USING ERRCODE = '42501'; END IF;
+  SELECT name INTO _user_name FROM public.profiles WHERE id = auth.uid();
+  INSERT INTO public.movimentacoes_portaria(organization_id, tipo, produto, delta_cheios, delta_vazios, delta_emprestados,
+    cliente_id, cliente_nome, referencia_id, observacoes, registrado_por, registrado_por_nome, data_operacao)
+  VALUES (_org, _tipo, _produto, _delta_cheios, _delta_vazios, _delta_emprestados,
+    _cliente_id, _cliente_nome, _referencia_id, _observacoes, auth.uid(), _user_name, _data_operacao) RETURNING id INTO _id;
+  RETURN _id;
+END $function$;
 
 -- Funções internas não ficam expostas; as ações ficam só para usuários autenticados.
 REVOKE ALL ON FUNCTION public._reenvio(uuid,text,text), public._reenvio_fim(uuid,text,uuid), public._saldo_carga(uuid,text),
