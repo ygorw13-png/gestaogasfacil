@@ -15,11 +15,38 @@ export function OverviewStats() {
   const variationColor =
     variation > 0 ? "text-green-600" : variation < 0 ? "text-red-600" : "text-muted-foreground";
 
+  const flow = data?.flow;
+  const flowItems = [
+    { label: "Vendas concluídas", value: formatCurrency(flow?.concluidas.value ?? 0), hint: `${flow?.concluidas.count ?? 0} vendas` },
+    { label: "Pedidos pendentes", value: formatCurrency(flow?.pendentes.value ?? 0), hint: `${flow?.pendentes.count ?? 0} ainda não concluídos` },
+    { label: "Recebido hoje", value: formatCurrency((flow?.recebidoNaVenda ?? 0) + (flow?.recebidoDeTitulos ?? 0)), hint: `Vendas ${formatCurrency(flow?.recebidoNaVenda ?? 0)} · títulos ${formatCurrency(flow?.recebidoDeTitulos ?? 0)}` },
+    { label: "A receber (fiado)", value: formatCurrency(flow?.aReceber ?? 0), hint: `Vendido a prazo hoje: ${formatCurrency(flow?.vendidoAPrazo ?? 0)}` },
+  ];
+
   return (
+    <div className="space-y-4">
+    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4" aria-label="Fluxo do dia">
+      {flowItems.map((i) => (
+        <Card key={i.label}>
+          <CardHeader className="p-4 pb-1">
+            <CardTitle className="text-sm font-medium text-muted-foreground">{i.label}</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="text-lg font-bold">{renderValue(i.value)}</div>
+            {!isLoading && !isError && <p className="text-xs text-muted-foreground mt-1">{i.hint}</p>}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+    {!isLoading && !isError && (flow?.semFormaRegistrada ?? 0) > 0 && (
+      <p className="text-xs text-muted-foreground">
+        {formatCurrency(flow!.semFormaRegistrada)} em vendas concluídas sem forma de pagamento registrada não entram em "Recebido".
+      </p>
+    )}
     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
       <Card className="border-green-100">
         <CardHeader className="p-4 bg-green-50/50">
-          <CardTitle className="text-base">Vendas de Hoje</CardTitle>
+          <CardTitle className="text-base">Pedidos registrados hoje (valor)</CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-0">
           <div className="text-xl font-bold">
@@ -59,6 +86,7 @@ export function OverviewStats() {
           </p>
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 }

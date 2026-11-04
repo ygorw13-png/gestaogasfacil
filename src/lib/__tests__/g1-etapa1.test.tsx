@@ -147,3 +147,35 @@ describe("estoque mínimo configurado", () => {
     expect(minFor(rows, "p20", 5)).toBe(5);
   });
 });
+
+import { summarizeFlow } from "@/lib/orderMetrics";
+describe("G1 decisão 11 — fluxo do dia (dados fictícios)", () => {
+  const hoje = () => true;
+  const orders = [
+    { price: 250, status: "completed", payment_method: "dinheiro" },
+    { price: 125, status: "delivered", payment_method: "promissoria" },
+    { price: 130, status: "pending", payment_method: null },
+    { price: 20, status: "cancelled", payment_method: "pix" },
+  ];
+  it("venda a prazo conta como venda, mas não como recebido", () => {
+    const f = summarizeFlow(orders, [], hoje);
+    expect(f.concluidas).toEqual({ count: 2, value: 375 });
+    expect(f.vendidoAPrazo).toBe(125);
+    expect(f.recebidoNaVenda).toBe(250);
+  });
+  it("pedido pendente não é venda concluída; cancelado fica fora", () => {
+    const f = summarizeFlow(orders, [], hoje);
+    expect(f.pendentes).toEqual({ count: 1, value: 130 });
+  });
+  it("recebimento parcial: a receber é o saldo restante", () => {
+    const f = summarizeFlow([], [{ value: 100, paid_amount: 40, status: "parcial", paid_at: null }], hoje);
+    expect(f.aReceber).toBe(60);
+    expect(f.recebidoDeTitulos).toBe(0);
+  });
+  it("título quitado hoje entra como recebimento de título, não como venda", () => {
+    const f = summarizeFlow([], [{ value: 100, paid_amount: 100, status: "paid", paid_at: "2026-11-04T12:00:00Z" }], hoje);
+    expect(f.recebidoDeTitulos).toBe(100);
+    expect(f.concluidas.value).toBe(0);
+    expect(f.aReceber).toBe(0);
+  });
+});
