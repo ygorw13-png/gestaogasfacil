@@ -3,6 +3,7 @@ import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { orderTotal, isCountedOrder } from "@/lib/orderMetrics";
 
 /**
  * Gera os dados do relatório a partir dos pedidos reais do período.
@@ -23,7 +24,7 @@ export const generateReportData = async (dateRange: DateRange) => {
     .lte("created_at", endOfDay.toISOString());
   if (error) throw error;
 
-  const orders = (data || []).filter((o) => o.status !== "cancelled");
+  const orders = (data || []).filter(isCountedOrder);
 
   // Vendas diárias reais: todos os dias do período, zero quando não houve venda
   const dailySales: { data: string; valor: number }[] = [];
@@ -37,7 +38,7 @@ export const generateReportData = async (dateRange: DateRange) => {
         const d = new Date(o.created_at);
         return d >= dayStart && d < dayEnd;
       })
-      .reduce((sum, o) => sum + Number(o.price || 0) * Number(o.quantity || 1), 0);
+      .reduce((sum, o) => sum + orderTotal(o), 0);
     dailySales.push({
       data: format(currentDate, "dd/MM/yyyy", { locale: ptBR }),
       valor,

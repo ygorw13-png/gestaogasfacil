@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/lib/formatUtils";
+import { sumRevenue } from "@/lib/orderMetrics";
 
-/** Receita bruta do mês corrente: pedidos não cancelados, price × quantity. */
+/** Receita bruta do mês corrente: pedidos não cancelados, valor total gravado. */
 function useMonthlyRevenue() {
   return useQuery({
     queryKey: ["admin", "monthly-revenue"],
@@ -17,9 +18,7 @@ function useMonthlyRevenue() {
         .select("price, quantity, status")
         .gte("created_at", monthStart.toISOString());
       if (error) throw error;
-      return (data || [])
-        .filter((o) => o.status !== "cancelled")
-        .reduce((sum, o) => sum + Number(o.price || 0) * Number(o.quantity || 1), 0);
+      return sumRevenue(data || []);
     },
     refetchInterval: 60_000,
   });

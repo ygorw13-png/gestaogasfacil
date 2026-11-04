@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { orderTotal, isCountedOrder } from "@/lib/orderMetrics";
 
 export type Timeframe = "today" | "week" | "month";
 
@@ -24,7 +25,7 @@ function rangeStart(timeframe: Timeframe) {
 const isWater = (product?: string | null) =>
   (product || "").toLowerCase().includes("gua") || (product || "").toLowerCase() === "water";
 
-const orderTotal = (o: any) => Number(o.price || 0) * Number(o.quantity || 1);
+
 
 /** Vendas concluídas em um intervalo */
 async function fetchOrders(from: Date) {
@@ -34,7 +35,7 @@ async function fetchOrders(from: Date) {
     .gte("created_at", iso(from))
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return (data || []).filter((o: any) => o.status !== "cancelled");
+  return (data || []).filter(isCountedOrder);
 }
 
 export function useDashboardOverview() {
@@ -59,7 +60,7 @@ export function useDashboardOverview() {
       if (saldoRes.error) throw saldoRes.error;
       if (promRes.error) throw promRes.error;
 
-      const orders = (ordersRes.data || []).filter((o: any) => o.status !== "cancelled");
+      const orders = (ordersRes.data || []).filter(isCountedOrder);
       const todaySalesValue = orders
         .filter((o: any) => new Date(o.created_at) >= start)
         .reduce((s: number, o: any) => s + orderTotal(o), 0);
