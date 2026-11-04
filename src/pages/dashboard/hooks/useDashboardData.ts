@@ -49,10 +49,10 @@ export function useDashboardOverview() {
       const [ordersRes, saldoRes, promRes] = await Promise.all([
         db
           .from("orders")
-          .select("price, quantity, status, created_at")
+          .select("price, quantity, status, created_at, payment_method")
           .gte("created_at", iso(yesterday)),
         db.from("saldo_portaria_atual").select("*").eq("data_operacao", dayKey(new Date())),
-        db.from("promissory_notes").select("value, status, due_date"),
+        db.from("promissory_notes").select("value, status, due_date, paid_amount, paid_at"),
       ]);
 
       // Propaga falhas: erro de consulta não pode aparecer como "zero"
@@ -71,7 +71,7 @@ export function useDashboardOverview() {
       const saldo: Record<string, any> = {};
       (saldoRes.data || []).forEach((r: any) => (saldo[r.produto] = r));
 
-      const pending = (promRes.data || []).filter((p: any) => p.status !== "paid");
+      const pending = (promRes.data || []).filter((p: any) => p.status !== "paid" && p.status !== "cancelled");
       const promissoryValue = pending.reduce((s: number, p: any) => s + Number(p.value || 0), 0);
       const overdue = pending.filter(
         (p: any) => p.due_date && new Date(p.due_date) < new Date()
@@ -84,7 +84,11 @@ export function useDashboardOverview() {
           ? 100
           : 0;
 
+      const todayOrders = (ordersRes.data || []).filter((o: any) => new Date(o.created_at) >= start);
+      const flow = summarizeFlow(todayOrders, promRes.data || [], (d) => new Date(d) >= start);
+
       return {
+        flow,
         todaySalesValue,
         variation,
         ordersToday: orders.filter((o: any) => new Date(o.created_at) >= start).length,
