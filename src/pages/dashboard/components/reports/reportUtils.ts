@@ -7,8 +7,10 @@ import { generateReportData } from "./utils/reportDataGenerator";
 import { excelStyles } from "./utils/excelStyles";
 
 export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> => {
-  const reportData = generateReportData(dateRange);
+  const reportData = await generateReportData(dateRange);
   const xlsx = await import('xlsx');
+
+  const naoDisponivel = "Não disponível (custos não registrados)";
 
   const workbook = xlsx.utils.book_new();
 
