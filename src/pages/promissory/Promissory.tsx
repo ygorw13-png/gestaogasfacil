@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { collectors } from "./data/mockData";
+import { useCollectors } from "./hooks/useCollectors";
 import { PendingPromissoriesTable } from "./components/PendingPromissoriesTable";
 import { AssignPromissoryDialog } from "./components/AssignPromissoryDialog";
 import { AssignedPromissoriesTable } from "./components/AssignedPromissoriesTable";
