@@ -55,7 +55,6 @@ export function QuickActions() {
           });
           setIsGeneratingReport(false);
         });
-    }, 1000);
   };
 
   const handleOpenSettings = () => {
