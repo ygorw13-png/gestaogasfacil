@@ -83,7 +83,7 @@ check("operador","NÃO reabre pedido concluído (estorno)", as_flow([("adminA", 
       ("userA", f"UPDATE orders SET status='pending' WHERE id='{O2}'")])[0] is False)
 check("operador","abre/fecha caixa (cria fechamento)", rows("userA", f"INSERT INTO fechamentos_caixa(organization_id,data_fechamento,tipo,total_vendas,total_dinheiro,total_pix,total_cartao,total_outros,quantidades,estoque_final,divergencias,tem_divergencia,retroativo) VALUES ('{ORG_A}','2026-11-04','partial',0,0,0,0,0,'{{}}','{{}}','[]',false,false) RETURNING 1"))
 check("operador","não altera fechamento já gravado", not rows("userA", "UPDATE fechamentos_caixa SET total_vendas=1 RETURNING 1"))
-check("operador","registra despesa", rows("userA", f"INSERT INTO despesas(organization_id,tipo,descricao,valor,data,origem_dinheiro,registrado_por) VALUES ('{ORG_A}','geral','Fictícia',10,'2026-11-04','caixa_portaria',auth.uid()) RETURNING 1"))
+check("operador","registra despesa", rows("userA", f"INSERT INTO despesas(organization_id,tipo,descricao,valor,data,origem_dinheiro,registrado_por) VALUES ('{ORG_A}','diversa','Fictícia',10,'2026-11-04','caixa_portaria',auth.uid()) RETURNING 1"))
 check("operador","movimenta estoque da portaria", ok("userA", "SELECT registrar_movimentacao_portaria('ajuste','P13',1,0,0)"))
 check("operador","não grava movimentação direto na tabela (só pela função)", not rows("userA", f"INSERT INTO movimentacoes_portaria(organization_id,tipo,produto,delta_cheios,delta_vazios,delta_emprestados,registrado_por,data_operacao) VALUES ('{ORG_A}','ajuste','P13',1,0,0,auth.uid(),'2026-11-04') RETURNING 1"))
 check("operador","não usa tipo de carga sem a ação de carga", not ok("userA", "SELECT registrar_movimentacao_portaria('saida_carga','P13',-1,0,0)"))
