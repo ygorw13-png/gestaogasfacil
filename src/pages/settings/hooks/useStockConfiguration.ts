@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { stockConfigTable } from "@/integrations/supabase/tables/stockConfig";
 import { StockSettings } from "../components/stock-config/StockLevelInputs";
 import { fetchFromTable } from "@/services/supabaseSDK";
 import { supabase } from "@/integrations/supabase/client";
