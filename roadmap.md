@@ -1,14 +1,13 @@
-# G0.1 — isolated preparation
+# Auditoria funcional GásFácil (somente leitura)
 
-- [x] G0.1 revision: shared authentication generation and deterministic form-result race tests (59 candidates passed).
-- [x] G0.1 revision: build and TypeScript in a complete disposable frontend copy; 8 legacy tests passed.
-- [x] G0.1 revision: complete isolated schema and real create-user/manage-user validation (44 real assertions passed; gateway excluded).
-- [x] G0.1 revision: versioned package, reproduction commands, dependencies and explicit limitations.
-- [ ] Transfer three administrative candidate files from completed draft without accepting it: no supported cross-thread source transfer available in this thread.
+Restrições: não alterar código/banco/permissões/dados; não publicar; não aceitar drafts; não testar em produção. Preservar G0.1 e pendência do gateway. Separar estado publicado de candidatos G0.1.
 
-- [x] Stage final profile endpoints and SQL outside automatic deployment paths.
-- [x] Stage authentication callers, fail-closed permissions and account-switch protection.
-- [x] Run fictional-fixture local PostgreSQL, endpoint and authentication tests (50 passed).
-- [x] Deliver final files, results, limitations and safe release order.
-- [ ] Standard gateway/managed deployment/browser validation: draft gateway returns 503; upstream local Auth/PostgREST tests do not substitute.
-- [ ] Administrative provisioning atomicity/leftover initial company and double-failure containment: needs separately reviewed provisioning design; no production approval.
+## Checklist de cobertura
+- [ ] 1. Inventário: rotas, telas, hooks, funções backend, RPCs, triggers, agendamentos
+- [ ] 2. Matriz de integração entre módulos (vendas, portaria, carga, cascos, promissórias, caixa, comissões, offline)
+- [ ] 3. Fontes de verdade e cálculos (estoque, valores, caixa, comissão, fuso, status)
+- [ ] 4. Dados fictícios / resultados enganosos (mocks, Math.random, fallbacks, sucesso prematuro)
+- [ ] 5. Reconciliação somente leitura (consultas SQL de leitura)
+- [ ] 6. Permissões e caminhos alternativos (tela vs chamada direta vs entregador vs offline)
+- [ ] 7. Sugestões de melhorias e novos módulos
+- [ ] 8. Entrega: relatório Markdown em /mnt/documents + resumo no chat
