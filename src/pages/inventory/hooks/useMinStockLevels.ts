@@ -22,10 +22,11 @@ export function useMinStockLevels() {
         const aguaConfig = response.data.find((config: any) => config.id === 'agua');
         
         setMinStock({
-          p13: p13Config?.estoque_minimo || 20,
-          p20: p20Config?.estoque_minimo || 5,
-          p45: p45Config?.estoque_minimo || 5,
-          water: aguaConfig?.estoque_minimo || 20
+          // ?? preserva zero configurado; o padrão só vale quando não há registro
+          p13: p13Config?.estoque_minimo ?? 20,
+          p20: p20Config?.estoque_minimo ?? 5,
+          p45: p45Config?.estoque_minimo ?? 5,
+          water: aguaConfig?.estoque_minimo ?? 20
         });
       }
     } catch (error) {

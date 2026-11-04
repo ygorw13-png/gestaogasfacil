@@ -54,6 +54,11 @@ export function useDashboardOverview() {
         db.from("promissory_notes").select("value, status, due_date"),
       ]);
 
+      // Propaga falhas: erro de consulta não pode aparecer como "zero"
+      if (ordersRes.error) throw ordersRes.error;
+      if (saldoRes.error) throw saldoRes.error;
+      if (promRes.error) throw promRes.error;
+
       const orders = (ordersRes.data || []).filter((o: any) => o.status !== "cancelled");
       const todaySalesValue = orders
         .filter((o: any) => new Date(o.created_at) >= start)

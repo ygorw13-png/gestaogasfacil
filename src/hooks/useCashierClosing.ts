@@ -34,40 +34,27 @@ export function useCashierClosing(
       return;
     }
 
-    // Para fechamento parcial, vamos adicionar um registro no histórico de fechamentos
+    // Fechamento parcial: registra um retrato fiel dos totais atuais,
+    // sem alterar os valores em aberto do caixa.
     if (type === "partial") {
       const newPartialClosing: PartialClosing = {
-        id: Date.now().toString(), // Usar timestamp como ID temporário
-        timestamp: new Date().toISOString(), // Convertemos Date para string
-        totalSales: cashierData.totalSales / 2, // Exemplo simplificado
+        id: Date.now().toString(), // ID temporário apenas para exibição local
+        timestamp: new Date().toISOString(),
+        totalSales: cashierData.totalSales,
         quantities: {
-          p13: Math.floor(glpSales.p13 / 2),
-          p20: Math.floor(glpSales.p20 / 2),
-          p45: Math.floor(glpSales.p45 / 2),
-          water: Math.floor(waterSales / 2)
+          p13: glpSales.p13,
+          p20: glpSales.p20,
+          p45: glpSales.p45,
+          water: waterSales
         },
         observations: observations || ""
       };
-      
+
       setPartialClosings(prevClosings => [...prevClosings, newPartialClosing]);
-      
-      // Reduzir os valores atuais baseado no que foi fechado parcialmente
-      setCashierData(prev => ({
-        ...prev,
-        totalSales: prev.totalSales / 2 // Simplificado para exemplo
-      }));
-      
-      setGlpSales(prev => ({
-        p13: Math.ceil(prev.p13 / 2),
-        p20: Math.ceil(prev.p20 / 2),
-        p45: Math.ceil(prev.p45 / 2),
-      }));
-      
-      setWaterSales(prev => Math.ceil(prev / 2));
-      
+
       toast({
         title: "Fechamento parcial",
-        description: "O caixa foi fechado parcialmente com sucesso.",
+        description: "Retrato do caixa registrado. Os valores em aberto não foram alterados.",
         variant: "default",
       });
     } else {

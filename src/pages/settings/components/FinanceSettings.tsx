@@ -35,7 +35,8 @@ export function FinanceSettings() {
         
         if (response.data) {
           setCurrency(response.data.moeda || "BRL");
-          setTaxRate(response.data.taxa_imposto ? response.data.taxa_imposto.toString() : "18");
+          // ?? preserva zero configurado; o padrão só vale quando o campo é nulo
+          setTaxRate(response.data.taxa_imposto != null ? response.data.taxa_imposto.toString() : "18");
           
           if (response.data.metodos_pagamento && Array.isArray(response.data.metodos_pagamento)) {
             setPaymentMethods(response.data.metodos_pagamento.join(','));

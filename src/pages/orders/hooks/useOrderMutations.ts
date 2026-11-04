@@ -83,6 +83,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
         title: "Pedido registrado",
         description: `Pedido para ${order.clientName} registrado com sucesso`,
       });
+      return newOrder;
     } catch (error) {
       console.error("Erro ao adicionar pedido:", error);
       toast({
@@ -90,7 +91,8 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
         description: error instanceof Error ? error.message : "Não foi possível registrar o pedido.",
         variant: "destructive",
       });
-
+      // Relança para que o chamador não confirme/imprima um pedido não salvo
+      throw error;
     } finally {
       setLoading(false);
     }

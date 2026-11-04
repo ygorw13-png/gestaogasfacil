@@ -12,6 +12,7 @@ export interface ReportData {
     vendasTotais: number;
     mediaDiaria: number;
     diasAnalisados: number;
+    pedidos: number;
   };
   produtosMaisVendidos: Array<{
     produto: string;
@@ -20,9 +21,10 @@ export interface ReportData {
   }>;
   metricasFinanceiras: {
     receitaBruta: number;
-    custoOperacional: number;
-    margemLucro: number;
-    taxaCrescimento: number;
+    // Sem custo de mercadoria registrado: não calculáveis
+    custoOperacional: number | null;
+    margemLucro: number | null;
+    taxaCrescimento: number | null;
   };
   sugestoes: string[];
 }

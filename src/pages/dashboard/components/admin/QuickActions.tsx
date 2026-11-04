@@ -19,11 +19,9 @@ export function QuickActions() {
     
     setIsGeneratingReport(true);
     setReportDialogOpen(false);
-    
-    // Simula o tempo necessário para gerar o relatório
-    setTimeout(() => {
-      // Gerar o arquivo Excel
-      generateExcelReport(dateRange)
+
+    // Gerar o arquivo Excel com dados reais do período
+    generateExcelReport(dateRange)
         .then(blob => {
           // Criar link para download
           const url = URL.createObjectURL(blob);
@@ -57,7 +55,6 @@ export function QuickActions() {
           });
           setIsGeneratingReport(false);
         });
-    }, 1000);
   };
 
   const handleOpenSettings = () => {

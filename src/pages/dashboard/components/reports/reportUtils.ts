@@ -7,8 +7,10 @@ import { generateReportData } from "./utils/reportDataGenerator";
 import { excelStyles } from "./utils/excelStyles";
 
 export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> => {
-  const reportData = generateReportData(dateRange);
+  const reportData = await generateReportData(dateRange);
   const xlsx = await import('xlsx');
+
+  const naoDisponivel = "Não disponível (custos não registrados)";
 
   const workbook = xlsx.utils.book_new();
 
@@ -22,19 +24,13 @@ export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> =
     ["Total de Vendas", `R$ ${formatCurrency(reportData.totais.vendasTotais)}`],
     ["Média Diária", `R$ ${formatCurrency(reportData.totais.mediaDiaria)}`],
     ["Dias Analisados", reportData.totais.diasAnalisados],
+    ["Pedidos no Período", reportData.totais.pedidos],
     [""],
     ["DESEMPENHO FINANCEIRO"],
     ["Receita Bruta", `R$ ${formatCurrency(reportData.metricasFinanceiras.receitaBruta)}`],
-    ["Custo Operacional", `R$ ${formatCurrency(reportData.metricasFinanceiras.custoOperacional)}`],
-    ["Margem de Lucro", `${reportData.metricasFinanceiras.margemLucro}%`],
-    ["Taxa de Crescimento", `${reportData.metricasFinanceiras.taxaCrescimento}%`],
-    [""],
-    ["RECOMENDAÇÕES ESTRATÉGICAS"],
-    ["1.", reportData.sugestoes[0]],
-    ["2.", reportData.sugestoes[1]],
-    ["3.", reportData.sugestoes[2]],
-    ["4.", reportData.sugestoes[3]],
-    ["5.", reportData.sugestoes[4]],
+    ["Custo Operacional", naoDisponivel],
+    ["Margem de Lucro", naoDisponivel],
+    ["Taxa de Crescimento", naoDisponivel],
     [""],
     [`Relatório gerado em: ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}`]
   ];
