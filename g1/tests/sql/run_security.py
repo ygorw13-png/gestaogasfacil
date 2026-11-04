@@ -23,7 +23,7 @@ R = []
 def check(cat, name, cond, detail=""):
     R.append((cat, name, bool(cond))); print(f"{'PASS' if cond else 'FAIL'} [{cat}] {name} {detail}")
 ins = lambda org, uid: f"INSERT INTO orders(user_id,organization_id,client_name,tipo_venda,vasilhames_entregues,vasilhames_recebidos) VALUES ('{uid}','{org}','Teste','recarga',0,0) RETURNING 1"
-mov = "SELECT organization_id FROM movimentacoes_portaria WHERE id = registrar_movimentacao_portaria('ajuste','P13',1,0,0)"
+mov = "SELECT registrar_movimentacao_portaria('ajuste','P13',1,0,0) AS mid \\gset\nSELECT organization_id FROM movimentacoes_portaria WHERE id = :'mid'"
 # Continuidade
 check("continuidade","userA lê pedidos da própria empresa", val("userA","SELECT count(*) FROM orders")=="2")
 check("continuidade","userA grava pedido na própria empresa", allowed("userA", ins(ORG_A, U["userA"])))
