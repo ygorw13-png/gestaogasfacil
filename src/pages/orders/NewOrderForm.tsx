@@ -92,7 +92,8 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
     }
     
     const order: Order = {
-      id: (Math.random() * 1000).toFixed(0),
+      // ID provisório: o identificador real é gerado pelo banco e retornado ao salvar
+      id: "",
       clientName: values.clientName,
       clientPhone: values.clientPhone,
       address: {
@@ -114,12 +115,17 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
       notes: values.observations
     };
     
-    onSubmit(order);
-    form.reset();
-    setHasGasP13(false);
-    setHasGasP20(false);
-    setHasGasP45(false);
-    setHasWater(false);
+    try {
+      // Só limpa o formulário depois da gravação confirmada
+      await onSubmit(order);
+      form.reset();
+      setHasGasP13(false);
+      setHasGasP20(false);
+      setHasGasP45(false);
+      setHasWater(false);
+    } catch {
+      // Erro já tratado pelo chamador; mantém os dados preenchidos
+    }
   };
 
   return (
