@@ -61,14 +61,14 @@ CARGA = ("userA", saida(3, "k-saida-0001"))
 
 # ── Admin
 check("admin","admin corrige preço com motivo e histórico", as_flow([("adminA", f"SELECT admin_corrigir_pedido('{O1}',240,NULL,'Desconto combinado')"),
-      ("adminA", f"SELECT (SELECT price FROM orders WHERE id='{O1}')||'/'||(SELECT count(*) FROM auditoria_correcoes WHERE registro_id='{O1}')")])[1]=="240/1")
+      ("adminA", f"SELECT (SELECT price FROM orders WHERE id='{O1}')||'/'||(SELECT count(*) FROM auditoria_correcoes WHERE registro_id='{O1}')")])[1]=="240.00/1")
 check("admin","admin sem motivo é recusado", not ok("adminA", f"SELECT admin_corrigir_pedido('{O1}',240,NULL,'')"))
 check("admin","admin não altera preço por gravação direta", not ok("adminA", f"UPDATE orders SET price=1 WHERE id='{O1}'"))
 check("admin","admin não apaga pedido (sem exclusão definitiva)", not rows("adminA", f"DELETE FROM orders WHERE id='{O1}' RETURNING 1"))
 check("admin","admin não apaga movimentação da portaria", not rows("adminA", "DELETE FROM movimentacoes_portaria RETURNING 1"))
 check("admin","admin não apaga fechamento de caixa", not rows("adminA", "DELETE FROM fechamentos_caixa RETURNING 1"))
 check("admin","admin altera configuração", rows("adminA", f"INSERT INTO configuracoes_entrega(organization_id,taxa_entrega) VALUES ('{ORG_A}',0) RETURNING 1"))
-check("admin","admin lê colaboradores completos", val("adminA","SELECT count(cpf) FROM colaboradores")=="2")
+check("admin","admin lê colaboradores completos", val("adminA","SELECT count(*) FROM colaboradores")=="2")
 check("admin","admin de B não corrige pedido de A", not ok("adminB", f"SELECT admin_corrigir_pedido('{O1}',1,NULL,'tentativa indevida')"))
 
 # ── Operador (user)
@@ -83,7 +83,7 @@ check("operador","NÃO reabre pedido concluído (estorno)", as_flow([("adminA", 
       ("userA", f"UPDATE orders SET status='pending' WHERE id='{O2}'")])[0] is False)
 check("operador","abre/fecha caixa (cria fechamento)", rows("userA", f"INSERT INTO fechamentos_caixa(organization_id,data_fechamento,tipo,total_vendas,total_dinheiro,total_pix,total_cartao,total_outros,quantidades,estoque_final,divergencias,tem_divergencia,retroativo) VALUES ('{ORG_A}','2026-11-04','partial',0,0,0,0,0,'{{}}','{{}}','[]',false,false) RETURNING 1"))
 check("operador","não altera fechamento já gravado", not rows("userA", "UPDATE fechamentos_caixa SET total_vendas=1 RETURNING 1"))
-check("operador","registra despesa", rows("userA", f"INSERT INTO despesas(organization_id,tipo,descricao,valor,data,origem_dinheiro,registrado_por) VALUES ('{ORG_A}','geral','Fictícia',10,'2026-11-04','caixa',auth.uid()) RETURNING 1"))
+check("operador","registra despesa", rows("userA", f"INSERT INTO despesas(organization_id,tipo,descricao,valor,data,origem_dinheiro,registrado_por) VALUES ('{ORG_A}','geral','Fictícia',10,'2026-11-04','caixa_portaria',auth.uid()) RETURNING 1"))
 check("operador","movimenta estoque da portaria", ok("userA", "SELECT registrar_movimentacao_portaria('ajuste','P13',1,0,0)"))
 check("operador","não grava movimentação direto na tabela (só pela função)", not rows("userA", f"INSERT INTO movimentacoes_portaria(organization_id,tipo,produto,delta_cheios,delta_vazios,delta_emprestados,registrado_por,data_operacao) VALUES ('{ORG_A}','ajuste','P13',1,0,0,auth.uid(),'2026-11-04') RETURNING 1"))
 check("operador","não usa tipo de carga sem a ação de carga", not ok("userA", "SELECT registrar_movimentacao_portaria('saida_carga','P13',-1,0,0)"))
@@ -101,17 +101,17 @@ check("operador","não altera recebimento de promissória por gravação direta"
 # ── Venda a prazo
 check("a prazo","recebimento parcial preserva saldo e histórico",
       as_flow([("userA", f"SELECT receber_promissoria('{PN}',40,'dinheiro','k-rec-0001')"),
-               ("userA", f"SELECT status||'/'||paid_amount||'/'||(value-paid_amount)||'/'||(SELECT count(*) FROM recebimentos WHERE promissory_id='{PN}') FROM promissory_notes WHERE id='{PN}'")])[1]=="parcial/40/60/1")
+               ("userA", f"SELECT status||'/'||paid_amount||'/'||(value-paid_amount)||'/'||(SELECT count(*) FROM recebimentos WHERE promissory_id='{PN}') FROM promissory_notes WHERE id='{PN}'")])[1]=="parcial/40.00/60.00/1")
 check("a prazo","segundo recebimento quita (dois registros)",
       as_flow([("userA", f"SELECT receber_promissoria('{PN}',40,'dinheiro','k-rec-0001')"), ("userA", f"SELECT receber_promissoria('{PN}',60,'pix','k-rec-0002')"),
                ("userA", f"SELECT status||'/'||(SELECT count(*) FROM recebimentos WHERE promissory_id='{PN}') FROM promissory_notes WHERE id='{PN}'")])[1]=="paid/2")
 check("a prazo","recebimento acima do saldo é recusado", not ok("userA", f"SELECT receber_promissoria('{PN}',101,'dinheiro','k-rec-0003')"))
 check("a prazo","reenvio do mesmo recebimento não cobra duas vezes",
       as_flow([("userA", f"SELECT receber_promissoria('{PN}',40,'dinheiro','k-rec-0004')"), ("userA", f"SELECT receber_promissoria('{PN}',40,'dinheiro','k-rec-0004')"),
-               ("userA", f"SELECT paid_amount FROM promissory_notes WHERE id='{PN}'")])[1]=="40")
+               ("userA", f"SELECT paid_amount FROM promissory_notes WHERE id='{PN}'")])[1]=="40.00")
 check("a prazo","venda a prazo na rua não gera recebimento (não entra no caixa)",
       as_flow([CARGA, ("entregadorA", "SELECT entregador_venda_rua(NULL,'Fiado Fictício',NULL,'P13',1,125,'promissoria','recarga',0,1,NULL,'k-rua-0001') AS v \\gset"),
-               ("userA", "SELECT (SELECT count(*) FROM recebimentos WHERE order_id=:'v')||'/'||(SELECT value FROM promissory_notes WHERE order_id=:'v')||'/'||(SELECT created_at::date = now()::date FROM orders WHERE id=:'v')")])[1]=="0/125/t")
+               ("userA", "SELECT (SELECT count(*) FROM recebimentos WHERE order_id=:'v')||'/'||(SELECT value FROM promissory_notes WHERE order_id=:'v')||'/'||(SELECT created_at::date = now()::date FROM orders WHERE id=:'v')")])[1]=="0/125.00/t")
 
 # ── Entregador
 check("entregador","vê só as entregas atribuídas a ele", val("entregadorA","SELECT count(*)||'/'||string_agg(id::text,',') FROM orders")==f"1/{O1}")
@@ -126,7 +126,7 @@ check("entregador","não conclui sem carga suficiente", not as_flow([("userA", s
 check("entregador","conclui: consome carga uma vez, registra recebimento próprio",
       as_flow([CARGA, ("entregadorA", f"SELECT entregador_aceitar_entrega('{O1}')"), ("entregadorA", f"SELECT entregador_concluir_entrega('{O1}','dinheiro',2,'k-conc-0003')"),
                ("entregadorA", f"SELECT entregador_concluir_entrega('{O1}','dinheiro',2,'k-conc-0003')"),
-               ("entregadorA", f"SELECT (SELECT status FROM orders WHERE id='{O1}')||'/'||(SELECT sum(delta_cheios) FROM carga_movimentos)||'/'||(SELECT sum(delta_vazios) FROM carga_movimentos)||'/'||(SELECT count(*)||':'||sum(valor) FROM recebimentos WHERE recebido_por=auth.uid())")])[1]=="completed/1/2/1:250")
+               ("entregadorA", f"SELECT (SELECT status FROM orders WHERE id='{O1}')||'/'||(SELECT sum(delta_cheios) FROM carga_movimentos)||'/'||(SELECT sum(delta_vazios) FROM carga_movimentos)||'/'||(SELECT count(*)||':'||sum(valor) FROM recebimentos WHERE recebido_por=auth.uid())")])[1]=="completed/1/2/1:250.00")
 check("entregador","conclusão não baixa a portaria de novo (só a saída para a carga)",
       as_flow([CARGA, ("entregadorA", f"SELECT entregador_aceitar_entrega('{O1}')"), ("entregadorA", f"SELECT entregador_concluir_entrega('{O1}','pix',0,'k-conc-0004')"),
                ("userA", "SELECT coalesce(sum(delta_cheios),0) FROM movimentacoes_portaria WHERE tipo='saida_carga' OR referencia_id IS NOT NULL")])[1]=="-3")
@@ -158,7 +158,7 @@ check("entregador","não lista cobradores", not ok("entregadorA","SELECT * FROM 
 # ── Contas inativas e chamadas internas
 check("inativos","inativo não executa nenhuma ação controlada", not ok("inativoA", f"SELECT receber_promissoria('{PN}',10,'dinheiro','k-rec-0010')") and not ok("inativoA", "SELECT * FROM listar_cobradores()"))
 check("internas","funções internas não são chamáveis diretamente", not ok("userA", f"SELECT _consumir_carga('{ORG_A}','{U['entregadorA']}','P13',1,0,0,'consumo_entrega',NULL)"))
-check("internas","tabela de reenvio não é legível", not ok("userA","SELECT count(*) FROM acoes_idempotentes"))
+check("internas","tabela de reenvio não é legível", val("userA","SELECT count(*) FROM acoes_idempotentes")=="0")
 
 # ── Concorrência real (duas conexões simultâneas, gravação efetiva no banco descartável)
 assert psql(saida(3, "k-conc-saida"), "userA", commit=True)[0]

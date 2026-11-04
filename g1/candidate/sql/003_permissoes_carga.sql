@@ -106,6 +106,12 @@ ALTER TABLE public.recebimentos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.acoes_idempotentes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.auditoria_correcoes ENABLE ROW LEVEL SECURITY;
 
+-- Tipos de movimentação da portaria para a carga (transferência, não venda).
+ALTER TABLE public.movimentacoes_portaria DROP CONSTRAINT IF EXISTS movimentacoes_portaria_tipo_check;
+ALTER TABLE public.movimentacoes_portaria ADD CONSTRAINT movimentacoes_portaria_tipo_check CHECK (tipo = ANY (ARRAY['abertura','transferencia_patio_para_portaria',
+  'transferencia_portaria_para_patio','venda','venda_comodato','devolucao_vasilhame','fechamento','ajuste','sangria_despesa','entrada_patio','ajuste_patio',
+  'saida_carga','retorno_carga']));
+
 -- ───────────── 3. Políticas por papel ─────────────
 -- Remove todas as políticas atuais das tabelas tratadas e recria por comando.
 DO $$ DECLARE r record; BEGIN
@@ -189,7 +195,7 @@ DO $$ DECLARE t text; BEGIN
 -- 4a. Pedidos: preço, status cancelado, empresa, autor e vínculos não mudam por UPDATE direto.
 CREATE OR REPLACE FUNCTION public.orders_guard_direct_update() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public
 AS $$ BEGIN
-  IF current_setting('g1.acao_controlada', true) = 'on' THEN RETURN NEW; END IF;
+  IF coalesce(current_setting('g1.acao_controlada', true), '') = 'on' THEN RETURN NEW; END IF;
   IF NEW.price IS DISTINCT FROM OLD.price OR NEW.quantity IS DISTINCT FROM OLD.quantity
      OR NEW.organization_id IS DISTINCT FROM OLD.organization_id OR NEW.user_id IS DISTINCT FROM OLD.user_id
      OR NEW.carga_id IS DISTINCT FROM OLD.carga_id
@@ -204,7 +210,7 @@ CREATE TRIGGER orders_guard_direct_update BEFORE UPDATE ON public.orders FOR EAC
 -- Novos pedidos por gravação direta não nascem cancelados nem vinculados a carga.
 CREATE OR REPLACE FUNCTION public.orders_guard_direct_insert() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public
 AS $$ BEGIN
-  IF current_setting('g1.acao_controlada', true) = 'on' THEN RETURN NEW; END IF;
+  IF coalesce(current_setting('g1.acao_controlada', true), '') = 'on' THEN RETURN NEW; END IF;
   IF NEW.carga_id IS NOT NULL OR NEW.status = 'cancelled' THEN
     RAISE EXCEPTION 'Pedido com carga ou cancelado só por ação autorizada' USING ERRCODE='42501'; END IF;
   RETURN NEW; END $$;
@@ -214,7 +220,7 @@ CREATE TRIGGER orders_guard_direct_insert BEFORE INSERT ON public.orders FOR EAC
 -- 4b. Promissória: valor, pago e status pago só por recebimento controlado.
 CREATE OR REPLACE FUNCTION public.promissory_guard_direct_update() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public
 AS $$ BEGIN
-  IF current_setting('g1.acao_controlada', true) = 'on' THEN RETURN NEW; END IF;
+  IF coalesce(current_setting('g1.acao_controlada', true), '') = 'on' THEN RETURN NEW; END IF;
   IF NEW.value IS DISTINCT FROM OLD.value OR NEW.paid_amount IS DISTINCT FROM OLD.paid_amount
      OR NEW.paid_at IS DISTINCT FROM OLD.paid_at OR NEW.organization_id IS DISTINCT FROM OLD.organization_id
      OR NEW.order_id IS DISTINCT FROM OLD.order_id
@@ -450,7 +456,7 @@ END $$;
 -- 5k. Portaria: movimentação direta só por operador; tipos de carga só por ação controlada.
 CREATE OR REPLACE FUNCTION public.registrar_movimentacao_portaria(_tipo text, _produto text, _delta_cheios integer, _delta_vazios integer, _delta_emprestados integer, _cliente_id uuid DEFAULT NULL::uuid, _cliente_nome text DEFAULT NULL::text, _referencia_id uuid DEFAULT NULL::uuid, _observacoes text DEFAULT NULL::text, _data_operacao date DEFAULT CURRENT_DATE)
 RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $function$
-DECLARE _id uuid; _user_name text; _org uuid := public.get_my_org(); _ctl boolean := current_setting('g1.acao_controlada', true) = 'on';
+DECLARE _id uuid; _user_name text; _org uuid := public.get_my_org(); _ctl boolean := coalesce(current_setting('g1.acao_controlada', true), '') = 'on';
 BEGIN
   IF _org IS NULL THEN RAISE EXCEPTION 'Conta inativa ou sem empresa' USING ERRCODE = '42501'; END IF;
   IF NOT _ctl AND NOT public.is_operador() THEN RAISE EXCEPTION 'Sem permissão para movimentar estoque' USING ERRCODE = '42501'; END IF;
