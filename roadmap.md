@@ -3,8 +3,8 @@
 Regras: só Lovable Cloud; sem migrações/publicação em produção sem revisão prévia com resultado concreto; preservar registros; não inventar valores nem resultados; candidatos identificados por hash; lotes pequenos e revisáveis.
 
 ## Etapas
-- [ ] 0. Consolidar base: checklist único, correção de conclusões imprecisas da auditoria, estado G0.1/gateway
-- [ ] 1. Eliminar informações fictícias (frontend, preview apenas)
+- [x] 0. Consolidar base: g1/CHECKLIST.md + correções de conclusões + estado G0.1/gateway
+- [x] 1. Eliminar informações fictícias (frontend, preview apenas) — build OK
 - [ ] 2. Segurança no banco/backend (CANDIDATO — sem aplicar migrações; matriz de papéis para decisão)
 - [ ] 3. Fluxo operacional: lista consolidada de decisões do proprietário
 - [ ] 4. Vendas e estoque consistentes (depende de 3)
