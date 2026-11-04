@@ -206,8 +206,8 @@ export function CashierClosingForm({
       };
     });
 
-  const handleGerarPdf = () => {
-    const baseData = isRetroactive ? selectedDateCashierData : cashierData;
+  const handleGerarPdf = (data?: CashierData) => {
+    const baseData = data ?? selectedDateCashierData;
     gerarPdfFechamento({
       tipo: closingType,
       cashierData: baseData,
@@ -282,6 +282,20 @@ export function CashierClosingForm({
       description: "Aguarde enquanto salvamos os dados e geramos o PDF.",
     });
 
+    // Retrato no instante de corte: relê as vendas do dia agora. Se a leitura
+    // falhar, nada é gravado (não salvar zeros como se fossem o caixa real).
+    const fresh = await refetchVendasPorData();
+    if (fresh.error || !fresh.data) {
+      setSubmitting(false);
+      toast({
+        title: "Não foi possível ler as vendas do dia",
+        description: "Nada foi salvo. Verifique a conexão e tente novamente.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const snapshot = buildCashierDataFromVendasPorData(fresh.data);
+
     // Para fechamento total, registrar snapshot por produto (com ajuste se houver divergência)
     if (closingType === "total") {
       try {
@@ -329,7 +343,7 @@ export function CashierClosingForm({
       await salvarFechamento.mutateAsync({
         data_fechamento: closingDate,
         tipo: closingType,
-        cashierData: selectedDateCashierData,
+        cashierData: snapshot,
         estoque: buildEstoque(),
         divergencias,
         observacoes: fechamentoExistente
@@ -348,7 +362,7 @@ export function CashierClosingForm({
     }
 
     // Gera automaticamente o PDF para imprimir e anexar ao envelope
-    handleGerarPdf();
+    handleGerarPdf(snapshot);
 
     try {
       localStorage.removeItem(DRAFT_KEY);
