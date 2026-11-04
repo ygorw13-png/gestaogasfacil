@@ -35,6 +35,8 @@ export default function Promissory() {
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isNewPromissoryDialogOpen, setIsNewPromissoryDialogOpen] = useState(false);
+  // Cobradores reais: colaboradores ativos cadastrados
+  const { data: collectors = [] } = useCollectors();
 
   const handleAssignClick = (id: string) => {
     setSelectedNoteId(id);
