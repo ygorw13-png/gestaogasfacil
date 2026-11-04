@@ -21,9 +21,9 @@ Regras vigentes: só Lovable Cloud; produção intocada sem revisão prévia; re
 | Etapa | Conteúdo | Depende de | Situação |
 |---|---|---|---|
 | 0 | Consolidar base (este documento) | — | **Concluída** |
-| 1 | Eliminar informações fictícias | — | **Implementada neste lote** (ver abaixo) |
-| 2 | Segurança no banco/backend (RLS por papel, policies cumulativas, contas inativas, fila offline) | Matriz de papéis (decisão) | Candidata — **não aplicar migrações sem revisão** |
-| 3 | Fluxo operacional | Decisões do proprietário (`g1/DECISOES_OPERACIONAIS.md`) | Lista pronta |
+| 1 | Eliminar informações fictícias | — | **Implementada e validada** (11 testes + 26 verificações no navegador com backend fictício; `g1/RELATORIO_LOTE1.md`) |
+| 2 | Segurança no banco/backend | Matriz de papéis (decisão 15) | **Candidato 002** (isolamento + inativos + sem papel padrão) testado 27/27 em banco descartável, com rollback; **003 por papel = rascunho aguardando decisão 15**; nada aplicado (`g1/SEGURANCA_ETAPA2.md`) |
+| 3 | Fluxo operacional | Decisões do proprietário (`g1/DECISOES_OPERACIONAIS.md` v2) | Aguardando respostas (agora: 15, 1, 2, 11) |
 | 4 | Vendas e estoque consistentes (transações, vínculos, idempotência) | 3 | Pendente |
 | 5 | Carga e acerto do entregador | 3, 4 | Pendente |
 | 6 | Fiado, recebimentos e caixa | 3 | Pendente |
@@ -49,6 +49,15 @@ Regras vigentes: só Lovable Cloud; produção intocada sem revisão prévia; re
 | E7 — erro de consulta do dashboard virava zero | Erros propagados; tela distingue falha de ausência | `useDashboardData.ts` |
 
 **Não feito neste lote (registrado para etapas seguintes):** relatórios de rota demonstrativos (`RouteReports`, componente órfão sem rota ativa — remoção segura na Etapa 10); `mockData.ts` de promissórias (sem uso após esta correção — remoção na Etapa 10); badges de "não implementado" nas configurações sem efeito (Etapa 10); unificação de códigos de pagamento (Etapa 8); RLS e backend (Etapa 2, candidata).
+
+## Validação de 04/11 — correções adicionais (preview apenas)
+
+Valor do pedido não é mais multiplicado pela quantidade no painel/Excel; painel mostra "indisponível" em falha; avisos das telas voltaram a aparecer; "Nova Promissória" não quebra mais; fechamento do dia grava a divisão por forma de pagamento relida no corte; estoque mínimo passa a ser salvo e lido por produto. Detalhes em `g1/RELATORIO_LOTE1.md`.
+
+## Pendências registradas
+
+- Gateway gerenciado do Cloud: **não verificado** (G0.1). Publicação continua dependendo disso.
+- `/entrance/cashier` quebrado (fora dos menus) — Etapa 10. Fuso horário do "hoje" — Etapa 8.
 
 ## Contenção
 

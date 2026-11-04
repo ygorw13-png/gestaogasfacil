@@ -5,8 +5,8 @@ Regras: só Lovable Cloud; sem migrações/publicação em produção sem revis�
 ## Etapas
 - [x] 0. Consolidar base: g1/CHECKLIST.md + correções de conclusões + estado G0.1/gateway
 - [x] 1. Eliminar informações fictícias (frontend, preview apenas) — build OK
-- [ ] 2. Segurança no banco/backend (CANDIDATO — sem aplicar migrações; matriz de papéis para decisão)
-- [ ] 3. Fluxo operacional: lista consolidada de decisões do proprietário
+- [ ] 2. Segurança: candidato 002 testado 27/27 (não aplicado); 003 por papel aguarda decisão 15 — BLOQUEADO pela decisão
+- [ ] 3. Fluxo operacional: decisões v2 entregues — BLOQUEADO aguardando respostas do proprietário
 - [ ] 4. Vendas e estoque consistentes (depende de 3)
 - [ ] 5. Carga e acerto do entregador (depende de 3/4)
 - [ ] 6. Fiado, recebimentos e caixa (depende de 3)
@@ -18,4 +18,8 @@ Regras: só Lovable Cloud; sem migrações/publicação em produção sem revis�
 - [ ] 12. Validação e entrega (ambiente isolado)
 
 ## Lote atual
-Etapa 0 + Etapa 1 + decisões da Etapa 3.
+Validação da Etapa 1 (concluída, 26/26 + 11/11) + candidato de segurança 002 (concluído) + matriz/SQL por papel para revisão.
+
+## Pendências externas
+- Gateway gerenciado do Cloud não verificado (G0.1).
+- Validação com conta real: não há conta do proprietário no app.

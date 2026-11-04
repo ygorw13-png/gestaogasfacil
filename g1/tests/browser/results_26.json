@@ -1,0 +1,132 @@
+[
+ [
+  "V1 dashboard: vendas de hoje = R$ 505,00 (preço total, sem cancelado)",
+  true,
+  ""
+ ],
+ [
+  "V1 receita do mês = R$ 505,00 (mesma regra)",
+  true,
+  "ocorrências=2"
+ ],
+ [
+  "V2 falha: painel mostra 'Indicadores indisponíveis'",
+  true,
+  ""
+ ],
+ [
+  "V2 falha: nenhum 0,00 exibido como vendas",
+  true,
+  ""
+ ],
+ [
+  "V3 ausência real: mostra 0,00 e 0 pedidos, sem falha",
+  true,
+  ""
+ ],
+ [
+  "V4 falha: houve tentativa de gravação",
+  true,
+  ""
+ ],
+ [
+  "V4 falha: formulário continua aberto",
+  true,
+  ""
+ ],
+ [
+  "V4 falha: dados preenchidos preservados",
+  true,
+  ""
+ ],
+ [
+  "V4 falha: sem recibo impresso",
+  true,
+  ""
+ ],
+ [
+  "V4 falha: sem mensagem de sucesso e com aviso de erro",
+  true,
+  ""
+ ],
+ [
+  "V5 sucesso: formulário fechou",
+  true,
+  ""
+ ],
+ [
+  "V5 sucesso: mensagem de sucesso",
+  true,
+  ""
+ ],
+ [
+  "V5 recibo contém o ID persistido",
+  true,
+  "<!doctype html><html><head><meta charset=\"utf-8\" />   <title>Cupom</title>   <style>     @page { size: 80mm auto; margin: 0; }     html, body { margin: 0; padding: 0; }     body { width: 80mm; font-fa"
+ ],
+ [
+  "V6 entregas: taxa/mínimo/raio zero permanecem 0",
+  true,
+  "['0', '0', '0']"
+ ],
+ [
+  "V6 financeiro: imposto zero permanece 0",
+  true,
+  "['0', 'Dinheiro,Cartão de Crédito,Cartão de Débito,PIX,Boleto']"
+ ],
+ [
+  "V6 estoque: mínimo P13 zero permanece 0 (demais sem registro usam padrão)",
+  true,
+  "['0', '5', '5', '20']"
+ ],
+ [
+  "V6 estoque: salvar mantém P13 = 0 e atualiza o registro existente (PATCH, sem id inventado)",
+  true,
+  ""
+ ],
+ [
+  "V6 estoque: produtos sem registro são inseridos sem id fixo",
+  true,
+  ""
+ ],
+ [
+  "V7 cobradores = cadastros fictícios ativos",
+  true,
+  "['Não atribuir agora', 'Cobrador Fictício A', 'Cobrador Fictício B']"
+ ],
+ [
+  "V7 consulta filtra situação ativo",
+  true,
+  ""
+ ],
+ [
+  "V7 consulta usa o token do usuário (RLS se aplica)",
+  true,
+  ""
+ ],
+ [
+  "V8 parcial gravado com tipo partial",
+  true,
+  ""
+ ],
+ [
+  "V8 total = só entregues até o corte (375)",
+  true,
+  ""
+ ],
+ [
+  "V8 divisão por pagamento fiel (dinheiro 250, pix 125)",
+  true,
+  ""
+ ],
+ [
+  "V8 soma das formas = total (sem duplicar)",
+  true,
+  ""
+ ],
+ [
+  "V8 parcial não movimenta caixa/estoque (nenhuma outra escrita)",
+  true,
+  "[]"
+ ]
+]
