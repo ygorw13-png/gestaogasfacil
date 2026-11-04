@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { orderTotal, isCountedOrder } from "@/lib/orderMetrics";
+import { orderTotal, isCountedOrder, summarizeFlow } from "@/lib/orderMetrics";
 
 export type Timeframe = "today" | "week" | "month";
 
@@ -72,7 +72,10 @@ export function useDashboardOverview() {
       (saldoRes.data || []).forEach((r: any) => (saldo[r.produto] = r));
 
       const pending = (promRes.data || []).filter((p: any) => p.status !== "paid" && p.status !== "cancelled");
-      const promissoryValue = pending.reduce((s: number, p: any) => s + Number(p.value || 0), 0);
+      const promissoryValue = pending.reduce(
+        (s: number, p: any) => s + Math.max(0, Number(p.value || 0) - Number(p.paid_amount || 0)),
+        0
+      );
       const overdue = pending.filter(
         (p: any) => p.due_date && new Date(p.due_date) < new Date()
       );
