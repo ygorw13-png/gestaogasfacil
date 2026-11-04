@@ -5,7 +5,7 @@ import { generateResumoSheet, generateProdutosSheet, generateVendasSheet } from 
 import * as xlsx from 'xlsx';
 
 export const generateExcelReport = async (dateRange: DateRange): Promise<Blob> => {
-  const reportData = generateReportData(dateRange);
+  const reportData = await generateReportData(dateRange);
   const workbook = xlsx.utils.book_new();
 
   // Generate individual sheets
