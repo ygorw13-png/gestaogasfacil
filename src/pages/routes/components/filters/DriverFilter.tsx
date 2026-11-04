@@ -13,6 +13,9 @@ interface DriverFilterProps {
   onDriverIdChange: (id: string) => void;
 }
 
+// O seletor não aceita opção com valor vazio; "todos" usa um marcador próprio
+const ALL = "__todos__";
+
 export function DriverFilter({ driverId, onDriverIdChange }: DriverFilterProps) {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
