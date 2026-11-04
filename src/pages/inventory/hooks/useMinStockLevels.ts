@@ -1,6 +1,7 @@
 
 import { useCallback, useState } from "react";
 import { fetchData } from "@/services/supabase/crud";
+import { findStockConfig, type StockConfigRow } from "@/lib/stockConfig";
 import { MinStockLevels, defaultMinStockLevels } from "../components/stock/StockData";
 
 export function useMinStockLevels() {
@@ -16,10 +17,11 @@ export function useMinStockLevels() {
       }
       
       if (response.data && response.data.length > 0) {
-        const p13Config = response.data.find((config: any) => config.id === 'P13');
-        const p20Config = response.data.find((config: any) => config.id === 'P20');
-        const p45Config = response.data.find((config: any) => config.id === 'P45');
-        const aguaConfig = response.data.find((config: any) => config.id === 'agua');
+        const rows = response.data as StockConfigRow[];
+        const p13Config = findStockConfig(rows, 'p13');
+        const p20Config = findStockConfig(rows, 'p20');
+        const p45Config = findStockConfig(rows, 'p45');
+        const aguaConfig = findStockConfig(rows, 'agua');
         
         setMinStock({
           // ?? preserva zero configurado; o padrão só vale quando não há registro

@@ -13,6 +13,9 @@ interface DriverFilterProps {
   onDriverIdChange: (id: string) => void;
 }
 
+// O seletor não aceita opção com valor vazio; "todos" usa um marcador próprio
+const ALL = "__todos__";
+
 export function DriverFilter({ driverId, onDriverIdChange }: DriverFilterProps) {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,12 +49,12 @@ export function DriverFilter({ driverId, onDriverIdChange }: DriverFilterProps) 
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium">Motorista</label>
-      <Select value={driverId} onValueChange={onDriverIdChange} disabled={loading}>
+      <Select value={driverId || ALL} onValueChange={(v) => onDriverIdChange(v === ALL ? "" : v)} disabled={loading}>
         <SelectTrigger>
           <SelectValue placeholder={loading ? "Carregando..." : "Selecione um motorista"} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Todos os Motoristas</SelectItem>
+          <SelectItem value={ALL}>Todos os Motoristas</SelectItem>
           
           {drivers.map((driver) => (
             <SelectItem key={driver.id} value={driver.id}>

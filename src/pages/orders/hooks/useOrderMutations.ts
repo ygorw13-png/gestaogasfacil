@@ -71,6 +71,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
         product: data.product || '',
         quantity: Number(data.quantity) || 0,
         price: Number(data.price) || 0,
+        paymentMethod: data.payment_method || undefined,
         hasEmptyCylinder: Boolean(data.has_empty_cylinder),
         isCompletePackage: Boolean(data.is_complete_package),
         createdAt: new Date(data.created_at),

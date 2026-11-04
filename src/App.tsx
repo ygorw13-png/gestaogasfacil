@@ -4,6 +4,7 @@ import { AppLayout } from "./components/layout/AppLayout";
 import { Suspense } from "react";
 import { lazyRetry as lazy } from "./utils/lazyRetry";
 import { Toaster } from "sonner";
+import { Toaster as AppToaster } from "@/components/ui/toaster";
 import { OfflineSyncToasts } from "@/components/offline/OfflineSyncToasts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SidebarProvider } from "./components/ui/sidebar";
@@ -254,6 +255,8 @@ function App() {
             </Routes>
             </ErrorBoundary>
             <Toaster richColors closeButton position="top-right" />
+            {/* Avisos de useToast (erros e confirmações das telas) */}
+            <AppToaster />
             <OfflineSyncToasts />
           </div>
         </AuthProvider>

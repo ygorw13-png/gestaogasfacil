@@ -16,7 +16,7 @@ import {
 
 export default function Dashboard() {
   const [timeframe, setTimeframe] = useState<Timeframe>("today");
-  const { data: overview, isLoading, dataUpdatedAt } = useDashboardOverview();
+  const { data: overview, isLoading, isError, refetch, dataUpdatedAt } = useDashboardOverview();
   const { data: salesData } = useSalesSeries(timeframe);
   const { data: sellers } = useTopSellers("month");
 
@@ -32,7 +32,17 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {isLoading || !overview ? (
+      {isError && !overview ? (
+        <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 space-y-3">
+          <p className="font-semibold text-destructive">Indicadores indisponíveis</p>
+          <p className="text-sm text-muted-foreground">
+            Não foi possível consultar os dados agora. Os valores não são exibidos como zero para não confundir falha com ausência de vendas.
+          </p>
+          <button type="button" onClick={() => refetch()} className="text-sm font-medium text-primary underline">
+            Tentar novamente
+          </button>
+        </div>
+      ) : isLoading || !overview ? (
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {Array(4).fill(0).map((_, i) => (
