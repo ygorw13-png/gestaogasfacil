@@ -136,3 +136,14 @@ describe("fechamento parcial", () => {
     expect(snap.cash + snap.pix + snap.credit + snap.debit + snap.promissory + snap.gasVoucher).toBe(snap.totalSales);
   });
 });
+
+import { minFor } from "@/lib/stockConfig";
+describe("estoque mínimo configurado", () => {
+  const rows = [{ id: "uuid-1", produto: "p13", estoque_minimo: 0 }];
+  it("zero configurado permanece zero", () => {
+    expect(minFor(rows, "p13", 20)).toBe(0);
+  });
+  it("produto sem registro usa o padrão", () => {
+    expect(minFor(rows, "p20", 5)).toBe(5);
+  });
+});
