@@ -4,6 +4,8 @@ import { excelStyles } from './excelStyles';
 import { ReportData } from './reportTypes';
 import { formatCurrency } from '@/lib/formatUtils';
 
+const naoDisponivel = "Não disponível (custos não registrados)";
+
 export const generateResumoSheet = (workbook: xlsx.WorkBook, reportData: ReportData) => {
   const resumoData = [
     ["RELATÓRIO MENSAL GASFLOW AQUA"],
