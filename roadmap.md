@@ -10,4 +10,4 @@ Restrições: não alterar código/banco/permissões/dados; não publicar; não 
 - [x] 5. Reconciliação somente leitura (consultas SQL de leitura)
 - [x] 6. Permissões e caminhos alternativos (tela vs chamada direta vs entregador vs offline)
 - [x] 7. Sugestões de melhorias e novos módulos
-- [ ] 8. Entrega: relatório Markdown em /mnt/documents + resumo no chat
+- [x] 8. Entrega: relatório Markdown em /mnt/documents + resumo no chat
