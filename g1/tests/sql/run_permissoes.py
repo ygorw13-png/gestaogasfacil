@@ -111,7 +111,7 @@ check("a prazo","reenvio do mesmo recebimento não cobra duas vezes",
                ("userA", f"SELECT paid_amount FROM promissory_notes WHERE id='{PN}'")])[1]=="40.00")
 check("a prazo","venda a prazo na rua não gera recebimento (não entra no caixa)",
       as_flow([CARGA, ("entregadorA", "SELECT entregador_venda_rua(NULL,'Fiado Fictício',NULL,'P13',1,125,'promissoria','recarga',0,1,NULL,'k-rua-0001') AS v \\gset"),
-               ("userA", "SELECT (SELECT count(*) FROM recebimentos WHERE order_id=:'v')||'/'||(SELECT value FROM promissory_notes WHERE order_id=:'v')||'/'||(SELECT created_at::date = now()::date FROM orders WHERE id=:'v')")])[1]=="0/125.00/t")
+               ("userA", "SELECT (SELECT count(*) FROM recebimentos WHERE order_id=:'v')||'/'||(SELECT value FROM promissory_notes WHERE order_id=:'v')||'/'||(SELECT created_at::date = now()::date FROM orders WHERE id=:'v')")])[1]=="0/125.00/true")
 
 # ── Entregador
 check("entregador","vê só as entregas atribuídas a ele", val("entregadorA","SELECT count(*)||'/'||string_agg(id::text,',') FROM orders")==f"1/{O1}")
