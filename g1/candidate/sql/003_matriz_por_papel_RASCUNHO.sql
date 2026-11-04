@@ -86,7 +86,7 @@ BEGIN
 END $$;
 
 -- Linha 15.d "Promissórias: criar/receber — admin ✔ user ✔ entregador só criar"
-DROP POLICY IF EXISTS "org members access promissory_notes" ON public.promissory_notes;
+DROP POLICY IF EXISTS "org access promissory_notes" ON public.promissory_notes;
 CREATE POLICY "promissory select" ON public.promissory_notes FOR SELECT TO authenticated
   USING (organization_id = public.get_my_org() AND (public.g1_papel() IN ('admin','user') OR created_by = auth.uid()));
 CREATE POLICY "promissory insert" ON public.promissory_notes FOR INSERT TO authenticated
