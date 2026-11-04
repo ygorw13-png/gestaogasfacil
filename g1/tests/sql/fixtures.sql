@@ -28,9 +28,9 @@ INSERT INTO public.orders(user_id,organization_id,client_name,status,tipo_venda,
  ('a0000000-0000-4000-8000-00000000000a','0a000000-0000-4000-8000-000000000000','Cliente A1','delivered','recarga',125,1,0,1),
  ('a0000000-0000-4000-8000-00000000000c','0a000000-0000-4000-8000-000000000000','Cliente A2 (lançado pelo inativo)','pending','recarga',125,1,0,0),
  ('b0000000-0000-4000-8000-00000000000a','0b000000-0000-4000-8000-000000000000','Cliente B1','delivered','recarga',130,1,0,1);
-INSERT INTO public.colaboradores(nome,cargo,organization_id,situacao) VALUES
- ('Cobrador A','cobrador','0a000000-0000-4000-8000-000000000000','ativo'),
- ('Cobrador B','cobrador','0b000000-0000-4000-8000-000000000000','ativo');
+INSERT INTO public.colaboradores(nome,cargo,organization_id,situacao,data_admissao) VALUES
+ ('Cobrador A','cobrador','0a000000-0000-4000-8000-000000000000','ativo','2026-01-01'),
+ ('Cobrador B','cobrador','0b000000-0000-4000-8000-000000000000','ativo','2026-01-01');
 INSERT INTO public.dashboard_data(user_id,organization_id,stock_data,sales_data) VALUES
  ('system','0b000000-0000-4000-8000-000000000000','{"segredo":"B"}','{}');
 INSERT INTO public.entregador_localizacoes(user_id,organization_id,latitude,longitude) VALUES

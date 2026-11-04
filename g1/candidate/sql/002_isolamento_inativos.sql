@@ -3,7 +3,7 @@
 -- Não cria papéis novos, não muda o significado do papel 'user', não define matriz por função.
 -- Pressupõe g0.1/sql/001_profile_verification.sql aplicado antes.
 
-BEGIN;
+-- Idempotente: pode ser reaplicado. Executar com psql -1 (transação única).
 
 -- 1) Conta inativa (ou sem perfil/empresa) não recebe empresa: todas as policies
 --    "organization_id = get_my_org()" passam a recusar na hora, mesmo com token antigo.
@@ -31,6 +31,7 @@ $$;
 -- 3) Pedidos: somente da própria empresa. Remove o caminho "user_id = auth.uid()",
 --    que permitia gravar pedido com organization_id de outra empresa.
 DROP POLICY IF EXISTS "user owns or org orders" ON public.orders;
+DROP POLICY IF EXISTS "org members access orders" ON public.orders;
 CREATE POLICY "org members access orders" ON public.orders
   FOR ALL TO authenticated
   USING (organization_id = public.get_my_org())
@@ -41,6 +42,10 @@ DROP POLICY IF EXISTS "user reads own dashboard_data" ON public.dashboard_data;
 DROP POLICY IF EXISTS "user writes own dashboard_data" ON public.dashboard_data;
 DROP POLICY IF EXISTS "user updates own dashboard_data" ON public.dashboard_data;
 DROP POLICY IF EXISTS "user deletes own dashboard_data" ON public.dashboard_data;
+DROP POLICY IF EXISTS "org reads dashboard_data" ON public.dashboard_data;
+DROP POLICY IF EXISTS "org writes own dashboard_data" ON public.dashboard_data;
+DROP POLICY IF EXISTS "org updates own dashboard_data" ON public.dashboard_data;
+DROP POLICY IF EXISTS "org deletes own dashboard_data" ON public.dashboard_data;
 CREATE POLICY "org reads dashboard_data" ON public.dashboard_data
   FOR SELECT TO authenticated
   USING (organization_id = public.get_my_org());
@@ -93,4 +98,3 @@ BEGIN
 END;
 $function$;
 
-COMMIT;
