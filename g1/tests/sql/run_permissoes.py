@@ -55,7 +55,7 @@ def as_flow(steps):
     sql = ""
     for user, s in steps:
         claims = json.dumps({"sub":U[user],"role":"authenticated"})
-        sql += f"RESET ROLE; SET LOCAL ROLE authenticated; SELECT set_config('request.jwt.claims', '{claims}', true) \\g /dev/null\n{s};\n"
+        sql += f"RESET ROLE; SET LOCAL ROLE authenticated; SELECT set_config('request.jwt.claims', '{claims}', true) \\g /dev/null\n{s}" + ("\n" if "\\gset" in s else ";\n")
     r = psql(sql); return r if r[0] else (False, "", r[2])
 CARGA = ("userA", saida(3, "k-saida-0001"))
 
