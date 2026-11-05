@@ -2,8 +2,9 @@
 Banco descartável 127.0.0.1. Uso: python3 run_contencao.py <URL>"""
 import sys
 sys.argv = [sys.argv[0], sys.argv[1], "contencao"]
-src = open(__file__.replace("run_contencao.py", "run_permissoes.py")).read().split("R = []")[0]
-exec(src)
+_full = open(__file__.replace("run_contencao.py", "run_permissoes.py")).read()
+exec(_full.split("R = []")[0])
+exec(_full.split("R = []")[1].split("# ── Admin")[0])
 R = []
 def check(name, cond):
     R.append(bool(cond)); print(f"{'PASS' if cond else 'FAIL'} {name}")
