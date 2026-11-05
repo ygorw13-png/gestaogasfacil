@@ -1,4 +1,5 @@
 -- Executar com psql -1 (transação única).
+-- SOMENTE LABORATÓRIO: reabre as falhas corrigidas pelo 002. Não é contingência de produção (use correção de cadastro / contenção).
 -- Contenção: restaura exatamente as definições publicadas em 04/11/2026 (lidas do banco).
 CREATE OR REPLACE FUNCTION public.get_my_org() RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO 'public' AS $$ SELECT organization_id FROM public.profiles WHERE id = auth.uid() $$;
 CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role public.app_role) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO 'public' AS $$ SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = _user_id AND role = _role) $$;
