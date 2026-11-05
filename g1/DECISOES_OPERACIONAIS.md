@@ -1,4 +1,39 @@
-# Decisões operacionais — Etapa 3 (v2, 04/11/2026)
+# Decisões operacionais — Etapa 3 (v3, 04/11/2026)
+
+## APROVADAS pelo proprietário em 04/11/2026
+
+**1. Origem e movimentação do estoque**
+- Venda de balcão consome o estoque da portaria.
+- Entrega consome o local de onde o produto efetivamente saiu.
+- Saída para entregador transfere da portaria para uma carga identificada; não é venda.
+- Entrega concluída consome a carga. Sobra devolvida transfere da carga para o local de retorno.
+- Nunca descontar duas vezes o mesmo produto.
+- Cheios, vazios e cascos emprestados registrados separadamente, conforme a operação comprovada.
+
+**11. Venda a prazo**
+- Registrada na data da venda. Pagamento posterior é recebimento da dívida, não nova venda.
+- Fiado não aumenta dinheiro disponível no caixa.
+- Recebimentos parciais preservam o saldo restante e o histórico.
+
+**15. Permissões**
+- *Administrador:* gestão completa por ações controladas, com motivo e histórico para correções; sem exclusão definitiva de históricos operacionais e financeiros.
+- *Operador (user):* criar e operar pedidos; abrir caixa, registrar recebimentos e despesas, fechar caixa; movimentações operacionais de estoque; cadastrar e consultar clientes; ler só as configurações necessárias à operação. **Cancelamento, alteração de preço e estorno continuam pendentes de autorização específica — não liberados.**
+- *Entregador:* ver entregas atribuídas e registrar vendas próprias na rua; aceitar, iniciar e concluir só as suas entregas por funções controladas; registrar recebimentos próprios para acerto; consumir e devolver a própria carga por ações controladas; cadastro rápido e consulta de clientes; sem edição livre de pedidos, preços, estoque ou financeiro.
+- *Implementação:* entregador vinculado por ID, nunca pelo nome; nada de vínculo automático de históricos por semelhança de nome; aceitar/concluir não concede UPDATE genérico; cada função valida empresa, usuário ativo, atribuição, campos permitidos e transição; operador escolhe cobradores numa lista limitada a ID, nome e situação; restrições aplicadas no banco, inclusive chamadas diretas e RPCs.
+- *Contingência:* rollback que restaura vulnerabilidades não é contingência de produção; contenção deve preservar os bloqueios.
+
+## Ainda PENDENTES (não presumidas)
+Destino do PIX e periodicidade do acerto (7), reserva de estoque (3), regras e efeitos de cancelamento (5), venda em data passada (6), fechamento/reabertura e acumulado dos parciais (10), e as decisões 4, 8, 9, 12, 13, 14, 16, 17 abaixo.
+
+## Próximas decisões indispensáveis (só estas bloqueiam o próximo lote)
+- **A. Autorização de cancelamento, alteração de preço e estorno para o operador** — hoje só o administrador corrige, com motivo; o operador está bloqueado. Opções: manter só admin; liberar ao operador com motivo; liberar ao operador só até um valor/prazo.
+- **B. Efeito do cancelamento de venda já concluída (decisão 5)** — a correção do administrador hoje só muda o status e grava histórico, **sem devolver estoque nem desfazer recebimento**. Opções: estorno automático de carga/portaria e recebimento; estorno lançado à parte.
+- **C. Pedidos antigos sem vínculo por ID** — os pedidos atuais guardam o entregador só pelo nome; pela regra aprovada eles não serão ligados automaticamente. Opções: reatribuir manualmente os pedidos em aberto na troca; deixar os antigos sem vínculo (o entregador não os verá no app novo).
+- **D. Entrega saindo direto da portaria (sem carga)** — hoje a conclusão pelo entregador exige carga aberta com saldo. Confirmar se toda entrega do entregador passa por carga, ou se existe entrega que sai direto da portaria (e quem a registra).
+
+---
+
+## Texto original das 17 perguntas (referência)
 
 Estas regras são do proprietário. Nada aqui foi escolhido pelo sistema: as opções descrevem consequências práticas, sem recomendação. Enquanto uma decisão não é respondida, as tarefas que dependem dela ficam paradas e as independentes continuam.
 
