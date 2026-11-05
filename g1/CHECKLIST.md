@@ -22,8 +22,8 @@ Regras vigentes: só Lovable Cloud; produção intocada sem revisão prévia; re
 |---|---|---|---|
 | 0 | Consolidar base (este documento) | — | **Concluída** |
 | 1 | Eliminar informações fictícias | — | **Implementada e validada** (11 testes + 26 verificações no navegador com backend fictício; `g1/RELATORIO_LOTE1.md`) |
-| 2 | Segurança no banco/backend | Matriz de papéis (decisão 15) | **Candidato 002** (isolamento + inativos + sem papel padrão) testado 27/27 em banco descartável, com rollback; **003 por papel = rascunho aguardando decisão 15**; nada aplicado (`g1/SEGURANCA_ETAPA2.md`) |
-| 3 | Fluxo operacional | Decisões do proprietário (`g1/DECISOES_OPERACIONAIS.md` v2) | Aguardando respostas (agora: 15, 1, 2, 11) |
+| 2 | Segurança no banco/backend | — | 002 testado 27/27; **003 por papel testado 69/69** + contenção 16/16; nada aplicado; depende das telas usarem as ações controladas (`g1/RELATORIO_LOTE2.md`) |
+| 3 | Fluxo operacional | — | Decisões 1, 11, 15 **aprovadas**; próximas indispensáveis A–D em `DECISOES_OPERACIONAIS.md` |
 | 4 | Vendas e estoque consistentes (transações, vínculos, idempotência) | 3 | Pendente |
 | 5 | Carga e acerto do entregador | 3, 4 | Pendente |
 | 6 | Fiado, recebimentos e caixa | 3 | Pendente |

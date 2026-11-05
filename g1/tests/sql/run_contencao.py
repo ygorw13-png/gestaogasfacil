@@ -2,8 +2,9 @@
 Banco descartável 127.0.0.1. Uso: python3 run_contencao.py <URL>"""
 import sys
 sys.argv = [sys.argv[0], sys.argv[1], "contencao"]
-src = open(__file__.replace("run_contencao.py", "run_permissoes.py")).read().split("R = []")[0]
-exec(src)
+_full = open(__file__.replace("run_contencao.py", "run_permissoes.py")).read()
+exec(_full.split("R = []")[0])
+exec(_full.split("R = []")[1].split("# ── Admin")[0])
 R = []
 def check(name, cond):
     R.append(bool(cond)); print(f"{'PASS' if cond else 'FAIL'} {name}")
@@ -22,7 +23,7 @@ check("entregador NÃO lê pedidos da empresa B", val("entregadorA", f"SELECT co
 check("entregador NÃO insere pedido em nome de outro", not rows("entregadorA", f"INSERT INTO orders(user_id,organization_id,client_name,tipo_venda,vasilhames_entregues,vasilhames_recebidos,origem_venda) VALUES ('{U['userA']}','{ORG_A}','X','recarga',0,0,'rua') RETURNING 1"))
 check("entregador NÃO movimenta portaria", not ok("entregadorA", "SELECT registrar_movimentacao_portaria('ajuste','P13',5,0,0)"))
 check("entregador NÃO lê financeiro", val("entregadorA", "SELECT (SELECT count(*) FROM despesas)+(SELECT count(*) FROM fechamentos_caixa)")=="0")
-check("entregador NÃO quita promissória", not ok("entregadorA", f"UPDATE promissory_notes SET status='paid' WHERE id='{PN}'"))
+check("entregador NÃO quita promissória", not rows("entregadorA", f"UPDATE promissory_notes SET status='paid' WHERE id='{PN}' RETURNING 1"))
 check("inativo continua bloqueado", val("inativoA", "SELECT count(*) FROM orders")=="0")
 check("operador continua sem alterar preço", not ok("userA", f"UPDATE orders SET price=1 WHERE id='{O1}'"))
 check("operador continua sem cadastro completo de colaboradores", val("userA", "SELECT count(*) FROM colaboradores")=="0")

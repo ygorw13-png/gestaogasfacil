@@ -23,3 +23,9 @@ Validação da Etapa 1 (concluída, 26/26 + 11/11) + candidato de segurança 002
 ## Pendências externas
 - Gateway gerenciado do Cloud não verificado (G0.1).
 - Validação com conta real: não há conta do proprietário no app.
+
+## Lote 2 (04/11)
+- [x] 003 por papel + carga + a prazo (69/69, contenção 16/16) — candidato, não aplicado
+- [x] Painel: pendentes / concluídas / recebido / a receber
+- [ ] Telas chamando as ações controladas (app do entregador, atribuição, cobradores, recebimento, correção admin) — próximo lote
+- [ ] Bloqueado: decisões A–D; gateway hospedado G0.1
