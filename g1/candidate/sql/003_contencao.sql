@@ -1,4 +1,5 @@
 -- G1 — CONTENÇÃO do 003 (uso em produção se o app do entregador parar depois do 003).
+-- LABORATÓRIO APENAS: substituída por 004_contencao.sql. Reabre gravação direta do entregador e, com carga/recebimentos em vigor, criaria entregas sem baixa de carga nem recebimento.
 -- NÃO é rollback: não restaura nenhuma vulnerabilidade anterior.
 -- Mantém: isolamento entre empresas, bloqueio de inativos, sem exclusão definitiva,
 --         guardas de preço/cancelamento/estorno, gestão só admin, configurações só admin,

@@ -4,7 +4,7 @@
 # Uso: bash g1/tests/sql/setup_cluster.sh [com003]
 set -euo pipefail
 unset PGHOST PGPORT PGUSER PGPASSWORD PGDATABASE PGSSLMODE
-D=/tmp/g1db; ROOT=$(cd "$(dirname "$0")/../../.." && pwd)
+D=${G1DB:-/tmp/g1db}; ROOT=$(cd "$(dirname "$0")/../../.." && pwd)
 RUN="setpriv --reuid 1000 --regid 1000 --clear-groups"
 mkdir -p $D/sock && chown -R 1000:1000 $D
 [ -d $D/pg ] || $RUN initdb -D $D/pg -A trust -U postgres >$D/init.log

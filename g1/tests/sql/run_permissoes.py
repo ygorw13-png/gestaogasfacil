@@ -1,6 +1,6 @@
 """Testes por ação do 003 (permissões por papel, carga, venda a prazo).
 Banco PostgreSQL descartável em 127.0.0.1 com fixtures fictícias. Uso: python3 run_permissoes.py <URL> <rotulo>"""
-import subprocess, sys, json, threading
+import subprocess, sys, json, threading, os
 URL, LABEL = sys.argv[1], sys.argv[2]
 assert "127.0.0.1" in URL, "somente banco local descartável"
 U = {"adminA":"a0000000-0000-4000-8000-00000000000a","userA":"a0000000-0000-4000-8000-00000000000b",
@@ -175,4 +175,4 @@ assert psql(saida(4, "k-conc-saida2"), "userA", commit=True)[0]
 check("concorrência","mesma chave enviada duas vezes ao mesmo tempo: uma venda", val("adminA","SELECT count(*) FROM orders WHERE client_name='Concorrente'")=="2" and val("adminA","SELECT sum(delta_cheios) FROM carga_movimentos")=="3")
 
 print(f"\n{LABEL}: {sum(r[2] for r in R)}/{len(R)}")
-json.dump(R, open(f"/tmp/g1db/perm_{LABEL}.json","w"), ensure_ascii=False)
+json.dump(R, open(os.environ.get("G1DB","/tmp/g1db")+f"/perm_{LABEL}.json","w"), ensure_ascii=False)

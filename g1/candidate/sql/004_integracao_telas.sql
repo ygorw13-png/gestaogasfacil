@@ -116,7 +116,9 @@ DECLARE o uuid := public._ctx_org(); r record; prev uuid; BEGIN
     WHERE p.id=_entregador_id AND p.organization_id=o AND p.ativo) THEN
     RAISE EXCEPTION 'Entregador inválido, inativo ou de outra empresa'; END IF;
   IF _retirar_da_portaria AND _chave IS NULL THEN RAISE EXCEPTION 'Retirada da portaria exige chave de reenvio'; END IF;
-  prev := public._reenvio(o, _chave, 'atribuir_entrega'); IF prev IS NOT NULL THEN RETURN prev; END IF;
+  IF _chave IS NOT NULL THEN
+    prev := public._reenvio(o, _chave, 'atribuir_entrega'); IF prev IS NOT NULL THEN RETURN prev; END IF;
+  END IF;
   SELECT * INTO r FROM public.orders WHERE id=_order_id AND organization_id=o FOR UPDATE;
   IF r.id IS NULL THEN RAISE EXCEPTION 'Pedido não encontrado'; END IF;
   IF r.status = 'assigned' AND r.delivery_person_id = _entregador_id AND _chave IS NULL THEN RETURN r.id; END IF; -- duplo toque
@@ -128,7 +130,7 @@ DECLARE o uuid := public._ctx_org(); r record; prev uuid; BEGIN
   UPDATE public.orders SET status='assigned', delivery_person=_entregador_id::text, delivery_person_id=_entregador_id,
     assigned_at=now(), accepted_at=NULL, rejection_reason=NULL WHERE id=_order_id;
   PERFORM set_config('g1.acao_controlada','off',true);
-  PERFORM public._reenvio_fim(o, _chave, r.id);
+  IF _chave IS NOT NULL THEN PERFORM public._reenvio_fim(o, _chave, r.id); END IF;
   RETURN r.id; END $$;
 
 -- Reatribuição explícita de pedido ABERTO (assigned/delivering). _novo NULL = devolver para a fila.

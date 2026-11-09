@@ -1,6 +1,6 @@
 """Testes de recusa e continuidade — banco PostgreSQL descartável em 127.0.0.1.
 Uso: python3 run_security.py <URL> <rotulo>. Recusa executar fora de loopback."""
-import subprocess, sys, json
+import subprocess, sys, json, os
 URL, LABEL = sys.argv[1], sys.argv[2]
 assert "127.0.0.1" in URL, "somente banco local descartável"
 U = {"adminA":"a0000000-0000-4000-8000-00000000000a","userA":"a0000000-0000-4000-8000-00000000000b",
@@ -57,4 +57,4 @@ check("sem fallback","usuário sem perfil não tem papel", val("semPerfil","SELE
 check("sem fallback","usuário sem perfil não é admin", val("semPerfil","SELECT has_role(auth.uid(),'admin')")=="f")
 check("sem fallback","usuário sem perfil não lê pedidos", val("semPerfil","SELECT count(*) FROM orders")=="0")
 print(f"\n{LABEL}: {sum(r[2] for r in R)}/{len(R)}")
-json.dump(R, open(f"/tmp/g1db/result_{LABEL}.json","w"), ensure_ascii=False)
+json.dump(R, open(os.environ.get("G1DB","/tmp/g1db")+f"/result_{LABEL}.json","w"), ensure_ascii=False)
