@@ -162,13 +162,17 @@ function DeliveryCard({ order }: { order: DeliveryOrder }) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancelar</Button>
-            <Button onClick={async () => {
-              await confirm.mutateAsync({
-                orderId: order.id,
-                recebeuVasilhame,
-                vasilhamesRecebidos: recebeuVasilhame ? vasilhamesRecebidos : 0,
-              });
-              setConfirmOpen(false);
+            <Button disabled={confirm.isPending} onClick={async () => {
+              try {
+                await confirm.mutateAsync({
+                  orderId: order.id,
+                  recebeuVasilhame,
+                  vasilhamesRecebidos: recebeuVasilhame ? vasilhamesRecebidos : 0,
+                });
+                setConfirmOpen(false);
+              } catch {
+                /* erro já mostrado; a janela continua aberta para tentar de novo */
+              }
             }}>Confirmar</Button>
           </DialogFooter>
         </DialogContent>

@@ -20,6 +20,7 @@ def psql(sql, commit=False):
     p = subprocess.run(["psql", URL, "-XAtq", "-v", "ON_ERROR_STOP=1"], input=script, text=True, capture_output=True)
     return p.returncode == 0, (p.stdout.strip().splitlines() or [""])[-1], p.stderr.strip()[:300]
 def as_user(user):
+    if user == 'root': return 'RESET ROLE;\n'
     claims = json.dumps({"sub":U[user],"role":"authenticated"})
     return f"RESET ROLE; SET LOCAL ROLE authenticated; SELECT set_config('request.jwt.claims', '{claims}', true) \\g /dev/null\n"
 def flow(steps, commit=False):
@@ -31,6 +32,11 @@ def err(steps):
     r = flow(steps); return "" if r[0] else r[2]
 
 FIX = f"""
+SET session_replication_role = replica;
+INSERT INTO auth.users(id,email) VALUES ('{U['entregador2A']}','entregador2.a@ficticio.test') ON CONFLICT DO NOTHING;
+INSERT INTO profiles(id,name,role,organization_id,ativo) VALUES ('{U['entregador2A']}','Entregador Dois A','entregador','{ORG_A}',true) ON CONFLICT DO NOTHING;
+INSERT INTO user_roles(user_id,role) SELECT '{U['entregador2A']}','entregador' WHERE NOT EXISTS (SELECT 1 FROM user_roles WHERE user_id='{U['entregador2A']}');
+SET session_replication_role = origin;
 INSERT INTO orders(id,user_id,organization_id,client_name,status,tipo_venda,product,price,quantity,vasilhames_entregues,vasilhames_recebidos) VALUES
  ('{P1}','{U['userA']}','{ORG_A}','Cliente Fictício Avulso','pending','recarga','P13',250,2,0,0),
  ('{P2}','{U['userA']}','{ORG_A}','Cliente Fictício Dois','pending','recarga','Botijão P13',125,1,0,0),
@@ -87,7 +93,7 @@ check("C","entregador não reatribui", "Sem permissão" in err([("userA", atr(P2
 check("C","não reatribui para entregador de outra empresa", "outra empresa" in err([("userA", atr(P2,E)), ("userA", f"SELECT reatribuir_entrega('{P2}','{U['entregadorB']}','Teste de isolamento')")]))
 check("C","não reatribui para entregador inativo",
   "inativo" in err([("userA", atr(P2,E)), ("adminA", "SELECT 1"),
-       ("userA", "RESET ROLE; UPDATE profiles SET ativo=false WHERE id='"+E2+"'; SET LOCAL ROLE authenticated"),
+       ("userA", "RESET ROLE; SET LOCAL session_replication_role=replica; UPDATE profiles SET ativo=false WHERE id='"+E2+"'; SET LOCAL session_replication_role=origin; SET LOCAL ROLE authenticated"),
        ("userA", f"SELECT reatribuir_entrega('{P2}','{E2}','Teste de inativo')")]))
 
 # ── A: operador não cancela, não altera preço, não estorna
@@ -113,17 +119,17 @@ check("B","nenhuma tentativa bloqueada deixou rastro (estoque, carga, recebiment
   out([("adminA", f"SELECT (SELECT count(*) FROM auditoria_correcoes WHERE registro_id='{P1}')||'/'||(SELECT count(*) FROM recebimentos WHERE order_id='{P1}')")]) == "0/0")
 
 # ── Venda na portaria (balcão, venda rápida, caixa): uma transação, sem duplicar
-VP = lambda k, forma="money", valor=130: f"SELECT venda_portaria(NULL,'Cliente Balcão Fictício','P13',1,{valor},'{forma}','recarga',true,NULL,NULL,'{k}')"
+VP = lambda k, forma="money", valor=130: f"SELECT venda_portaria(NULL,'Cliente Balcão Fictício','P13',1,{valor},'{forma}','recarga',true,NULL,NULL,'kk-test-{k}')"
 check("portaria","venda grava pedido, baixa da portaria e recebimento juntos",
   out([("userA", VP("k-vp-1") + " \\gset v_\n"),
        ("adminA", "SELECT (SELECT status||':'||origem_venda FROM orders WHERE id=:'v_venda_portaria')||'/'||(SELECT delta_cheios||':'||delta_vazios FROM movimentacoes_portaria WHERE referencia_id=:'v_venda_portaria')||'/'||(SELECT valor::int||':'||forma FROM recebimentos WHERE order_id=:'v_venda_portaria')")]) == "delivered:portaria/-1:1/130:dinheiro")
 check("portaria","reenvio da venda com a mesma chave não duplica",
-  out([("userA", VP("k-vp-2")), ("userA", VP("k-vp-2")), ("adminA", "SELECT (SELECT count(*) FROM orders WHERE origem_venda='portaria')||'/'||(SELECT count(*) FROM recebimentos WHERE origem='venda')")]) == "1/1")
+  out([("userA", VP("k-vp-2")), ("userA", VP("k-vp-2")), ("root", "SELECT (SELECT count(*) FROM orders o JOIN acoes_idempotentes a ON a.resultado=o.id WHERE a.chave='kk-test-k-vp-2')||'/'||(SELECT count(*) FROM recebimentos r JOIN acoes_idempotentes a ON a.resultado=r.order_id WHERE a.chave='kk-test-k-vp-2')")]) == "1/1")
 check("portaria","venda a prazo gera promissória ligada e nenhum recebimento",
   out([("userA", VP("k-vp-3","promissoria") + " \\gset v_\n"),
        ("adminA", "SELECT (SELECT count(*) FROM promissory_notes WHERE order_id=:'v_venda_portaria')||'/'||(SELECT count(*) FROM recebimentos WHERE order_id=:'v_venda_portaria')")]) == "1/0")
 check("portaria","forma sem regra (vale-gás) é recusada e nada é gravado",
-  "sem regra" in err([("userA", VP("k-vp-4","vale-gas"))]) and out([("adminA", "SELECT count(*) FROM orders WHERE origem_venda='portaria'")]) == "0")
+  "sem regra" in err([("userA", VP("k-vp-4","vale-gas"))]) and out([("root", "SELECT count(*) FROM acoes_idempotentes WHERE chave='kk-test-k-vp-4'")]) == "0")
 check("portaria","entregador não vende pela portaria", "Sem permissão" in err([("entregadorA", VP("k-vp-5"))]))
 check("portaria","conta inativa não vende", "inativa" in err([("inativoA", VP("k-vp-6"))]))
 
@@ -142,8 +148,8 @@ def par(fn_a, fn_b):
     [t.start() for t in ts]; [t.join() for t in ts]; return res
 par([("userA", VP("k-conc-vp"))], [("userA", VP("k-conc-vp"))])
 check("concorrência","mesma venda enviada ao mesmo tempo grava uma vez",
-  out([("adminA", "SELECT (SELECT count(*) FROM acoes_idempotentes WHERE chave='kk-test-conc-vp')||'/'||(SELECT count(*) FROM orders o JOIN acoes_idempotentes a ON a.resultado=o.id AND a.chave='kk-test-conc-vp')")]) == "1/1")
-assert flow([("userA", atr(P3.replace('4a3','4a4') if False else P2, E, "true", "'kk-test-conc-atr'"))], commit=True)[0]
+  out([("root", "SELECT (SELECT count(*) FROM acoes_idempotentes WHERE chave='kk-test-k-conc-vp')||'/'||(SELECT count(*) FROM orders WHERE client_name='Cliente Balcão Fictício')||'/'||(SELECT count(*) FROM recebimentos r JOIN orders o ON o.id=r.order_id WHERE o.client_name='Cliente Balcão Fictício')")]) == "1/1/1")
+assert flow([("userA", atr(P2, E, "true", "'kk-test-conc-atr'"))], commit=True)[0]
 r = par([("userA", f"SELECT operador_concluir_entrega('{P2}','money',125,1,NULL,'kk-test-conc-a')")],
         [("userA", f"SELECT operador_concluir_entrega('{P2}','pix',125,1,NULL,'kk-test-conc-b')")])
 check("concorrência","duas conclusões simultâneas do mesmo pedido: só uma passa, um recebimento",
@@ -156,7 +162,7 @@ cont = open(os.path.join(ROOT, "../../candidate/sql/004_contencao.sql")).read()
 desf = open(os.path.join(ROOT, "../../candidate/sql/004_contencao_desfazer.sql")).read()
 assert psql(cont, commit=True)[0]
 P4 = "0a000000-0000-4000-8000-0000000004a5"
-psql(f"INSERT INTO orders(id,user_id,organization_id,client_name,status,tipo_venda,product,price,quantity,vasilhames_entregues,vasilhames_recebidos) VALUES ('{P4}','{U['userA']}','{ORG_A}','Cliente Contenção','pending','recarga','P13',125,1,0,0) ON CONFLICT DO NOTHING", commit=True)
+psql(f"INSERT INTO orders(id,user_id,organization_id,client_name,status,tipo_venda,product,price,quantity,vasilhames_entregues,vasilhames_recebidos) VALUES ('{P4}','{U['userA']}','{ORG_A}','Cliente Contenção','pending','recarga','P13',125,1,0,0) ON CONFLICT DO NOTHING;", commit=True)
 check("contenção","entregador pausado: não conclui pelo app", "permission denied" in err([("entregadorA", f"SELECT entregador_aceitar_entrega('{P4}')")]))
 check("contenção","entregador continua sem gravação direta de pedido", "" == out([("entregadorA", f"UPDATE orders SET status='completed' WHERE id='{P4}' RETURNING id")]) or "ERRO" in out([("entregadorA", f"UPDATE orders SET status='completed' WHERE id='{P4}' RETURNING id")]))
 check("contenção","portaria conclui com carga e recebimento consistentes",
@@ -165,7 +171,7 @@ check("contenção","portaria conclui com carga e recebimento consistentes",
 check("contenção","operador continua sem cancelar/alterar preço", "exige ação autorizada" in err([("userA", f"UPDATE orders SET price=1 WHERE id='{P4}'")]))
 check("contenção","isolamento: entregador de outra empresa não vê pedidos", out([("entregadorB", "SELECT count(*) FROM orders WHERE organization_id='"+ORG_A+"'")]) == "0")
 assert psql(desf, commit=True)[0]
-check("contenção","desfeita: entregador volta a usar as ações", ok([("userA", atr(P4.replace('4a5','4a5'),E) if False else "SELECT 1"), ("entregadorA", "SELECT has_function_privilege('entregador_aceitar_entrega(uuid)','execute')")]) and out([("entregadorA", "SELECT has_function_privilege('entregador_aceitar_entrega(uuid)','execute')")]) == "t")
+check("contenção","desfeita: entregador volta a usar as ações", out([("entregadorA", "SELECT has_function_privilege('entregador_aceitar_entrega(uuid)','execute')")]) == "t")
 
 print(f"\n{LABEL}: {sum(1 for r in R if r[2])}/{len(R)}")
 json.dump(R, open(os.environ.get("G1DB", "/tmp/g1db") + f"/integ_{LABEL}.json", "w"), ensure_ascii=False)

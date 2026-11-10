@@ -74,7 +74,7 @@ check("admin","admin de B não corrige pedido de A", not ok("adminB", f"SELECT a
 # ── Operador (user)
 check("operador","cria pedido", rows("userA", f"INSERT INTO orders(user_id,organization_id,client_name,tipo_venda,vasilhames_entregues,vasilhames_recebidos) VALUES (auth.uid(),'{ORG_A}','Novo','recarga',0,0) RETURNING 1"))
 check("operador","opera pedido (observação/endereço)", rows("userA", f"UPDATE orders SET notes='portão azul' WHERE id='{O1}' RETURNING 1"))
-check("operador","atribui entrega por ID", ok("userA", f"SELECT atribuir_entrega('{O1}','{U['entregador2A']}')"))
+check("operador","troca entregador de pedido aberto só por reatribuição com motivo (004)", ok("userA", f"SELECT reatribuir_entrega('{O1}','{U['entregador2A']}','Troca de rota')") if os.environ.get("G1_004") else ok("userA", f"SELECT atribuir_entrega('{O1}','{U['entregador2A']}')"))
 check("operador","não atribui a entregador de outra empresa", not ok("userA", f"SELECT atribuir_entrega('{O1}','{U['entregadorB']}')"))
 check("operador","NÃO altera preço (pendente de autorização)", not ok("userA", f"UPDATE orders SET price=1 WHERE id='{O1}'"))
 check("operador","NÃO cancela pedido (pendente)", not ok("userA", f"UPDATE orders SET status='cancelled' WHERE id='{O1}'"))

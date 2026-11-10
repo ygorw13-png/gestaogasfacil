@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { runOrQueue } from "@/lib/offline/queue";
+import { G1_ACOES, acaoOuFila, formaRecebimento, novaChave } from "@/lib/g1/acoes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,8 @@ export default function VendaRua() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  // Mesma chave enquanto a venda não for confirmada: duplo toque ou nova tentativa não duplicam.
+  const [chaveVenda, setChaveVenda] = useState(() => novaChave("venda-rua"));
   const [tipoVenda, setTipoVenda] = useState<TipoVenda>("recarga");
   const [clientId, setClientId] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -108,6 +111,35 @@ export default function VendaRua() {
       vasilhames_recebidos: vas.recebidos,
       has_empty_cylinder: vas.recebidos > 0,
     };
+
+    if (G1_ACOES) {
+      if (!formaRecebimento(form.payment_method)) {
+        setLoading(false);
+        toast({ title: "Forma de pagamento sem regra", description: "Esta forma ainda não tem regra de recebimento definida. Use outra.", variant: "destructive" });
+        return;
+      }
+      // Uma ação só: cria a venda, baixa da SUA carga e registra o recebimento
+      // (ou a promissória). A chave acompanha cada reenvio da fila offline.
+      const r = await acaoOuFila("entregador_venda_rua", {
+        _cliente_id: clientId, _cliente_nome: nome, _cliente_fone: form.client_phone.trim(),
+        _produto: form.product, _quantidade: form.quantity, _valor: valor || 0, _forma: form.payment_method,
+        _tipo_venda: tipoVenda, _vasilhames_entregues: vas.entregues, _vasilhames_recebidos: vas.recebidos,
+        _observacoes: form.notes || null, _chave: chaveVenda,
+      }, `Venda na rua - ${form.quantity}x ${form.product} (${nome})`);
+      setLoading(false);
+      if (r.error) {
+        toast({ title: "Venda não registrada", description: r.error, variant: "destructive" });
+        return;
+      }
+      toast({
+        title: r.queued ? "Venda salva no aparelho" : "Venda registrada!",
+        description: r.queued ? "Sem internet agora. Ela será enviada sozinha quando a conexão voltar." : "Baixada da sua carga.",
+      });
+      setChaveVenda(novaChave("venda-rua"));
+      setClientId(null);
+      setForm({ ...form, price: "", notes: "", client_name: "", client_phone: "" });
+      return;
+    }
 
     // Sem internet? A venda fica salva no aparelho e sobe sozinha depois.
     const result = await runOrQueue({

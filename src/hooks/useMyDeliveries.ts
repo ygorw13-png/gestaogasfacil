@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import { useToast } from "@/hooks/use-toast";
 import { playDeliveryAlert } from "@/utils/deliveryAlert";
+import { G1_ACOES, acao } from "@/lib/g1/acoes";
 
 export interface DeliveryOrder {
   id: string;
@@ -96,6 +97,10 @@ export function useAcceptDelivery() {
   const { toast } = useToast();
   return useMutation({
     mutationFn: async (orderId: string) => {
+      if (G1_ACOES) {
+        await acao("entregador_aceitar_entrega", { _order_id: orderId });
+        return;
+      }
       const { error } = await supabase
         .from("orders")
         .update({ status: "delivering", accepted_at: new Date().toISOString() })
@@ -106,6 +111,7 @@ export function useAcceptDelivery() {
       qc.invalidateQueries({ queryKey: ["my-deliveries"] });
       toast({ title: "Entrega aceita!", description: "Boa entrega 🛵" });
     },
+    onError: (e: Error) => toast({ title: "Não foi possível", description: e.message, variant: "destructive" }),
   });
 }
 
@@ -114,6 +120,10 @@ export function useRejectDelivery() {
   const { toast } = useToast();
   return useMutation({
     mutationFn: async ({ orderId, reason }: { orderId: string; reason: string }) => {
+      if (G1_ACOES) {
+        await acao("entregador_recusar_entrega", { _order_id: orderId, _motivo: reason });
+        return;
+      }
       const { error } = await supabase
         .from("orders")
         .update({ delivery_person: null, rejection_reason: reason, status: "pending" })
@@ -124,6 +134,7 @@ export function useRejectDelivery() {
       qc.invalidateQueries({ queryKey: ["my-deliveries"] });
       toast({ title: "Entrega recusada", description: "Voltou para a fila" });
     },
+    onError: (e: Error) => toast({ title: "Não foi possível", description: e.message, variant: "destructive" }),
   });
 }
 
@@ -132,6 +143,20 @@ export function useConfirmDelivery() {
   const { toast } = useToast();
   return useMutation({
     mutationFn: async ({ orderId, recebeuVasilhame, vasilhamesRecebidos = 0 }: { orderId: string; recebeuVasilhame: boolean; vasilhamesRecebidos?: number }) => {
+      if (G1_ACOES) {
+        // Forma combinada no pedido; a conclusão consome a carga e registra o
+        // recebimento (ou a promissória) uma vez só. Chave fixa por pedido:
+        // tocar de novo ou reenviar não conclui duas vezes.
+        const { data: o, error: e1 } = await supabase.from("orders").select("payment_method").eq("id", orderId).maybeSingle();
+        if (e1) throw e1;
+        await acao("entregador_concluir_entrega", {
+          _order_id: orderId,
+          _forma: o?.payment_method ?? null,
+          _vasilhames_recebidos: recebeuVasilhame ? vasilhamesRecebidos : 0,
+          _chave: `concluir-entrega:${orderId}`,
+        });
+        return;
+      }
       const { error } = await supabase
         .from("orders")
         .update({
@@ -147,5 +172,6 @@ export function useConfirmDelivery() {
       qc.invalidateQueries({ queryKey: ["my-deliveries"] });
       toast({ title: "Entrega confirmada!", description: "Já consta no painel da portaria." });
     },
+    onError: (e: Error) => toast({ title: "Entrega não concluída", description: e.message, variant: "destructive" }),
   });
 }
