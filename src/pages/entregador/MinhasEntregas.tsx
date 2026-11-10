@@ -34,7 +34,7 @@ function DeliveryCard({ order }: { order: DeliveryOrder }) {
   const [vasilhamesRecebidos, setVasilhamesRecebidos] = useState(order.quantity ?? 1);
 
   const isPending = order.status === "pending" || order.status === "assigned";
-  const isInProgress = order.status === "in-progress";
+  const isInProgress = order.status === "in-progress" || order.status === "delivering";
   const isDone = order.status === "completed";
 
   const espera = minutesSince(isPending ? order.created_at : order.accepted_at);
@@ -193,7 +193,7 @@ export default function MinhasEntregas() {
   useTrackMyLocation(isEntregador, name);
 
   const pendentes = orders.filter((o) => o.status === "pending" || o.status === "assigned");
-  const emRota = orders.filter((o) => o.status === "in-progress");
+  const emRota = orders.filter((o) => o.status === "in-progress" || o.status === "delivering");
   const concluidas = orders.filter((o) => o.status === "completed");
 
   const totalHoje = concluidas.reduce((s, o) => s + Number(o.price ?? 0), 0);

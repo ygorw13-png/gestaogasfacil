@@ -1,0 +1,72 @@
+[
+ {
+  "test": "B01 operador vê o pedido aberto da própria empresa",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "test": "B01b operador não vê pedido de outra empresa",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "test": "B02 operador não cancela (decisão A): recusa visível e pedido intacto",
+  "ok": true,
+  "detail": "Erro ao atualizar status\nSem permissão para esta ação."
+ },
+ {
+  "test": "B03 atribuição por ID com retirada: carga +1 e saída da portaria na mesma ação",
+  "ok": true,
+  "detail": "a0000000-0000-4000-8000-00000000000d/1/1"
+ },
+ {
+  "test": "B04 entregador vê a entrega atribuída a ele",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "test": "B05 aceitar pela ação controlada",
+  "ok": true,
+  "detail": "delivering"
+ },
+ {
+  "test": "B06 conclusão (toque duplo): 1 recebimento, carga baixa 1x, portaria não baixa de novo, preço intacto",
+  "ok": true,
+  "detail": "completed/1/1/1/125.00"
+ },
+ {
+  "test": "B07 venda na rua sem carga: recusada, nada gravado, mensagem clara",
+  "ok": true,
+  "detail": "Venda não registrada\nCarga insuficiente para P13. Registre a saída da portaria para a carga antes"
+ },
+ {
+  "test": "B08 sem internet: venda fica no aparelho (nada no banco ainda)",
+  "ok": true,
+  "detail": "Venda salva no aparelho\nSem internet agora. Ela será enviada sozinha quando a conexão voltar."
+ },
+ {
+  "test": "B09 volta da internet + reenvio: uma venda e um recebimento",
+  "ok": true,
+  "detail": "1/1 (carga antes 2)"
+ },
+ {
+  "test": "B10 painel separa vendas, recebido, saldo, vencido e divergências",
+  "ok": true,
+  "detail": "Vendas concluídas 380,00  3 vendas hoje  Recebido hoje 255,00  Conferido 0,00 · com entregador, aguardando acerto 255,00 · títulos 0,00  Saldo a receber 0,00  Promissórias em aberto (saldo restante)  Saldo vencido 0,00  0 promissórias vencidas  Divergências 2  0 com valor diferente (0,00) · 1 conclu"
+ },
+ {
+  "test": "B11 recebido mostra dinheiro com entregador aguardando acerto (não comprovado só pela entrega)",
+  "ok": true,
+  "detail": "Vendas concluídas 380,00  3 vendas hoje  Recebido hoje 255,00  Conferido 0,00 · com entregador, aguardando acerto 255,00 · títulos 0,00  Saldo a receber 0,00  Promissórias em aberto (saldo restante)  Saldo vencido 0,00  0 promissórias vencidas  Divergências 2  0 com valor diferente (0,00) · 1 conclu"
+ },
+ {
+  "test": "B12 admin não cancela venda concluída enquanto a decisão B está pendente",
+  "ok": true,
+  "detail": "{\"sub\":\"a0000000-0000-4000-8000-00000000000a\",\"role\":\"authenticated\"}\nSET"
+ },
+ {
+  "test": "B13 nenhuma chamada saiu para o backend real",
+  "ok": true,
+  "detail": "[]"
+ }
+]
