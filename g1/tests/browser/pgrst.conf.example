@@ -1,0 +1,10 @@
+# PostgREST do laboratório do lote 3 — SÓ loopback, banco descartável 127.0.0.1:55450.
+# RECONSTRUÍDO para a entrega: o arquivo original ficava fora do projeto (/root/iso/pgrst.conf)
+# e não foi preservado. Copie para /root/iso/pgrst.conf antes de rodar run_lote3.sh.
+# /root/iso/secret = segredo JWT gerado localmente (ex.: openssl rand -hex 32); nunca use o do Cloud.
+db-uri = "postgres://authenticator@127.0.0.1:55450/postgres?sslmode=disable"
+db-schemas = "public"
+db-anon-role = "anon"
+jwt-secret = "@/root/iso/secret"
+server-host = "127.0.0.1"
+server-port = 53000

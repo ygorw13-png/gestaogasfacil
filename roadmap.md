@@ -17,7 +17,11 @@ Regras: só Lovable Cloud; sem migrações/publicação em produção sem revis�
 - [ ] 11. Auditoria e conferência do histórico
 - [ ] 12. Validação e entrega (ambiente isolado)
 
-## Lote atual
+## Handoff (10/11)
+- [x] Entrega para continuidade no Claude Code: `HANDOFF_CLAUDE.md` (estado, decisões, comandos, recursos só no Cloud)
+- Próximo passo exato: ver seção 5 do `HANDOFF_CLAUDE.md`
+
+## Lote atual (histórico — substituído pelo HANDOFF_CLAUDE.md)
 Validação da Etapa 1 (concluída, 26/26 + 11/11) + candidato de segurança 002 (concluído) + matriz/SQL por papel para revisão.
 
 ## Pendências externas
