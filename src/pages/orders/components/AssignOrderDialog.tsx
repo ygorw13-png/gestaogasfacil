@@ -14,13 +14,18 @@ import { WhatsAppButton } from "@/components/common/WhatsAppButton";
 import { useEntregadoresApp } from "@/hooks/useEntregadoresApp";
 import { msgEntregaAtribuida } from "@/utils/whatsappLinks";
 import type { Order } from "../types";
+import type { AssignOptions } from "../hooks/useOrderMutations";
+import { G1_ACOES } from "@/lib/g1/acoes";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { useEffect, useState } from "react";
 
 interface AssignOrderDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   selectedDeliveryPerson: string;
   onDeliveryPersonChange: (value: string) => void;
-  onSubmit: () => void;
+  onSubmit: (opts?: AssignOptions) => void;
   order?: Order | null;
 }
 
@@ -33,6 +38,13 @@ export function AssignOrderDialog({
   order,
 }: AssignOrderDialogProps) {
   const { data: entregadores = [], isLoading } = useEntregadoresApp();
+
+  const [retirar, setRetirar] = useState(false);
+  const [motivo, setMotivo] = useState("");
+  useEffect(() => { if (isOpen) { setRetirar(false); setMotivo(""); } }, [isOpen]);
+  const troca = G1_ACOES && !!order?.deliveryPerson && order.deliveryPerson !== selectedDeliveryPerson;
+  const bloqueado = !selectedDeliveryPerson || (troca && !motivo.trim());
+  const enviar = () => onSubmit(G1_ACOES ? { retirarDaPortaria: retirar, motivo } : undefined);
 
   const entregador = entregadores.find((c) => c.id === selectedDeliveryPerson);
   const mensagem = order ? msgEntregaAtribuida(order, entregador?.nome) : "";
@@ -81,6 +93,25 @@ export function AssignOrderDialog({
             </p>
           )}
 
+          {G1_ACOES && !troca && (
+            <label className="flex items-start gap-2 text-sm">
+              <Checkbox checked={retirar} onCheckedChange={(v) => setRetirar(v === true)} />
+              <span>
+                O produto sai agora da portaria com o entregador
+                <span className="block text-xs text-muted-foreground">
+                  Transfere para a carga dele. Deixe desmarcado se ele já leva o produto na carga.
+                </span>
+              </span>
+            </label>
+          )}
+
+          {troca && (
+            <div className="space-y-2">
+              <Label htmlFor="motivoTroca">Motivo da troca de entregador</Label>
+              <Textarea id="motivoTroca" value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Ex.: entregador anterior saiu de rota" />
+            </div>
+          )}
+
           {entregador && (
             <p className="text-xs text-muted-foreground">
               {entregador.telefone
@@ -102,13 +133,13 @@ export function AssignOrderDialog({
               message={mensagem}
               label="Confirmar e avisar no WhatsApp"
               size="default"
-              disabled={!selectedDeliveryPerson}
-              onSent={onSubmit}
+              disabled={bloqueado}
+              onSent={enviar}
             />
           )}
           <Button 
-            onClick={onSubmit}
-            disabled={!selectedDeliveryPerson}
+            onClick={enviar}
+            disabled={bloqueado}
           >
             Confirmar
           </Button>

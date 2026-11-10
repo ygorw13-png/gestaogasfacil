@@ -3,6 +3,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Order, OrderStatus } from "../types";
 import { supabase } from "@/integrations/supabase/client";
 import { createPromissoryFromSale, isPromissoryPayment } from "@/lib/promissory";
+import { G1_ACOES, acao, novaChave } from "@/lib/g1/acoes";
+
+export interface AssignOptions {
+  /** Produto sai agora da portaria para a carga do entregador (entrega avulsa). */
+  retirarDaPortaria?: boolean;
+  /** Obrigatório para trocar o entregador de um pedido já atribuído. */
+  motivo?: string;
+}
 
 export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<React.SetStateAction<Order[]>>) {
   const { toast } = useToast();
@@ -99,9 +107,22 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
     }
   }, [toast, setOrders]);
 
-  const handleAssignOrder = useCallback(async (orderId: string, deliveryPerson: string) => {
+  const handleAssignOrder = useCallback(async (orderId: string, deliveryPerson: string, opts: AssignOptions = {}) => {
     setLoading(true);
     try {
+      if (G1_ACOES) {
+        const atual = orders.find((o) => o.id === orderId);
+        if (atual?.deliveryPerson && atual.deliveryPerson !== deliveryPerson) {
+          // Troca explícita, por ID, com motivo. Histórico não é alterado.
+          if (!opts.motivo?.trim()) throw new Error("Informe o motivo da troca de entregador.");
+          await acao("reatribuir_entrega", { _order_id: orderId, _novo_entregador_id: deliveryPerson, _motivo: opts.motivo.trim() });
+        } else {
+          await acao("atribuir_entrega", {
+            _order_id: orderId, _entregador_id: deliveryPerson,
+            _retirar_da_portaria: !!opts.retirarDaPortaria, _chave: novaChave("atribuir"),
+          });
+        }
+      } else {
       const { error } = await supabase
         .from('orders')
         .update({ 
@@ -112,6 +133,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
         .eq('id', orderId);
 
       if (error) throw error;
+      }
 
       // Notificação push para o entregador (não bloqueia o fluxo)
       supabase.functions
@@ -149,13 +171,13 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
       console.error("Erro ao atribuir pedido:", error);
       toast({
         title: "Erro ao atribuir pedido",
-        description: "Não foi possível atribuir o pedido.",
+        description: G1_ACOES && error instanceof Error ? error.message : "Não foi possível atribuir o pedido.",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [toast, setOrders]);
+  }, [toast, setOrders, orders]);
 
   const handleStatusChange = useCallback(async (
     orderId: string, 
@@ -168,6 +190,22 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
   ) => {
     setLoading(true);
     try {
+      if (G1_ACOES && status === "cancelled") {
+        // Decisão A: só administrador cancela, com motivo. Decisão B pendente:
+        // o banco recusa cancelar venda concluída.
+        const motivo = window.prompt("Motivo do cancelamento (fica no histórico):")?.trim();
+        if (!motivo) throw new Error("Cancelamento exige motivo.");
+        await acao("admin_corrigir_pedido", { _order_id: orderId, _novo_preco: null, _novo_status: "cancelled", _motivo: motivo });
+      } else if (G1_ACOES && status === "delivered") {
+        // Conclui pela portaria: consome a carga do entregador atribuído, registra
+        // recebimento/promissória e divergência. O preço da venda não muda.
+        await acao("operador_concluir_entrega", {
+          _order_id: orderId, _forma: extraData?.paymentMethod ?? null,
+          _valor_recebido: typeof extraData?.receivedValue === "number" ? extraData.receivedValue : null,
+          _vasilhames_recebidos: 0, _motivo_divergencia: extraData?.divergenceReason ?? null,
+          _chave: `concluir-entrega:${orderId}`,
+        });
+      } else {
       const updateData: Record<string, any> = { status };
       
       if (status === "delivering") {
@@ -211,6 +249,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
           toast({ title: "Nota promissória gerada", description: "Vencimento em 30 dias." });
         }
       }
+      }
 
 
       setOrders(prevOrders => 
@@ -224,7 +263,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
             if (status === "delivered" && extraData?.paymentMethod) {
               updatedOrder.deliveredAt = new Date();
               updatedOrder.paymentMethod = extraData.paymentMethod;
-              if (typeof extraData.receivedValue === "number") {
+              if (!G1_ACOES && typeof extraData.receivedValue === "number") {
                 updatedOrder.price = extraData.receivedValue;
               }
               if (extraData.divergenceReason) {
@@ -267,7 +306,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
       console.error(`Erro ao atualizar status para ${status}:`, error);
       toast({
         title: `Erro ao atualizar status`,
-        description: `Não foi possível atualizar o pedido para ${status}.`,
+        description: G1_ACOES && error instanceof Error ? error.message : `Não foi possível atualizar o pedido para ${status}.`,
         variant: "destructive",
       });
     } finally {

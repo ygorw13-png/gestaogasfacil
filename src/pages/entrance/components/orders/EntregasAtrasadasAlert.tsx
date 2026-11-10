@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Check, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { G1_ACOES, acao } from "@/lib/g1/acoes";
 
 const startOfToday = () => {
   const d = new Date();
@@ -19,8 +20,8 @@ export function useEntregasPendentesAntigas() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("id, client_name, product, quantity, price, status, delivery_person, created_at")
-        .in("status", ["pending", "assigned", "in-progress"])
+        .select("id, client_name, product, quantity, price, status, delivery_person, payment_method, created_at")
+        .in("status", ["pending", "assigned", "in-progress", "delivering"])
         .lt("created_at", startOfToday())
         .order("created_at", { ascending: true });
       if (error) throw error;
@@ -43,6 +44,16 @@ export function EntregasAtrasadasAlert() {
 
   const baixar = useMutation({
     mutationFn: async (id: string) => {
+      if (G1_ACOES) {
+        // Conclusão controlada: forma combinada no pedido, baixa da carga do
+        // entregador e recebimento/promissória registrados uma vez.
+        const o = pendentes.find((p: any) => p.id === id) as any;
+        await acao("operador_concluir_entrega", {
+          _order_id: id, _forma: o?.payment_method ?? null, _valor_recebido: null,
+          _vasilhames_recebidos: 0, _motivo_divergencia: null, _chave: `concluir-entrega:${id}`,
+        });
+        return;
+      }
       const { error } = await supabase
         .from("orders")
         .update({ status: "completed", delivered_at: new Date().toISOString() })
@@ -58,6 +69,12 @@ export function EntregasAtrasadasAlert() {
 
   const devolver = useMutation({
     mutationFn: async (id: string) => {
+      if (G1_ACOES) {
+        const motivo = window.prompt("Motivo para tirar o pedido deste entregador:")?.trim();
+        if (!motivo) throw new Error("Informe o motivo para liberar o pedido.");
+        await acao("reatribuir_entrega", { _order_id: id, _novo_entregador_id: null, _motivo: motivo });
+        return;
+      }
       const { error } = await supabase
         .from("orders")
         .update({ status: "pending", delivery_person: null, accepted_at: null })

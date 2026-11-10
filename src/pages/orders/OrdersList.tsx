@@ -1,3 +1,4 @@
+import type { AssignOptions } from "./hooks/useOrderMutations";
 
 import React, { useState, useCallback, useMemo, memo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +18,7 @@ const PAGE_SIZE = 10;
 interface OrdersListProps {
   orders: Order[];
   loading: boolean;
-  onAssignOrder: (orderId: string, deliveryPerson: string) => void;
+  onAssignOrder: (orderId: string, deliveryPerson: string, opts?: AssignOptions) => void;
   onStartDelivery: (orderId: string) => void;
   onCompleteOrder: (orderId: string, payload: CompleteOrderPayload) => void;
   onCancelOrder: (orderId: string) => void;
@@ -75,9 +76,9 @@ function OrdersListComponent({
     setSelectedDeliveryPerson(value);
   }, []);
 
-  const handleAssignSubmit = useCallback(() => {
+  const handleAssignSubmit = useCallback((opts?: AssignOptions) => {
     if (selectedOrder && selectedDeliveryPerson) {
-      onAssignOrder(selectedOrder, selectedDeliveryPerson);
+      onAssignOrder(selectedOrder, selectedDeliveryPerson, opts);
       setSelectedDeliveryPerson("");
       setIsAssignDialogOpen(false);
     }

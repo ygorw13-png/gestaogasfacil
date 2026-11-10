@@ -9,6 +9,7 @@ import { useVendasHoje } from '@/pages/entrance/hooks/useVendasHoje';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { createPromissoryFromSale } from '@/lib/promissory';
+import { G1_ACOES, acao, novaChave } from '@/lib/g1/acoes';
 
 // Estado inicial do caixa - todos os valores zerados
 export const initialCashierData: CashierData = {
@@ -154,6 +155,19 @@ export function useCashierSales() {
         const { data: authData } = await supabase.auth.getUser();
         const userId = authData?.user?.id;
         if (!userId) return;
+        if (G1_ACOES) {
+          if (dataVenda) throw new Error('Lançamento retroativo ainda sem regra na ação controlada. Use a correção administrativa.');
+          await acao('venda_portaria', {
+            _cliente_id: newSale.clientId || null, _cliente_nome: newSale.client, _produto: newSale.product,
+            _quantidade: newSale.quantity, _valor: newSale.amount, _forma: paymentCodeMap[newSale.payment] || null,
+            _tipo_venda: tipoVenda === 'completa' ? 'completo' : tipoVenda, _devolveu_vazio: newSale.cylinderMovement !== 'loan',
+            _reseller_id: null, _observacoes: isVasilhame ? 'Venda de vasilhame vazio na portaria' : 'Venda registrada na portaria',
+            _chave: novaChave('venda-caixa'),
+          });
+          ['vendas_hoje', 'vendas_por_data', 'relatorio-vasilhames', 'promissory_notes', 'saldo_portaria_atual', 'dashboard'].forEach((k) =>
+            queryClient.invalidateQueries({ queryKey: [k] }));
+          return;
+        }
         const now = dataVenda
           ? new Date(`${dataVenda}T12:00:00`).toISOString()
           : new Date().toISOString();

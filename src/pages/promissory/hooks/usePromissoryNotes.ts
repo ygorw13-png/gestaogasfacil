@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { PromissoryNote, PromissoryStatus } from "../types";
+import { G1_ACOES, acao, formaRecebimento, novaChave } from "@/lib/g1/acoes";
 
 function mapRow(r: any): PromissoryNote {
   return {
@@ -111,6 +112,19 @@ export function usePromissoryNotes() {
   const handlePayment = useCallback(
     async (amount: number, method: string) => {
       if (!selectedNoteId) return;
+      if (G1_ACOES) {
+        // Recebimento controlado: aceita parcial, registra o recebimento e só
+        // quita quando o saldo zera. Chave nova por recebimento.
+        try {
+          await acao("receber_promissoria", { _id: selectedNoteId, _valor: amount, _forma: formaRecebimento(method) ?? method, _chave: novaChave("receber-prom") });
+        } catch (e) {
+          toast({ title: "Recebimento não registrado", description: (e as Error).message, variant: "destructive" });
+          return;
+        }
+        toast({ title: "Recebimento registrado" });
+        fetch();
+        return;
+      }
       const { error } = await supabase
         .from("promissory_notes")
         .update({
@@ -159,7 +173,11 @@ export function usePromissoryNotes() {
     handleAssign, handlePayment, handleNewPromissory,
     addPromissoryNote: handleNewPromissory,
     assignPromissoryNote: async (id: string, collector: string) => { setSelectedNoteId(id); await handleAssign(collector); },
-    markPromissoryAsPaid: async (id: string) => { setSelectedNoteId(id); await handlePayment(0, ""); },
+    markPromissoryAsPaid: async (id: string) => {
+      // Quitar sem valor nem forma não é recebimento comprovado.
+      if (G1_ACOES) throw new Error("Registre o valor e a forma do recebimento.");
+      setSelectedNoteId(id); await handlePayment(0, "");
+    },
     refresh: fetch,
   };
 }

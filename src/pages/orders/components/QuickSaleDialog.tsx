@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRegistrarMovimentacao, type PortariaProduto } from "@/pages/entrance/hooks/usePortariaStock";
 import { SaleTypeSelect } from "@/components/forms/SaleTypeSelect";
 import { exigeValor, vasilhameDeltas, tipoVendaLabel, type TipoVenda } from "@/lib/saleTypes";
+import { G1_ACOES, acao, novaChave } from "@/lib/g1/acoes";
 
 const PRODUCTS: { value: PortariaProduto; label: string; orderProduct: string }[] = [
   { value: "P13", label: "Gás P13", orderProduct: "P13" },
@@ -86,6 +87,8 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
     return () => window.removeEventListener("keydown", onKey);
   });
 
+  const chaveRef = useRef(novaChave("venda-portaria"));
+
   const handleSubmit = async () => {
     if (requiresClient && clientName.trim().length < 3) {
       toast({
@@ -114,6 +117,22 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
       const finalName = clientName.trim() || "Cliente Balcão";
       const productLabel = PRODUCTS.find((p) => p.value === product)?.orderProduct || product;
       const now = new Date().toISOString();
+
+      if (G1_ACOES) {
+        // Uma ação só: venda + baixa da portaria + recebimento/promissória.
+        // Se algo falhar, nada fica gravado pela metade. Mesma chave até dar certo.
+        await acao("venda_portaria", {
+          _cliente_id: null, _cliente_nome: finalName, _produto: productLabel, _quantidade: quantity,
+          _valor: value || 0, _forma: paymentMethod, _tipo_venda: tipoVenda, _devolveu_vazio: returnedEmpty,
+          _reseller_id: null, _observacoes: `Venda rápida - ${tipoVendaLabel(tipoVenda)}`, _chave: chaveRef.current,
+        });
+        chaveRef.current = novaChave("venda-portaria");
+        toast({ title: "Venda rápida registrada", description: `${quantity}x ${productLabel}` });
+        reset();
+        onSaved();
+        if (!counterMode) onOpenChange(false);
+        return;
+      }
 
       const { data: inserted, error } = await supabase
         .from("orders")
