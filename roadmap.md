@@ -32,4 +32,5 @@ Validação da Etapa 1 (concluída, 26/26 + 11/11) + candidato de segurança 002
 - [x] 003 por papel + carga + a prazo (69/69, contenção 16/16) — candidato, não aplicado
 - [x] Painel: pendentes / concluídas / recebido / a receber
 - [x] Telas chamando as ações controladas (lote 3, chave VITE_G1_ACOES; 40/40 SQL, 14/14 navegador)
-- [ ] Bloqueado: decisão B (estorno); gateway hospedado G0.1; aprovação de produção
+- [x] Lote 4: caminhos diretos fechados (005), fila offline antiga bloqueada, caixa só fecha após gravar, contenção revisada com carga/dívidas/recebimentos (SQL 43/43, 40/40, 69/69, 22/22; navegador 14/14 + 17/17) — candidato, não aplicado
+- [ ] Bloqueado: decisão B (estorno); decisão 13 (agregado/ponto); gateway hospedado G0.1; aprovação de produção

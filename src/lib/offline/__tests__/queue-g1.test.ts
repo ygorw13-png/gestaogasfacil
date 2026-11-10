@@ -62,7 +62,8 @@ describe('fila offline com ações controladas ligadas', () => {
     const [op] = await getQueue();
     expect(server.inserts).toHaveLength(0);
     expect(op.status).toBe('bloqueado');
-    expect(r.conflicts).toBe(1);
+    expect(r.blocked).toBe(1);
+    expect(r.conflicts).toBe(0);
   });
 
   it('"enviar mesmo assim" não libera gravação direta bloqueada', async () => {

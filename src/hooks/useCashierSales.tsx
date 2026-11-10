@@ -116,6 +116,36 @@ export function useCashierSales() {
     const tipoVenda = newSale.tipoVenda || 'completa';
     const isVasilhame = tipoVenda === 'vasilhame';
 
+    if (G1_ACOES) {
+      // Uma ação só (venda + baixa da portaria + recebimento/promissória). O formulário
+      // só fecha quando o banco confirma; em falha continua aberto e a mesma chave evita duplicar.
+      const formas: Record<string, string> = {
+        'Dinheiro': 'money', 'Crédito': 'credit', 'Débito': 'debit', 'PIX': 'pix',
+        'Promissória': 'promissoria', 'Vale Gás': 'vale-gas', 'Convênio': 'convenio',
+      };
+      return (async () => {
+        try {
+          if (dataVenda) throw new Error('Lançamento retroativo ainda sem regra na ação controlada. Use a correção administrativa.');
+          await acao('venda_portaria', {
+            _cliente_id: newSale.clientId || null, _cliente_nome: newSale.client, _produto: newSale.product,
+            _quantidade: newSale.quantity, _valor: newSale.amount, _forma: formas[newSale.payment] || null,
+            _tipo_venda: tipoVenda === 'completa' ? 'completo' : tipoVenda, _devolveu_vazio: newSale.cylinderMovement !== 'loan',
+            _reseller_id: null, _observacoes: isVasilhame ? 'Venda de vasilhame vazio na portaria' : 'Venda registrada na portaria',
+            _chave: newSale.chave || novaChave('venda-caixa'),
+          });
+          ['vendas_hoje', 'vendas_por_data', 'relatorio-vasilhames', 'promissory_notes', 'saldo_portaria_atual', 'saldo_portaria',
+            'movimentacoes_portaria', 'sales_history', 'dashboard'].forEach((k) => queryClient.invalidateQueries({ queryKey: [k] }));
+          toast({ title: 'Venda registrada', description: 'Venda, estoque e recebimento gravados juntos.' });
+          setNewSaleOpen(false);
+          return true;
+        } catch (e) {
+          console.error('Erro ao registrar venda no banco:', e);
+          toast({ title: 'Venda não registrada', description: e instanceof Error ? e.message : 'Tente novamente.', variant: 'destructive' });
+          return false;
+        }
+      })();
+    }
+
     // Atualiza contadores locais de estoque (mock legado) — só para gás/água
     if (!isVasilhame) {
       if (newSale.product.includes('P13')) updateInventorySales('P13', newSale.quantity);
@@ -155,20 +185,6 @@ export function useCashierSales() {
         const { data: authData } = await supabase.auth.getUser();
         const userId = authData?.user?.id;
         if (!userId) return;
-        if (G1_ACOES) {
-          if (dataVenda) throw new Error('Lançamento retroativo ainda sem regra na ação controlada. Use a correção administrativa.');
-          await acao('venda_portaria', {
-            _cliente_id: newSale.clientId || null, _cliente_nome: newSale.client, _produto: newSale.product,
-            _quantidade: newSale.quantity, _valor: newSale.amount, _forma: paymentCodeMap[newSale.payment] || null,
-            _tipo_venda: tipoVenda === 'completa' ? 'completo' : tipoVenda, _devolveu_vazio: newSale.cylinderMovement !== 'loan',
-            _reseller_id: null, _observacoes: isVasilhame ? 'Venda de vasilhame vazio na portaria' : 'Venda registrada na portaria',
-            _chave: novaChave('venda-caixa'),
-          });
-          ['vendas_hoje', 'vendas_por_data', 'relatorio-vasilhames', 'promissory_notes', 'saldo_portaria_atual', 'dashboard'].forEach((k) =>
-            queryClient.invalidateQueries({ queryKey: [k] }));
-          toast({ title: 'Venda registrada', description: 'Venda, estoque e recebimento gravados juntos.' });
-          return;
-        }
         const now = dataVenda
           ? new Date(`${dataVenda}T12:00:00`).toISOString()
           : new Date().toISOString();
@@ -219,12 +235,9 @@ export function useCashierSales() {
 
       } catch (e) {
         console.error('Erro ao registrar venda no banco:', e);
-        if (G1_ACOES) toast({ title: 'Venda não registrada', description: e instanceof Error ? e.message : 'Tente novamente.', variant: 'destructive' });
       }
     })();
 
-    // Na ação controlada a baixa já acontece junto da venda: não descontar de novo.
-    if (G1_ACOES) { setNewSaleOpen(false); return; }
 
     // Registrar movimentação no estoque da portaria (Supabase)
     if (isVasilhame) {

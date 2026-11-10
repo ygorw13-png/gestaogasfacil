@@ -22,6 +22,8 @@ export interface EntranceState {
 
 export interface Sale {
   id: number | string;
+  /** Chave de reenvio da ação controlada (a mesma até a venda ser confirmada). */
+  chave?: string;
   time: string;
   client: string;
   product: string;

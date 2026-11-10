@@ -11,3 +11,6 @@ INSERT INTO public.orders(id,user_id,organization_id,client_name,status,tipo_ven
  ('0d000000-0000-4000-8000-0000000004f1','a0000000-0000-4000-8000-00000000000b','0a000000-0000-4000-8000-000000000000','Cliente Fila Antiga Fictício','pending','recarga','Gás P13',125,1,'money','{}',now(),NULL),
  ('0d000000-0000-4000-8000-0000000004e1','a0000000-0000-4000-8000-00000000000b','0a000000-0000-4000-8000-000000000000','Cliente Contenção Navegador','pending','recarga','Gás P13',125,1,'money','{}',now(),NULL)
 ON CONFLICT DO NOTHING;
+INSERT INTO public.resellers(id,organization_id,name,phone,price_p13,active) VALUES
+ ('0e000000-0000-4000-8000-0000000004a1','0a000000-0000-4000-8000-000000000000','Agregado Fictício','(00) 0000-0000',110,true)
+ON CONFLICT DO NOTHING;

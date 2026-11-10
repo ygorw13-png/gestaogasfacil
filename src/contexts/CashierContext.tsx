@@ -19,7 +19,7 @@ interface CashierContextProps {
   cashierClosingOpen: boolean;
   setNewSaleOpen: (open: boolean) => void;
   setCashierClosingOpen: (open: boolean) => void;
-  handleNewSaleSubmit: (newSale: Sale, saleDate?: string) => void;
+  handleNewSaleSubmit: (newSale: Sale, saleDate?: string) => void | Promise<boolean>;
   handleCashierClosingSubmit: (type: "partial" | "total", observations?: string, isRetroactive?: boolean) => void;
 
 }

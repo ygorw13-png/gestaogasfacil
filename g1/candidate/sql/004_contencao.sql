@@ -9,6 +9,8 @@
 -- atribuído, registra recebimento/promissória/divergência). Permissões, isolamento, bloqueio de inativos,
 -- carga, dívidas e recebimentos continuam íntegros.
 -- Desfazer: 004_contencao_desfazer.sql (devolve só as ações controladas do entregador).
+-- Lote 4: compatível com o 005 (bloqueios de gravação direta seguem valendo); conferido em g1/tests/sql/run_contencao_005.py —
+-- carga, saídas da portaria, recebimentos e promissórias batem antes, durante e depois; ação atrasada do entregador não duplica.
 
 REVOKE EXECUTE ON FUNCTION public.entregador_aceitar_entrega(uuid), public.entregador_recusar_entrega(uuid,text),
   public.entregador_concluir_entrega(uuid,text,integer,text),

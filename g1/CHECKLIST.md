@@ -24,11 +24,11 @@ Regras vigentes: só Lovable Cloud; produção intocada sem revisão prévia; re
 | 1 | Eliminar informações fictícias | — | **Implementada e validada** (11 testes + 26 verificações no navegador com backend fictício; `g1/RELATORIO_LOTE1.md`) |
 | 2 | Segurança no banco/backend | — | 002 testado 27/27; **003 por papel testado 69/69** + contenção 16/16; nada aplicado; depende das telas usarem as ações controladas (`g1/RELATORIO_LOTE2.md`) |
 | 3 | Fluxo operacional | — | Decisões 1, 11, 15 **aprovadas**; próximas indispensáveis A–D em `DECISOES_OPERACIONAIS.md` |
-| 4 | Vendas e estoque consistentes (transações, vínculos, idempotência) | 3 | **Candidato 004 + telas** testados (40/40 SQL, 14/14 navegador isolado); não aplicado (`g1/RELATORIO_LOTE3.md`) |
+| 4 | Vendas e estoque consistentes (transações, vínculos, idempotência) | 3 | **Candidatos 004 + 005 + telas** testados (SQL 40/40, 43/43, contenção 22/22; navegador isolado 14/14 + 17/17); não aplicados (`g1/RELATORIO_LOTE3.md`, `g1/RELATORIO_LOTE4.md`) |
 | 5 | Carga e acerto do entregador | 3, 4 | Carga e transferência prontas no candidato; tela de acerto pendente |
 | 6 | Fiado, recebimentos e caixa | 3 | Recebimento de promissória e painel prontos no candidato; estorno aguarda decisão B |
-| 7 | Cascos e parceiros | 4 | Pendente |
-| 8 | Datas (America/Bahia), pagamentos, comissões, offline | 3, 4 | Pendente |
+| 7 | Cascos e parceiros | 4 | Pendente (decisão 13); com as ações controladas, venda "a acertar" para agregado/ponto é recusada sem gravar |
+| 8 | Datas (America/Bahia), pagamentos, comissões, offline | 3, 4 | Fila offline: gravação direta antiga bloqueada (lote 4); datas e pagamentos pendentes |
 | 9 | Compras, fornecedores e custos | Método de custo (decisão) | Pendente |
 | 10 | Relatórios e configurações | 4, 6, 9 | Parcialmente iniciada (relatório Excel real na Etapa 1) |
 | 11 | Auditoria e conferência do histórico | 4, 6, 7 | Pendente |

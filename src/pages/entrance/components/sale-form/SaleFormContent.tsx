@@ -14,7 +14,7 @@ import type { Sale } from "../../types/saleTypes";
 
 
 interface SaleFormContentProps {
-  onSubmit: (sale: Sale) => void;
+  onSubmit: (sale: Sale) => void | Promise<boolean>;
   onOpenChange: (open: boolean) => void;
 }
 

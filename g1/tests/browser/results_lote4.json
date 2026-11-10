@@ -15,9 +15,9 @@
   "detail": "a0000000-0000-4000-8000-00000000000d/1 saídas +1"
  },
  {
-  "test": "L03b a tela que perdeu a disputa avisa (não finge que atribuiu)",
+  "test": "L03b a tela que perdeu a disputa avisa o erro e não diz que atribuiu",
   "ok": true,
-  "detail": "Pedido atribuído\nPedido atribuído a a0000000-0000-4000-8000-00000000000d || Erro ao atribuir pedido\nPedido não está na fila (assigned). Para trocar o entregador use a reatribuição"
+  "detail": "ganhou: Pedido atribuído\nPedido atribuído a a0000000-0000-4000-8000-00000000000d || perdeu: Erro ao atribuir pedido\nPedido não está na fila (assigned). Para trocar o entregador use a reatribuição"
  },
  {
   "test": "L04 fila antiga: nenhuma gravação direta enviada e o banco não mudou",
@@ -25,9 +25,9 @@
   "detail": "[] pending/0"
  },
  {
-  "test": "L04b tela offline mostra 'Não enviado' com o motivo e sem botão de enviar",
-  "ok": false,
-  "detail": "a"
+  "test": "L04b tela offline: aviso próprio, 'Não enviado' com o motivo, sem botão de enviar e sem chamar de duplicado",
+  "ok": true,
+  "detail": "botões=0 Modo Offline Configurações Alternar Menu Lateral US 2 lançamento(s) antigo(s) não enviado(s) — toque para conferir Modo Offline  Aqui você vê se o sistema está conectado, o que ainda falta enviar e possíveis erros.  Conexão  Online Os lançamentos vão direto para a nuvem.  Última sincronização  ainda"
  },
  {
   "test": "L05 gravações diretas com sessão real são recusadas e nada muda",
@@ -41,8 +41,8 @@
  },
  {
   "test": "L07 contenção: portaria conclui (toque duplo): 1 recebimento, carga do pedido zerada, preço intacto",
-  "ok": false,
-  "detail": "delivering/0/1/125.00 "
+  "ok": true,
+  "detail": "completed/1/0/125.00 "
  },
  {
   "test": "L08 depois de desfazer: conclusão atrasada do entregador não registra nada de novo",
@@ -51,8 +51,8 @@
  },
  {
   "test": "L09 tela de cancelamento não promete estorno automático",
-  "ok": false,
-  "detail": "Cancelar venda  Cliente Balcão Lote4 · P13 · 1 un. O estoque da portaria e a ficha do agregado/ponto de revenda serão estornados automaticamente.  Motivo do cancelamento Voltar Confirmar cancelamento"
+  "ok": true,
+  "detail": "Cancelar venda  Cliente Balcão Lote4 · P13 · 1 un. Só o administrador cancela, com motivo registrado no histórico. Não há estorno automático: venda concluída, com estoque baixado, dívida ou recebiment"
  },
  {
   "test": "L09b administrador não cancela venda concluída pela tela: recusa visível, venda intacta",
@@ -63,6 +63,21 @@
   "test": "L10 painel: vendas concluídas, recebido hoje, saldo a receber, vencido e divergências separados",
   "ok": true,
   "detail": "Vendas concluídas 370,00  3 vendas hoje  Recebido hoje 245,00  Conferido 120,00 · com entregador, aguardando acerto 125,00 · títulos 0,00  Saldo a receber 0,00  Promissórias em aberto (saldo restante)  Saldo vencido 0,00  0 promissórias vencidas  Divergências 2  0 com valor diferente (0,00) · 1 conc"
+ },
+ {
+  "test": "L12 caixa: toque duplo + resposta perdida — uma gravação, erro na tela e formulário continua aberto",
+  "ok": true,
+  "detail": "aberto=True [1, 3, 2] base=[0, 2, 1] Venda não registrada\nTypeError: Failed to fetch"
+ },
+ {
+  "test": "L12b caixa: reenvio usa a mesma chave — uma venda, um recebimento, uma baixa; formulário fecha",
+  "ok": true,
+  "detail": "[1, 3, 2] base=[0, 2, 1]"
+ },
+ {
+  "test": "L13 venda 'a acertar' para agregado (decisão 13 pendente): recusada, nada gravado nem na ficha do parceiro",
+  "ok": true,
+  "detail": "0/9 -> 0/9 Venda não registrada\nVenda para agregado ou ponto de revenda \"a acertar\" ainda não tem regra de preço e acerto. Nada foi gravado."
  },
  {
   "test": "L11 nenhuma chamada saiu para o backend real",

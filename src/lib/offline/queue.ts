@@ -206,6 +206,8 @@ export interface SyncResult {
   sent: number;
   failed: number;
   conflicts: number;
+  /** Gravações diretas antigas que não foram enviadas (regras de carga e recebimento). */
+  blocked?: number;
   skipped: boolean;
 }
 
@@ -231,6 +233,7 @@ export async function processQueue(): Promise<SyncResult> {
   let sent = 0;
   let failed = 0;
   let conflicts = 0;
+  let blocked = 0;
   try {
     const queue = await getQueue();
     const now = Date.now();
@@ -249,7 +252,7 @@ export async function processQueue(): Promise<SyncResult> {
       // Ações controladas ligadas: gravação direta antiga nunca sobe (nem forçada).
       const bloqueio = motivoBloqueioFila(op);
       if (bloqueio) {
-        conflicts++;
+        blocked++;
         await idbPut(STORE_QUEUE, { ...op, status: 'bloqueado' as QueueStatus, lastError: bloqueio });
         continue;
       }
@@ -296,7 +299,7 @@ export async function processQueue(): Promise<SyncResult> {
     setProgress({ running: false });
     emit();
   }
-  const result: SyncResult = { sent, failed, conflicts, skipped: false };
+  const result: SyncResult = { sent, failed, conflicts, blocked, skipped: false };
   emitResult(result);
   return result;
 

@@ -85,14 +85,16 @@ async def main():
             await page.get_by_text("O produto sai agora da portaria com o entregador").click()
         await asyncio.gather(pg.get_by_role("button", name="Confirmar", exact=True).click(),
                              pg2.get_by_role("button", name="Confirmar", exact=True).click())
-        await pg.wait_for_timeout(3500)
+        await pg.wait_for_timeout(1800)
         t1, t2 = await toasts(pg), await toasts(pg2)
         r = q(f"select delivery_person_id||'/'||(select count(*) from carga_movimentos where order_id='{OC}' and delta_cheios=1) from orders where id='{OC}'")
         saidas1 = int(q("select count(*) from movimentacoes_portaria where tipo='saida_carga'"))
         dono = r.split("/")[0]
         rec("L03 duas telas atribuem ao mesmo tempo: um entregador só, produto sai da portaria uma vez",
             dono in (ENT, ENT2) and r.split("/")[1] == "1" and saidas1 - saidas0 == 1, f"{r} saídas +{saidas1 - saidas0}")
-        rec("L03b a tela que perdeu a disputa avisa (não finge que atribuiu)", re.search("Erro|reatrib|já|atribu", t1 + t2, re.I) is not None, (t1 + " || " + t2)[:200])
+        ganhou, perdeu = (t1, t2) if dono == ENT else (t2, t1)
+        rec("L03b a tela que perdeu a disputa avisa o erro e não diz que atribuiu",
+            "Pedido atribuído" in ganhou and "Erro ao atribuir" in perdeu and "Pedido atribuído" not in perdeu, f"ganhou: {ganhou[:80]} || perdeu: {perdeu[:140]}")
         await pg2.screenshot(path=str(S / "l03_concorrencia_tela2.png")); await c2.close()
 
         # ── L04 Fila offline antiga com gravação direta: não é enviada nem com a volta da internet ──
@@ -112,8 +114,11 @@ async def main():
         txt = await pg.locator("body").inner_text()
         r = q(f"select (select status from orders where id='{OF}')||'/'||(select count(*) from promissory_notes where client_name='Cliente Fila Antiga Fictício')")
         rec("L04 fila antiga: nenhuma gravação direta enviada e o banco não mudou", not diretas and r == "pending/0", f"{diretas[:2]} {r}")
-        rec("L04b tela offline mostra 'Não enviado' com o motivo e sem botão de enviar",
-            txt.count("Não enviado") >= 2 and "não contornar" in txt and "Enviar mesmo assim" not in txt, txt[txt.find("Fila"):][:260].replace("\n", " "))
+        itens = pg.locator("div.rounded-md, div.rounded-lg, div.border").filter(has_text="fila antiga, gravação direta")
+        botoes = await pg.get_by_role("button", name=re.compile("Tentar agora|Enviar mesmo assim")).count()
+        rec("L04b tela offline: aviso próprio, 'Não enviado' com o motivo, sem botão de enviar e sem chamar de duplicado",
+            txt.count("Não enviado") >= 2 and "antigo(s) não enviado(s)" in txt and "não contornar" in txt and botoes == 0 and "podem estar duplicados" not in txt,
+            f"botões={botoes} " + txt[txt.find("Modo Offline"):][:300].replace("\n", " "))
         await pg.screenshot(path=str(S / "l04_fila_bloqueada.png"))
         await c.close()
 
@@ -154,7 +159,7 @@ async def main():
         dlg = pg.get_by_role("dialog")
         if await dlg.locator("#receivedValue").count(): await dlg.locator("#receivedValue").fill("125")
         await pg.screenshot(path=str(S / "l07_portaria_conclui.png"))
-        btn = dlg.get_by_role("button").last
+        btn = dlg.get_by_role("button", name="Confirmar Entrega")
         await asyncio.gather(btn.click(), btn.click(force=True, no_wait_after=True), return_exceptions=True)
         await pg.wait_for_timeout(3500)
         r = q(f"select (select status from orders where id='{OK}')||'/'||(select count(*) from recebimentos where order_id='{OK}')||'/'||(select sum(delta_cheios) from carga_movimentos where order_id='{OK}')||'/'||(select price from orders where id='{OK}')")
@@ -187,6 +192,44 @@ async def main():
         rec("L10 painel: vendas concluídas, recebido hoje, saldo a receber, vencido e divergências separados",
             all(k in txt for k in ["Vendas concluídas", "Recebido hoje", "Saldo a receber", "Saldo vencido", "Divergências"]), txt.replace("\n", " ")[:300])
         if await flow.count(): await flow.screenshot(path=str(S / "l10_painel.png"))
+        await c.close()
+
+        # ── L12–L13 Venda pelo formulário da portaria (caixa) ──
+        c = await b.new_context(viewport={"width": 1280, "height": 1800}); pg = await c.new_page(); ctx_guard(pg)
+        await login(pg, "user.a@ficticio.test")
+        await pg.goto(BASE + "/entrance", wait_until="networkidle"); await pg.wait_for_timeout(2500)
+        NOTA = "Venda registrada na portaria"
+        contar = lambda: q(f"select (select count(*) from orders where notes='{NOTA}')||'/'||(select count(*) from recebimentos)||'/'||(select count(*) from movimentacoes_portaria where tipo='venda')")
+        base = [int(x) for x in contar().split("/")]
+        await pg.get_by_role("button", name=re.compile("Nova Venda")).first.click(); await pg.wait_for_timeout(1500)
+        dlg = pg.get_by_role("dialog")
+        await dlg.locator("#paymentMethod").click(); await pg.get_by_role("option", name="Dinheiro").click()
+        await dlg.locator("#unitPrice").fill("120")
+        perdidas = []
+        await pg.route("**/rest/v1/rpc/venda_portaria", perde_resposta)
+        perdidas.clear()
+        btn = dlg.get_by_role("button", name="Registrar Venda")
+        await asyncio.gather(btn.click(), btn.click(force=True, no_wait_after=True), return_exceptions=True)
+        await pg.wait_for_timeout(3000)
+        t = await toasts(pg); aberto = await dlg.is_visible(); r1 = [int(x) for x in contar().split("/")]
+        rec("L12 caixa: toque duplo + resposta perdida — uma gravação, erro na tela e formulário continua aberto",
+            aberto and "Venda não registrada" in t and r1[0] - base[0] == 1, f"aberto={aberto} {r1} base={base} {t[:120]}")
+        await pg.screenshot(path=str(S / "l12_caixa_resposta_perdida.png"))
+        await pg.unroute("**/rest/v1/rpc/venda_portaria")
+        await btn.click(); await pg.wait_for_timeout(3000)
+        r2 = [int(x) for x in contar().split("/")]
+        rec("L12b caixa: reenvio usa a mesma chave — uma venda, um recebimento, uma baixa; formulário fecha",
+            r2 == [base[0] + 1, base[1] + 1, base[2] + 1] and not await dlg.is_visible(), f"{r2} base={base}")
+        agreg0 = q("select (select count(*) from conta_botijoes)||'/'||(select count(*) from orders)")
+        await pg.get_by_role("button", name=re.compile("Nova Venda")).first.click(); await pg.wait_for_timeout(1500)
+        dlg = pg.get_by_role("dialog")
+        await dlg.get_by_role("tab", name=re.compile("Agregado")).click(); await pg.wait_for_timeout(800)
+        await dlg.get_by_role("combobox").first.click(); await pg.get_by_role("option", name=re.compile("Agregado Fictício")).click()
+        await dlg.get_by_role("button", name="Registrar Venda").click(); await pg.wait_for_timeout(2500)
+        t = await toasts(pg); agreg1 = q("select (select count(*) from conta_botijoes)||'/'||(select count(*) from orders)")
+        rec("L13 venda 'a acertar' para agregado (decisão 13 pendente): recusada, nada gravado nem na ficha do parceiro",
+            agreg1 == agreg0 and "a acertar" in t and await dlg.is_visible(), f"{agreg0} -> {agreg1} {t[:160]}")
+        await pg.screenshot(path=str(S / "l13_agregado_recusado.png"))
         await c.close()
 
         rec("L11 nenhuma chamada saiu para o backend real", len(prod_hits) == 0, prod_hits[:3])

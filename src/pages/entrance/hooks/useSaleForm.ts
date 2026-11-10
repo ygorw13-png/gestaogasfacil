@@ -1,5 +1,7 @@
 
-import { useReducer, useCallback } from "react";
+import { useReducer, useCallback, useRef } from "react";
+import { toast } from "sonner";
+import { G1_ACOES, novaChave } from "@/lib/g1/acoes";
 import type { Sale } from "../types/saleTypes";
 import type { Reseller } from "../../resellers/types";
 import { useRegistrarEntregaConta } from "@/hooks/useContaBotijoes";
@@ -77,9 +79,12 @@ function saleFormReducer(state: SaleFormState, action: SaleFormAction): SaleForm
 }
 
 // Custom hook
-export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open: boolean) => void) => {
+export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<boolean>, onOpenChange: (open: boolean) => void) => {
   const [state, dispatch] = useReducer(saleFormReducer, initialState);
   const registrarEntrega = useRegistrarEntregaConta();
+  // Ações controladas: uma chave por venda (mantida até confirmar) e um envio por vez.
+  const chaveRef = useRef(novaChave("venda-caixa"));
+  const enviandoRef = useRef(false);
   
   // Effect to update price when reseller or product changes
   // Since we're using a reducer, we can handle this in the reducer
@@ -165,6 +170,48 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void, onOpenChange: (open:
       movementQuantity: state.loanGas ? state.quantity : state.movementQuantity,
     };
 
+
+    if (G1_ACOES) {
+      if (enviandoRef.current) return;
+      // Decisão 13 pendente (preço e acerto de agregado/ponto): sem valor no ato não há venda,
+      // dívida nem recebimento consistentes. Nada é gravado, nem a ficha do parceiro.
+      if (isReseller || isPontoAPrazo) {
+        toast.error("Venda não registrada", {
+          description:
+            "Venda para agregado ou ponto de revenda \"a acertar\" ainda não tem regra de preço e acerto. Nada foi gravado.",
+        });
+        return;
+      }
+      const venda = { ...newSale, chave: chaveRef.current };
+      const ponto = isPonto && !isVasilhame && state.selectedClient
+        ? { id: String(state.selectedClient.id), nome: String(state.selectedClient.name).replace(/\s*\(.*\)$/, "") }
+        : null;
+      enviandoRef.current = true;
+      void (async () => {
+        try {
+          const gravou = await onSubmit(venda);
+          if (gravou === false) return; // falhou: formulário continua aberto, mesma chave no reenvio
+          chaveRef.current = novaChave("venda-caixa");
+          // Ficha do ponto (cascos) só depois da venda confirmada.
+          if (ponto) {
+            registrarEntrega.mutate({
+              parceiro_tipo: "ponto",
+              parceiro_id: ponto.id,
+              parceiro_nome: ponto.nome,
+              produto: state.product ? state.product.toUpperCase() : "P13",
+              quantidade: state.quantity,
+              vasilhames_recebidos: state.cylinderMovement === "return" ? state.movementQuantity : 0,
+              observacoes: "Retirada na portaria",
+            });
+          }
+          dispatch({ type: 'RESET_FORM' });
+          onOpenChange(false);
+        } finally {
+          enviandoRef.current = false;
+        }
+      })();
+      return;
+    }
 
     // Agregado: lança na conta de botijões (acerto por quantidade)
     if (isReseller && state.selectedReseller) {

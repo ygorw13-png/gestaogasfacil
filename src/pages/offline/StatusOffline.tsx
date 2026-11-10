@@ -22,6 +22,7 @@ export default function StatusOffline() {
     queue,
     pendingCount,
     conflicts,
+    blocked,
     exceeded,
     errors,
     lastSyncAt,
@@ -40,6 +41,8 @@ export default function StatusOffline() {
       toast.info('Nada para enviar agora ou aguardando a próxima tentativa.');
     } else if (result.conflicts > 0) {
       toast.warning(`${result.conflicts} lançamento(s) precisam da sua confirmação.`);
+    } else if ((result.blocked ?? 0) > 0) {
+      toast.error(`${result.blocked} lançamento(s) antigo(s) não enviado(s): confira e lance de novo pela tela.`);
     } else if (result.failed > 0) {
       toast.warning(`${result.sent} enviado(s), ${result.failed} com erro.`);
     } else {
@@ -120,6 +123,18 @@ export default function StatusOffline() {
           <AlertDescription>
             O sistema encontrou algo parecido já salvo na nuvem. Confirme "Enviar mesmo assim" só se tiver certeza de
             que é um lançamento diferente.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {blocked.length > 0 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>{blocked.length} lançamento(s) antigo(s) não enviado(s)</AlertTitle>
+          <AlertDescription>
+            Foram guardados no aparelho como gravação direta em vendas, estoque ou dívidas. Para não contornar as
+            regras de carga e recebimento, não serão enviados. Confira cada um e lance de novo pela tela certa; depois
+            descarte o item da fila.
           </AlertDescription>
         </Alert>
       )}
@@ -207,7 +222,7 @@ export default function StatusOffline() {
         </CardContent>
       </Card>
 
-      {errors.length > 0 && conflicts.length === 0 && exceeded.length === 0 && (
+      {errors.length > 0 && conflicts.length === 0 && exceeded.length === 0 && blocked.length === 0 && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>{errors.length} lançamento(s) com erro</AlertTitle>
