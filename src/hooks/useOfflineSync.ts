@@ -97,8 +97,8 @@ export function useOfflineSync() {
   return {
     online,
     queue,
-    pendingCount: queue.filter((q) => q.status !== 'conflito').length,
-    conflicts: queue.filter((q) => q.status === 'conflito'),
+    pendingCount: queue.filter((q) => q.status !== 'conflito' && q.status !== 'bloqueado').length,
+    conflicts: queue.filter((q) => q.status === 'conflito' || q.status === 'bloqueado'),
     exceeded: queue.filter((q) => q.status === 'excedido'),
     errors: queue.filter((q) => q.lastError),
     lastSyncAt,

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useCancelarVenda } from "../../hooks/useCancelarVenda";
+import { AVISO_CANCELAMENTO, useCancelarVenda } from "../../hooks/useCancelarVenda";
 
 interface CancelSaleButtonProps {
   saleId: string;
@@ -60,8 +60,7 @@ export function CancelSaleButton({ saleId, client, product, quantity }: CancelSa
           <AlertDialogHeader>
             <AlertDialogTitle>Cancelar venda</AlertDialogTitle>
             <AlertDialogDescription>
-              {client} · {product} · {quantity} un. O estoque da portaria e a ficha do
-              agregado/ponto de revenda serão estornados automaticamente.
+              {client} · {product} · {quantity} un. {AVISO_CANCELAMENTO}
             </AlertDialogDescription>
           </AlertDialogHeader>
 

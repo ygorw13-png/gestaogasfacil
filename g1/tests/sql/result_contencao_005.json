@@ -1,0 +1,112 @@
+[
+ {
+  "cat": "preparo",
+  "test": "três entregas na carga e uma unidade extra para venda na rua",
+  "ok": true
+ },
+ {
+  "cat": "preparo",
+  "test": "carga 4, portaria 4 saídas, nada recebido",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "entregador não aceita entrega (ação pausada)",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "entregador não conclui entrega (ação pausada)",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "entregador não vende na rua (ação pausada)",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "entregador não conclui por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "entregador não grava venda direta",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "entregador não grava promissória direta",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "tentativas recusadas não deixaram rastro",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "portaria conclui pelo entregador atribuído (repetido): 1 recebimento, carga do pedido zerada, portaria sem 2ª baixa",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "conclusão a prazo pela portaria gera a dívida (promissória 125) e nenhum recebimento",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "portaria continua sem concluir por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "forma de pagamento de venda concluída não muda por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "promissória já quitada não nasce por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "isolamento entre empresas continua",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "conta inativa continua sem acesso",
+  "ok": true
+ },
+ {
+  "cat": "contenção",
+  "test": "saldo: carga 2 (4 − 2 entregues), 4 saídas, 1 recebimento, 1 promissória, 0 venda na rua",
+  "ok": true
+ },
+ {
+  "cat": "desfazer",
+  "test": "conclusão atrasada do entregador não conclui de novo o que a portaria concluiu",
+  "ok": true
+ },
+ {
+  "cat": "desfazer",
+  "test": "nem troca a dívida a prazo por dinheiro",
+  "ok": true
+ },
+ {
+  "cat": "desfazer",
+  "test": "venda guardada na fila, enviada duas vezes com a mesma chave",
+  "ok": true
+ },
+ {
+  "cat": "desfazer",
+  "test": "saldo: carga 1, 1 venda na rua, 2 recebimentos, 1 promissória",
+  "ok": true
+ },
+ {
+  "cat": "desfazer",
+  "test": "entregador volta a aceitar pela ação controlada",
+  "ok": true
+ }
+]

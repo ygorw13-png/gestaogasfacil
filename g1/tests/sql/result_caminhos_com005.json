@@ -172,7 +172,7 @@
  {
   "cat": "H5",
   "test": "produto já na carga não troca por gravação direta",
-  "ok": false
+  "ok": true
  },
  {
   "cat": "H6",

@@ -9,8 +9,9 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import { runOrQueue } from "@/lib/offline/queue";
+import { G1_ACOES } from "@/lib/g1/flag";
 
-export const G1_ACOES = import.meta.env.VITE_G1_ACOES === "on";
+export { G1_ACOES };
 
 /** Chave de reenvio: a mesma chave em cada tentativa = um resultado só. */
 export const novaChave = (prefixo: string) => `${prefixo}:${crypto.randomUUID()}`;

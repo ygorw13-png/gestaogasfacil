@@ -9,5 +9,7 @@ rm -rf "$G1DB"
 bash "$ROOT/g1/tests/sql/setup_cluster.sh" com003
 U="postgresql://postgres@127.0.0.1:55450/postgres?sslmode=disable"
 psql "$U" -XAq -v ON_ERROR_STOP=1 -f "$ROOT/g1/tests/sql/fixtures.sql" >/dev/null
-psql "$U" -XAq -1 -v ON_ERROR_STOP=1 -f "$ROOT/g1/candidate/sql/004_integracao_telas.sql" 2>&1 | grep -v NOTICE || true
+# Falha do SQL interrompe o reset (antes o "| grep || true" escondia o erro).
+if ! SAIDA=$(psql "$U" -XAq -1 -v ON_ERROR_STOP=1 -f "$ROOT/g1/candidate/sql/004_integracao_telas.sql" 2>&1); then echo "$SAIDA"; echo "FALHOU: 004_integracao_telas.sql" >&2; exit 1; fi
+echo "$SAIDA" | grep -v NOTICE || true
 echo "004 aplicado"

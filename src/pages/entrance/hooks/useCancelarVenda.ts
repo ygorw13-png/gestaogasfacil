@@ -13,6 +13,14 @@ const produtoFrom = (product?: string | null): PortariaProduto | null => {
   return null;
 };
 
+/**
+ * Texto do aviso nas telas de cancelamento. Com as ações controladas não existe
+ * estorno automático (decisão B pendente): o banco recusa cancelar venda concluída.
+ */
+export const AVISO_CANCELAMENTO = G1_ACOES
+  ? "Só o administrador cancela, com motivo registrado no histórico. Não há estorno automático: venda concluída, com estoque baixado, dívida ou recebimento, é recusada até a regra de estorno ser aprovada."
+  : "O estoque da portaria e a ficha do agregado/ponto de revenda serão estornados automaticamente.";
+
 /** Cancela uma venda: marca o pedido como cancelado e estorna estoque e ficha do parceiro. */
 export function useCancelarVenda() {
   const qc = useQueryClient();
@@ -135,7 +143,7 @@ export function useCancelarVenda() {
       if (upErr) throw upErr;
     },
     onSuccess: () => {
-      toast.success("Venda cancelada e valores estornados");
+      toast.success(G1_ACOES ? "Pedido cancelado, sem estorno automático" : "Venda cancelada e valores estornados");
       qc.invalidateQueries({ queryKey: ["vendas_hoje"] });
       qc.invalidateQueries({ queryKey: ["sales_history"] });
       qc.invalidateQueries({ queryKey: ["conta-botijoes"] });

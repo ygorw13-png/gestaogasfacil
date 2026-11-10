@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useCancelarVenda } from "../../hooks/useCancelarVenda";
+import { AVISO_CANCELAMENTO, useCancelarVenda } from "../../hooks/useCancelarVenda";
 import { EditSaleButton } from "./EditSaleButton";
 
 interface Sale {
@@ -143,8 +143,7 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
             <AlertDialogDescription>
               {alvo && (
                 <>
-                  {alvo.client} · {alvo.product} · {alvo.quantity} un. O estoque da portaria e a
-                  ficha do agregado/ponto de revenda serão estornados automaticamente.
+                  {alvo.client} · {alvo.product} · {alvo.quantity} un. {AVISO_CANCELAMENTO}
                 </>
               )}
             </AlertDialogDescription>

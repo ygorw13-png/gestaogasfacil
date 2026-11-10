@@ -246,19 +246,31 @@ export default function StatusOffline() {
               <div className="flex shrink-0 items-center gap-2">
                 <Badge
                   variant={
-                    op.status === 'conflito' ? 'outline' : op.status === 'excedido' ? 'destructive' : 'secondary'
+                    op.status === 'conflito'
+                      ? 'outline'
+                      : op.status === 'excedido' || op.status === 'bloqueado'
+                        ? 'destructive'
+                        : 'secondary'
                   }
                 >
-                  {op.status === 'conflito' ? 'Confirmar' : op.status === 'excedido' ? 'Excedido' : 'Na fila'}
+                  {op.status === 'conflito'
+                    ? 'Confirmar'
+                    : op.status === 'excedido'
+                      ? 'Excedido'
+                      : op.status === 'bloqueado'
+                        ? 'Não enviado'
+                        : 'Na fila'}
                 </Badge>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => void retry(op.id, op.status === 'conflito')}
-                >
-                  <Send className="mr-1 h-3.5 w-3.5" />
-                  {op.status === 'conflito' ? 'Enviar mesmo assim' : 'Tentar agora'}
-                </Button>
+                {op.status !== 'bloqueado' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void retry(op.id, op.status === 'conflito')}
+                  >
+                    <Send className="mr-1 h-3.5 w-3.5" />
+                    {op.status === 'conflito' ? 'Enviar mesmo assim' : 'Tentar agora'}
+                  </Button>
+                )}
                 <Button variant="ghost" size="icon" onClick={() => discard(op.id)} aria-label="Descartar">
                   <Trash2 className="h-4 w-4" />
                 </Button>

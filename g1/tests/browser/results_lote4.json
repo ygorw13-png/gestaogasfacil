@@ -1,0 +1,72 @@
+[
+ {
+  "test": "L01 servidor gravou mas a resposta se perdeu: tela avisa erro e o formulário continua aberto",
+  "ok": true,
+  "detail": "perdidas=[200] aberto=True gravado=1 Erro ao registrar venda\nTypeError: Failed to fetch"
+ },
+ {
+  "test": "L02 reenvio pela tela: uma venda, um recebimento e uma baixa da portaria (sem duplicar)",
+  "ok": true,
+  "detail": "antes 0/0/0 depois 1/1/1"
+ },
+ {
+  "test": "L03 duas telas atribuem ao mesmo tempo: um entregador só, produto sai da portaria uma vez",
+  "ok": true,
+  "detail": "a0000000-0000-4000-8000-00000000000d/1 saídas +1"
+ },
+ {
+  "test": "L03b a tela que perdeu a disputa avisa (não finge que atribuiu)",
+  "ok": true,
+  "detail": "Pedido atribuído\nPedido atribuído a a0000000-0000-4000-8000-00000000000d || Erro ao atribuir pedido\nPedido não está na fila (assigned). Para trocar o entregador use a reatribuição"
+ },
+ {
+  "test": "L04 fila antiga: nenhuma gravação direta enviada e o banco não mudou",
+  "ok": true,
+  "detail": "[] pending/0"
+ },
+ {
+  "test": "L04b tela offline mostra 'Não enviado' com o motivo e sem botão de enviar",
+  "ok": false,
+  "detail": "a"
+ },
+ {
+  "test": "L05 gravações diretas com sessão real são recusadas e nada muda",
+  "ok": true,
+  "detail": "{'forma de pagamento da venda concluída': 403, 'venda já entregue': 400, 'promissória quitada': 400, 'baixa de venda na portaria': 403, 'entregador se atribui': 200} money/0/0/-"
+ },
+ {
+  "test": "L06 contenção: entregador não consegue aceitar, vê o aviso e o pedido fica atribuído",
+  "ok": true,
+  "detail": "Não foi possível\nAção não permitida para sua conta."
+ },
+ {
+  "test": "L07 contenção: portaria conclui (toque duplo): 1 recebimento, carga do pedido zerada, preço intacto",
+  "ok": false,
+  "detail": "delivering/0/1/125.00 "
+ },
+ {
+  "test": "L08 depois de desfazer: conclusão atrasada do entregador não registra nada de novo",
+  "ok": true,
+  "detail": "1/0"
+ },
+ {
+  "test": "L09 tela de cancelamento não promete estorno automático",
+  "ok": false,
+  "detail": "Cancelar venda  Cliente Balcão Lote4 · P13 · 1 un. O estoque da portaria e a ficha do agregado/ponto de revenda serão estornados automaticamente.  Motivo do cancelamento Voltar Confirmar cancelamento"
+ },
+ {
+  "test": "L09b administrador não cancela venda concluída pela tela: recusa visível, venda intacta",
+  "ok": true,
+  "detail": "delivered/0 Erro ao cancelar venda: Venda concluída não pode ser cancelada nem reaberta até a regra de estorno ser decidida (decisão B) | Hora de fechar o caixa da portaria"
+ },
+ {
+  "test": "L10 painel: vendas concluídas, recebido hoje, saldo a receber, vencido e divergências separados",
+  "ok": true,
+  "detail": "Vendas concluídas 370,00  3 vendas hoje  Recebido hoje 245,00  Conferido 120,00 · com entregador, aguardando acerto 125,00 · títulos 0,00  Saldo a receber 0,00  Promissórias em aberto (saldo restante)  Saldo vencido 0,00  0 promissórias vencidas  Divergências 2  0 com valor diferente (0,00) · 1 conc"
+ },
+ {
+  "test": "L11 nenhuma chamada saiu para o backend real",
+  "ok": true,
+  "detail": "[]"
+ }
+]

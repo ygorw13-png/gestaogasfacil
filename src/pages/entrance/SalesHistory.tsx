@@ -25,6 +25,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { SalesFilters } from "./components/sales/SalesFilters";
 import { CancelSaleButton } from "./components/sales/CancelSaleButton";
+import { G1_ACOES } from "@/lib/g1/acoes";
 import { EditSaleButton } from "./components/sales/EditSaleButton";
 import { DateRange } from "react-day-picker";
 import { useSalesHistory, useEstoqueRetirado, type HistorySale } from "./hooks/useSalesHistory";
@@ -446,7 +447,7 @@ export default function SalesHistory() {
                               />
                             </div>
                           ) : (
-                            <span className="text-xs text-muted-foreground">Estornada</span>
+                            <span className="text-xs text-muted-foreground">{G1_ACOES ? "Cancelada" : "Estornada"}</span>
                           )}
                         </TableCell>
                       </TableRow>

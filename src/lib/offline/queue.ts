@@ -9,9 +9,11 @@
 import { supabase } from '@/integrations/supabase/client';
 import { STORE_META, STORE_QUEUE, idbDelete, idbGet, idbGetAll, idbPut } from './db';
 import { backoffDelayMs, getConfigSync, loadRetryConfig } from './config';
+import { acaoComChave, motivoBloqueioFila } from '@/lib/g1/flag';
 
 export type QueueAction = 'insert' | 'update' | 'delete' | 'rpc';
-export type QueueStatus = 'pendente' | 'excedido' | 'conflito';
+/** bloqueado = gravação direta que contornaria as regras do G1; nunca é enviada. */
+export type QueueStatus = 'pendente' | 'excedido' | 'conflito' | 'bloqueado';
 
 export interface QueuedOperation {
   id: string;
@@ -233,13 +235,24 @@ export async function processQueue(): Promise<SyncResult> {
     const queue = await getQueue();
     const now = Date.now();
     const due = queue.filter(
-      (op) => op.status !== 'conflito' && op.status !== 'excedido' && (op.nextAttemptAt ?? 0) <= now,
+      (op) =>
+        op.status !== 'conflito' &&
+        op.status !== 'excedido' &&
+        op.status !== 'bloqueado' &&
+        (op.nextAttemptAt ?? 0) <= now,
     );
     if (due.length === 0) return { sent: 0, failed: 0, conflicts: 0, skipped: true };
 
     setProgress({ running: true, total: due.length, done: 0, failed: 0 });
 
     for (const op of due) {
+      // Ações controladas ligadas: gravação direta antiga nunca sobe (nem forçada).
+      const bloqueio = motivoBloqueioFila(op);
+      if (bloqueio) {
+        conflicts++;
+        await idbPut(STORE_QUEUE, { ...op, status: 'bloqueado' as QueueStatus, lastError: bloqueio });
+        continue;
+      }
       try {
         await checkConflict(op);
         await runOperation(op);
@@ -260,7 +273,8 @@ export async function processQueue(): Promise<SyncResult> {
         setProgress({ failed });
         const excedeu = attempts >= cfg.maxAttempts && !isNetworkError(message);
 
-        if (excedeu && cfg.onExceed === 'descartar') {
+        // Venda/recebimento com chave nunca some sozinho: fica "excedido" para conferência.
+        if (excedeu && cfg.onExceed === 'descartar' && !acaoComChave(op)) {
           await idbDelete(STORE_QUEUE, op.id);
         } else {
           await idbPut(STORE_QUEUE, {
@@ -342,6 +356,9 @@ export async function runOrQueue(
     op.action === 'insert' && op.payload && !op.payload.id
       ? { ...op, payload: { ...op.payload, id: crypto.randomUUID() } }
       : op;
+
+  const bloqueio = motivoBloqueioFila(prepared);
+  if (bloqueio) return { queued: false, error: bloqueio };
 
   const offline = typeof navigator !== 'undefined' && !navigator.onLine;
   if (!offline) {

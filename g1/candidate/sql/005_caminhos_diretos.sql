@@ -55,8 +55,9 @@ AS $$ DECLARE fechado boolean := OLD.status IN ('completed','delivered','cancell
      OR NEW.has_empty_cylinder IS DISTINCT FROM OLD.has_empty_cylinder OR NEW.delivered_at IS DISTINCT FROM OLD.delivered_at
      OR NEW.origem_venda IS DISTINCT FROM OLD.origem_venda) THEN
     RAISE EXCEPTION 'Venda concluída não muda por gravação direta; correção sem regra de estorno ainda (decisão B)' USING ERRCODE='42501'; END IF;
-  -- produto já com o entregador não troca de produto
-  IF OLD.carga_id IS NOT NULL AND NEW.product IS DISTINCT FROM OLD.product THEN
+  -- produto já transferido para a carga (entrega avulsa) não troca: a carga ficaria com o produto errado
+  IF NEW.product IS DISTINCT FROM OLD.product AND (OLD.carga_id IS NOT NULL
+     OR EXISTS (SELECT 1 FROM public.carga_movimentos WHERE order_id = OLD.id)) THEN
     RAISE EXCEPTION 'Produto já transferido para a carga não muda por gravação direta' USING ERRCODE='42501'; END IF;
   RETURN NEW; END $$;
 
