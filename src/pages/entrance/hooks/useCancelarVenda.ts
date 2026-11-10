@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { G1_ACOES, acao } from "@/lib/g1/acoes";
 import { useRegistrarMovimentacao, type PortariaProduto } from "./usePortariaStock";
 
 const produtoFrom = (product?: string | null): PortariaProduto | null => {
@@ -19,6 +20,13 @@ export function useCancelarVenda() {
 
   return useMutation({
     mutationFn: async ({ orderId, motivo }: { orderId: string; motivo: string }) => {
+      if (G1_ACOES) {
+        // Decisão B pendente: sem estorno automático de estoque, dívida ou
+        // recebimento. O banco só aceita cancelar pedido não concluído, por
+        // administrador, com motivo; venda concluída é recusada com explicação.
+        await acao("admin_corrigir_pedido", { _order_id: orderId, _novo_preco: null, _novo_status: "cancelled", _motivo: motivo });
+        return;
+      }
       const { data: order, error } = await supabase
         .from("orders")
         .select("*")

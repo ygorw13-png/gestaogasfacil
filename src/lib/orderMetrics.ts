@@ -61,3 +61,75 @@ export function summarizeFlow(
     aReceber: open.reduce((s, n) => s + Math.max(0, (Number(n.value) || 0) - (Number(n.paid_amount) || 0)), 0),
   };
 }
+
+export interface RecebimentoLike {
+  valor: number | string;
+  origem: string;
+  order_id?: string | null;
+  acerto_id?: string | null;
+  criado_em: string;
+}
+
+export interface NotaPainel extends NoteLike {
+  due_date?: string | null;
+  order_id?: string | null;
+}
+
+/**
+ * Painel do dia (G1). Separa: vendas concluídas, recebido hoje, saldo a
+ * receber, saldo vencido e divergências.
+ *
+ * Entrega concluída NÃO prova pagamento: "recebido" só soma recebimentos
+ * registrados. Sem esse registro (`recebimentos = null`), o recebido fica
+ * "não comprovado" e a forma combinada aparece apenas como informação.
+ */
+export function summarizePainel(args: {
+  ordersHoje: (OrderLike & { id?: string; payment_method?: string | null })[];
+  notas: NotaPainel[];
+  recebimentosHoje: RecebimentoLike[] | null;
+  divergenciasHoje: { esperado: number | string; recebido: number | string }[] | null;
+  hoje: string; // AAAA-MM-DD local
+}) {
+  const { ordersHoje, notas, recebimentosHoje, divergenciasHoje, hoje } = args;
+  const done = ordersHoje.filter((o) => DONE_STATUSES.includes(String(o.status)));
+  const sum = (l: OrderLike[]) => l.reduce((s, o) => s + orderTotal(o), 0);
+  const abertas = notas.filter((n) => n.status !== "paid" && n.status !== "cancelled");
+  const saldo = (n: NotaPainel) => Math.max(0, (Number(n.value) || 0) - (Number(n.paid_amount) || 0));
+  const vencidas = abertas.filter((n) => n.due_date && n.due_date < hoje);
+
+  let recebido: null | { total: number; conferido: number; aguardandoAcerto: number; deTitulos: number } = null;
+  const semComprovacao: string[] = [];
+  if (recebimentosHoje) {
+    const v = (r: RecebimentoLike) => Number(r.valor) || 0;
+    const tot = recebimentosHoje.reduce((s, r) => s + v(r), 0);
+    // Dinheiro na mão do entregador só é conferido no acerto.
+    const aguardando = recebimentosHoje
+      .filter((r) => (r.origem === "entrega" || r.origem === "venda_rua") && !r.acerto_id)
+      .reduce((s, r) => s + v(r), 0);
+    recebido = {
+      total: tot,
+      conferido: tot - aguardando,
+      aguardandoAcerto: aguardando,
+      deTitulos: recebimentosHoje.filter((r) => r.origem === "promissoria").reduce((s, r) => s + v(r), 0),
+    };
+    const comReceb = new Set(recebimentosHoje.map((r) => r.order_id).filter(Boolean));
+    const comNota = new Set(notas.map((n) => n.order_id).filter(Boolean));
+    done.forEach((o) => {
+      if (o.id && orderTotal(o) > 0 && !comReceb.has(o.id) && !comNota.has(o.id)) semComprovacao.push(o.id);
+    });
+  }
+
+  return {
+    concluidas: { count: done.length, value: sum(done) },
+    formaInformada: sum(done.filter((o) => o.payment_method && o.payment_method !== "promissoria")),
+    recebido,
+    aReceber: abertas.reduce((s, n) => s + saldo(n), 0),
+    vencido: { count: vencidas.length, value: vencidas.reduce((s, n) => s + saldo(n), 0) },
+    divergencias: {
+      valor: divergenciasHoje ? divergenciasHoje.length : null,
+      diferenca: (divergenciasHoje || []).reduce((s, d) => s + (Number(d.esperado) - Number(d.recebido)), 0),
+      semComprovacao: recebimentosHoje ? semComprovacao.length : null,
+      semForma: done.filter((o) => !o.payment_method).length,
+    },
+  };
+}

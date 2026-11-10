@@ -179,3 +179,39 @@ describe("G1 decisão 11 — fluxo do dia (dados fictícios)", () => {
     expect(f.aReceber).toBe(0);
   });
 });
+
+import { summarizePainel } from "@/lib/orderMetrics";
+describe("G1 painel — entrega concluída não prova pagamento (dados fictícios)", () => {
+  const ordersHoje = [
+    { id: "o1", price: 120, status: "delivered", payment_method: "money" },
+    { id: "o2", price: 125, status: "completed", payment_method: "promissoria" },
+    { id: "o3", price: 130, status: "delivered", payment_method: "pix" },
+    { id: "o4", price: 50, status: "pending", payment_method: "pix" },
+  ];
+  const notas = [
+    { value: 125, paid_amount: 0, status: "pending", due_date: "2026-12-10", order_id: "o2" },
+    { value: 100, paid_amount: 40, status: "parcial", due_date: "2026-11-01" },
+  ];
+  it("sem registro de recebimento, recebido fica não comprovado", () => {
+    const p = summarizePainel({ ordersHoje, notas, recebimentosHoje: null, divergenciasHoje: null, hoje: "2026-11-06" });
+    expect(p.concluidas).toEqual({ count: 3, value: 375 });
+    expect(p.recebido).toBeNull();
+    expect(p.divergencias.semComprovacao).toBeNull();
+  });
+  it("recebido soma só recebimentos; dinheiro com entregador aguarda acerto", () => {
+    const p = summarizePainel({
+      ordersHoje, notas, hoje: "2026-11-06", divergenciasHoje: [{ esperado: 120, recebido: 100 }],
+      recebimentosHoje: [{ valor: 100, origem: "entrega", order_id: "o1", acerto_id: null, criado_em: "x" },
+        { valor: 30, origem: "promissoria", acerto_id: null, criado_em: "x" }],
+    });
+    expect(p.recebido).toEqual({ total: 130, conferido: 30, aguardandoAcerto: 100, deTitulos: 30 });
+    expect(p.divergencias.semComprovacao).toBe(1); // o3: concluída, sem recebimento nem promissória
+    expect(p.divergencias.valor).toBe(1);
+    expect(p.divergencias.diferenca).toBe(20);
+  });
+  it("saldo a receber e vencido usam o saldo restante", () => {
+    const p = summarizePainel({ ordersHoje: [], notas, recebimentosHoje: [], divergenciasHoje: [], hoje: "2026-11-06" });
+    expect(p.aReceber).toBe(185);
+    expect(p.vencido).toEqual({ count: 1, value: 60 });
+  });
+});

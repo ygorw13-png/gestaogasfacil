@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { G1_ACOES, acao } from "@/lib/g1/acoes";
 import { useRegistrarMovimentacao, type PortariaProduto } from "./usePortariaStock";
 import { vasilhameDeltas, type TipoVenda } from "@/lib/saleTypes";
 
@@ -29,6 +30,19 @@ export function useEditarVenda() {
 
   return useMutation({
     mutationFn: async (input: EditarVendaInput) => {
+      if (G1_ACOES) {
+        // Decisão A: só administrador muda preço, com motivo e auditoria.
+        // Produto, quantidade e forma mexem em estoque/recebimento: bloqueados até a decisão B.
+        const { data: atual, error: e0 } = await supabase.from("orders").select("product, quantity, payment_method, price").eq("id", input.orderId).maybeSingle();
+        if (e0) throw e0;
+        if (!atual) throw new Error("Venda não encontrada");
+        const a = atual as any;
+        if (a.product !== input.product || Number(a.quantity) !== input.quantity || (a.payment_method || "") !== (input.payment_method || ""))
+          throw new Error("Trocar produto, quantidade ou forma de pagamento de venda lançada ainda não tem regra aprovada (decisão B). Só o valor pode ser corrigido pelo administrador.");
+        if (Number(a.price) === input.price) throw new Error("Nada a corrigir.");
+        await acao("admin_corrigir_pedido", { _order_id: input.orderId, _novo_preco: input.price, _novo_status: null, _motivo: input.motivo });
+        return;
+      }
       const { data: order, error } = await supabase
         .from("orders")
         .select("*")

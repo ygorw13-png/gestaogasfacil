@@ -15,17 +15,31 @@ export function OverviewStats() {
   const variationColor =
     variation > 0 ? "text-green-600" : variation < 0 ? "text-red-600" : "text-muted-foreground";
 
-  const flow = data?.flow;
+  const p = data?.painel;
+  const rec = p?.recebido;
+  const div = p?.divergencias;
+  const nDiv = (div?.valor ?? 0) + (div?.semComprovacao ?? 0) + (div?.semForma ?? 0);
   const flowItems = [
-    { label: "Vendas concluídas", value: formatCurrency(flow?.concluidas.value ?? 0), hint: `${flow?.concluidas.count ?? 0} vendas` },
-    { label: "Pedidos pendentes", value: formatCurrency(flow?.pendentes.value ?? 0), hint: `${flow?.pendentes.count ?? 0} ainda não concluídos` },
-    { label: "Recebido hoje", value: formatCurrency((flow?.recebidoNaVenda ?? 0) + (flow?.recebidoDeTitulos ?? 0)), hint: `Vendas ${formatCurrency(flow?.recebidoNaVenda ?? 0)} · títulos ${formatCurrency(flow?.recebidoDeTitulos ?? 0)}` },
-    { label: "A receber (fiado)", value: formatCurrency(flow?.aReceber ?? 0), hint: `Vendido a prazo hoje: ${formatCurrency(flow?.vendidoAPrazo ?? 0)}` },
+    { label: "Vendas concluídas", value: formatCurrency(p?.concluidas.value ?? 0), hint: `${p?.concluidas.count ?? 0} vendas hoje` },
+    rec
+      ? { label: "Recebido hoje", value: formatCurrency(rec.total), hint: `Conferido ${formatCurrency(rec.conferido)} · com entregador, aguardando acerto ${formatCurrency(rec.aguardandoAcerto)} · títulos ${formatCurrency(rec.deTitulos)}` }
+      : { label: "Recebido hoje", value: "Não comprovado", hint: `Sem registro de recebimento. Forma informada nas vendas: ${formatCurrency(p?.formaInformada ?? 0)} (não é prova de pagamento)` },
+    { label: "Saldo a receber", value: formatCurrency(p?.aReceber ?? 0), hint: "Promissórias em aberto (saldo restante)" },
+    { label: "Saldo vencido", value: formatCurrency(p?.vencido.value ?? 0), hint: `${p?.vencido.count ?? 0} promissórias vencidas` },
+    {
+      label: "Divergências",
+      value: String(nDiv),
+      hint: [
+        div?.valor == null ? "valor recebido: sem registro" : `${div.valor} com valor diferente (${formatCurrency(div.diferenca)})`,
+        div?.semComprovacao == null ? null : `${div.semComprovacao} concluídas sem recebimento nem promissória`,
+        `${div?.semForma ?? 0} sem forma de pagamento`,
+      ].filter(Boolean).join(" · "),
+    },
   ];
 
   return (
     <div className="space-y-4">
-    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4" aria-label="Fluxo do dia">
+    <div className="grid gap-4 grid-cols-2 lg:grid-cols-5" aria-label="Fluxo do dia">
       {flowItems.map((i) => (
         <Card key={i.label}>
           <CardHeader className="p-4 pb-1">
@@ -38,11 +52,6 @@ export function OverviewStats() {
         </Card>
       ))}
     </div>
-    {!isLoading && !isError && (flow?.semFormaRegistrada ?? 0) > 0 && (
-      <p className="text-xs text-muted-foreground">
-        {formatCurrency(flow!.semFormaRegistrada)} em vendas concluídas sem forma de pagamento registrada não entram em "Recebido".
-      </p>
-    )}
     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
       <Card className="border-green-100">
         <CardHeader className="p-4 bg-green-50/50">

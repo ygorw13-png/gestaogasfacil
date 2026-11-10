@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { orderTotal, isCountedOrder, summarizeFlow } from "@/lib/orderMetrics";
+import { orderTotal, isCountedOrder, summarizeFlow, summarizePainel } from "@/lib/orderMetrics";
+import { G1_ACOES } from "@/lib/g1/acoes";
 
 export type Timeframe = "today" | "week" | "month";
 
@@ -49,11 +50,25 @@ export function useDashboardOverview() {
       const [ordersRes, saldoRes, promRes] = await Promise.all([
         db
           .from("orders")
-          .select("price, quantity, status, created_at, payment_method")
+          .select("id, price, quantity, status, created_at, payment_method")
           .gte("created_at", iso(yesterday)),
         db.from("saldo_portaria_atual").select("*").eq("data_operacao", dayKey(new Date())),
-        db.from("promissory_notes").select("value, status, due_date, paid_amount, paid_at"),
+        db.from("promissory_notes").select(G1_ACOES ? "value, status, due_date, paid_amount, paid_at, order_id" : "value, status, due_date, paid_amount, paid_at"),
       ]);
+      // Recebimentos e divergências só existem com as ações controladas (G1).
+      // Sem eles o recebido fica "não comprovado" — nunca deduzido da entrega.
+      let recebimentosHoje: any[] | null = null;
+      let divergenciasHoje: any[] | null = null;
+      if (G1_ACOES) {
+        const [rr, dr] = await Promise.all([
+          db.from("recebimentos").select("valor, origem, order_id, acerto_id, criado_em").gte("criado_em", iso(start)),
+          db.from("divergencias").select("esperado, recebido").gte("criado_em", iso(start)),
+        ]);
+        if (rr.error) throw rr.error;
+        if (dr.error) throw dr.error;
+        recebimentosHoje = rr.data || [];
+        divergenciasHoje = dr.data || [];
+      }
 
       // Propaga falhas: erro de consulta não pode aparecer como "zero"
       if (ordersRes.error) throw ordersRes.error;
@@ -90,8 +105,14 @@ export function useDashboardOverview() {
       const todayOrders = (ordersRes.data || []).filter((o: any) => new Date(o.created_at) >= start);
       const flow = summarizeFlow(todayOrders, promRes.data || [], (d) => new Date(d) >= start);
 
+      const painel = summarizePainel({
+        ordersHoje: todayOrders, notas: promRes.data || [], recebimentosHoje, divergenciasHoje,
+        hoje: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`,
+      });
+
       return {
         flow,
+        painel,
         todaySalesValue,
         variation,
         ordersToday: orders.filter((o: any) => new Date(o.created_at) >= start).length,

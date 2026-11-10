@@ -166,6 +166,7 @@ export function useCashierSales() {
           });
           ['vendas_hoje', 'vendas_por_data', 'relatorio-vasilhames', 'promissory_notes', 'saldo_portaria_atual', 'dashboard'].forEach((k) =>
             queryClient.invalidateQueries({ queryKey: [k] }));
+          toast({ title: 'Venda registrada', description: 'Venda, estoque e recebimento gravados juntos.' });
           return;
         }
         const now = dataVenda
@@ -218,9 +219,13 @@ export function useCashierSales() {
 
       } catch (e) {
         console.error('Erro ao registrar venda no banco:', e);
+        if (G1_ACOES) toast({ title: 'Venda não registrada', description: e instanceof Error ? e.message : 'Tente novamente.', variant: 'destructive' });
       }
     })();
-    
+
+    // Na ação controlada a baixa já acontece junto da venda: não descontar de novo.
+    if (G1_ACOES) { setNewSaleOpen(false); return; }
+
     // Registrar movimentação no estoque da portaria (Supabase)
     if (isVasilhame) {
       // Venda só do casco: sai um vasilhame vazio do estoque

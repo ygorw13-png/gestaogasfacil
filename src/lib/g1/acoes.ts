@@ -35,7 +35,7 @@ export function mensagemAcao(e: unknown): string {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rpc = supabase.rpc.bind(supabase) as (fn: string, args?: Record<string, unknown>) => any;
+const rpc = (fn: string, args?: Record<string, unknown>) => (supabase as any).rpc(fn, args);
 
 /** Chama a ação e devolve o resultado ou lança com mensagem legível. */
 export async function acao<T = unknown>(nome: string, args: Record<string, unknown>): Promise<T> {
