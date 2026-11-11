@@ -217,7 +217,7 @@ DECLARE r public.reversoes%ROWTYPE; ord public.orders%ROWTYPE; o uuid; lk record
 
   ELSE -- devolucao | duplicidade
     IF ord.status NOT IN ('completed','delivered') THEN RAISE EXCEPTION 'Só venda concluída'; END IF;
-    lk := public._reversao_vinculos(o, ord.id);
+    SELECT * INTO lk FROM public._reversao_vinculos(o, ord.id);
     IF lk.n = 0 THEN
       RAISE EXCEPTION 'Venda sem vínculo de estoque (registrada antes das ações controladas): faltam a baixa da portaria ou o consumo da carga ligados a ela. Reversão automática bloqueada';
     END IF;
@@ -380,7 +380,7 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE o uuid := public._ctx_org(); ope boolean := public.is_operador(); ent boolean := public.is_entregador();
   r public.reversoes%ROWTYPE; ord public.orders%ROWTYPE; k record; prev uuid; h text; hoje date := public.data_operacional(); p text;
   ch integer := coalesce(_cheios,0); vr integer := coalesce(_vazios_recolhidos,0); vc integer := coalesce(_vazios_cliente,0);
-  sb integer := coalesce(_substituto,0); emp integer; disponivel boolean; mid uuid; rmid uuid; s integer; nome text := public._meu_nome(); BEGIN
+  sb integer := coalesce(_substituto,0); kid uuid; emp integer; disponivel boolean; mid uuid; rmid uuid; s integer; nome text := public._meu_nome(); BEGIN
   IF NOT (ope OR ent) THEN RAISE EXCEPTION 'Sem permissão' USING ERRCODE='42501'; END IF;
   IF _chave IS NULL THEN RAISE EXCEPTION 'Confirmação exige chave de reenvio'; END IF;
   IF ch < 0 OR vr < 0 OR vc < 0 OR sb < 0 OR ch + vr + vc + sb = 0 THEN RAISE EXCEPTION 'Informe as quantidades conferidas'; END IF;
@@ -394,6 +394,7 @@ DECLARE o uuid := public._ctx_org(); ope boolean := public.is_operador(); ent bo
     SELECT * INTO k FROM public.cargas WHERE id=_carga_id AND organization_id=o FOR UPDATE;
     IF k.id IS NULL OR k.status <> 'aberta' THEN RAISE EXCEPTION 'Carga inexistente ou encerrada'; END IF;
     IF NOT ope AND k.entregador_id IS DISTINCT FROM auth.uid() THEN RAISE EXCEPTION 'Entregador registra só na própria carga' USING ERRCODE='42501'; END IF;
+    kid := k.id;
   END IF;
   SELECT * INTO r FROM public.reversoes WHERE id=_id AND organization_id=o FOR UPDATE;
   IF r.id IS NULL THEN RAISE EXCEPTION 'Reversão não encontrada'; END IF;
@@ -424,24 +425,24 @@ DECLARE o uuid := public._ctx_org(); ope boolean := public.is_operador(); ent bo
           'Devolução recebida (reversão ' || left(r.id::text,8) || ')', hoje);
       ELSE
         INSERT INTO public.carga_movimentos(organization_id, carga_id, tipo, produto, delta_cheios, delta_vazios, delta_emprestados, order_id, registrado_por)
-          VALUES (o, k.id, 'reversao', p, ch, vr, -emp, r.order_id, auth.uid()) RETURNING id INTO mid;
+          VALUES (o, kid, 'reversao', p, ch, vr, -emp, r.order_id, auth.uid()) RETURNING id INTO mid;
       END IF;
     ELSE
       INSERT INTO public.itens_conferencia(organization_id, reversao_id, local, carga_id, produto, cheios, vazios, condicao, registrado_por)
-        VALUES (o, r.id, _local, CASE WHEN _local='carga' THEN k.id END, p, ch, vr,
+        VALUES (o, r.id, _local, kid, p, ch, vr,
           CASE WHEN r.tipo='troca' AND _condicao='intacto' THEN 'problema' ELSE _condicao END, auth.uid()) RETURNING id INTO mid;
       IF emp > 0 THEN  -- o casco emprestado voltou com o cheio, mesmo que o conteúdo vá para conferência
         IF _local = 'portaria' THEN
           PERFORM public.registrar_movimentacao_portaria('reversao', p, 0, 0, -emp, ord.client_id, ord.client_name, r.id, 'Casco emprestado devolvido (reversão)', hoje);
         ELSE
           INSERT INTO public.carga_movimentos(organization_id, carga_id, tipo, produto, delta_cheios, delta_vazios, delta_emprestados, order_id, registrado_por)
-            VALUES (o, k.id, 'reversao', p, 0, 0, -emp, r.order_id, auth.uid());
+            VALUES (o, kid, 'reversao', p, 0, 0, -emp, r.order_id, auth.uid());
         END IF;
       END IF;
     END IF;
     INSERT INTO public.reversao_movimentos(organization_id, reversao_id, tipo, local, carga_id, produto, cheios, vazios, emprestados, condicao,
         observacoes, movimento_id, registrado_por, registrado_por_nome, data_operacao)
-      VALUES (o, r.id, 'recolhimento', _local, CASE WHEN _local='carga' THEN k.id END, p, ch, vr, emp, _condicao, _observacoes, mid, auth.uid(), nome, hoje)
+      VALUES (o, r.id, 'recolhimento', _local, kid, p, ch, vr, emp, _condicao, _observacoes, mid, auth.uid(), nome, hoje)
       RETURNING id INTO rmid;
   END IF;
   -- saída: substituto da troca e vazio devolvido ao cliente, do local real
@@ -455,16 +456,16 @@ DECLARE o uuid := public._ctx_org(); ope boolean := public.is_operador(); ent bo
       mid := public.registrar_movimentacao_portaria('reversao', p, -sb, -vc, 0, ord.client_id, ord.client_name, r.id,
         CASE WHEN sb > 0 THEN 'Substituto entregue (troca ' ELSE 'Vazio devolvido ao cliente (reversão ' END || left(r.id::text,8) || ')', hoje);
     ELSE
-      s := public._saldo_carga(k.id, p);
+      s := public._saldo_carga(kid, p);
       IF s < sb THEN RAISE EXCEPTION 'Carga insuficiente para %: há %, necessário %', p, greatest(s,0), sb; END IF;
-      SELECT coalesce(sum(delta_vazios),0) INTO s FROM public.carga_movimentos WHERE carga_id=k.id AND produto=p;
+      SELECT coalesce(sum(delta_vazios),0) INTO s FROM public.carga_movimentos WHERE carga_id=kid AND produto=p;
       IF s < vc THEN RAISE EXCEPTION 'Vazios insuficientes na carga para %: há %', p, greatest(s,0); END IF;
       INSERT INTO public.carga_movimentos(organization_id, carga_id, tipo, produto, delta_cheios, delta_vazios, order_id, registrado_por)
-        VALUES (o, k.id, 'reversao', p, -sb, -vc, r.order_id, auth.uid()) RETURNING id INTO mid;
+        VALUES (o, kid, 'reversao', p, -sb, -vc, r.order_id, auth.uid()) RETURNING id INTO mid;
     END IF;
     INSERT INTO public.reversao_movimentos(organization_id, reversao_id, tipo, local, carga_id, produto, substituto, vazios_cliente,
         observacoes, movimento_id, registrado_por, registrado_por_nome, data_operacao)
-      VALUES (o, r.id, 'saida', _local, CASE WHEN _local='carga' THEN k.id END, p, sb, vc, _observacoes, mid, auth.uid(), nome, hoje)
+      VALUES (o, r.id, 'saida', _local, kid, p, sb, vc, _observacoes, mid, auth.uid(), nome, hoje)
       RETURNING id INTO mid;
     rmid := coalesce(rmid, mid);
   END IF;
@@ -524,7 +525,7 @@ DECLARE o uuid := public._ctx_org(); e public.reembolsos%ROWTYPE; rc public.rece
 CREATE OR REPLACE FUNCTION public.conferencia_resolver(_id uuid, _resultado text, _motivo text, _chave text) RETURNS uuid
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE o uuid := public._ctx_org(); it public.itens_conferencia%ROWTYPE; prev uuid; hoje date := public.data_operacional();
-  c record; mid uuid; BEGIN
+  cst text; na_carga boolean := false; mid uuid; BEGIN
   IF NOT public.is_operador() THEN RAISE EXCEPTION 'Sem permissão' USING ERRCODE='42501'; END IF;
   IF _resultado IS NULL OR _resultado NOT IN ('liberado','baixado') THEN RAISE EXCEPTION 'Resultado inválido'; END IF;
   IF coalesce(length(btrim(_motivo)),0) < 5 THEN RAISE EXCEPTION 'Descreva a conferência (mínimo 5 letras)'; END IF;
@@ -534,8 +535,8 @@ DECLARE o uuid := public._ctx_org(); it public.itens_conferencia%ROWTYPE; prev u
   IF it.status <> 'em_conferencia' THEN RAISE EXCEPTION 'Item já conferido'; END IF;
   PERFORM set_config('g1.acao_controlada','on',true);
   IF _resultado = 'liberado' THEN
-    IF it.local = 'carga' THEN SELECT * INTO c FROM public.cargas WHERE id=it.carga_id FOR UPDATE; END IF;
-    IF it.local = 'carga' AND c.status = 'aberta' THEN
+    IF it.local = 'carga' THEN SELECT status INTO cst FROM public.cargas WHERE id=it.carga_id FOR UPDATE; na_carga := cst = 'aberta'; END IF;
+    IF na_carga THEN
       INSERT INTO public.carga_movimentos(organization_id, carga_id, tipo, produto, delta_cheios, delta_vazios, registrado_por)
         VALUES (o, it.carga_id, 'reversao', it.produto, it.cheios, it.vazios, auth.uid()) RETURNING id INTO mid;
     ELSE
@@ -547,8 +548,8 @@ DECLARE o uuid := public._ctx_org(); it public.itens_conferencia%ROWTYPE; prev u
     END IF;
     INSERT INTO public.reversao_movimentos(organization_id, reversao_id, tipo, local, carga_id, produto, cheios, vazios, condicao, observacoes,
         movimento_id, registrado_por, registrado_por_nome, data_operacao)
-      VALUES (o, it.reversao_id, 'liberacao_conferencia', CASE WHEN it.local='carga' AND c.status='aberta' THEN 'carga' ELSE 'portaria' END,
-        CASE WHEN it.local='carga' AND c.status='aberta' THEN it.carga_id END, it.produto, it.cheios, it.vazios, 'conferido', btrim(_motivo),
+      VALUES (o, it.reversao_id, 'liberacao_conferencia', CASE WHEN na_carga THEN 'carga' ELSE 'portaria' END,
+        CASE WHEN na_carga THEN it.carga_id END, it.produto, it.cheios, it.vazios, 'conferido', btrim(_motivo),
         mid, auth.uid(), public._meu_nome(), hoje);
   END IF;
   UPDATE public.itens_conferencia SET status=_resultado, motivo_resolucao=btrim(_motivo), resolvido_por=auth.uid(), resolvido_em=now() WHERE id=_id;

@@ -1101,6 +1101,68 @@ export type Database = {
         }
         Relationships: []
       }
+      itens_conferencia: {
+        Row: {
+          carga_id: string | null
+          cheios: number
+          condicao: string
+          criado_em: string
+          id: string
+          local: string
+          motivo_resolucao: string | null
+          organization_id: string
+          produto: string
+          registrado_por: string
+          resolvido_em: string | null
+          resolvido_por: string | null
+          reversao_id: string
+          status: string
+          vazios: number
+        }
+        Insert: {
+          carga_id?: string | null
+          cheios?: number
+          condicao: string
+          criado_em?: string
+          id?: string
+          local: string
+          motivo_resolucao?: string | null
+          organization_id: string
+          produto: string
+          registrado_por: string
+          resolvido_em?: string | null
+          resolvido_por?: string | null
+          reversao_id: string
+          status?: string
+          vazios?: number
+        }
+        Update: {
+          carga_id?: string | null
+          cheios?: number
+          condicao?: string
+          criado_em?: string
+          id?: string
+          local?: string
+          motivo_resolucao?: string | null
+          organization_id?: string
+          produto?: string
+          registrado_por?: string
+          resolvido_em?: string | null
+          resolvido_por?: string | null
+          reversao_id?: string
+          status?: string
+          vazios?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_conferencia_reversao_id_fkey"
+            columns: ["reversao_id"]
+            isOneToOne: false
+            referencedRelation: "reversoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lembretes_manutencao: {
         Row: {
           ativo: boolean
@@ -1507,6 +1569,8 @@ export type Database = {
       recebimentos: {
         Row: {
           acerto_id: string | null
+          anulado_em: string | null
+          anulado_reversao_id: string | null
           cobrador_id: string | null
           criado_em: string
           destino: string | null
@@ -1522,6 +1586,8 @@ export type Database = {
         }
         Insert: {
           acerto_id?: string | null
+          anulado_em?: string | null
+          anulado_reversao_id?: string | null
           cobrador_id?: string | null
           criado_em?: string
           destino?: string | null
@@ -1537,6 +1603,8 @@ export type Database = {
         }
         Update: {
           acerto_id?: string | null
+          anulado_em?: string | null
+          anulado_reversao_id?: string | null
           cobrador_id?: string | null
           criado_em?: string
           destino?: string | null
@@ -1551,6 +1619,77 @@ export type Database = {
           valor?: number
         }
         Relationships: []
+      }
+      reembolsos: {
+        Row: {
+          acerto_id: string | null
+          acerto_original_id: string | null
+          criado_em: string
+          data_operacao: string | null
+          forma: string
+          id: string
+          order_id: string
+          organization_id: string
+          origem: string | null
+          realizado_em: string | null
+          realizado_por: string | null
+          realizado_por_nome: string | null
+          recebimento_id: string
+          referencia: string | null
+          responsavel_id: string | null
+          reversao_id: string
+          status: string
+          valor: number
+        }
+        Insert: {
+          acerto_id?: string | null
+          acerto_original_id?: string | null
+          criado_em?: string
+          data_operacao?: string | null
+          forma: string
+          id?: string
+          order_id: string
+          organization_id: string
+          origem?: string | null
+          realizado_em?: string | null
+          realizado_por?: string | null
+          realizado_por_nome?: string | null
+          recebimento_id: string
+          referencia?: string | null
+          responsavel_id?: string | null
+          reversao_id: string
+          status?: string
+          valor: number
+        }
+        Update: {
+          acerto_id?: string | null
+          acerto_original_id?: string | null
+          criado_em?: string
+          data_operacao?: string | null
+          forma?: string
+          id?: string
+          order_id?: string
+          organization_id?: string
+          origem?: string | null
+          realizado_em?: string | null
+          realizado_por?: string | null
+          realizado_por_nome?: string | null
+          recebimento_id?: string
+          referencia?: string | null
+          responsavel_id?: string | null
+          reversao_id?: string
+          status?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reembolsos_reversao_id_fkey"
+            columns: ["reversao_id"]
+            isOneToOne: false
+            referencedRelation: "reversoes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       requisicoes_estoque: {
         Row: {
@@ -1635,6 +1774,218 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      reversao_movimentos: {
+        Row: {
+          carga_id: string | null
+          cheios: number
+          condicao: string | null
+          criado_em: string
+          data_operacao: string
+          emprestados: number
+          id: string
+          local: string
+          movimento_id: string | null
+          observacoes: string | null
+          organization_id: string
+          produto: string
+          registrado_por: string
+          registrado_por_nome: string | null
+          reversao_id: string
+          substituto: number
+          tipo: string
+          vazios: number
+          vazios_cliente: number
+        }
+        Insert: {
+          carga_id?: string | null
+          cheios?: number
+          condicao?: string | null
+          criado_em?: string
+          data_operacao: string
+          emprestados?: number
+          id?: string
+          local: string
+          movimento_id?: string | null
+          observacoes?: string | null
+          organization_id: string
+          produto: string
+          registrado_por: string
+          registrado_por_nome?: string | null
+          reversao_id: string
+          substituto?: number
+          tipo: string
+          vazios?: number
+          vazios_cliente?: number
+        }
+        Update: {
+          carga_id?: string | null
+          cheios?: number
+          condicao?: string | null
+          criado_em?: string
+          data_operacao?: string
+          emprestados?: number
+          id?: string
+          local?: string
+          movimento_id?: string | null
+          observacoes?: string | null
+          organization_id?: string
+          produto?: string
+          registrado_por?: string
+          registrado_por_nome?: string | null
+          reversao_id?: string
+          substituto?: number
+          tipo?: string
+          vazios?: number
+          vazios_cliente?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reversao_movimentos_reversao_id_fkey"
+            columns: ["reversao_id"]
+            isOneToOne: false
+            referencedRelation: "reversoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reversoes: {
+        Row: {
+          atualizado_em: string
+          concluido_em: string | null
+          confirmado_cheios: number
+          confirmado_emprestados: number
+          confirmado_substituto: number
+          confirmado_vazios_cliente: number
+          confirmado_vazios_recolher: number
+          data_operacao: string | null
+          data_venda: string | null
+          decidido_em: string | null
+          decidido_por: string | null
+          decidido_por_nome: string | null
+          efeitos: Json
+          esperado_cheios: number
+          esperado_emprestados: number
+          esperado_substituto: number
+          esperado_vazios_cliente: number
+          esperado_vazios_recolher: number
+          id: string
+          motivo: string
+          order_id: string
+          order_valida_id: string | null
+          organization_id: string
+          pagamento_duplicado: boolean | null
+          produto: string | null
+          promissoria_cancelada: number
+          quantidade: number | null
+          recusa_motivo: string | null
+          solicitado_em: string
+          solicitado_por: string
+          solicitado_por_nome: string | null
+          status: string
+          status_pedido: string | null
+          tipo: string
+          tipo_venda: string | null
+          valor_reembolsado: number
+          valor_reembolso: number
+          valor_venda: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          concluido_em?: string | null
+          confirmado_cheios?: number
+          confirmado_emprestados?: number
+          confirmado_substituto?: number
+          confirmado_vazios_cliente?: number
+          confirmado_vazios_recolher?: number
+          data_operacao?: string | null
+          data_venda?: string | null
+          decidido_em?: string | null
+          decidido_por?: string | null
+          decidido_por_nome?: string | null
+          efeitos?: Json
+          esperado_cheios?: number
+          esperado_emprestados?: number
+          esperado_substituto?: number
+          esperado_vazios_cliente?: number
+          esperado_vazios_recolher?: number
+          id?: string
+          motivo: string
+          order_id: string
+          order_valida_id?: string | null
+          organization_id: string
+          pagamento_duplicado?: boolean | null
+          produto?: string | null
+          promissoria_cancelada?: number
+          quantidade?: number | null
+          recusa_motivo?: string | null
+          solicitado_em?: string
+          solicitado_por: string
+          solicitado_por_nome?: string | null
+          status?: string
+          status_pedido?: string | null
+          tipo: string
+          tipo_venda?: string | null
+          valor_reembolsado?: number
+          valor_reembolso?: number
+          valor_venda?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          concluido_em?: string | null
+          confirmado_cheios?: number
+          confirmado_emprestados?: number
+          confirmado_substituto?: number
+          confirmado_vazios_cliente?: number
+          confirmado_vazios_recolher?: number
+          data_operacao?: string | null
+          data_venda?: string | null
+          decidido_em?: string | null
+          decidido_por?: string | null
+          decidido_por_nome?: string | null
+          efeitos?: Json
+          esperado_cheios?: number
+          esperado_emprestados?: number
+          esperado_substituto?: number
+          esperado_vazios_cliente?: number
+          esperado_vazios_recolher?: number
+          id?: string
+          motivo?: string
+          order_id?: string
+          order_valida_id?: string | null
+          organization_id?: string
+          pagamento_duplicado?: boolean | null
+          produto?: string | null
+          promissoria_cancelada?: number
+          quantidade?: number | null
+          recusa_motivo?: string | null
+          solicitado_em?: string
+          solicitado_por?: string
+          solicitado_por_nome?: string | null
+          status?: string
+          status_pedido?: string | null
+          tipo?: string
+          tipo_venda?: string | null
+          valor_reembolsado?: number
+          valor_reembolso?: number
+          valor_venda?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reversoes_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reversoes_order_valida_id_fkey"
+            columns: ["order_valida_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rota_pontos: {
         Row: {
@@ -2201,6 +2552,7 @@ export type Database = {
       }
       _forma_chave: { Args: { _f: string }; Returns: string }
       _g1_ctl: { Args: never; Returns: boolean }
+      _meu_nome: { Args: never; Returns: string }
       _produto_chave: { Args: { _p: string }; Returns: string }
       _reenvio:
         | {
@@ -2226,6 +2578,12 @@ export type Database = {
           _valor: number
         }
         Returns: undefined
+      }
+      _reversao_atualizar: { Args: { _id: string }; Returns: string }
+      _reversao_autorizar: { Args: { _id: string }; Returns: string }
+      _reversao_vinculos: {
+        Args: { _order: string; _org: string }
+        Returns: Record<string, unknown>
       }
       _saldo_carga: {
         Args: { _carga: string; _produto: string }
@@ -2327,6 +2685,15 @@ export type Database = {
           _cheios: number
           _entregador_id: string
           _produto: string
+        }
+        Returns: string
+      }
+      conferencia_resolver: {
+        Args: {
+          _chave: string
+          _id: string
+          _motivo: string
+          _resultado: string
         }
         Returns: string
       }
@@ -2437,6 +2804,15 @@ export type Database = {
         }
         Returns: string
       }
+      reembolso_registrar: {
+        Args: {
+          _chave: string
+          _id: string
+          _origem: string
+          _referencia: string
+        }
+        Returns: string
+      }
       registrar_acerto: {
         Args: {
           _chave: string
@@ -2457,6 +2833,41 @@ export type Database = {
           _observacoes?: string
           _produto: string
           _referencia_id?: string
+          _tipo: string
+        }
+        Returns: string
+      }
+      reversao_autorizar: {
+        Args: { _chave: string; _id: string; _pagamento_duplicado: boolean }
+        Returns: string
+      }
+      reversao_confirmar_fisico: {
+        Args: {
+          _carga_id: string
+          _chave: string
+          _cheios: number
+          _condicao: string
+          _id: string
+          _local: string
+          _observacoes: string
+          _substituto: number
+          _vazios_cliente: number
+          _vazios_recolhidos: number
+        }
+        Returns: string
+      }
+      reversao_recusar: {
+        Args: { _chave: string; _id: string; _motivo: string }
+        Returns: string
+      }
+      reversao_solicitar: {
+        Args: {
+          _autorizar: boolean
+          _chave: string
+          _motivo: string
+          _order_id: string
+          _order_valida_id: string
+          _pagamento_duplicado: boolean
           _tipo: string
         }
         Returns: string

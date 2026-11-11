@@ -105,16 +105,18 @@ check("A","admin cancela pedido em aberto sem baixa, com motivo e histórico",
        ("adminA", f"SELECT status||'/'||(SELECT count(*) FROM auditoria_correcoes WHERE registro_id='{P3}') FROM orders WHERE id='{P3}'")]) == "cancelled/1")
 
 # ── B pendente: nada de estorno automático; bloqueia o que deixaria estoque/dívida/recebimento inconsistentes
+def tem(m): return any(t in m for t in ("decisão B", "use a reversão", "diferença de preço", "cancele pela reversão", "devolução da carga"))
 CONCLUIDO = [("userA", atr(P1,E,"true","'kk-test-atr-5'")), ("entregadorA", f"SELECT entregador_aceitar_entrega('{P1}')"),
              ("entregadorA", f"SELECT entregador_concluir_entrega('{P1}','money',2,'kk-test-conc-5')")]
-check("B","admin não cancela venda concluída", "decisão B" in err(CONCLUIDO + [("adminA", f"SELECT admin_corrigir_pedido('{P1}',NULL,'cancelled','Cliente devolveu o botijão')")]))
-check("B","admin não reabre venda concluída", "decisão B" in err(CONCLUIDO + [("adminA", f"SELECT admin_corrigir_pedido('{P1}',NULL,'pending','Reabrir para corrigir')")]))
-check("B","admin não muda preço de venda com recebimento", "decisão B" in err(CONCLUIDO + [("adminA", f"SELECT admin_corrigir_pedido('{P1}',200,NULL,'Desconto posterior')")]))
-check("B","admin não cancela pedido cujo produto já foi para a carga", "devolução da carga" in err(
-  [("userA", atr(P1,E,"true","'kk-test-atr-6'")), ("adminA", f"SELECT admin_corrigir_pedido('{P1}',NULL,'cancelled','Cliente desistiu')")]))
-check("B","venda concluída a prazo: admin não muda preço (dívida já gerada)", "decisão B" in err(
+check("B","admin não cancela venda concluída", tem(err(CONCLUIDO + [("adminA", f"SELECT admin_corrigir_pedido('{P1}',NULL,'cancelled','Cliente devolveu o botijão')")])))
+check("B","admin não reabre venda concluída", tem(err(CONCLUIDO + [("adminA", f"SELECT admin_corrigir_pedido('{P1}',NULL,'pending','Reabrir para corrigir')")])))
+check("B","admin não muda preço de venda com recebimento", tem(err(CONCLUIDO + [("adminA", f"SELECT admin_corrigir_pedido('{P1}',200,NULL,'Desconto posterior')")])))
+check("B","admin não cancela pedido cujo produto já foi para a carga", tem(err(
+  [("userA", atr(P1,E,"true","'kk-test-atr-6'")), ("adminA", f"SELECT admin_corrigir_pedido('{P1}',NULL,'cancelled','Cliente desistiu')")])))
+check("B","venda concluída a prazo: admin não muda preço (dívida já gerada)", tem(err(
   [("userA", "SELECT venda_portaria(NULL,'Devedor Fictício','P13',1,130,'promissoria','recarga',true,NULL,NULL,'kk-test-vp-b') \\gset v_\n"),
-   ("adminA", "SELECT admin_corrigir_pedido(:'v_venda_portaria',100,NULL,'Desconto posterior')")]))
+   ("adminA", "SELECT admin_corrigir_pedido(:'v_venda_portaria',100,NULL,'Desconto posterior')")])))
+# 010: "decisão B"; 011: venda concluída vai para a reversão controlada.
 check("B","nenhuma tentativa bloqueada deixou rastro (estoque, carga, recebimento, auditoria)",
   out([("adminA", f"SELECT (SELECT count(*) FROM auditoria_correcoes WHERE registro_id='{P1}')||'/'||(SELECT count(*) FROM recebimentos WHERE order_id='{P1}')")]) == "0/0")
 

@@ -71,6 +71,13 @@
       "when": 1794405480343,
       "tag": "0009_g1_010_protecoes_lote4",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794408767552,
+      "tag": "0010_g1_011_reversao_controlada",
+      "breakpoints": true
     }
   ]
 }
