@@ -20,13 +20,19 @@ export type Database = {
           conferido_por: string | null
           criado_em: string
           data: string
+          diferenca: number | null
+          dinheiro_entregue: number | null
+          dinheiro_esperado: number | null
           entregador_id: string
           entregador_nome: string | null
           id: string
+          motivo_divergencia: string | null
           observacoes: string | null
           organization_id: string
           qtd_entregas: number
+          qtd_recebimentos: number | null
           qtd_vendas_rua: number
+          registrado_por: string | null
           status: string
           total_cartao: number
           total_dinheiro: number
@@ -38,13 +44,19 @@ export type Database = {
           conferido_por?: string | null
           criado_em?: string
           data?: string
+          diferenca?: number | null
+          dinheiro_entregue?: number | null
+          dinheiro_esperado?: number | null
           entregador_id: string
           entregador_nome?: string | null
           id?: string
+          motivo_divergencia?: string | null
           observacoes?: string | null
           organization_id?: string
           qtd_entregas?: number
+          qtd_recebimentos?: number | null
           qtd_vendas_rua?: number
+          registrado_por?: string | null
           status?: string
           total_cartao?: number
           total_dinheiro?: number
@@ -56,18 +68,173 @@ export type Database = {
           conferido_por?: string | null
           criado_em?: string
           data?: string
+          diferenca?: number | null
+          dinheiro_entregue?: number | null
+          dinheiro_esperado?: number | null
           entregador_id?: string
           entregador_nome?: string | null
           id?: string
+          motivo_divergencia?: string | null
           observacoes?: string | null
           organization_id?: string
           qtd_entregas?: number
+          qtd_recebimentos?: number | null
           qtd_vendas_rua?: number
+          registrado_por?: string | null
           status?: string
           total_cartao?: number
           total_dinheiro?: number
           total_geral?: number
           total_pix?: number
+        }
+        Relationships: []
+      }
+      acoes_idempotentes: {
+        Row: {
+          acao: string
+          chave: string
+          conteudo: string | null
+          criado_em: string
+          organization_id: string
+          resultado: string | null
+          usuario: string
+        }
+        Insert: {
+          acao: string
+          chave: string
+          conteudo?: string | null
+          criado_em?: string
+          organization_id: string
+          resultado?: string | null
+          usuario: string
+        }
+        Update: {
+          acao?: string
+          chave?: string
+          conteudo?: string | null
+          criado_em?: string
+          organization_id?: string
+          resultado?: string | null
+          usuario?: string
+        }
+        Relationships: []
+      }
+      auditoria_correcoes: {
+        Row: {
+          antes: Json
+          depois: Json
+          feito_em: string
+          feito_por: string
+          id: string
+          motivo: string
+          organization_id: string
+          registro_id: string
+          tabela: string
+        }
+        Insert: {
+          antes: Json
+          depois: Json
+          feito_em?: string
+          feito_por: string
+          id?: string
+          motivo: string
+          organization_id: string
+          registro_id: string
+          tabela: string
+        }
+        Update: {
+          antes?: Json
+          depois?: Json
+          feito_em?: string
+          feito_por?: string
+          id?: string
+          motivo?: string
+          organization_id?: string
+          registro_id?: string
+          tabela?: string
+        }
+        Relationships: []
+      }
+      carga_movimentos: {
+        Row: {
+          carga_id: string
+          criado_em: string
+          delta_cheios: number
+          delta_emprestados: number
+          delta_vazios: number
+          id: string
+          order_id: string | null
+          organization_id: string
+          produto: string
+          registrado_por: string
+          tipo: string
+        }
+        Insert: {
+          carga_id: string
+          criado_em?: string
+          delta_cheios?: number
+          delta_emprestados?: number
+          delta_vazios?: number
+          id?: string
+          order_id?: string | null
+          organization_id: string
+          produto: string
+          registrado_por: string
+          tipo: string
+        }
+        Update: {
+          carga_id?: string
+          criado_em?: string
+          delta_cheios?: number
+          delta_emprestados?: number
+          delta_vazios?: number
+          id?: string
+          order_id?: string | null
+          organization_id?: string
+          produto?: string
+          registrado_por?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carga_movimentos_carga_id_fkey"
+            columns: ["carga_id"]
+            isOneToOne: false
+            referencedRelation: "cargas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cargas: {
+        Row: {
+          criado_em: string
+          criado_por: string
+          data: string
+          encerrado_em: string | null
+          entregador_id: string
+          id: string
+          organization_id: string
+          status: string
+        }
+        Insert: {
+          criado_em?: string
+          criado_por: string
+          data?: string
+          encerrado_em?: string | null
+          entregador_id: string
+          id?: string
+          organization_id: string
+          status?: string
+        }
+        Update: {
+          criado_em?: string
+          criado_por?: string
+          data?: string
+          encerrado_em?: string | null
+          entregador_id?: string
+          id?: string
+          organization_id?: string
+          status?: string
         }
         Relationships: []
       }
@@ -799,6 +966,39 @@ export type Database = {
           },
         ]
       }
+      divergencias: {
+        Row: {
+          criado_em: string
+          esperado: number
+          id: string
+          motivo: string
+          order_id: string
+          organization_id: string
+          recebido: number
+          registrado_por: string
+        }
+        Insert: {
+          criado_em?: string
+          esperado: number
+          id?: string
+          motivo: string
+          order_id: string
+          organization_id: string
+          recebido: number
+          registrado_por: string
+        }
+        Update: {
+          criado_em?: string
+          esperado?: number
+          id?: string
+          motivo?: string
+          order_id?: string
+          organization_id?: string
+          recebido?: number
+          registrado_por?: string
+        }
+        Relationships: []
+      }
       entregador_localizacoes: {
         Row: {
           accuracy: number | null
@@ -1011,12 +1211,14 @@ export type Database = {
           accepted_at: string | null
           address: Json | null
           assigned_at: string | null
+          carga_id: string | null
           client_id: string | null
           client_name: string
           client_phone: string | null
           created_at: string
           delivered_at: string | null
           delivery_person: string | null
+          delivery_person_id: string | null
           has_empty_cylinder: boolean | null
           id: string
           is_complete_package: boolean | null
@@ -1040,12 +1242,14 @@ export type Database = {
           accepted_at?: string | null
           address?: Json | null
           assigned_at?: string | null
+          carga_id?: string | null
           client_id?: string | null
           client_name: string
           client_phone?: string | null
           created_at?: string
           delivered_at?: string | null
           delivery_person?: string | null
+          delivery_person_id?: string | null
           has_empty_cylinder?: boolean | null
           id?: string
           is_complete_package?: boolean | null
@@ -1069,12 +1273,14 @@ export type Database = {
           accepted_at?: string | null
           address?: Json | null
           assigned_at?: string | null
+          carga_id?: string | null
           client_id?: string | null
           client_name?: string
           client_phone?: string | null
           created_at?: string
           delivered_at?: string | null
           delivery_person?: string | null
+          delivery_person_id?: string | null
           has_empty_cylinder?: boolean | null
           id?: string
           is_complete_package?: boolean | null
@@ -1210,11 +1416,13 @@ export type Database = {
           assigned_to: string | null
           client_id: string | null
           client_name: string
+          cobrador_id: string | null
           created_at: string
           created_by: string | null
           due_date: string
           id: string
           notes: string | null
+          order_id: string | null
           organization_id: string
           paid_amount: number | null
           paid_at: string | null
@@ -1227,11 +1435,13 @@ export type Database = {
           assigned_to?: string | null
           client_id?: string | null
           client_name: string
+          cobrador_id?: string | null
           created_at?: string
           created_by?: string | null
           due_date: string
           id?: string
           notes?: string | null
+          order_id?: string | null
           organization_id?: string
           paid_amount?: number | null
           paid_at?: string | null
@@ -1244,11 +1454,13 @@ export type Database = {
           assigned_to?: string | null
           client_id?: string | null
           client_name?: string
+          cobrador_id?: string | null
           created_at?: string
           created_by?: string | null
           due_date?: string
           id?: string
           notes?: string | null
+          order_id?: string | null
           organization_id?: string
           paid_amount?: number | null
           paid_at?: string | null
@@ -1289,6 +1501,54 @@ export type Database = {
           p256dh?: string
           user_agent?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      recebimentos: {
+        Row: {
+          acerto_id: string | null
+          cobrador_id: string | null
+          criado_em: string
+          destino: string | null
+          forma: string
+          id: string
+          order_id: string | null
+          organization_id: string
+          origem: string
+          promissory_id: string | null
+          recebido_por: string
+          responsavel_id: string | null
+          valor: number
+        }
+        Insert: {
+          acerto_id?: string | null
+          cobrador_id?: string | null
+          criado_em?: string
+          destino?: string | null
+          forma: string
+          id?: string
+          order_id?: string | null
+          organization_id: string
+          origem: string
+          promissory_id?: string | null
+          recebido_por: string
+          responsavel_id?: string | null
+          valor: number
+        }
+        Update: {
+          acerto_id?: string | null
+          cobrador_id?: string | null
+          criado_em?: string
+          destino?: string | null
+          forma?: string
+          id?: string
+          order_id?: string | null
+          organization_id?: string
+          origem?: string
+          promissory_id?: string | null
+          recebido_por?: string
+          responsavel_id?: string | null
+          valor?: number
         }
         Relationships: []
       }
@@ -1906,7 +2166,227 @@ export type Database = {
       }
     }
     Functions: {
+      _carga_alvo: { Args: { _entregador_id: string }; Returns: string }
+      _cobrador_valido: {
+        Args: { _cobrador: string; _org: string }
+        Returns: string
+      }
+      _consumir_carga: {
+        Args: {
+          _emprestados: number
+          _entregador: string
+          _order: string
+          _org: string
+          _produto: string
+          _qtd: number
+          _tipo: string
+          _vazios: number
+        }
+        Returns: string
+      }
+      _consumir_vazios_carga: {
+        Args: {
+          _entregador: string
+          _order: string
+          _org: string
+          _produto: string
+          _qtd: number
+        }
+        Returns: string
+      }
+      _ctx_org: { Args: never; Returns: string }
+      _destino_efetivo: {
+        Args: { _destino: string; _forma: string; _origem: string }
+        Returns: string
+      }
+      _forma_chave: { Args: { _f: string }; Returns: string }
+      _produto_chave: { Args: { _p: string }; Returns: string }
+      _reenvio:
+        | {
+            Args: { _acao: string; _chave: string; _org: string }
+            Returns: string
+          }
+        | {
+            Args: { _acao: string; _chave: string; _hash: string; _org: string }
+            Returns: string
+          }
+      _reenvio_fim: {
+        Args: { _chave: string; _org: string; _res: string }
+        Returns: undefined
+      }
+      _registrar_pagamento: {
+        Args: {
+          _cliente: string
+          _cliente_nome: string
+          _forma: string
+          _order: string
+          _org: string
+          _origem: string
+          _valor: number
+        }
+        Returns: undefined
+      }
+      _saldo_carga: {
+        Args: { _carga: string; _produto: string }
+        Returns: number
+      }
+      _saldo_portaria_cheios: {
+        Args: { _data: string; _org: string; _produto: string }
+        Returns: number
+      }
+      _tipo_venda_chave: { Args: { _t: string }; Returns: string }
+      _transferir_para_carga: {
+        Args: {
+          _cheios: number
+          _entregador: string
+          _org: string
+          _produto: string
+          _ref_order: string
+        }
+        Returns: string
+      }
+      _travar_portaria: {
+        Args: { _data: string; _org: string; _produto: string }
+        Returns: undefined
+      }
+      acerto_previa: {
+        Args: { _entregador_id: string }
+        Returns: {
+          categoria: string
+          forma: string
+          qtd: number
+          total: number
+        }[]
+      }
+      admin_corrigir_pedido: {
+        Args: {
+          _motivo: string
+          _novo_preco: number
+          _novo_status: string
+          _order_id: string
+        }
+        Returns: string
+      }
+      atribuir_cobrador: {
+        Args: { _cobrador_id: string; _id: string }
+        Returns: string
+      }
+      atribuir_entrega: {
+        Args: {
+          _chave?: string
+          _entregador_id: string
+          _order_id: string
+          _retirar_da_portaria?: boolean
+        }
+        Returns: string
+      }
+      carga_devolver: {
+        Args: {
+          _carga_id: string
+          _chave: string
+          _cheios: number
+          _produto: string
+          _vazios: number
+        }
+        Returns: string
+      }
+      carga_historico: {
+        Args: { _dias?: number; _entregador_id?: string }
+        Returns: {
+          carga_id: string
+          cliente: string
+          criado_em: string
+          delta_cheios: number
+          delta_vazios: number
+          entregador_id: string
+          entregador_nome: string
+          id: string
+          order_id: string
+          produto: string
+          registrado_por_nome: string
+          tipo: string
+        }[]
+      }
+      carga_resumo: {
+        Args: { _entregador_id?: string }
+        Returns: {
+          aberta_em: string
+          carga_id: string
+          cascos_entregues: number
+          cheios: number
+          entregador_id: string
+          entregador_nome: string
+          produto: string
+          vazios: number
+        }[]
+      }
+      carga_saida: {
+        Args: {
+          _chave: string
+          _cheios: number
+          _entregador_id: string
+          _produto: string
+        }
+        Returns: string
+      }
+      criar_promissoria_manual: {
+        Args: {
+          _chave: string
+          _cliente_id: string
+          _cliente_nome: string
+          _cobrador_id: string
+          _observacoes: string
+          _valor: number
+          _vencimento: string
+        }
+        Returns: string
+      }
       current_profile_role: { Args: never; Returns: string }
+      data_operacional: { Args: never; Returns: string }
+      dinheiro_aguardando_acerto: {
+        Args: never
+        Returns: {
+          destino: string
+          qtd: number
+          responsavel_id: string
+          responsavel_nome: string
+          total: number
+        }[]
+      }
+      entregador_aceitar_entrega: {
+        Args: { _order_id: string }
+        Returns: undefined
+      }
+      entregador_concluir_entrega: {
+        Args: {
+          _chave: string
+          _forma: string
+          _order_id: string
+          _vasilhames_recebidos: number
+        }
+        Returns: string
+      }
+      entregador_recusar_entrega: {
+        Args: { _motivo: string; _order_id: string }
+        Returns: undefined
+      }
+      entregador_venda_rua: {
+        Args: {
+          _chave: string
+          _cliente_fone: string
+          _cliente_id: string
+          _cliente_nome: string
+          _forma: string
+          _observacoes: string
+          _produto: string
+          _quantidade: number
+          _tipo_venda: string
+          _valor: number
+          _vasilhames_entregues: number
+          _vasilhames_recebidos: number
+        }
+        Returns: string
+      }
       g0_recover_own_profile: { Args: never; Returns: undefined }
       get_my_org: { Args: never; Returns: string }
       has_role: {
@@ -1915,6 +2395,55 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      is_admin: { Args: never; Returns: boolean }
+      is_entregador: { Args: never; Returns: boolean }
+      is_operador: { Args: never; Returns: boolean }
+      listar_cobradores: {
+        Args: never
+        Returns: {
+          id: string
+          nome: string
+          situacao: string
+        }[]
+      }
+      operador_concluir_entrega: {
+        Args: {
+          _chave: string
+          _forma: string
+          _motivo_divergencia: string
+          _order_id: string
+          _valor_recebido: number
+          _vasilhames_recebidos: number
+        }
+        Returns: string
+      }
+      reatribuir_entrega: {
+        Args: {
+          _motivo: string
+          _novo_entregador_id: string
+          _order_id: string
+        }
+        Returns: string
+      }
+      receber_promissoria: {
+        Args: {
+          _chave: string
+          _cobrador_id?: string
+          _forma: string
+          _id: string
+          _valor: number
+        }
+        Returns: string
+      }
+      registrar_acerto: {
+        Args: {
+          _chave: string
+          _dinheiro_entregue: number
+          _entregador_id: string
+          _motivo: string
+        }
+        Returns: string
       }
       registrar_movimentacao_portaria: {
         Args: {
@@ -1931,12 +2460,39 @@ export type Database = {
         }
         Returns: string
       }
+      saldo_transferivel_portaria: {
+        Args: { _produto: string }
+        Returns: {
+          abertura_registrada: boolean
+          cheios: number
+          data_operacao: string
+          produto: string
+        }[]
+      }
       set_user_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: undefined
+      }
+      venda_portaria: {
+        Args: {
+          _chave: string
+          _cliente_id: string
+          _cliente_nome: string
+          _comodato?: boolean
+          _devolveu_vazio: boolean
+          _forma: string
+          _observacoes: string
+          _produto: string
+          _quantidade: number
+          _reseller_id: string
+          _tipo_venda: string
+          _valor: number
+          _vasilhames_recebidos?: number
+        }
+        Returns: string
       }
     }
     Enums: {
