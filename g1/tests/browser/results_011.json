@@ -1,6 +1,6 @@
 {
  "total": 10,
- "ok": 9,
+ "ok": 10,
  "results": [
   {
    "test": "B01 devolução parcial aparece indisponível, com explicação",
@@ -35,7 +35,7 @@
   {
    "test": "B07 a venda original mostra o andamento da reversão",
    "ok": true,
-   "detail": "11/11/2026\t17:06\t Cliente Prazo 011 Devolução integral: Produto aguardando retorno \tPortaria\tP13\t1\tPromissória\tR$ 125,00\t Editar"
+   "detail": "11/11/2026\t17:07\t Cliente Prazo 011 Devolução integral: Produto aguardando retorno \tPortaria\tP13\t1\tPromissória\tR$ 125,00\t Editar"
   },
   {
    "test": "B08 admin recusa: sem estoque, sem reembolso",
@@ -44,7 +44,7 @@
   },
   {
    "test": "B09 painel mostra reversões separadas das vendas (a reembolsar R$ 40,00)",
-   "ok": false,
+   "ok": true,
    "detail": ""
   },
   {

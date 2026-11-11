@@ -1,5 +1,11 @@
 # GásFácil — Handoff para continuidade
 
+> **IMPLANTADO — 11/11/2026 (~17h UTC): decisão B (reversão controlada, candidato 011).** Aplicado no banco do Cloud
+> como `drizzle/migrations/0010_g1_011_reversao_controlada.sql` (idêntico ao candidato; 15 funções com o mesmo conteúdo do
+> laboratório). Telas: botão "Reverter" no histórico/vendas, página "Reversões e Reembolsos", recolhimento na carga do
+> entregador, resumo separado no painel. Devolução parcial, diferença de preço na troca e decisão 13 continuam fora.
+> Registro, testes e limites: `docs/IMPLANTACAO_G1_011.md`.
+
 > **IMPLANTADO — 11/11/2026 (14h UTC):** G0.1 001 + G1 002–010 aplicados no banco do Cloud; funções G0.1
 > publicadas; frontend com ações controladas ligadas por padrão publicado em gestaogasfacil.lovable.app.
 > Registro e verificações: `docs/IMPLANTACAO_G1_010.md`. Os avisos "nada aplicado/publicado" abaixo são históricos.

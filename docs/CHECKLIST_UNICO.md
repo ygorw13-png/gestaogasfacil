@@ -15,6 +15,21 @@ Colunas:
 - **Testado**: testes executados nesta sessão em PostgreSQL 16 descartável (127.0.0.1, dados fictícios), ou pelo adaptador do Node para módulos puros. Teste preparado, mas não executado, aparece como "preparado".
 - **Publicado**: em produção. **Nada desta branch foi publicado nem aplicado ao banco real.**
 
+## Atualização G1 011 — decisão B, 11/11/2026
+| Item | Implementado | Testado | Publicado |
+|---|---|---|---|
+| Cancelamento de pedido (sem saída / produto na carga / pagamento antecipado → reembolso pendente) | sim | SQL 67/67 | Cloud aplicado; frontend publicado |
+| Devolução integral (cheios, vazios ao cliente, comodato, só vasilhame) | sim | SQL + navegador isolado 10/10 | idem |
+| Troca integral por problema (recolhido em conferência, substituto do local real) | sim | SQL | idem |
+| Duplicidade (com e sem pagamento duplicado; dia encerrado não reescrito) | sim | SQL | idem |
+| Reembolso: dinheiro (caixa/entregador/cobrador, já acertado → caixa), PIX/cartão com referência | sim | SQL + navegador | idem |
+| Promissória parcialmente paga (R$125, R$40 pagos → cancela R$85, R$40 a reembolsar) | sim | SQL + navegador | idem |
+| Toque duplo e concorrência; bloqueios operador/entregador/outra empresa | sim | SQL | idem |
+| Devolução parcial | **bloqueada com explicação** | SQL + navegador | — |
+| Diferença de preço na troca, decisão 13 | fora desta entrega | — | — |
+Regressões após 011: caminhos 43/43, acerto 43/43, regressão 14/14, carga 31/31, portaria 38/38, integração 40/40 (mensagens B atualizadas),
+permissões 69/69, segurança 26/27 (mesma diferença já existente no 010). Detalhes: `docs/IMPLANTACAO_G1_011.md`.
+
 ## Atualização G1 009 — 10/11/2026
 
 Candidato 009 bloqueia venda sem abertura/saldo (cheios e vazios): PostgreSQL 16.4 **14/14**, incluindo

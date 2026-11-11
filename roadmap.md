@@ -41,11 +41,11 @@ Validação da Etapa 1 (concluída, 26/26 + 11/11) + candidato de segurança 002
 - [x] Funções G0.1 no Cloud + 001; gateway hospedado verificado (15/15)
 - [x] Aplicar 002–010 no Cloud (idênticos aos testados; estrutura igual ao banco de testes; dados reais intactos)
 - [x] Ligar ações controladas por padrão e publicar
-- [ ] Pendente: decisão B (estorno), decisão 13 (agregado/ponto), destino PIX/cartão; criação de colaborador desligada (503); coordenador de sessão G0.1 não integrado
+- [ ] Pendente: decisão 13 (agregado/ponto), destino PIX/cartão; criação de colaborador desligada (503); coordenador de sessão G0.1 não integrado
 
 ## Decisão B — reversão controlada (11/11)
-- [ ] SQL candidato 011 (cancelamento, devolução integral, troca por problema, duplicidade; parcial bloqueada)
-- [ ] Suíte de testes 011 no banco descartável (casos da seção 10 do pedido)
-- [ ] Telas: solicitar/autorizar, confirmar recolhimento, reembolsos, conferência, painel separado
-- [ ] Navegador isolado dos fluxos novos
-- [ ] Cópia de segurança atual, aplicar 011 no Cloud, conferir dados, publicar e confirmar versão
+- [x] SQL candidato 011 (cancelamento, devolução integral, troca por problema, duplicidade; parcial bloqueada)
+- [x] Suíte de testes 011 no banco descartável (casos da seção 10 do pedido)
+- [x] Telas: solicitar/autorizar, confirmar recolhimento, reembolsos, conferência, painel separado
+- [x] Navegador isolado dos fluxos novos
+- [x] Cópia de segurança atual, aplicar 011 no Cloud, conferir dados, publicar e confirmar versão

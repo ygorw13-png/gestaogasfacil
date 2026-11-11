@@ -130,7 +130,7 @@ async def main():
         rec("B08 admin recusa: sem estoque, sem reembolso", r == "recusada/0" and saldo() == s0, f"{r} saldo={saldo()}")
         await pg.screenshot(path=str(S / "b08_recusa.png"))
         await pg.goto(BASE + "/dashboard", wait_until="networkidle"); await pg.wait_for_timeout(4000)
-        painel = await pg.locator("body").inner_text()
+        painel = (await pg.locator("body").inner_text()).replace("\u00a0", " ")
         await pg.screenshot(path=str(S / "b09_painel.png"))
         rec("B09 painel mostra reversões separadas das vendas (a reembolsar R$ 40,00)", "Reversões (separadas das vendas)" in painel and "R$ 40,00" in painel, "")
         rec("B10 nenhuma chamada a servidores reais", not prod_hits, prod_hits[:3])
