@@ -1,0 +1,56 @@
+{
+ "total": 10,
+ "ok": 10,
+ "results": [
+  {
+   "test": "E01 abertura pela tela registra o saldo do dia (P13 10 cheios / 5 vazios)",
+   "ok": true,
+   "detail": "saldo=10/5"
+  },
+  {
+   "test": "E02a venda gravada com resposta perdida: tela mantém o formulário aberto",
+   "ok": true,
+   "detail": "perdidas=[200] aberto=True gravado=1"
+  },
+  {
+   "test": "E02b reenvio: 1 venda, 1 recebimento no caixa, 1 baixa; saldo P13 9/6",
+   "ok": true,
+   "detail": "venda/receb/baixa=1/1/1 saldo=9/6"
+  },
+  {
+   "test": "E03 venda a prazo: 1 venda de 250, 1 promissória pendente, 0 recebimento; saldo P13 8/7",
+   "ok": true,
+   "detail": "venda/prom/receb=1/1/0 saldo=8/7"
+  },
+  {
+   "test": "E04 transferência: carga do entregador 3, portaria P13 5/7 (sem venda)",
+   "ok": true,
+   "detail": "carga=3 saldo=5/7 Transferido para a carga\n3× Gás P13 com Entregador A. A portaria baixou 3."
+  },
+  {
+   "test": "E05 pedido atribuído ao entregador pelo ID; portaria e carga inalteradas",
+   "ok": true,
+   "detail": "a0000000-0000-4000-8000-00000000000d/assigned saldo=5/7 carga=3"
+  },
+  {
+   "test": "E06 conclusão: carga 3→2, dinheiro com o entregador (1 recebimento), portaria inalterada",
+   "ok": true,
+   "detail": "status/receb=completed/1 carga=2 saldo=5/7 Entrega confirmada!\nJá consta no painel da portaria."
+  },
+  {
+   "test": "E07 recebimento parcial 100 de 250 com reenvio: 1 recebimento só, saldo 150 em aberto",
+   "ok": true,
+   "detail": "perdidas=[200] aberto=True pago/status/receb=100.00/parcial/1"
+  },
+  {
+   "test": "E08 cancelar venda concluída (admin) é recusado e nada muda",
+   "ok": true,
+   "detail": "http=403 {\"code\":\"42501\",\"details\":null,\"hint\":null,\"message\":\"Venda concluída não pode ser cancelada nem reaberta até a regra de antes=delivered/1/1 depois=delivered/1/1"
+  },
+  {
+   "test": "E09 nenhuma requisição saiu para o backend real",
+   "ok": true,
+   "detail": "[]"
+  }
+ ]
+}

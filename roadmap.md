@@ -33,3 +33,11 @@ Validação da Etapa 1 (concluída, 26/26 + 11/11) + candidato de segurança 002
 - [x] Painel: pendentes / concluídas / recebido / a receber
 - [x] Telas chamando as ações controladas (lote 3, chave VITE_G1_ACOES; 40/40 SQL, 14/14 navegador)
 - [ ] Bloqueado: decisão B (estorno); gateway hospedado G0.1; aprovação de produção
+
+## Implantação G1 010 (11/11) — colocar em uso
+- [x] Integrar pacote 010 ao projeto (telas 009 + fila; avisos de cancelamento do lote 4 mantidos; 005 antigo marcado SUPERADO)
+- [x] Banco descartável 001–010: suítes SQL; navegador fluxos essenciais 10/10
+- [x] Cópia de segurança das tabelas restaurada e conferida; ensaio 001–010 sobre a cópia sem alterar dados
+- [ ] Funções G0.1 no Cloud + 001; gateway hospedado verificado
+- [ ] Aplicar 002–010 no Cloud e conferir dados
+- [ ] Ligar VITE_G1_ACOES e publicar

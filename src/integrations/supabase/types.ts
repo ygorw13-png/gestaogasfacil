@@ -1907,6 +1907,7 @@ export type Database = {
     }
     Functions: {
       current_profile_role: { Args: never; Returns: string }
+      g0_recover_own_profile: { Args: never; Returns: undefined }
       get_my_org: { Args: never; Returns: string }
       has_role: {
         Args: {

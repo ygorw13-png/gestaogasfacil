@@ -110,8 +110,8 @@ async def main():
         c2 = await b.new_context(viewport={"width": 430, "height": 1400}); pe = await c2.new_page(); guard(pe)
         await login(pe, "entregador.a@ficticio.test")
         await pe.goto(BASE + "/entregador/entregas", wait_until="networkidle"); await pe.wait_for_timeout(2500)
-        card = pe.locator("div.rounded-lg, [class*=card]", has_text="Cliente Entrega 010").first
         await pe.get_by_role("button", name=re.compile("Aceitar")).first.click(); await pe.wait_for_timeout(2500)
+        await pe.get_by_role("tab", name=re.compile("Em rota")).click(); await pe.wait_for_timeout(1200)
         await pe.get_by_role("button", name=re.compile("Entreguei")).first.click(); await pe.wait_for_timeout(1000)
         await pe.get_by_role("dialog").get_by_role("button", name="Confirmar", exact=True).click(); await pe.wait_for_timeout(3000)
         await pe.screenshot(path=str(S / "e06_entregue.png"))
