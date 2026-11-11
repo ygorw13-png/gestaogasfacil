@@ -1,8 +1,6 @@
 
 export interface Sale {
   id: number | string;
-  /** Chave de reenvio da ação controlada (a mesma até a venda ser confirmada). */
-  chave?: string;
   time: string;
   client: string;
   product: string;
@@ -20,6 +18,6 @@ export interface Sale {
 export interface NewSaleFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Com as ações controladas devolve se gravou (false = formulário continua aberto). */
-  onSubmit: (sale: Sale) => void | Promise<boolean>;
+  /** Resolve após a gravação confirmada; rejeita em falha. */
+  onSubmit: (sale: Sale) => void | Promise<void>;
 }

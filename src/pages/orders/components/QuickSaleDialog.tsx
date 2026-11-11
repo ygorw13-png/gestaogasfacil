@@ -23,7 +23,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRegistrarMovimentacao, type PortariaProduto } from "@/pages/entrance/hooks/usePortariaStock";
 import { SaleTypeSelect } from "@/components/forms/SaleTypeSelect";
 import { exigeValor, vasilhameDeltas, tipoVendaLabel, type TipoVenda } from "@/lib/saleTypes";
-import { G1_ACOES, acao, novaChave } from "@/lib/g1/acoes";
+import { G1_ACOES, acao, AcaoError } from "@/lib/g1/acoes";
+import { ehIncerta, idDaChave } from "@/lib/g1/operacao";
+import { useOperacaoUnica } from "@/hooks/useOperacaoUnica";
+import { createPromissoryFromSale } from "@/lib/promissory";
 
 const PRODUCTS: { value: PortariaProduto; label: string; orderProduct: string }[] = [
   { value: "P13", label: "Gás P13", orderProduct: "P13" },
@@ -87,9 +90,14 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
     return () => window.removeEventListener("keydown", onKey);
   });
 
-  const chaveRef = useRef(novaChave("venda-portaria"));
+  // Uma venda por vez; a chave de reenvio fica presa ao conteúdo da venda (ver src/lib/g1/operacao.ts).
+  const operacao = useOperacaoUnica("venda-portaria");
+  const [erro, setErro] = useState<string | null>(null);
+  // Trava imediata (Ctrl+Enter repetido ou clique duplo antes do re-render).
+  const travaRef = useRef(false);
 
   const handleSubmit = async () => {
+    if (travaRef.current) return;
     if (requiresClient && clientName.trim().length < 3) {
       toast({
         title: "Cliente obrigatório",
@@ -108,35 +116,38 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
       return;
     }
 
+    travaRef.current = true;
     setSaving(true);
+    setErro(null);
     try {
       const { data: authData } = await supabase.auth.getUser();
       const userId = authData?.user?.id;
-      if (!userId) throw new Error("Usuário não autenticado");
+      if (!userId) throw new Error("Sessão expirada. Entre novamente para registrar a venda.");
 
       const finalName = clientName.trim() || "Cliente Balcão";
       const productLabel = PRODUCTS.find((p) => p.value === product)?.orderProduct || product;
-      const now = new Date().toISOString();
+      const deltas = vasilhameDeltas(tipoVenda, quantity);
 
-      if (G1_ACOES) {
-        // Uma ação só: venda + baixa da portaria + recebimento/promissória.
-        // Se algo falhar, nada fica gravado pela metade. Mesma chave até dar certo.
-        await acao("venda_portaria", {
-          _cliente_id: null, _cliente_nome: finalName, _produto: productLabel, _quantidade: quantity,
-          _valor: value || 0, _forma: paymentMethod, _tipo_venda: tipoVenda, _devolveu_vazio: returnedEmpty,
-          _reseller_id: null, _observacoes: `Venda rápida - ${tipoVendaLabel(tipoVenda)}`, _chave: chaveRef.current,
-        });
-        chaveRef.current = novaChave("venda-portaria");
-        toast({ title: "Venda rápida registrada", description: `${quantity}x ${productLabel}` });
-        reset();
-        onSaved();
-        if (!counterMode) onOpenChange(false);
-        return;
-      }
+      // Conteúdo que identifica ESTA venda: o mesmo conteúdo reenviado usa a mesma chave.
+      const conteudo = { cliente: finalName, produto: product, quantidade: quantity, valor: value || 0, pagamento: paymentMethod, tipoVenda };
 
-      const { data: inserted, error } = await supabase
-        .from("orders")
-        .insert({
+      await operacao.executar(conteudo, async (chave) => {
+        if (G1_ACOES) {
+          // Uma ação só: venda + baixa da portaria + recebimento/promissória.
+          // Se algo falhar, nada fica gravado pela metade.
+          await acao("venda_portaria", {
+            _cliente_id: null, _cliente_nome: finalName, _produto: productLabel, _quantidade: quantity,
+            _valor: value || 0, _forma: paymentMethod, _tipo_venda: tipoVenda, _devolveu_vazio: returnedEmpty,
+            _reseller_id: null, _observacoes: `Venda rápida - ${tipoVendaLabel(tipoVenda)}`,
+            _vasilhames_recebidos: deltas.recebidos, _comodato: false, _chave: chave,
+          });
+          return;
+        }
+
+        // ── Caminho antigo (G1 desligado): o id vem da chave, então um reenvio bate na chave primária.
+        const orderId = idDaChave(chave);
+        const { error: insErr } = await supabase.from("orders").insert({
+          id: orderId,
           user_id: userId,
           client_name: finalName,
           client_phone: null,
@@ -146,74 +157,62 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
           price: value || 0,
           payment_method: paymentMethod,
           status: "delivered",
-          delivered_at: now,
+          delivered_at: new Date().toISOString(),
           origem_venda: "portaria",
           has_empty_cylinder: returnedEmpty,
           tipo_venda: tipoVenda,
-          vasilhames_entregues: vasilhameDeltas(tipoVenda, quantity).entregues,
-          vasilhames_recebidos: vasilhameDeltas(tipoVenda, quantity).recebidos,
+          vasilhames_entregues: deltas.entregues,
+          vasilhames_recebidos: deltas.recebidos,
           notes: `Venda rápida - ${tipoVendaLabel(tipoVenda)}`,
-        } as any)
-        .select("id")
-        .single();
-
-      if (error) throw error;
-      const orderId = (inserted as any)?.id ?? null;
-
-      // Baixa automática no estoque da portaria
-      try {
-        await registrarMov.mutateAsync({
-          tipo: returnedEmpty ? "venda" : "venda_comodato",
-          produto: product,
-          delta_cheios: tipoVenda === "vasilhame" ? 0 : -quantity,
-          delta_vazios: tipoVenda === "recarga" ? quantity : tipoVenda === "vasilhame" ? -quantity : 0,
-          delta_emprestados: 0,
-          cliente_nome: finalName,
-          referencia_id: orderId,
-          observacoes: "Venda rápida na portaria",
-        });
-      } catch {
-        toast({
-          title: "Venda salva, estoque não atualizado",
-          description: "Registre o ajuste manualmente na portaria.",
-          variant: "destructive",
-        });
-      }
-
-      // Nota promissória automática
-      if (paymentMethod === "promissoria") {
-        const due = new Date();
-        due.setDate(due.getDate() + 30);
-        const { error: pnError } = await supabase.from("promissory_notes").insert({
-          client_name: finalName,
-          value: value || 0,
-          due_date: due.toISOString().slice(0, 10),
-          status: "pending",
-          created_by: userId,
-          notes: `Venda rápida portaria - ${quantity}x ${productLabel}`,
         } as any);
-        if (pnError) {
-          toast({
-            title: "Venda salva, promissória não criada",
-            description: pnError.message,
-            variant: "destructive",
-          });
-        } else {
-          toast({ title: "Nota promissória criada", description: `Vencimento em 30 dias — ${finalName}` });
-        }
-      }
+        if (insErr && insErr.code !== "23505") throw new AcaoError(insErr.message, ehIncerta(insErr));
 
+        const faltou = (o: string) =>
+          new AcaoError(`Venda salva, mas ${o}. Toque em Registrar de novo para completar (não duplica a venda).`, true);
+
+        const { data: jaMov, error: movQErr } = await supabase
+          .from("movimentacoes_portaria").select("id").eq("referencia_id", orderId).limit(1);
+        if (movQErr) throw faltou("não foi possível conferir o estoque da portaria");
+        if (!jaMov || jaMov.length === 0) {
+          try {
+            await registrarMov.mutateAsync({
+              tipo: returnedEmpty ? "venda" : "venda_comodato",
+              produto: product,
+              delta_cheios: tipoVenda === "vasilhame" ? 0 : -quantity,
+              delta_vazios: tipoVenda === "recarga" ? quantity : tipoVenda === "vasilhame" ? -quantity : 0,
+              delta_emprestados: 0,
+              cliente_nome: finalName,
+              referencia_id: orderId,
+              observacoes: "Venda rápida na portaria",
+            });
+          } catch {
+            throw faltou("o estoque da portaria não foi atualizado");
+          }
+        }
+
+        if (paymentMethod === "promissoria") {
+          const { error: pnError } = await createPromissoryFromSale({
+            clientId: null,
+            clientName: finalName,
+            value: value || 0,
+            referenceId: orderId,
+            description: `Venda rápida portaria - ${quantity}x ${productLabel}`,
+          });
+          if (pnError) throw faltou("a nota promissória não foi criada");
+        }
+      });
+
+      // ── gravação confirmada: só agora limpa, avisa e fecha
       toast({ title: "Venda rápida registrada", description: `${quantity}x ${productLabel}` });
       reset();
       onSaved();
       if (!counterMode) onOpenChange(false);
     } catch (e) {
-      toast({
-        title: "Erro ao registrar venda",
-        description: e instanceof Error ? e.message : "Tente novamente.",
-        variant: "destructive",
-      });
+      const msg = e instanceof Error ? e.message : "Tente novamente.";
+      setErro(msg);
+      toast({ title: "Venda não registrada", description: msg, variant: "destructive" });
     } finally {
+      travaRef.current = false;
       setSaving(false);
     }
   };
@@ -302,6 +301,19 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
             <Switch id="qs-counter" checked={counterMode} onCheckedChange={setCounterMode} />
           </div>
         </div>
+
+        {erro && (
+          <div role="alert" className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
+            <p className="font-medium text-destructive">Venda não registrada</p>
+            <p>{erro}</p>
+            <p className="text-muted-foreground">Os dados continuam preenchidos.</p>
+            {operacao.duvida && (
+              <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => { operacao.descartarDuvida(); setErro(null); }}>
+                Descartar a tentativa anterior e registrar como nova venda
+              </Button>
+            )}
+          </div>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>

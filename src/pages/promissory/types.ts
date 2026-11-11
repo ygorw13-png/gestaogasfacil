@@ -9,10 +9,18 @@ export interface PromissoryNote {
   status: PromissoryStatus;
   createdAt: Date;
   assignedTo?: string;
+  /** ID do cobrador (G1). */
+  cobradorId?: string;
+  /** Total já recebido (pagamentos parciais somados). */
+  paidAmount: number;
+  /** value - paidAmount (nunca negativo). */
+  saldo: number;
+  /** Venda de origem (vazio = promissória manual). */
+  orderId?: string;
   paidAt?: Date;
 }
 
-export type PromissoryStatus = "pending" | "assigned" | "paid" | "overdue";
+export type PromissoryStatus = "pending" | "assigned" | "paid" | "overdue" | "parcial" | "cancelled";
 
 export interface PromissoryClient {
   id: string;

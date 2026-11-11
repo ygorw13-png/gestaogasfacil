@@ -13,6 +13,7 @@ import { Plus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SaleFormContent } from "./SaleFormContent";
 import type { NewSaleFormProps } from "../../types/saleTypes";
+import { RegisterSaleButton } from "./RegisterSaleButton";
 
 export function DesktopSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleFormProps) {
   return (
@@ -48,9 +49,7 @@ export function DesktopSaleForm({ isOpen, onOpenChange, onSubmit }: NewSaleFormP
           >
             Cancelar
           </Button>
-          <Button form="sale-form" type="submit">
-            Registrar Venda
-          </Button>
+          <RegisterSaleButton />
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { hojePortaria } from "@/lib/g1/dataPortaria";
 import { useToast } from "@/hooks/use-toast";
 
 export type PortariaProduto = "P13" | "P20" | "P45" | "agua";
@@ -45,7 +46,8 @@ export interface MovimentacaoPortaria {
 
 const PRODUTOS: PortariaProduto[] = ["P13", "P20", "P45", "agua"];
 
-const today = () => new Date().toISOString().slice(0, 10);
+// Dia da portaria: mesmo dia que o banco usa (ver src/lib/g1/dataPortaria.ts).
+const today = () => hojePortaria();
 
 export function useSaldoPortaria() {
   return useQuery({

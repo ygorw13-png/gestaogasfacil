@@ -22,7 +22,6 @@ export default function StatusOffline() {
     queue,
     pendingCount,
     conflicts,
-    blocked,
     exceeded,
     errors,
     lastSyncAt,
@@ -37,12 +36,12 @@ export default function StatusOffline() {
 
   const handleSync = async () => {
     const result = await sync();
-    if (result.skipped) {
+    if (result.blocked) {
+      toast.warning(`${result.blocked} lançamento(s) antigos não enviados. Confira o motivo na lista.`);
+    } else if (result.skipped) {
       toast.info('Nada para enviar agora ou aguardando a próxima tentativa.');
     } else if (result.conflicts > 0) {
       toast.warning(`${result.conflicts} lançamento(s) precisam da sua confirmação.`);
-    } else if ((result.blocked ?? 0) > 0) {
-      toast.error(`${result.blocked} lançamento(s) antigo(s) não enviado(s): confira e lance de novo pela tela.`);
     } else if (result.failed > 0) {
       toast.warning(`${result.sent} enviado(s), ${result.failed} com erro.`);
     } else {
@@ -123,18 +122,6 @@ export default function StatusOffline() {
           <AlertDescription>
             O sistema encontrou algo parecido já salvo na nuvem. Confirme "Enviar mesmo assim" só se tiver certeza de
             que é um lançamento diferente.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {blocked.length > 0 && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>{blocked.length} lançamento(s) antigo(s) não enviado(s)</AlertTitle>
-          <AlertDescription>
-            Foram guardados no aparelho como gravação direta em vendas, estoque ou dívidas. Para não contornar as
-            regras de carga e recebimento, não serão enviados. Confira cada um e lance de novo pela tela certa; depois
-            descarte o item da fila.
           </AlertDescription>
         </Alert>
       )}
@@ -222,12 +209,12 @@ export default function StatusOffline() {
         </CardContent>
       </Card>
 
-      {errors.length > 0 && conflicts.length === 0 && exceeded.length === 0 && blocked.length === 0 && (
+      {errors.length > 0 && conflicts.length === 0 && exceeded.length === 0 && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>{errors.length} lançamento(s) com erro</AlertTitle>
           <AlertDescription>
-            Eles continuam salvos no aparelho. Tente sincronizar novamente ou descarte se não forem mais necessários.
+            Eles continuam salvos no aparelho. Confira o motivo de cada lançamento antes de tentar novamente.
           </AlertDescription>
         </Alert>
       )}
@@ -261,31 +248,32 @@ export default function StatusOffline() {
               <div className="flex shrink-0 items-center gap-2">
                 <Badge
                   variant={
-                    op.status === 'conflito'
+                    op.status === 'conflito' || op.status === 'outra_conta'
                       ? 'outline'
-                      : op.status === 'excedido' || op.status === 'bloqueado'
+                      : op.status === 'excedido' || op.status === 'recusado'
                         ? 'destructive'
                         : 'secondary'
                   }
                 >
-                  {op.status === 'conflito'
+                  {op.status === 'bloqueado' ? 'Não enviado' : op.status === 'conflito'
                     ? 'Confirmar'
                     : op.status === 'excedido'
                       ? 'Excedido'
-                      : op.status === 'bloqueado'
-                        ? 'Não enviado'
-                        : 'Na fila'}
+                      : op.status === 'recusado'
+                        ? 'Recusado (não gravado)'
+                        : op.status === 'outra_conta'
+                          ? 'Outra conta'
+                          : 'Na fila'}
                 </Badge>
-                {op.status !== 'bloqueado' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => void retry(op.id, op.status === 'conflito')}
-                  >
-                    <Send className="mr-1 h-3.5 w-3.5" />
-                    {op.status === 'conflito' ? 'Enviar mesmo assim' : 'Tentar agora'}
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={op.status === 'bloqueado'}
+                  onClick={() => void retry(op.id, op.status === 'conflito')}
+                >
+                  <Send className="mr-1 h-3.5 w-3.5" />
+                  {op.status === 'conflito' ? 'Enviar mesmo assim' : 'Tentar agora'}
+                </Button>
                 <Button variant="ghost" size="icon" onClick={() => discard(op.id)} aria-label="Descartar">
                   <Trash2 className="h-4 w-4" />
                 </Button>

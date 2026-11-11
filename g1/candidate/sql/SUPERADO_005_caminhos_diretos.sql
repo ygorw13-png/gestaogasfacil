@@ -1,3 +1,4 @@
+-- SUPERADO: NÃO APLICAR. Regras conciliadas em 010_protecoes_lote4.sql (sequência 001–010). Mantido só como histórico do lote 4.
 -- G1 — 005 CANDIDATO: fecha as gravações diretas que ainda contornavam carga, dívida e recebimento.
 -- Pressupõe G0.1 001 + G1 002 + 003 + 004. NÃO aplicar em produção sem aprovação explícita.
 -- Só banco descartável (g1/tests/sql/reset_com005.sh). Executar com psql -1. Idempotente.

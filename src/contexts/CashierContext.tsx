@@ -19,7 +19,12 @@ interface CashierContextProps {
   cashierClosingOpen: boolean;
   setNewSaleOpen: (open: boolean) => void;
   setCashierClosingOpen: (open: boolean) => void;
-  handleNewSaleSubmit: (newSale: Sale, saleDate?: string) => void | Promise<boolean>;
+  /** Resolve só depois da gravação confirmada; rejeita em falha (o formulário mantém os dados). */
+  handleNewSaleSubmit: (newSale: Sale, saleDate?: string) => Promise<void>;
+  salvandoVenda: boolean;
+  /** Envio anterior sem resposta: pode ter sido gravado. Exige decisão antes de mudar a venda. */
+  duvidaVenda: boolean;
+  descartarDuvidaVenda: () => void;
   handleCashierClosingSubmit: (type: "partial" | "total", observations?: string, isRetroactive?: boolean) => void;
 
 }
@@ -44,7 +49,10 @@ export function CashierProvider({ children }: { children: React.ReactNode }) {
     setHoursElapsed,
     newSaleOpen,
     setNewSaleOpen,
-    handleNewSaleSubmit
+    handleNewSaleSubmit,
+    salvandoVenda,
+    duvidaVenda,
+    descartarDuvidaVenda
   } = useCashierSales();
 
   const {
@@ -82,6 +90,9 @@ export function CashierProvider({ children }: { children: React.ReactNode }) {
       setNewSaleOpen,
       setCashierClosingOpen,
       handleNewSaleSubmit,
+      salvandoVenda,
+      duvidaVenda,
+      descartarDuvidaVenda,
       handleCashierClosingSubmit
     }}>
       {children}

@@ -1,6 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { runOrQueue } from "@/lib/offline/queue";
-import { G1_ACOES, acaoOuFila, formaRecebimento, novaChave } from "@/lib/g1/acoes";
+import { G1_ACOES, acaoOuFila, formaRecebimento } from "@/lib/g1/acoes";
+import { ControleChave } from "@/lib/g1/operacao";
+import { cheiosNaCarga, produtoCarga, useCargaResumo } from "@/hooks/useCarga";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,8 +32,10 @@ export default function VendaRua() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  // Mesma chave enquanto a venda não for confirmada: duplo toque ou nova tentativa não duplicam.
-  const [chaveVenda, setChaveVenda] = useState(() => novaChave("venda-rua"));
+  // Chave presa ao conteúdo: a mesma venda reenviada usa a mesma chave (inclusive pela fila offline);
+  // uma venda nova, ainda que igual, recebe outra. Trava contra toque duplo.
+  const [controle] = useState(() => new ControleChave("venda-rua"));
+  const travaRef = useRef(false);
   const [tipoVenda, setTipoVenda] = useState<TipoVenda>("recarga");
   const [clientId, setClientId] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -66,9 +70,20 @@ export default function VendaRua() {
 
   const precisaValor = exigeValor(form.payment_method);
 
+  // Carga do próprio entregador (G1). Sem conexão ou com falha na consulta, quem decide é o servidor no envio.
+  const carga = useCargaResumo(null);
+  const produtoKey = produtoCarga(form.product);
+  const naCarga = cheiosNaCarga(carga.data, user?.id, produtoKey);
+  const cargaConhecida = G1_ACOES && carga.isSuccess && (typeof navigator === "undefined" || navigator.onLine);
+  const cargaInsuficiente = cargaConhecida && tipoVenda !== "vasilhame" && naCarga < form.quantity;
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.id) return;
+    if (!user?.id || travaRef.current) return;
+    if (cargaInsuficiente) {
+      toast({ title: "Carga insuficiente", description: `Você tem ${naCarga} cheio(s) de ${form.product} na carga. Peça a saída na portaria.`, variant: "destructive" });
+      return;
+    }
 
     const nome = form.client_name.trim();
     const fone = onlyDigits(form.client_phone);
@@ -120,22 +135,35 @@ export default function VendaRua() {
       }
       // Uma ação só: cria a venda, baixa da SUA carga e registra o recebimento
       // (ou a promissória). A chave acompanha cada reenvio da fila offline.
-      const r = await acaoOuFila("entregador_venda_rua", {
+      const args = {
         _cliente_id: clientId, _cliente_nome: nome, _cliente_fone: form.client_phone.trim(),
         _produto: form.product, _quantidade: form.quantity, _valor: valor || 0, _forma: form.payment_method,
         _tipo_venda: tipoVenda, _vasilhames_entregues: vas.entregues, _vasilhames_recebidos: vas.recebidos,
-        _observacoes: form.notes || null, _chave: chaveVenda,
-      }, `Venda na rua - ${form.quantity}x ${form.product} (${nome})`);
+        _observacoes: form.notes || null,
+      };
+      travaRef.current = true;
+      let r: { queued: boolean; error?: string };
+      try {
+        r = await acaoOuFila("entregador_venda_rua", { ...args, _chave: controle.obter(args) },
+          `Venda na rua - ${form.quantity}x ${form.product} (${nome})`);
+      } catch (err) {
+        r = { queued: false, error: err instanceof Error ? err.message : "Venda não registrada." };
+      } finally {
+        travaRef.current = false;
+      }
       setLoading(false);
       if (r.error) {
+        // O servidor respondeu recusando: nada foi gravado, a chave é liberada para a venda corrigida.
+        controle.falhou(false);
         toast({ title: "Venda não registrada", description: r.error, variant: "destructive" });
         return;
       }
+      // Gravada agora ou guardada na fila (que reenvia com a MESMA chave): a próxima venda é outra.
+      controle.confirmar();
       toast({
         title: r.queued ? "Venda salva no aparelho" : "Venda registrada!",
         description: r.queued ? "Sem internet agora. Ela será enviada sozinha quando a conexão voltar." : "Baixada da sua carga.",
       });
-      setChaveVenda(novaChave("venda-rua"));
       setClientId(null);
       setForm({ ...form, price: "", notes: "", client_name: "", client_phone: "" });
       return;
@@ -244,6 +272,15 @@ export default function VendaRua() {
                     {PRODUTOS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                {G1_ACOES && carga.isSuccess && (
+                  <p className={`text-xs ${cargaInsuficiente ? "text-destructive" : "text-muted-foreground"}`}>
+                    Na sua carga: {naCarga} cheio(s) de {form.product}.
+                    {cargaInsuficiente && " Não cobre esta venda: peça a saída na portaria."}
+                  </p>
+                )}
+                {G1_ACOES && carga.isError && (
+                  <p className="text-xs text-muted-foreground">Não foi possível conferir a carga agora; o servidor confere no envio.</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Quantidade</Label>
@@ -282,7 +319,7 @@ export default function VendaRua() {
               <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </div>
 
-            <Button type="submit" className="w-full h-12 text-base" disabled={loading}>
+            <Button type="submit" className="w-full h-12 text-base" disabled={loading || cargaInsuficiente}>
               {loading ? "Salvando..." : "Registrar Venda"}
             </Button>
           </form>

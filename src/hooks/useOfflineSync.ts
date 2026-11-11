@@ -97,9 +97,11 @@ export function useOfflineSync() {
   return {
     online,
     queue,
-    pendingCount: queue.filter((q) => q.status !== 'conflito' && q.status !== 'bloqueado').length,
+    // Só o que ainda vai subir sozinho; recusados e de outra conta aparecem à parte (nunca como enviados).
+    pendingCount: queue.filter((q) => !q.status || q.status === 'pendente').length,
     conflicts: queue.filter((q) => q.status === 'conflito'),
-    blocked: queue.filter((q) => q.status === 'bloqueado'),
+    rejected: queue.filter((q) => q.status === 'recusado'),
+    otherAccount: queue.filter((q) => q.status === 'outra_conta'),
     exceeded: queue.filter((q) => q.status === 'excedido'),
     errors: queue.filter((q) => q.lastError),
     lastSyncAt,

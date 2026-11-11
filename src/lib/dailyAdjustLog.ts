@@ -1,3 +1,4 @@
+import { hojePortaria } from "@/lib/g1/dataPortaria";
 // Registro local de correções manuais de estoque.
 // Zera automaticamente a cada dia (guardado por data).
 
@@ -11,7 +12,7 @@ export interface DailyAdjustEntry {
   motivo: string;
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => hojePortaria();
 const storageKey = (scope: string) => `ajustes_estoque:${scope}:${today()}`;
 
 function cleanupOldKeys(scope: string) {

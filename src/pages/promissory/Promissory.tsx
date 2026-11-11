@@ -117,6 +117,7 @@ export default function Promissory() {
         onSubmit={handlePayment}
         noteId={selectedNoteId}
         notes={notes}
+        collectors={collectors}
       />
 
       <NewPromissoryDialog 

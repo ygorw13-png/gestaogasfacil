@@ -6,13 +6,14 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Sale } from "../../types/entranceTypes";
 import { SaleFormContent } from "../sale-form/SaleFormContent";
 import { CashierClosingDialog } from "../cashier/CashierClosingDialog";
+import { RegisterSaleButton } from "../sale-form/RegisterSaleButton";
 
 interface EntranceHeaderProps {
   newSaleOpen: boolean;
   cashierClosingOpen: boolean;
   setNewSaleOpen: (open: boolean) => void;
   setCashierClosingOpen: (open: boolean) => void;
-  onNewSaleSubmit: (sale: Sale) => void | Promise<boolean>;
+  onNewSaleSubmit: (sale: Sale) => void | Promise<void>;
   onCashierClosingSubmit: (type: "partial" | "total", observations?: string, isRetroactive?: boolean) => void;
 
   cashierData: CashierData;
@@ -64,9 +65,7 @@ export function EntranceHeader({
             <Button type="button" variant="outline" onClick={() => setNewSaleOpen(false)}>
               Cancelar
             </Button>
-            <Button form="sale-form" type="submit">
-              Registrar Venda
-            </Button>
+            <RegisterSaleButton />
           </DialogFooter>
         </DialogContent>
       </Dialog>

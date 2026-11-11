@@ -9,6 +9,8 @@ import { ProductsFormSection } from "./components/ProductsFormSection";
 import { PaymentFormSection } from "./components/PaymentFormSection";
 import { formSchema, type FormValues } from "./types/formTypes";
 import { Order } from "./types";
+import { useOperacaoUnica } from "@/hooks/useOperacaoUnica";
+import { idDaChave } from "@/lib/g1/operacao";
 
 interface NewOrderFormProps {
   onSubmit: (order: Order) => void | Promise<void>;
@@ -40,6 +42,9 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
   const [hasGasP20, setHasGasP20] = useState(false);
   const [hasGasP45, setHasGasP45] = useState(false);
   const [hasWater, setHasWater] = useState(false);
+  // Um pedido por vez; reenvio do MESMO pedido usa o mesmo id (não duplica).
+  const operacao = useOperacaoUnica("pedido");
+  const [erro, setErro] = useState<string | null>(null);
 
   const handleProductToggle = (product: 'gasP13' | 'gasP20' | 'gasP45' | 'water', checked: boolean) => {
     switch (product) {
@@ -74,6 +79,13 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
       return;
     }
     
+    // O pedido guarda um produto só. Antes, marcar dois produtos gravava só o primeiro, em silêncio.
+    const selecionados = [values.gasP13, values.gasP20, values.gasP45, values.water].filter((q) => q && q > 0).length;
+    if (selecionados > 1) {
+      toast.error("Um pedido por produto. Registre este com um produto e faça outro pedido para o restante.");
+      return;
+    }
+
     let product = "";
     let quantity = 0;
     
@@ -115,16 +127,20 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
       notes: values.observations
     };
     
+    if (operacao.enviando) return;
+    setErro(null);
+    const conteudo = { ...order, id: undefined, createdAt: undefined };
     try {
       // Só limpa o formulário depois da gravação confirmada
-      await onSubmit(order);
+      await operacao.executar(conteudo, (chave) => Promise.resolve(onSubmit({ ...order, id: idDaChave(chave) })));
       form.reset();
       setHasGasP13(false);
       setHasGasP20(false);
       setHasGasP45(false);
       setHasWater(false);
-    } catch {
-      // Erro já tratado pelo chamador; mantém os dados preenchidos
+    } catch (e) {
+      // O chamador já avisou; aqui mantém os dados e explica o que fazer
+      setErro(e instanceof Error ? e.message : "Pedido não registrado. Os dados foram mantidos.");
     }
   };
 
@@ -142,9 +158,20 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
         />
         <PaymentFormSection control={form.control} />
         
+        {erro && (
+          <div role="alert" className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
+            <p className="font-medium text-destructive">Pedido não registrado</p>
+            <p>{erro}</p>
+            {operacao.duvida && (
+              <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => { operacao.descartarDuvida(); setErro(null); }}>
+                Descartar a tentativa anterior e registrar como novo pedido
+              </Button>
+            )}
+          </div>
+        )}
         <div className="flex justify-end gap-4">
-          <Button type="submit">
-            Cadastrar Pedido
+          <Button type="submit" disabled={operacao.enviando}>
+            {operacao.enviando ? "Registrando…" : "Cadastrar Pedido"}
           </Button>
         </div>
       </form>

@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarDays, Package, Plus, Truck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,15 @@ import { readPrinterSettings } from "@/hooks/usePrinterSettings";
 
 export default function Orders() {
   const [isNewOrderOpen, setIsNewOrderOpen] = useState(false);
+  // Acesso direto a /orders/new (redirecionado para /orders?novo=1): abre o diálogo real de novo pedido.
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("novo") === "1") {
+      setIsNewOrderOpen(true);
+      searchParams.delete("novo");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   const [isQuickSaleOpen, setIsQuickSaleOpen] = useState(false);
   const [pendingClient, setPendingClient] = useState<PendingClient | null>(null);
   const {

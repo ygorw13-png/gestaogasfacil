@@ -1,7 +1,29 @@
-# GásFácil — Handoff para continuidade no Claude Code
+# GásFácil — Handoff para continuidade
 
-Data do retrato: **10/11/2026** (UTC). Commit de referência do código: `7902aca` (G1 lote 3), `a217adf` (handoff) e o commit do G1 lote 4.
+> **Estado atual — 11/11/2026:** integração essencial lote 4 + continuidade 009 no candidato 010.
+> Proteções SQL 43/43; estoque/concorrência 14/14; frontend 71/71; TypeScript e build passaram.
+> Nada aplicado no Cloud ou publicado. Detalhes: `docs/CONTINUIDADE_G1_010.md`.
+> Não sobrepor o 005 do lote 4. Próximo bloqueio para uso: acesso ao projeto Lovable de edição,
+> verificação do gateway hospedado e implantação coordenada. Melhorias secundárias adiadas.
+
+
+> **Estado mais recente — continuação G1 009, 10/11/2026:** base completa 005–008 preservada;
+> adicionado bloqueio de venda por abertura e saldo (candidato 009). SQL local **14/14**, regras frontend
+> **64/64**, TypeScript e build aprovados. Suíte geral ainda tem falhas; detalhes e limites em
+> `docs/CONTINUIDADE_G1_009.md`. Nada publicado nem aplicado em produção.
+> PIX/cartão na conta da empresa e acerto diário configurável são decisões recuperadas; implementação
+> ainda pendente, sem reclassificar histórico. As referências antigas abaixo a essas decisões como
+> não respondidas ficam substituídas por este registro. Próximo trabalho: essas regras e validação isolada
+> das telas; cancelamento B segue bloqueado, gateway hospedado segue não verificado.
+
+Data do retrato: **10/11/2026** (UTC). Commit de referência do código: `7902aca` (G1 lote 3) + commit desta entrega.
 Este arquivo é o **documento único de estado atual**. Onde outro documento divergir, vale este (ver "Documentos substituídos").
+
+> **Atualização de 10/11/2026 (continuação fora do Lovable, branch `claude/continuidade-g1-integracao-telas`):**
+> lotes 1–4 + fila offline + rotas diretas implementados; candidatos SQL **005–008** criados e testados só em PostgreSQL
+> descartável. Nada publicado, nenhuma migração aplicada no banco real. Estado detalhado e testes: **`docs/CHECKLIST_UNICO.md`**;
+> relatórios por lote: `docs/lotes/`; decisões que bloqueiam: `docs/DECISOES_PENDENTES.md`; implantação/migração: `docs/PLANO_IMPLANTACAO.md`;
+> gravações diretas: `docs/MAPA_GRAVACOES_DIRETAS.md`. As seções abaixo foram ajustadas onde o estado mudou.
 
 > **Exportar o código NÃO exporta o banco de dados, os usuários, os arquivos de storage, os segredos, o agendamento
 > nem os drafts.** Esses recursos existem apenas no Lovable Cloud e estão listados na seção 7.
@@ -40,9 +62,9 @@ Estrela-guia (`.lovable/north-star/north-star.md`): os clientes recebem seu gás
 | `g0.1/candidate/` | Candidato G0.1: sessão/perfil (frontend) + funções admin/perfil | **Candidato**, não publicado |
 | `g0.1/sql/001_profile_verification.sql` | SQL de privilégios de perfil/papel | **Candidato**, não aplicado |
 | `g0.1/tests/` | Testes G0.1 (vitest, deno, integração real, navegador) | Laboratório |
-| `g1/candidate/sql/` | SQL G1 002, 003, 004, 005 + contenções/rollbacks | **Candidatos**, não aplicados |
+| `g1/candidate/sql/` | SQL G1 002, 003, 004 + contenções/rollbacks | **Candidatos**, não aplicados |
 | `g1/tests/sql/` | Suítes SQL (integração, permissões, segurança, contenção) | Laboratório |
-| `g1/tests/browser/` | Testes de navegador (lote 1/2 com backend simulado; lotes 3 e 4 com backend real isolado) | Laboratório |
+| `g1/tests/browser/` | Testes de navegador (lote 1/2 com backend simulado; lote 3 com backend real isolado) | Laboratório |
 | `g1/*.md`, `g0.1/*.md` | Relatórios, checklist, decisões | Referência (ver seção 10) |
 | `docs/auditoria_funcional_v1.md` | Auditoria funcional somente leitura (04/11) que originou o plano G1 | Referência |
 | `AGENTS.md` | Regras de arquitetura vigentes | **Obrigatório ler** |
@@ -66,8 +88,6 @@ Estrela-guia (`.lovable/north-star/north-star.md`): os clientes recebem seu gás
 - Etapa 1 (dados fictícios eliminados: indicadores reais, Excel real, cobradores reais, `??` em zeros configurados, fechamento parcial fiel,
   pedido confirmado só após gravação, erro ≠ zero) — `g1/RELATORIO_LOTE1.md`.
 - Correções de 04/11 (preço não multiplicado por quantidade, estoque mínimo por produto etc.).
-- Lote 4 (também atrás de `VITE_G1_ACOES`): fila offline não envia gravação direta antiga ("Não enviado"); caixa da portaria só fecha após
-  gravar e reenvia com a mesma chave; agregado/ponto "a acertar" recusado; telas de cancelamento sem promessa de estorno — `g1/RELATORIO_LOTE4.md`.
 - Lote 3: telas ligadas às ações controladas **atrás de `VITE_G1_ACOES`** (desligada → as telas seguem o caminho antigo);
   painel com 5 quadros (vendas concluídas, recebido hoje, saldo a receber, saldo vencido, divergências) — com a chave desligada,
   "recebido" mostra "Não comprovado" porque o banco publicado não tem `recebimentos`.
@@ -81,8 +101,11 @@ Estrela-guia (`.lovable/north-star/north-star.md`): os clientes recebem seu gás
 | G1 002 isolamento/inativos | `g1/candidate/sql/002_isolamento_inativos.sql` (+ `002_rollback.sql`, só laboratório) | segurança 26/27 (rodado nesta entrega; 1 diferença intencional) |
 | G1 003 papéis/carga/a prazo | `003_permissoes_carga.sql` | permissões 69/69 com `G1_004=1` (rodado nesta entrega) |
 | G1 004 integração das telas | `004_integracao_telas.sql`, `004_contencao.sql`, `004_contencao_desfazer.sql` | integração 40/40 (rodado nesta entrega); navegador real isolado 14/14 (10/11, não reexecutado) |
-| G1 005 caminhos diretos | `005_caminhos_diretos.sql` | caminhos 43/43, integração 40/40, permissões 69/69, segurança 26/27, contenção com 005 22/22; navegador real isolado lote 3 14/14 + lote 4 17/17 (10/11) |
 | `003_contencao.sql` | **substituído** por `004_contencao.sql` — usar só em laboratório | — |
+| G1 005 tipo de venda + reenvio por conteúdo | `005_tipo_venda_idempotencia.sql` | `run_vendas005.py` 37/37 (10/11, PG16) |
+| G1 006 saldo da portaria + data operacional Bahia | `006_saldo_portaria.sql` | `run_portaria006.py` 38/38 (10/11, PG16) |
+| G1 007 carga (devolução, saldo, histórico, vasilhame na rua) | `007_carga_telas.sql` | `run_carga007.py` 31/31 (10/11, PG16) |
+| G1 008 promissórias, destino do dinheiro, acerto | `008_recebimentos_acerto.sql` | `run_acerto008.py` 43/43 (10/11, PG16) |
 
 Status único G0.1: **NÃO PRONTO PARA PRODUÇÃO** (gateway hospedado do Cloud não verificado).
 Cadastro de colaborador pelo candidato: desligado (`G01_CREATE_BANNED_VALIDATED` ausente → `create-user` responde 503).
@@ -91,14 +114,14 @@ Cadastro de colaborador pelo candidato: desligado (`G01_CREATE_BANNED_VALIDATED`
 - Verificação pelo **gateway hospedado** do Lovable Cloud (os drafts validaram apenas a cópia local do gateway).
 - **Aprovação explícita de produção** pelo proprietário (separada de qualquer aprovação de regra).
 - Decisão **B** (efeito do cancelamento de venda concluída / estorno) e demais decisões da seção 4.
-- Decisão **13** (preço/acerto de agregado e ponto): com as ações controladas a venda "a acertar" é recusada.
-- Saldo da portaria não é conferido na transferência portaria→carga (`_transferir_para_carga` no 004).
-- Conclusão atrasada do entregador (pedido já concluído pela portaria) é recusada com "Chave já usada em outra ação" — correta, mensagem pouco clara.
+- ~~Saldo da portaria não é conferido na transferência portaria→carga~~: resolvido no candidato 006 (abertura e saldo obrigatórios).
+- Recusa de cancelamento de venda concluída pelo admin foi verificada só por chamada direta (B12), não pela tela.
 - 7 testes legados do template falham (seção 6) — não relacionados às mudanças G0.1/G1, não investigados.
 
 ### Sequência de produção (quando aprovada; não executar sem autorização)
 G0.1: funções admin → `001_profile_verification.sql` → funções de perfil → frontend → testes de fumaça (`g0.1/PUBLICATION_SEQUENCE.md`).
-G1: `002` → `003` → `004` → `005` **junto com** a publicação do frontend com `VITE_G1_ACOES=on` (com 005, o app antigo deixa de concluir/atribuir por gravação direta) → testes de fumaça.
+G1: `002` → `003` → `004` → `005` → `006` → `007` → `008` → publicar frontend com `VITE_G1_ACOES=on` na mesma janela
+(fora de 21:00–23:59 Bahia) → testes de fumaça (detalhe em `docs/PLANO_IMPLANTACAO.md`).
 Contingência de produção: `004_contencao.sql` (mantém os bloqueios). **Nunca** `002_rollback.sql` nem `003_contencao.sql` em produção.
 
 ---
@@ -146,16 +169,24 @@ Contingência de produção: `004_contencao.sql` (mantém os bloqueios). **Nunca
 
 ## 5. Última tarefa, tarefa interrompida e próximo passo
 
-- **Última tarefa concluída:** G1 lote 4 (10/11) — candidato `005_caminhos_diretos.sql`, fila offline sem gravação direta antiga,
-  caixa da portaria só fecha após gravar, contenção revisada com carga/dívidas/recebimentos; relatório em `g1/RELATORIO_LOTE4.md`.
-  Antes: lote 3 (commit `7902aca`) — `g1/RELATORIO_LOTE3.md`.
+**Atualizado em 10/11/2026 (branch `claude/continuidade-g1-integracao-telas`):**
+- Concluído: Lote 1 (vendas), Lote 2 (saldo da portaria + data Bahia), Lote 3 (telas de carga), Lote 4 (promissórias, destino
+  do dinheiro, acerto registrado), fila offline (dono do lançamento, recusa visível), rotas diretas que não gravavam.
+- Próximo passo: (1) com o proprietário: decisões em `docs/DECISOES_PENDENTES.md` (PIX/acerto, cancelamento B, venda sem
+  abertura) e aprovação; (2) técnico: instalar dependências e rodar `vitest`/`tsc`/`lint`/`build`; montar o laboratório de
+  navegador (PostgREST + gateway + build) e exercitar as telas novas; itens "Revisar" do checklist.
+
+Histórico (texto de 10/11 antes da continuação):
+
+- **Última tarefa concluída:** G1 lote 3 (commit `7902aca`, 10/11) — telas ligadas às ações controladas atrás de `VITE_G1_ACOES`,
+  painel com 5 quadros, SQL 004 + contenção revisada; relatório em `g1/RELATORIO_LOTE3.md`.
 - **Tarefa interrompida:** nenhuma ficou pela metade no código. A interrupção anterior (checkpoint de manutenção `e420498`) foi retomada
   e concluída no próprio lote 3. O ambiente de laboratório do navegador (PostgREST, gateway, cópia do frontend em `/root` e `/tmp`)
   **se perdeu** com o reinício do sandbox; o gateway foi recuperado do pacote do lote 3 para `g1/tests/browser/gateway_isolado.ts`
   (idêntico byte a byte) e a configuração do PostgREST foi reconstruída em `pgrst.conf.example`.
 - **Próximo passo exato:**
   1. Com o proprietário: decisão **B** e aprovação de produção; verificação no gateway hospedado do Cloud (pendência G0.1).
-  2. Técnico, sem depender de nova decisão: candidato `g1/candidate/sql/006_saldo_portaria.sql` fazendo `_transferir_para_carga`
+  2. Técnico, sem depender de nova decisão: candidato `g1/candidate/sql/005_saldo_portaria.sql` fazendo `_transferir_para_carga`
      recusar transferência acima do saldo de cheios da portaria no `data_operacao` corrente, com teste em `run_integracao.py`
      (falha sem saldo, nada gravado). Confirmar com o proprietário como tratar transferência antes da abertura do dia e o fuso
      (America/Bahia é a Etapa 8). Aplicar só no banco descartável.
@@ -178,7 +209,7 @@ Contingência de produção: `004_contencao.sql` (mantém os bloqueios). **Nunca
 | React / supabase-js / TanStack Query | 18.3.1 / 2.106.2 / 5.56.2 |
 | vite-plugin-pwa | 1.3.0 |
 | Laboratório G0.1 | Supabase Auth v2.197.0 (release oficial), PostgREST (nixpkgs) |
-| Laboratório G1 lotes 3 e 4 | PostgREST 14.12 |
+| Laboratório G1 lote 3 | PostgREST 14.12 |
 
 ### App
 ```bash
@@ -193,7 +224,7 @@ Atenção: um `.env` apontando para o Cloud faz o app local **ler e gravar em pr
 ### Testes rodados nesta entrega (10/11/2026, 127.0.0.1, dados fictícios)
 | Suíte | Comando | Resultado |
 |---|---|---|
-| Unitários G1 (regras + painel + fila offline) | `./node_modules/.bin/vitest run src/lib` | **32/32** (lote 4) |
+| Unitários G1 (regras + painel + fila offline) | `./node_modules/.bin/vitest run src/lib` | **25/25** |
 | Testes legados de `src/` | `./node_modules/.bin/vitest run src` | 7 falhas legadas: `useSupabaseQuery` (2), `useSupabaseCRUD`, `Login.test`, `LoginForm.test`, `checkbox.test`, `UserList.test` (arquivos de 2025 / 08-2026, não tocados no G1). Com o config raiz, os testes de `g0.1/candidate/src` também são coletados e falham por resolução de imports — rode-os pelo config da G0.1 |
 | G0.1 sessão/perfil/segurança | ver bloco abaixo | **59/59** (4 arquivos) |
 | G0.1 administração | `deno test -A g0.1/tests/admin.test.ts g0.1/tests/admin-failure.test.ts` | **68/68** |
@@ -212,17 +243,6 @@ pg_ctl -D /tmp/g0-test/pgdata -l /tmp/g0-test/postgres.log -o '-p 55439 -h 127.0
 psql 'postgresql://g0test@127.0.0.1:55439/postgres?sslmode=disable' -X -v ON_ERROR_STOP=1 -f g0.1/tests/bootstrap.sql -f g0.1/sql/001_profile_verification.sql
 ./node_modules/.bin/vitest run --config g0.1/tests/vitest.config.ts   # admin*.test.ts são Deno: rode com deno test
 ```
-
-### Rodados no lote 4 (10/11/2026; banco recriado antes de cada suíte, com 002+003+004+005)
-| Suíte | Comando | Resultado |
-|---|---|---|
-| G1 caminhos diretos 005 | `G1DB=/tmp/g1db bash g1/tests/sql/reset_com005.sh && python3 g1/tests/sql/run_caminhos.py "$U" com005` | **43/43** |
-| G1 integração / permissões / segurança com 005 | mesmo reset + `run_integracao.py`, `G1_004=1 run_permissoes.py`, `run_security.py` | **40/40**, **69/69**, **26/27** (intencional) |
-| G1 contenção com 005 | mesmo reset + `python3 g1/tests/sql/run_contencao_005.py "$U"` | **22/22** |
-| Navegador lote 3 (regressão) e lote 4 | `bash g1/tests/browser/build_iso_fe.sh`; `bash g1/tests/browser/lab_reset.sh com005 g1/tests/browser/seed_lote3.sql [g1/tests/browser/seed_lote4.sql]`; `python3 g1/tests/browser/g1_lote3_browser.py` / `g1_lote4_browser.py` | **14/14** e **17/17** |
-
-Pré-requisitos do laboratório de navegador: PostgREST 14.x em `/root/pgrst-bin/bin/postgrest`, `/root/iso/pgrst.conf` copiado de
-`g1/tests/browser/pgrst.conf.example`, Deno e Playwright. `build_iso_fe.sh` gera `/root/iso/secret` localmente se não existir.
 
 ### Não reexecutados nesta entrega (exigem infraestrutura de laboratório a remontar)
 - G0.1 integração real 21/21 (`g0.1/tests/integration/live.test.ts`) e navegador 14/14 (`g0.1/tests/browser/g01_browser.py`): passos em `g0.1/REPRODUCE.md`.
@@ -294,6 +314,7 @@ Pré-requisitos do laboratório de navegador: PostgREST 14.x em `/root/pgrst-bin
 | Seção "Estado publicado vs candidatos" de `g1/CHECKLIST.md` | seção 3 deste arquivo (o restante do checklist segue válido) |
 | "Lote atual"/"Pendências externas" de `roadmap.md` | seção 5 deste arquivo |
 | `g1/candidate/sql/003_contencao.sql` como contingência | `004_contencao.sql` (o 003 fica só para laboratório) |
+| Checklist de estado (`g1/CHECKLIST.md`, seção 3 deste arquivo para detalhes de teste) | `docs/CHECKLIST_UNICO.md` (implementado / testado / pendente / publicado) |
 | `.lovable/plan.md` (plano antigo do CRM de Recompra) | histórico; não reflete o plano atual |
 | Em Files: `gasfacil_dossie_completo.md` e `-1.md` (03/11), `gasfacil_diagnostico_tecnico_operacional.pdf` (03/11) | `docs/auditoria_funcional_v1.md` + este arquivo |
 | Em Files: `gasfacil_g0_1_isolated_validation.md`, ZIPs `gasfacil_g0_1_*` (admin v1/v2, revisao, revisao_v2, consolidado v3/v4, validacao_v1) | `g0.1/` deste pacote (inclui README, INTEGRATION_RESULTS, BROWSER_RESULTS, PUBLICATION_SEQUENCE) |

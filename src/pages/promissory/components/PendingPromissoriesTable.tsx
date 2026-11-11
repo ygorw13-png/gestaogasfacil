@@ -36,7 +36,8 @@ function PendingPromissoriesTableComponent({ promissories, onAssign, onPayment }
         return {
           name,
           notes: sorted,
-          total: notes.reduce((s, n) => s + n.value, 0),
+          // Em aberto = saldo (valor menos o já recebido): uma nota parcial não conta o valor cheio.
+          total: notes.reduce((s, n) => s + (n.saldo ?? n.value), 0),
           severity: worstSeverity(notes),
           nextDue: sorted[0].dueDate,
           phone: notes.find((n) => n.clientPhone)?.clientPhone,
@@ -59,7 +60,7 @@ function PendingPromissoriesTableComponent({ promissories, onAssign, onPayment }
             <TableRow>
               <TableHead>Cliente</TableHead>
               <TableHead className="hidden sm:table-cell">Notas</TableHead>
-              <TableHead>Total</TableHead>
+              <TableHead>Em aberto</TableHead>
               <TableHead className="hidden md:table-cell">Próx. vencimento</TableHead>
               <TableHead>Situação</TableHead>
               <TableHead className="w-10" />

@@ -110,7 +110,7 @@ describe('fila offline com ações controladas ligadas', () => {
     await processQueue();
     const fila = await getQueue();
     expect(fila).toHaveLength(1);
-    expect(fila[0].status).toBe('excedido');
+    expect(fila[0].status).toBe('recusado');
   });
 
   it('regra pura: desligada não bloqueia; ação controlada nunca é bloqueada', () => {

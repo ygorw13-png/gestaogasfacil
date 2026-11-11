@@ -1,15 +1,22 @@
 import { useState, useCallback } from "react";
+import type { Database } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { Order, OrderStatus } from "../types";
 import { supabase } from "@/integrations/supabase/client";
 import { createPromissoryFromSale, isPromissoryPayment } from "@/lib/promissory";
 import { G1_ACOES, acao, novaChave } from "@/lib/g1/acoes";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export interface AssignOptions {
   /** Produto sai agora da portaria para a carga do entregador (entrega avulsa). */
   retirarDaPortaria?: boolean;
   /** Obrigatório para trocar o entregador de um pedido já atribuído. */
   motivo?: string;
+  /** Chave de reenvio da tela (useOperacaoUnica). Com ela, o erro é devolvido a quem chamou. */
+  chave?: string;
+  /** Nome do entregador para a confirmação (antes aparecia o ID). */
+  nomeEntregador?: string;
 }
 
 export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<React.SetStateAction<Order[]>>) {
@@ -25,7 +32,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
         throw new Error("Usuário não autenticado");
       }
 
-      const newOrderData = {
+      const newOrderData: Database["public"]["Tables"]["orders"]["Insert"] = {
         user_id: userId,
         client_name: order.clientName,
         client_phone: order.clientPhone,
@@ -45,12 +52,26 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
       };
 
       
-      const { data, error } = await supabase
+      // Com id vindo da tela (chave da operação), um reenvio após resposta perdida bate na chave primária
+      // em vez de criar um segundo pedido. Sem id (chamadas antigas), o banco gera.
+      const idCliente = typeof order.id === "string" && UUID_RE.test(order.id) ? order.id : undefined;
+      const payload: Database["public"]["Tables"]["orders"]["Insert"] = idCliente ? { id: idCliente, ...newOrderData } : newOrderData;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let { data, error }: { data: any; error: any } = await supabase
         .from('orders')
-        .insert(newOrderData)
+        .insert(payload)
         .select()
         .single();
 
+      if (error && error.code === '23505' && idCliente) {
+        // Já gravado numa tentativa anterior: usa o registro existente, desde que seja o MESMO pedido.
+        const existente = await supabase.from('orders').select().eq('id', idCliente).single();
+        data = existente.data; error = existente.error;
+        if (!error && data && (data.client_name !== newOrderData.client_name || data.product !== newOrderData.product
+            || Number(data.quantity) !== Number(newOrderData.quantity) || Number(data.price) !== Number(newOrderData.price))) {
+          throw new Error("Esta chave de envio já pertence a outro pedido. Registre como novo pedido.");
+        }
+      }
       if (error) throw error;
 
       // Formatar o endereço corretamente para o objeto Order
@@ -87,7 +108,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
         notes: data.notes
       };
       
-      setOrders(prevOrders => [newOrder, ...prevOrders]);
+      setOrders(prevOrders => [newOrder, ...prevOrders.filter((o) => o.id !== newOrder.id)]);
       toast({
         title: "Pedido registrado",
         description: `Pedido para ${order.clientName} registrado com sucesso`,
@@ -107,7 +128,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
     }
   }, [toast, setOrders]);
 
-  const handleAssignOrder = useCallback(async (orderId: string, deliveryPerson: string, opts: AssignOptions = {}) => {
+  const handleAssignOrder = useCallback(async (orderId: string, deliveryPerson: string, opts: AssignOptions = {}): Promise<boolean> => {
     setLoading(true);
     try {
       if (G1_ACOES) {
@@ -119,7 +140,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
         } else {
           await acao("atribuir_entrega", {
             _order_id: orderId, _entregador_id: deliveryPerson,
-            _retirar_da_portaria: !!opts.retirarDaPortaria, _chave: novaChave("atribuir"),
+            _retirar_da_portaria: !!opts.retirarDaPortaria, _chave: opts.chave ?? novaChave("atribuir"),
           });
         }
       } else {
@@ -156,6 +177,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
               ...order,
               status: "assigned",
               deliveryPerson,
+              ...(opts.nomeEntregador ? { deliveryPersonName: opts.nomeEntregador } : {}),
               assignedAt: new Date(),
             };
           }
@@ -165,15 +187,19 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
 
       toast({
         title: "Pedido atribuído",
-        description: `Pedido atribuído a ${deliveryPerson}`,
+        description: opts.nomeEntregador ? `Pedido atribuído a ${opts.nomeEntregador}` : "Pedido atribuído ao entregador",
       });
+      return true;
     } catch (error) {
       console.error("Erro ao atribuir pedido:", error);
+      // A tela que mandou a chave mostra o erro e decide a próxima tentativa.
+      if (opts.chave) throw error;
       toast({
         title: "Erro ao atribuir pedido",
         description: G1_ACOES && error instanceof Error ? error.message : "Não foi possível atribuir o pedido.",
         variant: "destructive",
       });
+      return false;
     } finally {
       setLoading(false);
     }

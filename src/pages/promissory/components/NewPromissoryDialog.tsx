@@ -13,19 +13,22 @@ import { ClientSection } from "./new-promissory/ClientSection";
 import { ValueSection } from "./new-promissory/ValueSection";
 import { DueDateSection } from "./new-promissory/DueDateSection";
 import { CollectorSection } from "./new-promissory/CollectorSection";
+import type { Cobrador } from "../hooks/useCollectors";
+import type { NovaPromissoria } from "../hooks/usePromissoryNotes";
+import { useOperacaoUnica } from "@/hooks/useOperacaoUnica";
 
 interface NewPromissoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: {
-    clientName: string;
-    value: number;
-    dueDate: Date;
-    collector: string | null;
-  }) => void;
-  collectors: string[];
+  /** Resolve após a gravação confirmada; rejeita com o motivo. */
+  onSubmit: (data: NovaPromissoria) => Promise<void> | void;
+  collectors: Cobrador[];
   clients?: string[];
 }
+
+/** Data do seletor (meia-noite local) como "AAAA-MM-DD", sem passar por UTC. */
+const dataLocal = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 export function NewPromissoryDialog({ 
   open, 
@@ -42,6 +45,9 @@ export function NewPromissoryDialog({
   const [collector, setCollector] = useState<string | null>(null);
   const [selectedClient, setSelectedClient] = useState<string | undefined>(undefined);
   const [isNewClient, setIsNewClient] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  // Reenvio da MESMA promissória (resposta perdida) usa a mesma chave; uma nova recebe outra.
+  const operacao = useOperacaoUnica("promissoria-manual");
   
   useEffect(() => {
     if (open) {
@@ -51,6 +57,7 @@ export function NewPromissoryDialog({
       setCollector(null);
       setSelectedClient(undefined);
       setIsNewClient(false);
+      setErro(null);
     }
   }, [open]);
   
@@ -64,19 +71,20 @@ export function NewPromissoryDialog({
     }
   }, [selectedClient]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!clientName || !value || !dueDate) {
-      return;
+    const valor = parseFloat(value);
+    if (!clientName.trim() || !dueDate || !(valor > 0) || operacao.enviando) return;
+    setErro(null);
+    const cobrador = collectors.find((c) => c.id === collector) ?? null;
+    const conteudo = { cliente: clientName.trim(), valor, vencimento: dataLocal(dueDate), cobrador: cobrador?.id ?? null };
+    try {
+      await operacao.executar(conteudo, (chave) =>
+        Promise.resolve(onSubmit({ clientName: conteudo.cliente, value: valor, dueDate: conteudo.vencimento, cobrador, chave })));
+      onOpenChange(false);
+    } catch (err) {
+      setErro(err instanceof Error ? err.message : "Promissória não registrada. Os dados foram mantidos.");
     }
-    
-    onSubmit({
-      clientName,
-      value: parseFloat(value),
-      dueDate,
-      collector
-    });
   };
 
   return (
@@ -117,15 +125,29 @@ export function NewPromissoryDialog({
             />
           </div>
           
+          {erro && (
+            <div role="alert" className="mb-3 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
+              <p className="font-medium text-destructive">Promissória não registrada</p>
+              <p>{erro}</p>
+              {operacao.duvida && (
+                <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => { operacao.descartarDuvida(); setErro(null); }}>
+                  Descartar a tentativa anterior e registrar como nova
+                </Button>
+              )}
+            </div>
+          )}
+          <p className="mb-3 text-xs text-muted-foreground">
+            Promissória sem venda no sistema (ex.: dívida anterior). Entra no saldo a receber; não conta como venda nem como recebimento.
+          </p>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={operacao.enviando}>
               Cancelar
             </Button>
             <Button 
               type="submit"
-              disabled={!clientName || !value || !dueDate}
+              disabled={!clientName || !value || !dueDate || operacao.enviando}
             >
-              Salvar
+              {operacao.enviando ? "Registrando…" : "Salvar"}
             </Button>
           </DialogFooter>
         </form>

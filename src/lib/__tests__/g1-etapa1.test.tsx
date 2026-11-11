@@ -201,10 +201,10 @@ describe("G1 painel — entrega concluída não prova pagamento (dados fictício
   it("recebido soma só recebimentos; dinheiro com entregador aguarda acerto", () => {
     const p = summarizePainel({
       ordersHoje, notas, hoje: "2026-11-06", divergenciasHoje: [{ esperado: 120, recebido: 100 }],
-      recebimentosHoje: [{ valor: 100, origem: "entrega", order_id: "o1", acerto_id: null, criado_em: "x" },
-        { valor: 30, origem: "promissoria", acerto_id: null, criado_em: "x" }],
+      recebimentosHoje: [{ valor: 100, origem: "entrega", order_id: "o1", acerto_id: null, criado_em: "x", forma: "dinheiro" },
+        { valor: 30, origem: "promissoria", acerto_id: null, criado_em: "x", forma: "dinheiro" }],
     });
-    expect(p.recebido).toEqual({ total: 130, conferido: 30, aguardandoAcerto: 100, deTitulos: 30 });
+    expect(p.recebido).toEqual({ total: 130, noCaixa: 30, aguardandoAcerto: 100, pixCartao: 0, deTitulos: 30 });
     expect(p.divergencias.semComprovacao).toBe(1); // o3: concluída, sem recebimento nem promissória
     expect(p.divergencias.valor).toBe(1);
     expect(p.divergencias.diferenca).toBe(20);

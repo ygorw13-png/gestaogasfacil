@@ -6,6 +6,9 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 const ENTREGADOR_ALLOWED = [
   "/entregador/entregas",
   "/entregador/venda-rua",
+  "/entregador/carga",
+  // Fila offline: o entregador é quem mais usa e precisa ver lançamentos recusados ou pendentes.
+  "/offline",
   "/entregador/cadastro",
   "/entregador/perfil",
 ];

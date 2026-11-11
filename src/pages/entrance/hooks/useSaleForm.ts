@@ -1,7 +1,5 @@
 
-import { useReducer, useCallback, useRef } from "react";
-import { toast } from "sonner";
-import { G1_ACOES, novaChave } from "@/lib/g1/acoes";
+import { useReducer, useCallback, useRef, useState } from "react";
 import type { Sale } from "../types/saleTypes";
 import type { Reseller } from "../../resellers/types";
 import { useRegistrarEntregaConta } from "@/hooks/useContaBotijoes";
@@ -79,12 +77,13 @@ function saleFormReducer(state: SaleFormState, action: SaleFormAction): SaleForm
 }
 
 // Custom hook
-export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<boolean>, onOpenChange: (open: boolean) => void) => {
+export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<void>, onOpenChange: (open: boolean) => void) => {
   const [state, dispatch] = useReducer(saleFormReducer, initialState);
-  const registrarEntrega = useRegistrarEntregaConta();
-  // Ações controladas: uma chave por venda (mantida até confirmar) e um envio por vez.
-  const chaveRef = useRef(novaChave("venda-caixa"));
+  // Trava imediata contra envio duplo (o estado do React só atualiza no próximo render).
   const enviandoRef = useRef(false);
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const registrarEntrega = useRegistrarEntregaConta();
   
   // Effect to update price when reseller or product changes
   // Since we're using a reducer, we can handle this in the reducer
@@ -124,9 +123,12 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<boolean>, o
     }
   }, [state.product]);
 
-  // Função para lidar com o envio do formulário
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  // Função para lidar com o envio do formulário.
+  // Só limpa, fecha e dispara efeitos ligados à venda DEPOIS da gravação confirmada; em falha,
+  // mantém tudo preenchido para nova tentativa.
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    if (enviandoRef.current) return;
 
     const isReseller = state.saleType === "reseller";
 
@@ -141,7 +143,6 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<boolean>, o
       : levaCasco
       ? 'completa'
       : 'recarga';
-
 
     const newSale: Sale = {
       id: Date.now(),
@@ -170,49 +171,20 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<boolean>, o
       movementQuantity: state.loanGas ? state.quantity : state.movementQuantity,
     };
 
-
-    if (G1_ACOES) {
-      if (enviandoRef.current) return;
-      // Decisão 13 pendente (preço e acerto de agregado/ponto): sem valor no ato não há venda,
-      // dívida nem recebimento consistentes. Nada é gravado, nem a ficha do parceiro.
-      if (isReseller || isPontoAPrazo) {
-        toast.error("Venda não registrada", {
-          description:
-            "Venda para agregado ou ponto de revenda \"a acertar\" ainda não tem regra de preço e acerto. Nada foi gravado.",
-        });
-        return;
-      }
-      const venda = { ...newSale, chave: chaveRef.current };
-      const ponto = isPonto && !isVasilhame && state.selectedClient
-        ? { id: String(state.selectedClient.id), nome: String(state.selectedClient.name).replace(/\s*\(.*\)$/, "") }
-        : null;
-      enviandoRef.current = true;
-      void (async () => {
-        try {
-          const gravou = await onSubmit(venda);
-          if (gravou === false) return; // falhou: formulário continua aberto, mesma chave no reenvio
-          chaveRef.current = novaChave("venda-caixa");
-          // Ficha do ponto (cascos) só depois da venda confirmada.
-          if (ponto) {
-            registrarEntrega.mutate({
-              parceiro_tipo: "ponto",
-              parceiro_id: ponto.id,
-              parceiro_nome: ponto.nome,
-              produto: state.product ? state.product.toUpperCase() : "P13",
-              quantidade: state.quantity,
-              vasilhames_recebidos: state.cylinderMovement === "return" ? state.movementQuantity : 0,
-              observacoes: "Retirada na portaria",
-            });
-          }
-          dispatch({ type: 'RESET_FORM' });
-          onOpenChange(false);
-        } finally {
-          enviandoRef.current = false;
-        }
-      })();
+    enviandoRef.current = true;
+    setEnviando(true);
+    setErro(null);
+    try {
+      await onSubmit(newSale);
+    } catch (err) {
+      setErro(err instanceof Error ? err.message : "Não foi possível registrar a venda. Os dados foram mantidos.");
       return;
+    } finally {
+      enviandoRef.current = false;
+      setEnviando(false);
     }
 
+    // ── gravação confirmada ──
     // Agregado: lança na conta de botijões (acerto por quantidade)
     if (isReseller && state.selectedReseller) {
       registrarEntrega.mutate({
@@ -241,11 +213,7 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<boolean>, o
       });
     }
 
-
-
-    // Reset the form
     dispatch({ type: 'RESET_FORM' });
-    onSubmit(newSale);
     onOpenChange(false);
   }, [
     state,
@@ -287,6 +255,8 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<boolean>, o
     
     // Actions
     handleSubmit,
-    resetForm
+    resetForm,
+    enviando,
+    erro
   };
 };

@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Users } from "lucide-react";
+import { hojePortaria } from "@/lib/g1/dataPortaria";
+import { G1_ACOES } from "@/lib/g1/acoes";
+import { AcertoControlado } from "./components/acerto/AcertoControlado";
 
 interface AcertoRow {
   delivery_person: string;
@@ -24,8 +27,9 @@ function classifyPayment(method: string | null): "dinheiro" | "pix" | "cartao" |
   return "outro";
 }
 
-export default function AcertoEntregadores() {
-  const today = new Date().toISOString().slice(0, 10);
+/** Resumo antigo por pedidos (G1 desligado): não é acerto registrado. */
+function ResumoPorPedidos() {
+  const today = hojePortaria();
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["acerto-entregadores", today],
@@ -116,9 +120,17 @@ export default function AcertoEntregadores() {
       </Card>
 
       <p className="text-xs text-muted-foreground">
-        💡 O entregador deve entregar na portaria o valor em <strong>dinheiro</strong> mostrado acima.
-        Os totais em PIX/cartão já caem direto na empresa.
+        Resumo pela forma de pagamento combinada nos pedidos concluídos hoje. Não comprova recebimento e não
+        registra o acerto. O destino de PIX e cartão (conta da empresa ou do entregador) ainda não foi definido.
       </p>
     </div>
   );
+}
+
+/**
+ * Acerto dos entregadores. Com as ações controladas (G1), o acerto é registrado no banco (persistido,
+ * auditável, sem duplicar); sem elas, mostra só o resumo antigo por pedidos.
+ */
+export default function AcertoEntregadores() {
+  return G1_ACOES ? <AcertoControlado /> : <ResumoPorPedidos />;
 }

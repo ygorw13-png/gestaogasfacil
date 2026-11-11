@@ -68,6 +68,17 @@ export interface RecebimentoLike {
   order_id?: string | null;
   acerto_id?: string | null;
   criado_em: string;
+  /** dinheiro | pix | cartao | outros */
+  forma?: string | null;
+  /** caixa | entregador | cobrador | nao_informado (SQL 008; vazio = linha anterior, regra derivada) */
+  destino?: string | null;
+}
+
+/** Onde o valor está. Mesma regra de public._destino_efetivo (SQL 008). */
+export function destinoEfetivo(r: Pick<RecebimentoLike, "destino" | "forma" | "origem">): "caixa" | "entregador" | "cobrador" | "nao_informado" {
+  if (r.destino === "caixa" || r.destino === "entregador" || r.destino === "cobrador" || r.destino === "nao_informado") return r.destino;
+  if ((r.forma ?? "dinheiro") !== "dinheiro") return "nao_informado";
+  return r.origem === "entrega" || r.origem === "venda_rua" ? "entregador" : "caixa";
 }
 
 export interface NotaPainel extends NoteLike {
@@ -97,20 +108,25 @@ export function summarizePainel(args: {
   const saldo = (n: NotaPainel) => Math.max(0, (Number(n.value) || 0) - (Number(n.paid_amount) || 0));
   const vencidas = abertas.filter((n) => n.due_date && n.due_date < hoje);
 
-  let recebido: null | { total: number; conferido: number; aguardandoAcerto: number; deTitulos: number } = null;
+  let recebido: null | { total: number; noCaixa: number; aguardandoAcerto: number; pixCartao: number; deTitulos: number } = null;
   const semComprovacao: string[] = [];
   if (recebimentosHoje) {
     const v = (r: RecebimentoLike) => Number(r.valor) || 0;
     const tot = recebimentosHoje.reduce((s, r) => s + v(r), 0);
-    // Dinheiro na mão do entregador só é conferido no acerto.
-    const aguardando = recebimentosHoje
-      .filter((r) => (r.origem === "entrega" || r.origem === "venda_rua") && !r.acerto_id)
-      .reduce((s, r) => s + v(r), 0);
+    // Significados diferentes, rótulos diferentes:
+    //  no caixa      = dinheiro que entrou na portaria (balcão, título pago na portaria ou já acertado);
+    //  aguardando    = dinheiro em espécie com entregador ou cobrador, ainda não acertado;
+    //  PIX/cartão    = valores informados cujo destino ainda não foi definido (decisão 7).
+    const somar = (f: (r: RecebimentoLike) => boolean) => recebimentosHoje.filter(f).reduce((s, r) => s + v(r), 0);
+    const pixCartao = somar((r) => destinoEfetivo(r) === "nao_informado");
+    const aguardando = somar((r) => !r.acerto_id && (destinoEfetivo(r) === "entregador" || destinoEfetivo(r) === "cobrador"));
+    const noCaixa = somar((r) => destinoEfetivo(r) === "caixa" || (!!r.acerto_id && destinoEfetivo(r) !== "nao_informado"));
     recebido = {
       total: tot,
-      conferido: tot - aguardando,
+      noCaixa,
       aguardandoAcerto: aguardando,
-      deTitulos: recebimentosHoje.filter((r) => r.origem === "promissoria").reduce((s, r) => s + v(r), 0),
+      pixCartao,
+      deTitulos: somar((r) => r.origem === "promissoria"),
     };
     const comReceb = new Set(recebimentosHoje.map((r) => r.order_id).filter(Boolean));
     const comNota = new Set(notas.map((n) => n.order_id).filter(Boolean));

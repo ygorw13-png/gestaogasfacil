@@ -1,4 +1,24 @@
+/**
+ * Valor canônico: "completa" (padrão da coluna orders.tipo_venda, das telas e
+ * dos relatórios). "completo" aparece como entrada legada/alternativa e é lido
+ * como "completa"; nunca é gravado. Qualquer outro texto não é um tipo válido.
+ */
 export type TipoVenda = "completa" | "recarga" | "vasilhame";
+
+/** Lê qualquer valor guardado ou digitado e devolve o canônico (ou null se não reconhecido). */
+export function normalizarTipoVenda(t?: string | null): TipoVenda | null {
+  switch ((t ?? "").trim().toLowerCase()) {
+    case "completa":
+    case "completo":
+      return "completa";
+    case "recarga":
+      return "recarga";
+    case "vasilhame":
+      return "vasilhame";
+    default:
+      return null;
+  }
+}
 
 export const TIPOS_VENDA: {
   value: TipoVenda;
@@ -23,10 +43,12 @@ export const TIPOS_VENDA: {
 ];
 
 export const tipoVendaLabel = (t?: string | null) =>
-  TIPOS_VENDA.find((x) => x.value === t)?.label ?? "Somente líquido (troca de vasilhame)";
+  TIPOS_VENDA.find((x) => x.value === normalizarTipoVenda(t))?.label ?? "Somente líquido (troca de vasilhame)";
 
-export const tipoVendaShort = (t?: string | null) =>
-  t === "vasilhame" ? "Vasilhame" : t === "completa" ? "Completo" : "Troca";
+export const tipoVendaShort = (t?: string | null) => {
+  const n = normalizarTipoVenda(t);
+  return n === "vasilhame" ? "Vasilhame" : n === "completa" ? "Completo" : "Troca";
+};
 
 /**
  * Movimentação de vasilhame gerada por uma venda.

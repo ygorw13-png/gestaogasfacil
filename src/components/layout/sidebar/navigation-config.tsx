@@ -41,6 +41,7 @@ export const ordersNavItems: AccordionNavItem[] = [
       { to: "/entrance", label: "Vendas (Balcão)", isEnd: true },
       { to: "/orders", label: "Pedidos", isEnd: true },
       { to: "/orders/map", label: "Mapa de Entregas" },
+      { to: "/entrance/cargas", label: "Cargas dos Entregadores" },
       { to: "/entrance/acerto-entregadores", label: "Acerto Entregadores" },
       { to: "/entrance/history", label: "Histórico de Vendas" },
       { to: "/entrance/historico-portaria", label: "Histórico da Portaria" },

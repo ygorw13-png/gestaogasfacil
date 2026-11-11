@@ -1,0 +1,58 @@
+[
+  {
+    "teste": "Sem abertura recusa venda",
+    "ok": true
+  },
+  {
+    "teste": "Abertura ontem não libera hoje",
+    "ok": true
+  },
+  {
+    "teste": "Cheios insuficientes",
+    "ok": true
+  },
+  {
+    "teste": "Produto não usa saldo de outro produto",
+    "ok": true
+  },
+  {
+    "teste": "Recarga exata zera cheios e recebe vazios",
+    "ok": true
+  },
+  {
+    "teste": "Completa consome cheios",
+    "ok": true
+  },
+  {
+    "teste": "Vasilhame exige vazio, mesmo com cheio disponível",
+    "ok": true
+  },
+  {
+    "teste": "Vasilhame exato consome vazio e preserva cheio",
+    "ok": true
+  },
+  {
+    "teste": "Reenvio não consome estoque novamente",
+    "ok": true
+  },
+  {
+    "teste": "Segunda venda é recusada após esgotar",
+    "ok": true
+  },
+  {
+    "teste": "Recusa não deixa pedido, recebimento ou chave",
+    "ok": true
+  },
+  {
+    "teste": "Movimento avulso de venda também respeita saldo",
+    "ok": true
+  },
+  {
+    "teste": "Concorrência duas vendas",
+    "ok": true
+  },
+  {
+    "teste": "Concorrência venda x carga",
+    "ok": true
+  }
+]

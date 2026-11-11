@@ -10,10 +10,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { STORE_META, STORE_QUEUE, idbDelete, idbGet, idbGetAll, idbPut } from './db';
 import { backoffDelayMs, getConfigSync, loadRetryConfig } from './config';
 import { acaoComChave, motivoBloqueioFila } from '@/lib/g1/flag';
+import { decidirEnvio, ehRecusaDefinitiva } from './dono';
 
 export type QueueAction = 'insert' | 'update' | 'delete' | 'rpc';
-/** bloqueado = gravação direta que contornaria as regras do G1; nunca é enviada. */
-export type QueueStatus = 'pendente' | 'excedido' | 'conflito' | 'bloqueado';
+/**
+ * pendente: aguardando envio | excedido: tentativas esgotadas | conflito: precisa de confirmação
+ * recusado: o servidor recusou (regra/permissão/saldo) — não é reenviado sozinho
+ * outra_conta: criado por outra conta neste aparelho — só sobe quando essa conta entrar
+ */
+export type QueueStatus = 'pendente' | 'excedido' | 'conflito' | 'recusado' | 'outra_conta' | 'bloqueado';
 
 export interface QueuedOperation {
   id: string;
@@ -34,6 +39,23 @@ export interface QueuedOperation {
   nextAttemptAt?: number;
   /** Usuário confirmou o envio mesmo com conflito detectado */
   forced?: boolean;
+  /** Conta que criou o lançamento (enviado só pela sessão dessa conta). */
+  ownerId?: string;
+}
+
+/**
+ * Conta logada agora, sem rede (lê a sessão guardada). `undefined` = cliente sem autenticação (testes).
+ */
+async function usuarioAtual(): Promise<string | null | undefined> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const auth = (supabase as any)?.auth;
+  if (!auth?.getSession) return undefined;
+  try {
+    const { data } = await auth.getSession();
+    return data?.session?.user?.id ?? null;
+  } catch {
+    return null;
+  }
 }
 
 const META_LAST_SYNC = 'lastSyncAt';
@@ -95,8 +117,10 @@ async function setLastSyncAt(ts: number) {
 export async function enqueueOperation(
   op: Omit<QueuedOperation, 'id' | 'createdAt' | 'attempts'>,
 ): Promise<QueuedOperation> {
+  const dono = op.ownerId ?? (await usuarioAtual()) ?? undefined;
   const item: QueuedOperation = {
     ...op,
+    ownerId: dono,
     id: crypto.randomUUID(),
     createdAt: Date.now(),
     attempts: 0,
@@ -206,7 +230,6 @@ export interface SyncResult {
   sent: number;
   failed: number;
   conflicts: number;
-  /** Gravações diretas antigas que não foram enviadas (regras de carga e recebimento). */
   blocked?: number;
   skipped: boolean;
 }
@@ -237,23 +260,35 @@ export async function processQueue(): Promise<SyncResult> {
   try {
     const queue = await getQueue();
     const now = Date.now();
+    const atual = await usuarioAtual();
+    // Sem ninguém logado não envia nada (o servidor gravaria sem dono ou recusaria).
+    if (atual === null) return { sent: 0, failed: 0, conflicts: 0, skipped: true };
     const due = queue.filter(
-      (op) =>
-        op.status !== 'conflito' &&
-        op.status !== 'excedido' &&
-        op.status !== 'bloqueado' &&
-        (op.nextAttemptAt ?? 0) <= now,
+      (op) => op.status !== 'conflito' && op.status !== 'excedido' && op.status !== 'recusado' && op.status !== 'bloqueado' && (op.nextAttemptAt ?? 0) <= now,
     );
     if (due.length === 0) return { sent: 0, failed: 0, conflicts: 0, skipped: true };
 
     setProgress({ running: true, total: due.length, done: 0, failed: 0 });
 
     for (const op of due) {
-      // Ações controladas ligadas: gravação direta antiga nunca sobe (nem forçada).
       const bloqueio = motivoBloqueioFila(op);
       if (bloqueio) {
         blocked++;
         await idbPut(STORE_QUEUE, { ...op, status: 'bloqueado' as QueueStatus, lastError: bloqueio });
+        continue;
+      }
+      const decisao = decidirEnvio(op.ownerId, atual, op.forced);
+      if (decisao === 'outra_conta') {
+        if (op.status !== 'outra_conta') {
+          await idbPut(STORE_QUEUE, { ...op, status: 'outra_conta' as QueueStatus,
+            lastError: 'Lançado por outra conta neste aparelho. Só será enviado quando essa conta entrar.' });
+        }
+        continue;
+      }
+      if (decisao === 'sem_dono') {
+        conflicts++;
+        await idbPut(STORE_QUEUE, { ...op, status: 'conflito' as QueueStatus,
+          lastError: 'Lançamento de uma versão anterior do app, sem a conta registrada. Confira se é seu antes de enviar.' });
         continue;
       }
       try {
@@ -274,9 +309,13 @@ export async function processQueue(): Promise<SyncResult> {
 
         failed++;
         setProgress({ failed });
+        // Recusa do servidor numa ação controlada (permissão, saldo, regra): não adianta reenviar sozinho.
+        if (ehRecusaDefinitiva(op.action, message, isNetworkError)) {
+          await idbPut(STORE_QUEUE, { ...op, attempts, status: 'recusado' as QueueStatus, lastError: `Recusado pelo servidor: ${message}` });
+          continue;
+        }
         const excedeu = attempts >= cfg.maxAttempts && !isNetworkError(message);
 
-        // Venda/recebimento com chave nunca some sozinho: fica "excedido" para conferência.
         if (excedeu && cfg.onExceed === 'descartar' && !acaoComChave(op)) {
           await idbDelete(STORE_QUEUE, op.id);
         } else {
@@ -355,10 +394,12 @@ export async function runOrQueue(
   op: Omit<QueuedOperation, 'id' | 'createdAt' | 'attempts'>,
 ): Promise<{ queued: boolean; error?: string }> {
   // Chave própria para inserts: se subir duas vezes, a nuvem recusa a duplicata
-  const prepared: Omit<QueuedOperation, 'id' | 'createdAt' | 'attempts'> =
+  const base: Omit<QueuedOperation, 'id' | 'createdAt' | 'attempts'> =
     op.action === 'insert' && op.payload && !op.payload.id
       ? { ...op, payload: { ...op.payload, id: crypto.randomUUID() } }
       : op;
+  // Dono registrado já na criação: se a pessoa trocar de conta antes de sincronizar, o lançamento espera.
+  const prepared = { ...base, ownerId: base.ownerId ?? (await usuarioAtual()) ?? undefined };
 
   const bloqueio = motivoBloqueioFila(prepared);
   if (bloqueio) return { queued: false, error: bloqueio };

@@ -27,7 +27,7 @@ function AssignedPromissoriesTableComponent({ promissories, onPayment }: Assigne
         {promissories.map((note) => (
           <TableRow key={note.id}>
             <TableCell>{note.clientName}</TableCell>
-            <TableCell>R$ {note.value.toFixed(2)}</TableCell>
+            <TableCell>R$ {(note.saldo ?? note.value).toFixed(2)}{note.paidAmount > 0 && <span className="block text-xs text-muted-foreground">de R$ {note.value.toFixed(2)}</span>}</TableCell>
             <TableCell>{format(note.dueDate, "dd/MM/yyyy")}</TableCell>
             <TableCell>{note.assignedTo}</TableCell>
             <TableCell>

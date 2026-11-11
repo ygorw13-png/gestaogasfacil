@@ -11,10 +11,13 @@ import { useSaleClients } from "../../hooks/useSaleClients";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSaleForm } from "../../hooks/useSaleForm";
 import type { Sale } from "../../types/saleTypes";
+import { useContext } from "react";
+import { Button } from "@/components/ui/button";
+import { CashierContext } from "@/contexts/CashierContext";
 
 
 interface SaleFormContentProps {
-  onSubmit: (sale: Sale) => void | Promise<boolean>;
+  onSubmit: (sale: Sale) => void | Promise<void>;
   onOpenChange: (open: boolean) => void;
 }
 
@@ -44,11 +47,15 @@ export function SaleFormContent({ onSubmit, onOpenChange }: SaleFormContentProps
     setCylinderMovement,
     movementQuantity,
     setMovementQuantity,
-    handleSubmit
+    handleSubmit,
+    enviando,
+    erro
   } = useSaleForm(onSubmit, onOpenChange);
+  const caixa = useContext(CashierContext);
 
   return (
-    <form id="sale-form" onSubmit={handleSubmit} className="space-y-4">
+    <form id="sale-form" onSubmit={handleSubmit} className="space-y-4" aria-busy={enviando}>
+     <fieldset disabled={enviando} className="space-y-4 border-0 p-0 m-0 min-w-0">
       <Tabs value={saleType} onValueChange={(val: string) => setSaleType(val as "regular" | "reseller")} className="mb-6">
         <TabsList className="w-full">
           <TabsTrigger value="regular" className="flex-1">
@@ -127,6 +134,23 @@ export function SaleFormContent({ onSubmit, onOpenChange }: SaleFormContentProps
         onCylinderMovementChange={setCylinderMovement}
         onMovementQuantityChange={setMovementQuantity}
       />
+     </fieldset>
+
+      {enviando && (
+        <p role="status" className="text-sm text-muted-foreground">Registrando a venda… aguarde a confirmação.</p>
+      )}
+      {erro && (
+        <div role="alert" className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
+          <p className="font-medium text-destructive">Venda não registrada</p>
+          <p>{erro}</p>
+          <p className="text-muted-foreground">Os dados continuam preenchidos.</p>
+          {caixa?.duvidaVenda && (
+            <Button type="button" variant="outline" size="sm" className="mt-2" onClick={caixa.descartarDuvidaVenda}>
+              Descartar a tentativa anterior e registrar como nova venda
+            </Button>
+          )}
+        </div>
+      )}
     </form>
   );
 }

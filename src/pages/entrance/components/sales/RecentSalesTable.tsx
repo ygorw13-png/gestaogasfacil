@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { AVISO_CANCELAMENTO, useCancelarVenda } from "../../hooks/useCancelarVenda";
 import { EditSaleButton } from "./EditSaleButton";
+import { normalizarTipoVenda } from "@/lib/saleTypes";
 
 interface Sale {
   id: number | string;
@@ -43,7 +44,7 @@ function VasilhameCell({ sale }: { sale: Sale }) {
   if (sale.tipoVenda === "vasilhame") {
     return <Badge variant="secondary">Só vasilhame ({entregues || sale.quantity})</Badge>;
   }
-  if (sale.tipoVenda === "completa" || entregues > 0) {
+  if (normalizarTipoVenda(sale.tipoVenda) === "completa" || entregues > 0) {
     return <Badge>Com vasilhame ({entregues || sale.quantity})</Badge>;
   }
   return (

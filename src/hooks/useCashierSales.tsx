@@ -9,7 +9,11 @@ import { useVendasHoje } from '@/pages/entrance/hooks/useVendasHoje';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { createPromissoryFromSale } from '@/lib/promissory';
-import { G1_ACOES, acao, novaChave } from '@/lib/g1/acoes';
+import { G1_ACOES, acao, AcaoError } from '@/lib/g1/acoes';
+import { ehIncerta, idDaChave } from '@/lib/g1/operacao';
+import { normalizarTipoVenda } from '@/lib/saleTypes';
+import { useOperacaoUnica } from '@/hooks/useOperacaoUnica';
+import { hojePortaria } from '@/lib/g1/dataPortaria';
 
 // Estado inicial do caixa - todos os valores zerados
 export const initialCashierData: CashierData = {
@@ -101,58 +105,20 @@ export function useCashierSales() {
     }
   }, [vendasHoje]);
 
-  const handleNewSaleSubmit = useCallback((newSale: Sale, saleDate?: string) => {
-    const hojeStr = new Date().toLocaleDateString('sv-SE');
+  // Uma venda por vez, com chave de reenvio presa ao conteúdo (ver src/lib/g1/operacao.ts).
+  const operacao = useOperacaoUnica('venda-caixa');
+
+  /**
+   * Registra a venda e SÓ resolve depois da gravação confirmada. Em falha, rejeita (o formulário
+   * mantém os dados). Quem chama fecha, limpa e imprime somente depois da resolução.
+   */
+  const handleNewSaleSubmit = useCallback(async (newSale: Sale, saleDate?: string): Promise<void> => {
+    const hojeStr = hojePortaria();
     // Data em que a venda deve ser registrada (permite lançar em fechamento retroativo)
     const dataVenda = saleDate && saleDate !== hojeStr ? saleDate : null;
-    // Set start time if this is the first sale after reset
-    setStartTime(prevStartTime => {
-      if (!prevStartTime) {
-        return new Date();
-      }
-      return prevStartTime;
-    });
-    
-    const tipoVenda = newSale.tipoVenda || 'completa';
+
+    const tipoVenda = normalizarTipoVenda(newSale.tipoVenda) ?? 'completa';
     const isVasilhame = tipoVenda === 'vasilhame';
-
-    if (G1_ACOES) {
-      // Uma ação só (venda + baixa da portaria + recebimento/promissória). O formulário
-      // só fecha quando o banco confirma; em falha continua aberto e a mesma chave evita duplicar.
-      const formas: Record<string, string> = {
-        'Dinheiro': 'money', 'Crédito': 'credit', 'Débito': 'debit', 'PIX': 'pix',
-        'Promissória': 'promissoria', 'Vale Gás': 'vale-gas', 'Convênio': 'convenio',
-      };
-      return (async () => {
-        try {
-          if (dataVenda) throw new Error('Lançamento retroativo ainda sem regra na ação controlada. Use a correção administrativa.');
-          await acao('venda_portaria', {
-            _cliente_id: newSale.clientId || null, _cliente_nome: newSale.client, _produto: newSale.product,
-            _quantidade: newSale.quantity, _valor: newSale.amount, _forma: formas[newSale.payment] || null,
-            _tipo_venda: tipoVenda === 'completa' ? 'completo' : tipoVenda, _devolveu_vazio: newSale.cylinderMovement !== 'loan',
-            _reseller_id: null, _observacoes: isVasilhame ? 'Venda de vasilhame vazio na portaria' : 'Venda registrada na portaria',
-            _chave: newSale.chave || novaChave('venda-caixa'),
-          });
-          ['vendas_hoje', 'vendas_por_data', 'relatorio-vasilhames', 'promissory_notes', 'saldo_portaria_atual', 'saldo_portaria',
-            'movimentacoes_portaria', 'sales_history', 'dashboard'].forEach((k) => queryClient.invalidateQueries({ queryKey: [k] }));
-          toast({ title: 'Venda registrada', description: 'Venda, estoque e recebimento gravados juntos.' });
-          setNewSaleOpen(false);
-          return true;
-        } catch (e) {
-          console.error('Erro ao registrar venda no banco:', e);
-          toast({ title: 'Venda não registrada', description: e instanceof Error ? e.message : 'Tente novamente.', variant: 'destructive' });
-          return false;
-        }
-      })();
-    }
-
-    // Atualiza contadores locais de estoque (mock legado) — só para gás/água
-    if (!isVasilhame) {
-      if (newSale.product.includes('P13')) updateInventorySales('P13', newSale.quantity);
-      else if (newSale.product.includes('P20')) updateInventorySales('P20', newSale.quantity);
-      else if (newSale.product.includes('P45')) updateInventorySales('P45', newSale.quantity);
-      else if (newSale.product.includes('Água')) updateInventorySales('Água', newSale.quantity);
-    }
 
     // Movimentação de vasilhames desta venda
     const vasilhamesEntregues = isVasilhame
@@ -170,7 +136,6 @@ export function useCashierSales() {
         ? newSale.movementQuantity ?? 0
         : 0;
 
-    // Persiste a venda da portaria em orders para entrar nos totais do dia
     const paymentCodeMap: Record<string, string> = {
       'Dinheiro': 'money',
       'Crédito': 'credit',
@@ -180,109 +145,135 @@ export function useCashierSales() {
       'Vale Gás': 'vale-gas',
       'Convênio': 'convenio',
     };
-    (async () => {
-      try {
-        const { data: authData } = await supabase.auth.getUser();
-        const userId = authData?.user?.id;
-        if (!userId) return;
-        const now = dataVenda
-          ? new Date(`${dataVenda}T12:00:00`).toISOString()
-          : new Date().toISOString();
-        const { data: inserted } = await supabase.from('orders').insert({
-          user_id: userId,
-          client_name: newSale.client,
-          client_id: newSale.clientId || null,
-          address: {},
-          product: newSale.product,
-          quantity: newSale.quantity,
-          price: newSale.amount,
-          payment_method: paymentCodeMap[newSale.payment] || 'money',
-          status: 'delivered',
-          delivered_at: now,
-          origem_venda: 'portaria',
-          tipo_venda: tipoVenda,
-          vasilhames_entregues: vasilhamesEntregues,
-          vasilhames_recebidos: vasilhamesRecebidos,
-          has_empty_cylinder: newSale.cylinderMovement !== 'loan',
-          notes: `${
-            isVasilhame ? 'Venda de vasilhame vazio na portaria' : 'Venda registrada na portaria'
-          }${dataVenda ? ` (lançada no fechamento de ${dataVenda.split('-').reverse().join('/')})` : ''}`,
-        } as any).select('id').maybeSingle();
+    const paymentCode = paymentCodeMap[newSale.payment] || null;
 
-        // Venda a prazo: gera nota promissória com vencimento em 30 dias
-        if (newSale.payment === 'Promissória') {
-          const { error: pnError } = await createPromissoryFromSale({
-            clientId: newSale.clientId || null,
-            clientName: newSale.client,
-            value: newSale.amount,
-            referenceId: (inserted as any)?.id ?? null,
-            description: `Venda na portaria - ${newSale.quantity}x ${newSale.product}`,
-          });
-          if (pnError) {
-            toast({ title: 'Venda salva, promissória não criada', description: pnError, variant: 'destructive' });
-          } else {
-            toast({ title: 'Nota promissória gerada', description: `Vencimento em 30 dias — ${newSale.client}` });
+    // Conteúdo que identifica ESTA venda (não inclui o id/hora gerados a cada clique).
+    const conteudo = {
+      cliente: newSale.clientId ?? newSale.client, produto: newSale.product, codigo: newSale.productCode ?? null,
+      quantidade: newSale.quantity, valor: newSale.amount, pagamento: newSale.payment, tipoVenda,
+      movimento: newSale.cylinderMovement ?? 'none', movimentoQtd: newSale.movementQuantity ?? 0, dataVenda,
+    };
+
+    const { data: authData } = await supabase.auth.getUser();
+    const userId = authData?.user?.id;
+    if (!userId) throw new Error('Sessão expirada. Entre novamente para registrar a venda.');
+
+    await operacao.executar(conteudo, async (chave) => {
+      if (G1_ACOES) {
+        if (dataVenda) throw new Error('Lançamento retroativo ainda sem regra na ação controlada. Use a correção administrativa.');
+        if (paymentCode === 'promissoria' && !(newSale.amount > 0)) {
+          throw new Error('Venda a prazo sem valor (agregado/ponto) ainda não tem regra na ação controlada: depende da decisão sobre revendedores.');
+        }
+        await acao('venda_portaria', {
+          _cliente_id: newSale.clientId || null, _cliente_nome: newSale.client, _produto: newSale.product,
+          _quantidade: newSale.quantity, _valor: newSale.amount, _forma: paymentCode,
+          _tipo_venda: tipoVenda, _devolveu_vazio: newSale.cylinderMovement !== 'loan',
+          _reseller_id: null, _observacoes: isVasilhame ? 'Venda de vasilhame vazio na portaria' : 'Venda registrada na portaria',
+          _vasilhames_recebidos: vasilhamesRecebidos, _comodato: newSale.cylinderMovement === 'loan',
+          _chave: chave,
+        });
+        return;
+      }
+
+      // ── Caminho antigo (G1 desligado): o id vem da chave, então um reenvio bate na chave primária.
+      const orderId = idDaChave(chave);
+      const now = dataVenda ? new Date(`${dataVenda}T12:00:00`).toISOString() : new Date().toISOString();
+      const { error: insErr } = await supabase.from('orders').insert({
+        id: orderId,
+        user_id: userId,
+        client_name: newSale.client,
+        client_id: newSale.clientId || null,
+        address: {},
+        product: newSale.product,
+        quantity: newSale.quantity,
+        price: newSale.amount,
+        payment_method: paymentCode || 'money',
+        status: 'delivered',
+        delivered_at: now,
+        origem_venda: 'portaria',
+        tipo_venda: tipoVenda,
+        vasilhames_entregues: vasilhamesEntregues,
+        vasilhames_recebidos: vasilhamesRecebidos,
+        has_empty_cylinder: newSale.cylinderMovement !== 'loan',
+        notes: `${
+          isVasilhame ? 'Venda de vasilhame vazio na portaria' : 'Venda registrada na portaria'
+        }${dataVenda ? ` (lançada no fechamento de ${dataVenda.split('-').reverse().join('/')})` : ''}`,
+      } as any);
+      // 23505 = esta mesma venda já foi gravada numa tentativa anterior: segue para o que faltou.
+      if (insErr && insErr.code !== '23505') throw new AcaoError(insErr.message, ehIncerta(insErr));
+
+      const faltou = (o: string) =>
+        new AcaoError(`Venda salva, mas ${o}. Toque em Registrar de novo para completar (não duplica a venda).`, true);
+
+      // Estoque da portaria (uma vez por venda: confere antes se já existe movimento desta venda)
+      const { data: jaMov, error: movQErr } = await supabase
+        .from('movimentacoes_portaria').select('id').eq('referencia_id', orderId).limit(1);
+      if (movQErr) throw faltou('não foi possível conferir o estoque da portaria');
+      if (!jaMov || jaMov.length === 0) {
+        const codeToProduto: Record<string, PortariaProduto> = { p13: 'P13', p20: 'P20', p45: 'P45', water: 'agua' };
+        const produto = isVasilhame ? 'P13' : newSale.productCode ? codeToProduto[newSale.productCode] : undefined;
+        if (produto) {
+          const isLoan = newSale.cylinderMovement === 'loan';
+          try {
+            await registrarMov.mutateAsync(
+              isVasilhame
+                ? {
+                    tipo: 'venda', produto, delta_cheios: 0, delta_vazios: -newSale.quantity, delta_emprestados: 0,
+                    cliente_id: newSale.clientId || null,
+                    cliente_nome: newSale.client !== 'Venda Avulsa' ? newSale.client : null,
+                    referencia_id: orderId,
+                    observacoes: `Venda de vasilhame vazio P13 #${newSale.id} - ${newSale.payment}`,
+                    ...(dataVenda ? { data_operacao: dataVenda } : {}),
+                  }
+                : {
+                    tipo: isLoan ? 'venda_comodato' : 'venda', produto,
+                    delta_cheios: -newSale.quantity,
+                    delta_vazios: isLoan ? 0 : vasilhamesRecebidos,
+                    delta_emprestados: isLoan ? newSale.quantity : 0,
+                    cliente_id: newSale.clientId || null,
+                    cliente_nome: newSale.client !== 'Venda Avulsa' ? newSale.client : null,
+                    referencia_id: orderId,
+                    observacoes: `Venda #${newSale.id} - ${newSale.payment}`,
+                    ...(dataVenda ? { data_operacao: dataVenda } : {}),
+                  },
+            );
+          } catch {
+            throw faltou('o estoque da portaria não foi atualizado');
           }
         }
-
-        queryClient.invalidateQueries({ queryKey: ['vendas_hoje'] });
-        queryClient.invalidateQueries({ queryKey: ['vendas_por_data'] });
-        queryClient.invalidateQueries({ queryKey: ['relatorio-vasilhames'] });
-        queryClient.invalidateQueries({ queryKey: ['promissory_notes'] });
-        queryClient.invalidateQueries({ queryKey: ['sales_history'] });
-        queryClient.invalidateQueries({ queryKey: ['estoque_retirado'] });
-        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-
-      } catch (e) {
-        console.error('Erro ao registrar venda no banco:', e);
       }
-    })();
 
-
-    // Registrar movimentação no estoque da portaria (Supabase)
-    if (isVasilhame) {
-      // Venda só do casco: sai um vasilhame vazio do estoque
-      registrarMov.mutate({
-        tipo: 'venda',
-        produto: 'P13',
-        delta_cheios: 0,
-        delta_vazios: -newSale.quantity,
-        delta_emprestados: 0,
-        cliente_id: newSale.clientId || null,
-        cliente_nome: newSale.client !== 'Venda Avulsa' ? newSale.client : null,
-        observacoes: `Venda de vasilhame vazio P13 #${newSale.id} - ${newSale.payment}`,
-        ...(dataVenda ? { data_operacao: dataVenda } : {}),
-      });
-    } else {
-      const codeToProduto: Record<string, PortariaProduto> = {
-        p13: 'P13', p20: 'P20', p45: 'P45', water: 'agua',
-      };
-      const produto = newSale.productCode ? codeToProduto[newSale.productCode] : undefined;
-      if (produto) {
-        const isLoan = newSale.cylinderMovement === 'loan';
-        registrarMov.mutate({
-          tipo: isLoan ? 'venda_comodato' : 'venda',
-          produto,
-          delta_cheios: -newSale.quantity,
-          delta_vazios: isLoan ? 0 : vasilhamesRecebidos,
-          delta_emprestados: isLoan ? newSale.quantity : 0,
-          cliente_id: newSale.clientId || null,
-          cliente_nome: newSale.client !== 'Venda Avulsa' ? newSale.client : null,
-          observacoes: `Venda #${newSale.id} - ${newSale.payment}`,
-          ...(dataVenda ? { data_operacao: dataVenda } : {}),
+      // Venda a prazo: nota promissória com vencimento em 30 dias (createPromissoryFromSale não duplica por venda)
+      if (newSale.payment === 'Promissória') {
+        const { error: pnError } = await createPromissoryFromSale({
+          clientId: newSale.clientId || null,
+          clientName: newSale.client,
+          value: newSale.amount,
+          referenceId: orderId,
+          description: `Venda na portaria - ${newSale.quantity}x ${newSale.product}`,
         });
+        if (pnError) throw faltou('a nota promissória não foi criada');
       }
-    }
-
-    
-    toast({
-      title: "Venda registrada",
-      description: "A venda foi registrada com sucesso.",
-      variant: "default",
     });
-    
+
+    // ── A partir daqui a gravação está confirmada.
+    setStartTime(prevStartTime => prevStartTime ?? new Date());
+    if (!isVasilhame) {
+      // contadores locais legados (mock) — só depois de confirmar
+      if (newSale.product.includes('P13')) updateInventorySales('P13', newSale.quantity);
+      else if (newSale.product.includes('P20')) updateInventorySales('P20', newSale.quantity);
+      else if (newSale.product.includes('P45')) updateInventorySales('P45', newSale.quantity);
+      else if (newSale.product.includes('Água')) updateInventorySales('Água', newSale.quantity);
+    }
+    ['vendas_hoje', 'vendas_por_data', 'relatorio-vasilhames', 'promissory_notes', 'sales_history',
+      'estoque_retirado', 'saldo_portaria_atual', 'dashboard'].forEach((k) =>
+      queryClient.invalidateQueries({ queryKey: [k] }));
+    toast({
+      title: 'Venda registrada',
+      description: G1_ACOES ? 'Venda, estoque e recebimento gravados juntos.' : 'A venda foi registrada com sucesso.',
+    });
     setNewSaleOpen(false);
-  }, [toast, registrarMov, queryClient]);
+  }, [toast, registrarMov, queryClient, operacao]);
 
   return {
     cashierData,
@@ -301,6 +292,9 @@ export function useCashierSales() {
     setHoursElapsed,
     newSaleOpen,
     setNewSaleOpen,
-    handleNewSaleSubmit
+    handleNewSaleSubmit,
+    salvandoVenda: operacao.enviando,
+    duvidaVenda: operacao.duvida,
+    descartarDuvidaVenda: operacao.descartarDuvida,
   };
 }

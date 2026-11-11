@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
-# Recria o banco DESCARTÁVEL (002+003+004[+005]) e (re)liga PostgREST, gateway e a cópia isolada do app — tudo em 127.0.0.1.
+# Recria o banco DESCARTÁVEL (com010 = 001–010; com005/com004 históricos) e (re)liga PostgREST, gateway e a cópia isolada do app — tudo em 127.0.0.1.
 # Uso: bash g1/tests/browser/lab_reset.sh [com005] [seed.sql ...]
 # Pressupõe: /root/pgrst-bin/bin/postgrest, /root/iso/secret, /root/iso/pgrst.conf, cópia do app construída em /tmp/iso-dist.
 set -uo pipefail
 unset PGHOST PGPORT PGUSER PGPASSWORD PGDATABASE PGSSLMODE
 ROOT=$(cd "$(dirname "$0")/../../.." && pwd)
 U="postgresql://postgres@127.0.0.1:55450/postgres?sslmode=disable"
-MODE=${1:-com005}; shift || true
-if [ "$MODE" = com005 ]; then G1DB=/tmp/g1db bash "$ROOT/g1/tests/sql/reset_com005.sh" >/dev/null 2>&1
-else G1DB=/tmp/g1db bash "$ROOT/g1/tests/sql/reset_com004.sh" >/dev/null 2>&1; fi
+MODE=${1:-com010}; shift || true
+# com010 = sequência consolidada 001–010 (atual). com005/com004 = históricos.
+case "$MODE" in
+  com010) G1DB=/tmp/g1db bash "$ROOT/g1/tests/sql/reset_com010.sh" >/tmp/lab_reset.log 2>&1 || { echo "reset falhou"; tail /tmp/lab_reset.log; exit 1; } ;;
+  com005) G1DB=/tmp/g1db bash "$ROOT/g1/tests/sql/reset_com005.sh" >/dev/null 2>&1 ;;
+  *) G1DB=/tmp/g1db bash "$ROOT/g1/tests/sql/reset_com004.sh" >/dev/null 2>&1 ;;
+esac
 psql "$U" -XAqc "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='authenticator') THEN CREATE ROLE authenticator LOGIN NOINHERIT; END IF; END \$\$; GRANT anon, authenticated TO authenticator;"
 for s in "$@"; do psql "$U" -XAq -v ON_ERROR_STOP=1 -f "$s" || { echo "seed falhou: $s"; exit 1; }; done
 pkill -x postgrest 2>/dev/null; sleep 1

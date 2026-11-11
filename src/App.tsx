@@ -28,13 +28,9 @@ import Index from "./pages/Index";
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Clients = lazy(() => import("./pages/clients/Clients"));
 const Orders = lazy(() => import("./pages/orders/Orders"));
-const OrderDetails = lazy(() => import("./pages/orders/OrderDetails"));
-const NewOrderForm = lazy(() => import("./pages/orders/NewOrderForm"));
 const OrdersMap = lazy(() => import("./pages/orders/OrdersMap"));
 const EntranceSales = lazy(() => import("./pages/entrance/EntranceSales"));
-const NewSaleForm = lazy(() => import("./pages/entrance/NewSaleForm"));
 const SalesHistory = lazy(() => import("./pages/entrance/SalesHistory"));
-const CashierClosing = lazy(() => import("./pages/entrance/CashierClosing"));
 const Inventory = lazy(() => import("./pages/inventory/Inventory"));
 const Promissory = lazy(() => import("./pages/promissory/Promissory"));
 const RoutesPage = lazy(() => import("./pages/routes/routes/RoutesPage"));
@@ -51,6 +47,8 @@ const CadastroRapido = lazy(() => import("./pages/entregador/CadastroRapido"));
 const VendaRua = lazy(() => import("./pages/entregador/VendaRua"));
 const PerfilEntregador = lazy(() => import("./pages/entregador/PerfilEntregador"));
 const AcertoEntregadores = lazy(() => import("./pages/entrance/AcertoEntregadores"));
+const Cargas = lazy(() => import("./pages/entrance/Cargas"));
+const MinhaCarga = lazy(() => import("./pages/entregador/MinhaCarga"));
 const HistoricoPortaria = lazy(() => import("./pages/entrance/HistoricoPortaria"));
 const Recompra = lazy(() => import("./pages/recompra/Recompra"));
 const RelatorioVasilhames = lazy(() => import("./pages/relatorios/RelatorioVasilhames"));
@@ -123,36 +121,24 @@ function App() {
                     <OrdersMap />
                   </Suspense>
                 } />
-                <Route path="/orders/new" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <NewOrderForm onSubmit={() => {}} />
-                  </Suspense>
-                } />
-                <Route path="/orders/:id" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <OrderDetails orderId="" orders={[]} isOpen={false} onOpenChange={() => {}} />
-                  </Suspense>
-                } />
+                {/* Acesso direto: o formulário fica no diálogo da tela de pedidos (antes abria um formulário que não gravava nada). */}
+                <Route path="/orders/new" element={<Navigate to="/orders?novo=1" replace />} />
+                {/* Detalhe sem dados carregados: volta para a lista. */}
+                <Route path="/orders/:id" element={<Navigate to="/orders" replace />} />
                 <Route path="/entrance" element={
                   <Suspense fallback={<LoadingComponent />}>
                     <EntranceSales />
                   </Suspense>
                 } />
-                <Route path="/entrance/new-sale" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <NewSaleForm isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} />
-                  </Suspense>
-                } />
+                {/* Acesso direto: a venda é registrada no diálogo da portaria (antes o formulário não gravava nada). */}
+                <Route path="/entrance/new-sale" element={<Navigate to="/entrance?venda=1" replace />} />
                 <Route path="/entrance/history" element={
                   <Suspense fallback={<LoadingComponent />}>
                     <SalesHistory />
                   </Suspense>
                 } />
-                <Route path="/entrance/cashier" element={
-                  <Suspense fallback={<LoadingComponent />}>
-                    <CashierClosing isOpen={false} onOpenChange={() => {}} onSubmit={() => {}} cashierData={null} />
-                  </Suspense>
-                } />
+                {/* Fechamento de caixa: abre o diálogo real da portaria (antes renderizava sem dados). */}
+                <Route path="/entrance/cashier" element={<Navigate to="/entrance?fechamento=1" replace />} />
                 <Route path="/inventory" element={
                   <Suspense fallback={<LoadingComponent />}>
                     <Inventory />
@@ -225,6 +211,12 @@ function App() {
                 } />
                 <Route path="/entregador/perfil" element={
                   <Suspense fallback={<LoadingComponent />}><PerfilEntregador /></Suspense>
+                } />
+                <Route path="/entrance/cargas" element={
+                  <Suspense fallback={<LoadingComponent />}><Cargas /></Suspense>
+                } />
+                <Route path="/entregador/carga" element={
+                  <Suspense fallback={<LoadingComponent />}><MinhaCarga /></Suspense>
                 } />
                 <Route path="/entrance/acerto-entregadores" element={
                   <Suspense fallback={<LoadingComponent />}><AcertoEntregadores /></Suspense>

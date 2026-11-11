@@ -36,6 +36,7 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+import { hojePortaria } from "@/lib/g1/dataPortaria";
 interface CashierClosingFormProps {
   onSubmit: (type: "partial" | "total", observations?: string, isRetroactive?: boolean) => void;
   onCancel: () => void;
@@ -52,10 +53,8 @@ const PRODUCTS: PortariaProduto[] = ["P13", "P20", "P45", "agua"];
 
 const DRAFT_KEY = "portaria:fechamento:rascunho";
 
-const todayStr = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-};
+// Dia da portaria (mesmo dia que o banco usa; ver src/lib/g1/dataPortaria.ts).
+const todayStr = () => hojePortaria();
 const isSameDayAsToday = (dateStr: string) => dateStr === todayStr();
 const toDateStr = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { orderTotal, isCountedOrder, summarizeFlow, summarizePainel } from "@/lib/orderMetrics";
 import { G1_ACOES } from "@/lib/g1/acoes";
+import { dataOperacional } from "@/lib/dataOperacional";
 
 export type Timeframe = "today" | "week" | "month";
 
@@ -61,7 +62,7 @@ export function useDashboardOverview() {
       let divergenciasHoje: any[] | null = null;
       if (G1_ACOES) {
         const [rr, dr] = await Promise.all([
-          db.from("recebimentos").select("valor, origem, order_id, acerto_id, criado_em").gte("criado_em", iso(start)),
+          db.from("recebimentos").select("valor, origem, order_id, acerto_id, criado_em, forma, destino").gte("criado_em", iso(start)),
           db.from("divergencias").select("esperado, recebido").gte("criado_em", iso(start)),
         ]);
         if (rr.error) throw rr.error;
@@ -91,9 +92,10 @@ export function useDashboardOverview() {
         (s: number, p: any) => s + Math.max(0, Number(p.value || 0) - Number(p.paid_amount || 0)),
         0
       );
-      const overdue = pending.filter(
-        (p: any) => p.due_date && new Date(p.due_date) < new Date()
-      );
+      // Vencida = vencimento antes de HOJE (dia operacional em Bahia). Antes, new Date("AAAA-MM-DD") era
+      // meia-noite UTC (21h do dia anterior em Bahia): a nota aparecia vencida no próprio dia do vencimento.
+      const hojeOp = dataOperacional();
+      const overdue = pending.filter((p: any) => p.due_date && String(p.due_date) < hojeOp);
 
       const variation =
         yesterdayValue > 0

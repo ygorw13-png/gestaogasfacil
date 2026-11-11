@@ -15,7 +15,7 @@ export function OfflineSyncToasts() {
   useEffect(() => {
     const abrirFila = { label: 'Ver fila', onClick: () => navRef.current('/offline') };
 
-    const unsub = subscribeSyncResult(({ sent, failed, conflicts, blocked = 0 }) => {
+    const unsub = subscribeSyncResult(({ sent, failed, conflicts }) => {
       if (sent > 0) {
         toast.success(
           sent === 1 ? '1 lançamento enviado para a nuvem' : `${sent} lançamentos enviados para a nuvem`,
@@ -29,16 +29,6 @@ export function OfflineSyncToasts() {
             : `${conflicts} lançamentos precisam da sua confirmação`,
           {
             description: 'Pode ser repetição de algo que já está na nuvem.',
-            duration: 10000,
-            action: abrirFila,
-          },
-        );
-      }
-      if (blocked > 0) {
-        toast.error(
-          blocked === 1 ? '1 lançamento antigo não foi enviado' : `${blocked} lançamentos antigos não foram enviados`,
-          {
-            description: 'Eram gravações diretas em vendas, estoque ou dívidas. Confira e lance de novo pela tela.',
             duration: 10000,
             action: abrirFila,
           },

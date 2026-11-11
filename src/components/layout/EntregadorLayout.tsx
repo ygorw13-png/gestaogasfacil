@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { Bike, Package, LogOut, Trophy } from "lucide-react";
+import { Bike, Package, LogOut, Trophy, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 const tabs = [
   { to: "/entregador/entregas", icon: Package, label: "Entregas" },
   { to: "/entregador/venda-rua", icon: Bike, label: "Venda na Rua" },
+  { to: "/entregador/carga", icon: Truck, label: "Minha Carga" },
   { to: "/entregador/perfil", icon: Trophy, label: "Desempenho" },
 ];
 

@@ -1,4 +1,5 @@
 import { formatAddress, mapsRouteUrl } from "@/utils/mapsLinks";
+import { normalizarTipoVenda } from "@/lib/saleTypes";
 
 /** Normaliza telefone brasileiro para o formato aceito pelo wa.me (55 + DDD + número). */
 export function normalizePhone(phone?: string | null): string | null {
@@ -169,7 +170,7 @@ export function resumoUltimoPedido(up: UltimoPedidoLike): string | null {
   const partes = [
     up.quantidade ? `${up.quantidade}x` : null,
     up.produto || "gás",
-    up.tipo_venda ? `(${TIPO_VENDA_LABEL[up.tipo_venda] || up.tipo_venda})` : null,
+    up.tipo_venda ? `(${TIPO_VENDA_LABEL[normalizarTipoVenda(up.tipo_venda) ?? up.tipo_venda] || up.tipo_venda})` : null,
     typeof up.preco === "number" && up.preco > 0 ? `— ${money(up.preco)}` : null,
   ].filter(Boolean);
   return partes.join(" ");

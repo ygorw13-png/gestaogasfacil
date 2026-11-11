@@ -18,7 +18,7 @@ const PAGE_SIZE = 10;
 interface OrdersListProps {
   orders: Order[];
   loading: boolean;
-  onAssignOrder: (orderId: string, deliveryPerson: string, opts?: AssignOptions) => void;
+  onAssignOrder: (orderId: string, deliveryPerson: string, opts?: AssignOptions) => Promise<boolean> | void;
   onStartDelivery: (orderId: string) => void;
   onCompleteOrder: (orderId: string, payload: CompleteOrderPayload) => void;
   onCancelOrder: (orderId: string) => void;
@@ -76,9 +76,11 @@ function OrdersListComponent({
     setSelectedDeliveryPerson(value);
   }, []);
 
-  const handleAssignSubmit = useCallback((opts?: AssignOptions) => {
+  // Só fecha depois da gravação confirmada; com erro, o diálogo continua aberto mostrando o motivo.
+  const handleAssignSubmit = useCallback(async (opts?: AssignOptions) => {
     if (selectedOrder && selectedDeliveryPerson) {
-      onAssignOrder(selectedOrder, selectedDeliveryPerson, opts);
+      const ok = await onAssignOrder(selectedOrder, selectedDeliveryPerson, opts);
+      if (ok === false) return;
       setSelectedDeliveryPerson("");
       setIsAssignDialogOpen(false);
     }

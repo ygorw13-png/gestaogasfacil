@@ -1,11 +1,13 @@
 
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { Cobrador } from "../../hooks/useCollectors";
 
 interface CollectorSectionProps {
-  collectors: string[];
+  collectors: Cobrador[];
+  /** ID do cobrador (ou null). */
   collector: string | null;
-  setCollector: (value: string) => void;
+  setCollector: (value: string | null) => void;
 }
 
 // O seletor não aceita opção com valor vazio; "nenhum" usa um marcador próprio
@@ -19,16 +21,16 @@ export function CollectorSection({ collectors, collector, setCollector }: Collec
       </Label>
       <Select
         value={collector || NONE}
-        onValueChange={(v) => setCollector(v === NONE ? "" : v)}
+        onValueChange={(v) => setCollector(v === NONE ? null : v)}
       >
         <SelectTrigger className="col-span-3">
           <SelectValue placeholder="Não atribuir agora" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={NONE}>Não atribuir agora</SelectItem>
-          {collectors.filter(Boolean).map(collector => (
-            <SelectItem key={collector} value={collector}>
-              {collector}
+          {collectors.map((c) => (
+            <SelectItem key={c.id} value={c.id}>
+              {c.nome}
             </SelectItem>
           ))}
         </SelectContent>

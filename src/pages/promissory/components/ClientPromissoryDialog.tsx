@@ -20,7 +20,8 @@ interface Props {
 }
 
 export function ClientPromissoryDialog({ open, onOpenChange, clientName, phone, notes, onAssign, onPayment }: Props) {
-  const total = notes.reduce((s, n) => s + n.value, 0);
+  // Em aberto = saldo. A cobrança (WhatsApp) não pode pedir o valor cheio de uma nota já paga em parte.
+  const total = notes.reduce((s, n) => s + (n.saldo ?? n.value), 0);
   const first = notes[0];
 
   return (
@@ -29,7 +30,7 @@ export function ClientPromissoryDialog({ open, onOpenChange, clientName, phone, 
         <DialogHeader>
           <DialogTitle>{clientName}</DialogTitle>
           <DialogDescription>
-            {notes.length} nota(s) em aberto · Total R$ {total.toFixed(2)}
+            {notes.length} nota(s) em aberto · Em aberto R$ {total.toFixed(2)}
           </DialogDescription>
         </DialogHeader>
 
@@ -65,7 +66,10 @@ export function ClientPromissoryDialog({ open, onOpenChange, clientName, phone, 
                 return (
                   <TableRow key={note.id}>
                     <TableCell>{format(note.dueDate, "dd/MM/yyyy")}</TableCell>
-                    <TableCell>R$ {note.value.toFixed(2)}</TableCell>
+                    <TableCell>
+                      R$ {(note.saldo ?? note.value).toFixed(2)}
+                      {note.paidAmount > 0 && <span className="block text-xs text-muted-foreground">parcial · de R$ {note.value.toFixed(2)}</span>}
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={severityBadgeClass(sev)}>
                         {severityLabel(sev, atraso)}

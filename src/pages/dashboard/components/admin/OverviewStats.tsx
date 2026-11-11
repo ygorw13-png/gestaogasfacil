@@ -22,7 +22,7 @@ export function OverviewStats() {
   const flowItems = [
     { label: "Vendas concluídas", value: formatCurrency(p?.concluidas.value ?? 0), hint: `${p?.concluidas.count ?? 0} vendas hoje` },
     rec
-      ? { label: "Recebido hoje", value: formatCurrency(rec.total), hint: `Conferido ${formatCurrency(rec.conferido)} · com entregador, aguardando acerto ${formatCurrency(rec.aguardandoAcerto)} · títulos ${formatCurrency(rec.deTitulos)}` }
+      ? { label: "Recebido hoje", value: formatCurrency(rec.total), hint: `No caixa ${formatCurrency(rec.noCaixa)} · em espécie com entregador/cobrador, aguardando acerto ${formatCurrency(rec.aguardandoAcerto)} · PIX/cartão, destino a definir ${formatCurrency(rec.pixCartao)} · inclui títulos pagos ${formatCurrency(rec.deTitulos)}` }
       : { label: "Recebido hoje", value: "Não comprovado", hint: `Sem registro de recebimento. Forma informada nas vendas: ${formatCurrency(p?.formaInformada ?? 0)} (não é prova de pagamento)` },
     { label: "Saldo a receber", value: formatCurrency(p?.aReceber ?? 0), hint: "Promissórias em aberto (saldo restante)" },
     { label: "Saldo vencido", value: formatCurrency(p?.vencido.value ?? 0), hint: `${p?.vencido.count ?? 0} promissórias vencidas` },

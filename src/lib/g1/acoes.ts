@@ -9,8 +9,9 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import { runOrQueue } from "@/lib/offline/queue";
-import { G1_ACOES } from "@/lib/g1/flag";
+import { ehIncerta } from "@/lib/g1/operacao";
 
+import { G1_ACOES } from "@/lib/g1/flag";
 export { G1_ACOES };
 
 /** Chave de reenvio: a mesma chave em cada tentativa = um resultado só. */
@@ -18,11 +19,15 @@ export const novaChave = (prefixo: string) => `${prefixo}:${crypto.randomUUID()}
 
 /** Converte a forma de pagamento das telas para a do recebimento. null = sem regra decidida. */
 export function formaRecebimento(f?: string | null): "dinheiro" | "pix" | "cartao" | "promissoria" | null {
-  switch ((f || "").toLowerCase()) {
+  // sem acento e minúsculo: "Cartão de Crédito" -> "cartao de credito"
+  const t = (f || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  switch (t) {
     case "money": case "dinheiro": case "cash": return "dinheiro";
     case "pix": return "pix";
-    case "credit": case "debit": case "card": case "cartao": return "cartao";
+    case "credit": case "debit": case "card": case "cartao": case "credito": case "debito":
+    case "cartao de credito": case "cartao de debito": return "cartao";
     case "promissoria": case "convenio": return "promissoria";
+    // Transferência bancária, vale-gás etc.: sem regra de recebimento decidida (decisão 7).
     default: return null;
   }
 }
@@ -38,11 +43,31 @@ export function mensagemAcao(e: unknown): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rpc = (fn: string, args?: Record<string, unknown>) => (supabase as any).rpc(fn, args);
 
-/** Chama a ação e devolve o resultado ou lança com mensagem legível. */
+/**
+ * Falha de uma ação. `incerta` = sem resposta do servidor (rede, tempo esgotado):
+ * a gravação pode ter acontecido, então a tela deve conservar a chave de reenvio.
+ */
+export class AcaoError extends Error {
+  constructor(message: string, public readonly incerta: boolean) {
+    super(message);
+    this.name = "AcaoError";
+  }
+}
+
+/** Chama a ação e devolve o resultado ou lança AcaoError com mensagem legível. */
 export async function acao<T = unknown>(nome: string, args: Record<string, unknown>): Promise<T> {
-  const { data, error } = await rpc(nome, args);
-  if (error) throw new Error(mensagemAcao(error));
-  return data as T;
+  let res: { data: unknown; error: { code?: string; status?: number; message?: string } | null };
+  try {
+    res = await rpc(nome, args);
+  } catch (e) {
+    // fetch rejeitado (sem rede, corte no meio): resposta desconhecida
+    throw new AcaoError("Sem resposta do servidor. Não sabemos se foi gravado.", true);
+  }
+  if (res.error) {
+    const incerta = ehIncerta(res.error);
+    throw new AcaoError(incerta ? "Sem resposta confiável do servidor. A operação pode ter sido gravada." : mensagemAcao(res.error), incerta);
+  }
+  return res.data as T;
 }
 
 /**

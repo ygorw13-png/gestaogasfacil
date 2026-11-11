@@ -50,6 +50,15 @@ function EntranceSalesContent() {
     }
   }, [searchParams, setSearchParams, setCashierClosingOpen]);
 
+  // Acesso direto a /entrance/new-sale (redirecionado para /entrance?venda=1): abre o diálogo real de venda.
+  useEffect(() => {
+    if (searchParams.get("venda") === "1") {
+      setNewSaleOpen(true);
+      searchParams.delete("venda");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, setNewSaleOpen]);
+
   // Atalho F3: /entrance?tab=despesas
   const [tab, setTab] = useState("balcao");
   useEffect(() => {

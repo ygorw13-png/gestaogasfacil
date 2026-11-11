@@ -14,7 +14,7 @@ import { useMyDeliveries, useAcceptDelivery, useRejectDelivery, useConfirmDelive
 import { useTrackMyLocation } from "@/hooks/useEntregadorLocation";
 import { useUserRole } from "@/hooks/useUserRole";
 import { formatAddress, mapsRouteUrl, hasMapAddress } from "@/utils/mapsLinks";
-import { tipoVendaShort } from "@/lib/saleTypes";
+import { tipoVendaShort, normalizarTipoVenda } from "@/lib/saleTypes";
 import { playDeliveryAlert } from "@/utils/deliveryAlert";
 import { useToast } from "@/hooks/use-toast";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
@@ -30,7 +30,7 @@ function DeliveryCard({ order }: { order: DeliveryOrder }) {
   const [rejectOpen, setRejectOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [reason, setReason] = useState("");
-  const [recebeuVasilhame, setRecebeuVasilhame] = useState((order as any).tipo_venda !== "completa");
+  const [recebeuVasilhame, setRecebeuVasilhame] = useState(normalizarTipoVenda((order as any).tipo_venda) !== "completa");
   const [vasilhamesRecebidos, setVasilhamesRecebidos] = useState(order.quantity ?? 1);
 
   const isPending = order.status === "pending" || order.status === "assigned";

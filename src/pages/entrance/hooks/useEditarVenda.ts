@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { G1_ACOES, acao } from "@/lib/g1/acoes";
 import { useRegistrarMovimentacao, type PortariaProduto } from "./usePortariaStock";
-import { vasilhameDeltas, type TipoVenda } from "@/lib/saleTypes";
+import { vasilhameDeltas, normalizarTipoVenda, type TipoVenda } from "@/lib/saleTypes";
 
 export const produtoFrom = (product?: string | null): PortariaProduto | null => {
   const p = (product || "").toUpperCase();
@@ -134,7 +134,7 @@ export function useEditarVenda() {
         }
       }
 
-      const tipo = (o.tipo_venda || "recarga") as TipoVenda;
+      const tipo = (normalizarTipoVenda(o.tipo_venda) ?? "recarga") as TipoVenda;
       const deltas = vasilhameDeltas(tipo, newQty);
 
       const { error: upErr } = await supabase

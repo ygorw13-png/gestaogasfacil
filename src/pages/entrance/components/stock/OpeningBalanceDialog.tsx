@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { hojePortaria } from "@/lib/g1/dataPortaria";
 import {
   useRegistrarMovimentacao,
   useSaldoPortaria,
@@ -50,7 +51,7 @@ export function OpeningBalanceDialog({ open, onOpenChange }: Props) {
     const load = async () => {
       setLoading(true);
       try {
-        const hoje = new Date().toISOString().slice(0, 10);
+        const hoje = hojePortaria();
         const { data } = await (supabase as any)
           .from("movimentacoes_portaria")
           .select("produto, delta_cheios, delta_vazios, data_operacao")
@@ -92,6 +93,7 @@ export function OpeningBalanceDialog({ open, onOpenChange }: Props) {
 
   const handleSubmit = async () => {
     let divergencias = 0;
+    let registrouAbertura = false;
     try {
     for (const p of PRODUTOS) {
       const cur = saldoAtual?.[p];
@@ -104,6 +106,7 @@ export function OpeningBalanceDialog({ open, onOpenChange }: Props) {
 
       const temSaldoSistema = sistemaCheios !== 0 || sistemaVazios !== 0;
       if (temSaldoSistema) divergencias++;
+      else registrouAbertura = true;
 
       await registrar.mutateAsync({
         tipo: temSaldoSistema ? "ajuste" : "abertura",
@@ -116,18 +119,16 @@ export function OpeningBalanceDialog({ open, onOpenChange }: Props) {
       });
     }
 
-    // Garante que o dia fique marcado como aberto mesmo sem alterações
-    const jaTemMovimento = PRODUTOS.some((p) => {
-      const cur = saldoAtual?.[p];
-      return (cur?.cheios ?? 0) !== 0 || (cur?.vazios ?? 0) !== 0;
-    });
-    if (!jaTemMovimento) {
+    // Garante que o dia fique marcado como aberto. Antes, se já houvesse movimento no dia (venda antes da
+    // abertura), só se gravavam "ajustes" e o dia continuava sem abertura — o aviso não sumia e, com o G1,
+    // a saída para a carga ficava bloqueada. O marcador não muda saldo (deltas zero).
+    if (!registrouAbertura) {
       await registrar.mutateAsync({
         tipo: "abertura",
         produto: "P13",
         delta_cheios: 0,
         delta_vazios: 0,
-        observacoes: "Abertura confirmada sem saldo remanescente",
+        observacoes: "Abertura do dia confirmada",
       });
     }
 

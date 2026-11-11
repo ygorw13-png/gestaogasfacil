@@ -4,13 +4,12 @@ import { useFechamentoDeHoje } from "@/pages/entrance/hooks/useFechamentosCaixa"
 import { useNavigate } from "react-router-dom";
 import { ToastAction } from "@/components/ui/toast";
 
+import { hojePortaria } from "@/lib/g1/dataPortaria";
 const REMINDER_HOUR = 17;
 const DISMISS_KEY = "portaria:lembrete-fechamento";
 
-const todayStr = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-};
+// Dia da portaria (mesmo dia que o banco usa; ver src/lib/g1/dataPortaria.ts).
+const todayStr = () => hojePortaria();
 
 /**
  * Lembra o operador de fazer o fechamento do caixa da portaria

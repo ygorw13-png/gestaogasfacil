@@ -16,6 +16,7 @@ import { CancelSaleButton } from "../../sales/CancelSaleButton";
 import { SaleFormContent } from "../../sale-form/SaleFormContent";
 import { useCashier } from "@/contexts/CashierContext";
 
+import { RegisterSaleButton } from "@/pages/entrance/components/sale-form/RegisterSaleButton";
 const formatBRL = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -132,9 +133,7 @@ export function ClosingSalesEditor({ date }: ClosingSalesEditorProps) {
             <Button type="button" variant="outline" onClick={() => setNovaVendaOpen(false)}>
               Cancelar
             </Button>
-            <Button form="sale-form" type="submit">
-              Registrar Venda
-            </Button>
+            <RegisterSaleButton />
           </DialogFooter>
         </DialogContent>
       </Dialog>
