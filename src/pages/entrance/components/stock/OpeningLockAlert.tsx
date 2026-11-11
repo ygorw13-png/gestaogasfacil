@@ -1,5 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { G1_ACOES } from "@/lib/g1/flag";
 
 interface Props {
   onOpen: () => void;
@@ -13,8 +14,10 @@ export function OpeningLockAlert({ onOpen }: Props) {
         <div>
           <p className="text-sm font-semibold">Abertura do dia não confirmada</p>
           <p className="text-xs text-muted-foreground">
-            Confirme o saldo remanescente do dia anterior antes de operar. As vendas continuam
-            liberadas, mas o estoque pode ficar divergente.
+            Confirme o saldo remanescente do dia anterior antes de operar.{" "}
+            {G1_ACOES
+              ? "Vendas de balcão e saídas para carga só são aceitas depois da abertura."
+              : "As vendas continuam liberadas, mas o estoque pode ficar divergente."}
           </p>
         </div>
       </div>

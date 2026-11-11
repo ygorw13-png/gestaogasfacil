@@ -75,7 +75,7 @@ export async function updateData(tableName: ValidTableName, id: string, data: Re
     const { error } = await supabase
       .from(table)
       .update(data as any)
-      .eq('id', id);
+      .eq('id' as never, id as never);
     
     if (error) {
       console.error(`Error updating ${tableName} with id ${id}:`, error);
@@ -126,7 +126,7 @@ export async function deleteData(tableName: ValidTableName, id: string) {
     const { error } = await supabase
       .from(table)
       .delete()
-      .eq('id', id);
+      .eq('id' as never, id as never);
     
     if (error) {
       console.error(`Error deleting from ${tableName} with id ${id}:`, error);

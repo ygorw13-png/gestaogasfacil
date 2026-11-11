@@ -1,7 +1,7 @@
 /**
  * Carga dos entregadores (ações controladas G1: SQL 004/006/007).
  * Leituras e gravações passam pelas funções do banco; nada é calculado ou gravado direto nas tabelas.
- * Com VITE_G1_ACOES desligada o banco publicado não tem essas funções: as consultas ficam desligadas.
+ * Com VITE_G1_ACOES=off as consultas ficam desligadas (caminho antigo).
  */
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { G1_ACOES, acao } from "@/lib/g1/acoes";

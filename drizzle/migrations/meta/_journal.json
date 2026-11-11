@@ -64,6 +64,13 @@
       "when": 1794398090031,
       "tag": "0008_g1_009_venda_saldo_portaria",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794405480343,
+      "tag": "0009_g1_010_protecoes_lote4",
+      "breakpoints": true
     }
   ]
 }

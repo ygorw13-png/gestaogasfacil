@@ -3,9 +3,9 @@
  * papel, empresa, conta ativa e transição, travam o registro e aceitam chave
  * contra reenvio).
  *
- * Fica DESLIGADA por padrão (`VITE_G1_ACOES` diferente de "on"): o banco
- * publicado ainda não tem essas funções, então as telas continuam no caminho
- * atual. Ligada só no ambiente isolado de teste até a aprovação de produção.
+ * Fica LIGADA por padrão: o banco do Cloud recebeu as funções 001–010 em
+ * 11/11/2026. `VITE_G1_ACOES=off` volta ao caminho antigo (só com a contenção
+ * 004 aplicada no banco, nunca com rollback).
  */
 import { supabase } from "@/integrations/supabase/client";
 import { runOrQueue } from "@/lib/offline/queue";

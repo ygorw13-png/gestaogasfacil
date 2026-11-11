@@ -2200,6 +2200,7 @@ export type Database = {
         Returns: string
       }
       _forma_chave: { Args: { _f: string }; Returns: string }
+      _g1_ctl: { Args: never; Returns: boolean }
       _produto_chave: { Args: { _p: string }; Returns: string }
       _reenvio:
         | {

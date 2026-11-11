@@ -38,6 +38,7 @@ Validação da Etapa 1 (concluída, 26/26 + 11/11) + candidato de segurança 002
 - [x] Integrar pacote 010 ao projeto (telas 009 + fila; avisos de cancelamento do lote 4 mantidos; 005 antigo marcado SUPERADO)
 - [x] Banco descartável 001–010: suítes SQL; navegador fluxos essenciais 10/10
 - [x] Cópia de segurança das tabelas restaurada e conferida; ensaio 001–010 sobre a cópia sem alterar dados
-- [ ] Funções G0.1 no Cloud + 001; gateway hospedado verificado
-- [ ] Aplicar 002–010 no Cloud e conferir dados
-- [ ] Ligar VITE_G1_ACOES e publicar
+- [x] Funções G0.1 no Cloud + 001; gateway hospedado verificado (15/15)
+- [x] Aplicar 002–010 no Cloud (idênticos aos testados; estrutura igual ao banco de testes; dados reais intactos)
+- [x] Ligar ações controladas por padrão e publicar
+- [ ] Pendente: decisão B (estorno), decisão 13 (agregado/ponto), destino PIX/cartão; criação de colaborador desligada (503); coordenador de sessão G0.1 não integrado

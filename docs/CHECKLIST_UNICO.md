@@ -1,5 +1,8 @@
 # GásFácil: checklist único
 
+**Implantado 11/11/2026:** 001–010 no Cloud, frontend publicado com ações controladas ligadas.
+Ver `IMPLANTACAO_G1_010.md`. Pendentes: decisão B, decisão 13, PIX/cartão, criação de colaborador, sessão G0.1.
+
 **Atualização 11/11/2026 — 010:** integração essencial de bloqueios diretos e fila concluída;
 43/43 SQL, 14/14 regressão de estoque, 71/71 frontend, TypeScript e build aprovados.
 Nada publicado; limites e próximo passo em `CONTINUIDADE_G1_010.md`.

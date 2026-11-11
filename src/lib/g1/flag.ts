@@ -2,7 +2,8 @@
  * Chave das ações controladas do G1 e regra da fila offline.
  * Fica num arquivo próprio para a fila offline poder usar sem depender de `acoes.ts`.
  */
-export const G1_ACOES = import.meta.env.VITE_G1_ACOES === "on";
+// Ligada por padrão desde a implantação 001–010 no banco (11/11/2026). `VITE_G1_ACOES=off` desliga.
+export const G1_ACOES = import.meta.env.VITE_G1_ACOES !== "off";
 
 /** Registros que só mudam pelas ações controladas (vendas, estoque, carga, dívidas, recebimentos). */
 export const TABELAS_CONTROLADAS = [

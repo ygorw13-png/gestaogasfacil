@@ -1,5 +1,9 @@
 # GásFácil — Handoff para continuidade
 
+> **IMPLANTADO — 11/11/2026 (14h UTC):** G0.1 001 + G1 002–010 aplicados no banco do Cloud; funções G0.1
+> publicadas; frontend com ações controladas ligadas por padrão publicado em gestaogasfacil.lovable.app.
+> Registro e verificações: `docs/IMPLANTACAO_G1_010.md`. Os avisos "nada aplicado/publicado" abaixo são históricos.
+
 > **Estado atual — 11/11/2026:** integração essencial lote 4 + continuidade 009 no candidato 010.
 > Proteções SQL 43/43; estoque/concorrência 14/14; frontend 71/71; TypeScript e build passaram.
 > Nada aplicado no Cloud ou publicado. Detalhes: `docs/CONTINUIDADE_G1_010.md`.

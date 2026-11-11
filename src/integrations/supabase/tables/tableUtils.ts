@@ -40,7 +40,7 @@ export function createTableOperations<T extends Record<string, any>>(
         return await supabase
           .from(tableName)
           .select('*')
-          .eq('id', id)
+          .eq('id' as never, id as never)
           .maybeSingle() as PostgrestResponse<T>;
       } catch (error) {
         console.error(`Erro ao buscar ${id} de ${tableName}:`, error);
@@ -68,7 +68,7 @@ export function createTableOperations<T extends Record<string, any>>(
         return await supabase
           .from(tableName)
           .update(updateData as any)
-          .eq('id', id)
+          .eq('id' as never, id as never)
           .select()
           .single() as PostgrestResponse<T>;
       } catch (error) {
@@ -82,7 +82,7 @@ export function createTableOperations<T extends Record<string, any>>(
         return await supabase
           .from(tableName)
           .delete()
-          .eq('id', id) as PostgrestResponse<T>;
+          .eq('id' as never, id as never) as PostgrestResponse<T>;
       } catch (error) {
         console.error(`Erro ao excluir de ${tableName}:`, error);
         throw error;
