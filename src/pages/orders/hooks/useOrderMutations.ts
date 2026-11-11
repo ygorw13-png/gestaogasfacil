@@ -217,11 +217,22 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
     setLoading(true);
     try {
       if (G1_ACOES && status === "cancelled") {
-        // Decisão A: só administrador cancela, com motivo. Decisão B pendente:
-        // o banco recusa cancelar venda concluída.
-        const motivo = window.prompt("Motivo do cancelamento (fica no histórico):")?.trim();
+        // Decisão B: cancelamento de pedido pela reversão controlada. Administrador autoriza;
+        // operador só solicita. Produto já na carga continua na carga; pagamento vira reembolso pendente.
+        // Papel conferido no banco (a ação também confere): administrador autoriza, operador solicita.
+        const { data: isAdmin } = await (supabase as any).rpc("is_admin");
+        const motivo = window.prompt(isAdmin
+          ? "Motivo do cancelamento (fica no histórico):"
+          : "Motivo do pedido de cancelamento (o administrador autoriza):")?.trim();
         if (!motivo) throw new Error("Cancelamento exige motivo.");
-        await acao("admin_corrigir_pedido", { _order_id: orderId, _novo_preco: null, _novo_status: "cancelled", _motivo: motivo });
+        await acao("reversao_solicitar", {
+          _order_id: orderId, _tipo: "cancelamento", _motivo: motivo, _order_valida_id: null,
+          _pagamento_duplicado: null, _autorizar: isAdmin === true, _chave: novaChave("cancelar-pedido"),
+        });
+        if (!isAdmin) {
+          toast({ title: "Cancelamento solicitado", description: "O pedido continua como está até o administrador autorizar em Reversões e Reembolsos." });
+          return;
+        }
       } else if (G1_ACOES && status === "delivered") {
         // Conclui pela portaria: consome a carga do entregador atribuído, registra
         // recebimento/promissória e divergência. O preço da venda não muda.

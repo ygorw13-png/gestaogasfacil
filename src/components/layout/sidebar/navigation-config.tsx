@@ -44,6 +44,7 @@ export const ordersNavItems: AccordionNavItem[] = [
       { to: "/entrance/cargas", label: "Cargas dos Entregadores" },
       { to: "/entrance/acerto-entregadores", label: "Acerto Entregadores" },
       { to: "/entrance/history", label: "Histórico de Vendas" },
+      { to: "/reversoes", label: "Reversões e Reembolsos" },
       { to: "/entrance/historico-portaria", label: "Histórico da Portaria" },
       { to: "/relatorios/vasilhames", label: "Relatório de Vasilhames" },
       { to: "/formularios", label: "Formulários para Imprimir" }

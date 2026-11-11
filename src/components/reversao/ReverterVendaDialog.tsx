@@ -71,7 +71,7 @@ export function ReverterVendaDialog({ open, onOpenChange, pedido }: { open: bool
     && (tipo !== "duplicidade" || (!!valida && !!pagouDuas)) && !operacao.enviando;
 
   const enviar = async () => {
-    if (!pronto || !tipo || tipo === "parcial") return;
+    if (!pronto || !tipo || (tipo as string) === "parcial") return; // parcial nunca é enviada
     setErro(null);
     const args = {
       _order_id: pedido.id, _tipo: tipo, _motivo: motivo.trim(),

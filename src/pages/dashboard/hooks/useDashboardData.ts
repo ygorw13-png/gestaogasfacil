@@ -62,7 +62,7 @@ export function useDashboardOverview() {
       let divergenciasHoje: any[] | null = null;
       if (G1_ACOES) {
         const [rr, dr] = await Promise.all([
-          db.from("recebimentos").select("valor, origem, order_id, acerto_id, criado_em, forma, destino").gte("criado_em", iso(start)),
+          db.from("recebimentos").select("valor, origem, order_id, acerto_id, criado_em, forma, destino").gte("criado_em", iso(start)).is("anulado_em", null),
           db.from("divergencias").select("esperado, recebido").gte("criado_em", iso(start)),
         ]);
         if (rr.error) throw rr.error;

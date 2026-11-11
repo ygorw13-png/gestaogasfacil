@@ -14,15 +14,44 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { AVISO_CANCELAMENTO, useCancelarVenda } from "../../hooks/useCancelarVenda";
+import { G1_ACOES } from "@/lib/g1/acoes";
+import { Undo2 } from "lucide-react";
+import { ReverterVendaDialog } from "@/components/reversao/ReverterVendaDialog";
 
 interface CancelSaleButtonProps {
   saleId: string;
   client: string;
   product: string;
   quantity: number;
+  amount?: number;
+  /** status do pedido; sem informar = venda concluída */
+  status?: string;
+  tipoVenda?: string | null;
 }
 
-export function CancelSaleButton({ saleId, client, product, quantity }: CancelSaleButtonProps) {
+/**
+ * Decisão B: com as ações controladas, a venda não é cancelada aqui — abre a reversão
+ * (devolução integral, troca por problema ou duplicidade), autorizada pelo administrador.
+ */
+export function CancelSaleButton(props: CancelSaleButtonProps) {
+  if (G1_ACOES) return <ReverterVendaButton {...props} />;
+  return <CancelSaleButtonLegado {...props} />;
+}
+
+function ReverterVendaButton({ saleId, client, product, quantity, amount, status, tipoVenda }: CancelSaleButtonProps) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setOpen(true)}>
+        <Undo2 className="mr-1 h-4 w-4" /> Reverter
+      </Button>
+      <ReverterVendaDialog open={open} onOpenChange={setOpen}
+        pedido={{ id: saleId, client, product, quantity, amount, status: status ?? "delivered", tipoVenda }} />
+    </>
+  );
+}
+
+function CancelSaleButtonLegado({ saleId, client, product, quantity }: CancelSaleButtonProps) {
   const cancelar = useCancelarVenda();
   const [open, setOpen] = useState(false);
   const [motivo, setMotivo] = useState("");

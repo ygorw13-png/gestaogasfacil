@@ -1,0 +1,56 @@
+{
+ "total": 10,
+ "ok": 9,
+ "results": [
+  {
+   "test": "B01 devolução parcial aparece indisponível, com explicação",
+   "ok": true,
+   "detail": "Devolução parcial — Devolução parcial ainda não está disponível. Nesta etapa: devolução integral, troca integral por problema ou lançamento duplicado."
+  },
+  {
+   "test": "B02 operador solicita: fica aguardando autorização; estoque e dinheiro não mudam",
+   "ok": true,
+   "detail": "status=solicitada saldo=97/3 base=97/3 Devolução integral solicitada ao administrador | Hora de fechar o caixa da portaria\nO caixa de hoje ainda não foi fechado. Confira os valores e a contagem de estoque antes de encerrar o dia.\nFechar caixa"
+  },
+  {
+   "test": "B03 admin autoriza: aguarda retorno de 1 cheio e 1 vazio ao cliente; R$125 a reembolsar; estoque ainda igual",
+   "ok": true,
+   "detail": "aguardando_retorno/1/1/125 saldo=97/3"
+  },
+  {
+   "test": "B04 retorno na portaria: cheio volta, vazio do cliente sai; fica o reembolso pendente",
+   "ok": true,
+   "detail": "reembolso_pendente saldo=98/2 Movimentação física registrada | Hora de fechar o caixa da portaria\nO caixa de hoje ainda não foi fechado. Confira os valores e a contagem de estoque antes de encerrar o dia.\nFechar caixa"
+  },
+  {
+   "test": "B05 reembolso pelo caixa: reversão concluída; recebimento e venda originais preservados",
+   "ok": true,
+   "detail": "concluida/125/caixa/1 pedido=delivered/125.00"
+  },
+  {
+   "test": "B06 promissória R$125 com R$40 pagos: cancela R$85, cria R$40 a reembolsar, preserva os R$40 recebidos",
+   "ok": true,
+   "detail": "85.00/40/cancelled/40.00/1:40/1:40"
+  },
+  {
+   "test": "B07 a venda original mostra o andamento da reversão",
+   "ok": true,
+   "detail": "11/11/2026\t17:06\t Cliente Prazo 011 Devolução integral: Produto aguardando retorno \tPortaria\tP13\t1\tPromissória\tR$ 125,00\t Editar"
+  },
+  {
+   "test": "B08 admin recusa: sem estoque, sem reembolso",
+   "ok": true,
+   "detail": "recusada/0 saldo=98/2"
+  },
+  {
+   "test": "B09 painel mostra reversões separadas das vendas (a reembolsar R$ 40,00)",
+   "ok": false,
+   "detail": ""
+  },
+  {
+   "test": "B10 nenhuma chamada a servidores reais",
+   "ok": true,
+   "detail": "[]"
+  }
+ ]
+}

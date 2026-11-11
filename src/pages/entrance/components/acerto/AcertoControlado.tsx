@@ -22,7 +22,7 @@ const quando = (iso: string) =>
   new Intl.DateTimeFormat("pt-BR", { timeZone: FUSO_OPERACIONAL, day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 
 interface Aguardando { destino: "entregador" | "cobrador"; responsavel_id: string; responsavel_nome: string; qtd: number; total: number }
-interface Previa { categoria: "entregar" | "informativo"; forma: string; qtd: number; total: number }
+interface Previa { categoria: "entregar" | "informativo" | "reembolso"; forma: string; qtd: number; total: number }
 interface AcertoLinha {
   id: string; entregador_nome: string; data: string; status: string; conferido_em: string;
   dinheiro_esperado: number | null; dinheiro_entregue: number | null; diferenca: number | null;
@@ -70,6 +70,7 @@ export function AcertoControlado() {
   const esperado = useMemo(() => (previa.data ?? []).filter((p) => p.categoria === "entregar").reduce((s, p) => s + Number(p.total), 0), [previa.data]);
   const qtdEsperado = useMemo(() => (previa.data ?? []).filter((p) => p.categoria === "entregar").reduce((s, p) => s + p.qtd, 0), [previa.data]);
   const informativos = (previa.data ?? []).filter((p) => p.categoria === "informativo");
+  const reembolsoEntregador = (previa.data ?? []).filter((p) => p.categoria === "reembolso").reduce((s, p) => s + Number(p.total), 0);
 
   useEffect(() => { setEntregue(previa.data ? esperado.toFixed(2) : ""); setMotivo(""); setErro(null); }, [entregador, previa.data, esperado]);
 
@@ -155,6 +156,9 @@ export function AcertoControlado() {
                   <p className="text-xs text-muted-foreground">Dinheiro a entregar</p>
                   <p className="text-xl font-bold">{brl(esperado)}</p>
                   <p className="text-xs text-muted-foreground">{qtdEsperado} recebimento(s) em espécie</p>
+                  {reembolsoEntregador > 0 && (
+                    <p className="text-xs text-muted-foreground">Já descontado: {brl(reembolsoEntregador)} devolvido(s) por ele a clientes (reembolso registrado).</p>
+                  )}
                 </div>
                 <div className="rounded-md border p-3">
                   <p className="text-xs text-muted-foreground">PIX e cartão (somente informação)</p>

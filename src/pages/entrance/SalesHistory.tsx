@@ -26,6 +26,8 @@ import { useNavigate } from "react-router-dom";
 import { SalesFilters } from "./components/sales/SalesFilters";
 import { CancelSaleButton } from "./components/sales/CancelSaleButton";
 import { G1_ACOES } from "@/lib/g1/acoes";
+import { useReversoesDosPedidos } from "@/hooks/useReversoes";
+import { STATUS_ROTULO, TIPO_ROTULO } from "@/lib/g1/reversao";
 import { EditSaleButton } from "./components/sales/EditSaleButton";
 import { DateRange } from "react-day-picker";
 import { useSalesHistory, useEstoqueRetirado, type HistorySale } from "./hooks/useSalesHistory";
@@ -83,6 +85,8 @@ export default function SalesHistory() {
     () => sales.filter(matchesFilters),
     [sales, searchTerm, productFilter, paymentFilter, sellerFilter],
   );
+
+  const reversoes = useReversoesDosPedidos(useMemo(() => allFiltered.map((s) => String(s.id)), [allFiltered]));
 
   const filteredSales = useMemo(
     () => allFiltered.filter((s) => s.status === "delivered"),
@@ -400,7 +404,9 @@ export default function SalesHistory() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {allFiltered.map((sale) => (
+                    {allFiltered.map((sale) => {
+                      const rev = reversoes.data?.get(String(sale.id));
+                      return (
                       <TableRow
                         key={sale.id}
                         className={sale.status === "cancelled" ? "opacity-60" : undefined}
@@ -413,6 +419,12 @@ export default function SalesHistory() {
                             {sale.status === "cancelled" && (
                               <Badge variant="destructive" className="text-[10px]">
                                 Cancelada
+                              </Badge>
+                            )}
+                            {rev && (
+                              <Badge variant={rev.status === "concluida" ? "secondary" : "outline"} className="text-[10px]"
+                                title={`${TIPO_ROTULO[rev.tipo]} — ${rev.motivo}`}>
+                                {TIPO_ROTULO[rev.tipo]}: {STATUS_ROTULO[rev.status]}
                               </Badge>
                             )}
                           </div>
@@ -439,19 +451,23 @@ export default function SalesHistory() {
                                 amount={sale.amount}
                                 paymentCode={sale.paymentCode}
                               />
+                              {!(rev && rev.status !== "recusada" && rev.tipo !== "troca" && G1_ACOES) && (
                               <CancelSaleButton
                                 saleId={String(sale.id)}
                                 client={sale.client}
                                 product={sale.product}
                                 quantity={sale.quantity}
+                                amount={sale.amount}
                               />
+                              )}
                             </div>
                           ) : (
                             <span className="text-xs text-muted-foreground">{G1_ACOES ? "Cancelada" : "Estornada"}</span>
                           )}
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

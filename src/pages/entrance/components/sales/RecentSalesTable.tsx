@@ -17,6 +17,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { AVISO_CANCELAMENTO, useCancelarVenda } from "../../hooks/useCancelarVenda";
 import { EditSaleButton } from "./EditSaleButton";
+import { CancelSaleButton } from "./CancelSaleButton";
+import { G1_ACOES } from "@/lib/g1/acoes";
 import { normalizarTipoVenda } from "@/lib/saleTypes";
 
 interface Sale {
@@ -113,6 +115,10 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
                   amount={sale.amount}
                   paymentCode={sale.paymentCode}
                 />
+                {G1_ACOES ? (
+                  <CancelSaleButton saleId={String(sale.id)} client={sale.client} product={sale.product}
+                    quantity={sale.quantity} amount={sale.amount} tipoVenda={sale.tipoVenda} />
+                ) : (
                 <Button
                   type="button"
                   variant="ghost"
@@ -125,6 +131,7 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
                 >
                   <Ban className="mr-1 h-4 w-4" /> Cancelar
                 </Button>
+                )}
                 </div>
               </td>
             </tr>

@@ -7,6 +7,7 @@ import { StockChart } from "./dashboard/components/StockChart";
 import { TopSellers } from "./dashboard/components/TopSellers";
 import { AdminSection } from "./dashboard/components/AdminSection";
 import { PromissoryStats } from "./dashboard/components/PromissoryStats";
+import { ReversoesResumo } from "./dashboard/components/ReversoesResumo";
 import {
   useDashboardOverview,
   useSalesSeries,
@@ -57,6 +58,7 @@ export default function Dashboard() {
       ) : (
         <>
           <OverviewCards data={overview} />
+          <ReversoesResumo />
 
           <Tabs defaultValue="sales" className="space-y-4">
             <TabsList>

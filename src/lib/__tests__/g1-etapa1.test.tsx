@@ -11,7 +11,7 @@ const state: { tables: Record<string, { data: any; error: any }>; inserts: any[]
 const builder = (table: string) => {
   const res = () => state.tables[table] ?? { data: [], error: null };
   const b: any = {
-    select: () => b, gte: () => b, lte: () => b, eq: () => b, order: () => b,
+    select: () => b, gte: () => b, lte: () => b, eq: () => b, order: () => b, is: () => b,
     single: () => Promise.resolve(res()),
     insert: (row: any) => { state.inserts.push({ table, row }); return b; },
     then: (ok: any, ko: any) => Promise.resolve(res()).then(ok, ko),

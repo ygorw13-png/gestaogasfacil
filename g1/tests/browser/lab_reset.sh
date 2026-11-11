@@ -6,9 +6,10 @@ set -uo pipefail
 unset PGHOST PGPORT PGUSER PGPASSWORD PGDATABASE PGSSLMODE
 ROOT=$(cd "$(dirname "$0")/../../.." && pwd)
 U="postgresql://postgres@127.0.0.1:55450/postgres?sslmode=disable"
-MODE=${1:-com010}; shift || true
-# com010 = sequência consolidada 001–010 (atual). com005/com004 = históricos.
+MODE=${1:-com011}; shift || true
+# com011 = 001–011 com abertura fictícia do dia (atual). com010 = 001–010. com005/com004 = históricos.
 case "$MODE" in
+  com011) G1DB=/tmp/g1db bash "$ROOT/g1/tests/sql/reset_com011.sh" com_abertura >/tmp/lab_reset.log 2>&1 || { echo "reset falhou"; tail /tmp/lab_reset.log; exit 1; } ;;
   com010) G1DB=/tmp/g1db bash "$ROOT/g1/tests/sql/reset_com010.sh" >/tmp/lab_reset.log 2>&1 || { echo "reset falhou"; tail /tmp/lab_reset.log; exit 1; } ;;
   com005) G1DB=/tmp/g1db bash "$ROOT/g1/tests/sql/reset_com005.sh" >/dev/null 2>&1 ;;
   *) G1DB=/tmp/g1db bash "$ROOT/g1/tests/sql/reset_com004.sh" >/dev/null 2>&1 ;;

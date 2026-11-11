@@ -1,3 +1,6 @@
+import { ReverterVendaDialog } from "@/components/reversao/ReverterVendaDialog";
+import { G1_ACOES } from "@/lib/g1/acoes";
+import { Undo2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +31,7 @@ function DeliveryCard({ order }: { order: DeliveryOrder }) {
   const reject = useRejectDelivery();
   const confirm = useConfirmDelivery();
   const [rejectOpen, setRejectOpen] = useState(false);
+  const [reverterOpen, setReverterOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [recebeuVasilhame, setRecebeuVasilhame] = useState(normalizarTipoVenda((order as any).tipo_venda) !== "completa");
@@ -122,8 +126,19 @@ function DeliveryCard({ order }: { order: DeliveryOrder }) {
               <Check className="h-4 w-4 mr-1" /> Entreguei
             </Button>
           )}
+
+          {isDone && G1_ACOES && (
+            <Button size="sm" variant="ghost" className="col-span-2 text-muted-foreground" onClick={() => setReverterOpen(true)}>
+              <Undo2 className="h-4 w-4 mr-1" /> Pedir devolução ou troca
+            </Button>
+          )}
         </div>
       </CardContent>
+
+      <ReverterVendaDialog open={reverterOpen} onOpenChange={setReverterOpen} pedido={{
+        id: order.id, client: order.client_name, product: order.product ?? "", quantity: order.quantity ?? 1,
+        amount: Number(order.price ?? 0), status: order.status, tipoVenda: (order as any).tipo_venda ?? null,
+      }} />
 
       <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
         <DialogContent>
