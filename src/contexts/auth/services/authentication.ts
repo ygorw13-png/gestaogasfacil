@@ -102,7 +102,8 @@ export const signOut = async () => {
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData.session?.user?.id;
 
-  const { error } = await supabase.auth.signOut();
+  // 'local': sair (ou expirar por inatividade) em um aparelho não derruba a sessão dos outros
+  const { error } = await supabase.auth.signOut({ scope: 'local' });
   
   if (userId) {
     logger.auth.logout(userId);
