@@ -3,8 +3,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const invoke = vi.fn();
 const refreshSession = vi.fn();
 const signOut = vi.fn();
+const getUser = vi.fn();
 vi.mock('@/integrations/supabase/client', () => ({
-  supabase: { functions: { invoke: (...a: unknown[]) => invoke(...a) }, auth: { refreshSession: () => refreshSession(), signOut: (o: unknown) => signOut(o) } },
+  supabase: { functions: { invoke: (...a: unknown[]) => invoke(...a) }, auth: { getUser: () => getUser(), refreshSession: () => refreshSession(), signOut: (o: unknown) => signOut(o) } },
 }));
 vi.mock('@/utils/logger', () => ({ logger: { error: vi.fn() } }));
 
@@ -14,7 +15,7 @@ const org = { id: 'o1', name: 'Org', owner_id: 'u1' };
 const unauthorized = { data: null, error: { context: { status: 401 } } };
 
 describe('fetchUserProfile com sessão revogada', () => {
-  beforeEach(() => { invoke.mockReset(); refreshSession.mockReset(); signOut.mockReset(); });
+  beforeEach(() => { getUser.mockReset(); getUser.mockResolvedValue({ data: { user: { id: 'u1' } }, error: null }); invoke.mockReset(); refreshSession.mockReset(); signOut.mockReset(); });
 
   it('renova a sessão e repete uma vez após 401', async () => {
     invoke.mockResolvedValueOnce(unauthorized).mockResolvedValueOnce({ data: { organizations: org }, error: null });
@@ -30,5 +31,20 @@ describe('fetchUserProfile com sessão revogada', () => {
     await expect(fetchUserProfile('u1')).rejects.toThrow('Sessão encerrada');
     expect(signOut).toHaveBeenCalledWith({ scope: 'local' });
     expect(invoke).toHaveBeenCalledTimes(1);
+  });
+
+  it('sessão recusada pelo servidor não chama a função de perfil e volta ao login', async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: { status: 403 } });
+    refreshSession.mockResolvedValue({ data: { session: null }, error: new Error('revogada') });
+    await expect(fetchUserProfile('u1')).rejects.toThrow('Sessão encerrada');
+    expect(invoke).not.toHaveBeenCalled();
+    expect(signOut).toHaveBeenCalledWith({ scope: 'local' });
+  });
+
+  it('falha de rede não encerra a sessão', async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: { status: 0 } });
+    invoke.mockResolvedValueOnce({ data: { organizations: org }, error: null });
+    await expect(fetchUserProfile('u1')).resolves.toEqual(org);
+    expect(signOut).not.toHaveBeenCalled();
   });
 });
