@@ -6,15 +6,15 @@ import { RouteFiltersProps } from '../../types/routeListTypes';
 
 export function RouteFilters({ filter, setFilter, statusFilter, setStatusFilter }: RouteFiltersProps) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
       <Input
         placeholder="Buscar por motorista ou destino"
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        className="w-64"
+        className="w-full sm:w-64"
       />
       <Select value={statusFilter} onValueChange={setStatusFilter}>
-        <SelectTrigger className="w-40">
+        <SelectTrigger className="w-full sm:w-40">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>

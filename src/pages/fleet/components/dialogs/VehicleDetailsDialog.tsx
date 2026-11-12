@@ -57,7 +57,7 @@ export default function VehicleDetailsDialog({ vehicle }: VehicleDetailsDialogPr
       </div>
 
       <Tabs defaultValue="info">
-        <TabsList className="grid grid-cols-4 mb-4">
+        <TabsList className="mb-4 w-full max-sm:flex sm:grid sm:grid-cols-4">
           <TabsTrigger value="info">Informações</TabsTrigger>
           <TabsTrigger value="maintenance">Manutenções</TabsTrigger>
           <TabsTrigger value="fuel">Abastecimentos</TabsTrigger>

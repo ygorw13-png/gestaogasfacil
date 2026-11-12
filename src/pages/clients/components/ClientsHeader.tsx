@@ -18,7 +18,7 @@ export function ClientsHeader({
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button onClick={onGenerateReport} variant="outline" className="flex items-center gap-2">
           <FileText size={16} />
           <span>Relatório</span>

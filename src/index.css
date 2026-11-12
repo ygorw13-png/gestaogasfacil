@@ -120,3 +120,42 @@
     @apply flex-1 transition-all duration-300;
   }
 }
+
+/* Tabelas largas viram cartões no celular (ver components/ui/table.tsx). */
+@media (max-width: 639px) {
+  .tabela-responsiva[data-cartoes] > table,
+  .tabela-responsiva[data-cartoes] > table > tbody { display: block; }
+  .tabela-responsiva[data-cartoes] > table > thead { display: none; }
+  .tabela-responsiva[data-cartoes] > table > tbody > tr {
+    display: block;
+    margin-bottom: 0.75rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background: hsl(var(--card));
+    padding: 0.25rem 0;
+  }
+  .tabela-responsiva[data-cartoes] > table > tbody > tr > td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    padding: 0.5rem 0.75rem;
+    text-align: right;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .tabela-responsiva[data-cartoes] > table > tbody > tr > td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    max-width: 45%;
+    text-align: left;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+  }
+  .tabela-responsiva[data-cartoes] > table > tbody > tr > td[data-label=""]::before { display: none; }
+  .tabela-responsiva[data-cartoes] > table > tbody > tr > td[data-label=""] { justify-content: flex-end; }
+  .tabela-responsiva[data-cartoes] > table > tbody > tr > td[colspan] { justify-content: center; text-align: center; }
+  .tabela-responsiva[data-cartoes] > table > tfoot { display: block; }
+  .tabela-responsiva[data-cartoes] > table > tfoot > tr { display: flex; flex-wrap: wrap; justify-content: space-between; }
+}

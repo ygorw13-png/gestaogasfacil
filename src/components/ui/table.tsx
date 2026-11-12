@@ -2,18 +2,89 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// No celular (<640px), uma tabela que não cabe na largura vira cartões:
+// cada linha vira um bloco e cada célula mostra o título da coluna (data-label).
+const CELULAR = "(max-width: 639px)"
+
+function ajustarCartoes(wrap: HTMLDivElement, table: HTMLTableElement) {
+  const celular = window.matchMedia(CELULAR).matches
+  if (!celular || table.dataset.semCartoes !== undefined) {
+    delete wrap.dataset.cartoes
+    return
+  }
+  const titulos: string[] = []
+  const cab = table.tHead?.rows[table.tHead.rows.length - 1]
+  if (cab) {
+    for (const th of Array.from(cab.cells)) {
+      const t = (th.textContent || "").trim()
+      for (let i = 0; i < (th.colSpan || 1); i++) titulos.push(t)
+    }
+  }
+  for (const corpo of Array.from(table.tBodies)) {
+    for (const tr of Array.from(corpo.rows)) {
+      let col = 0
+      for (const td of Array.from(tr.cells)) {
+        const t = td.colSpan > 1 ? "" : titulos[col] || ""
+        if (td.dataset.label !== t) td.dataset.label = t
+        col += td.colSpan || 1
+      }
+    }
+  }
+  // mede a largura natural da tabela sem o modo cartão
+  delete wrap.dataset.cartoes
+  if (table.scrollWidth > wrap.clientWidth + 1) wrap.dataset.cartoes = "1"
+}
+
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
-      {...props}
-    />
-  </div>
-))
+>(({ className, ...props }, ref) => {
+  const wrapRef = React.useRef<HTMLDivElement>(null)
+  const tableRef = React.useRef<HTMLTableElement | null>(null)
+  const setRefs = React.useCallback(
+    (el: HTMLTableElement | null) => {
+      tableRef.current = el
+      if (typeof ref === "function") ref(el)
+      else if (ref) (ref as React.MutableRefObject<HTMLTableElement | null>).current = el
+    },
+    [ref]
+  )
+  React.useLayoutEffect(() => {
+    const wrap = wrapRef.current
+    const table = tableRef.current
+    if (!wrap || !table) return
+    let quadro = 0
+    const agendar = () => {
+      cancelAnimationFrame(quadro)
+      quadro = requestAnimationFrame(() => ajustarCartoes(wrap, table))
+    }
+    ajustarCartoes(wrap, table)
+    const mo = new MutationObserver(agendar)
+    mo.observe(table, { childList: true, subtree: true, characterData: true })
+    let ultimaLargura = wrap.clientWidth
+    const ro = new ResizeObserver(() => {
+      if (wrap.clientWidth !== ultimaLargura) {
+        ultimaLargura = wrap.clientWidth
+        agendar()
+      }
+    })
+    ro.observe(wrap)
+    return () => {
+      cancelAnimationFrame(quadro)
+      mo.disconnect()
+      ro.disconnect()
+    }
+  }, [])
+  return (
+    <div ref={wrapRef} className="tabela-responsiva relative w-full overflow-auto">
+      <table
+        ref={setRefs}
+        className={cn("w-full caption-bottom text-sm", className)}
+        {...props}
+      />
+    </div>
+  )
+})
 Table.displayName = "Table"
 
 const TableHeader = React.forwardRef<

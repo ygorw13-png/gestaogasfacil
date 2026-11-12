@@ -16,7 +16,7 @@ export default function Fleet() {
         </div>
         
         <Tabs defaultValue="vehicles" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="w-full max-sm:flex sm:grid sm:grid-cols-5">
             <TabsTrigger value="vehicles">Veículos</TabsTrigger>
             <TabsTrigger value="assignments">Atribuições</TabsTrigger>
             <TabsTrigger value="maintenance">Manutenções</TabsTrigger>

@@ -44,8 +44,8 @@ export function RoutesList() {
   });
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <Card className="p-4 sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <h2 className="text-xl font-semibold">Rotas</h2>
         <RouteFilters
           filter={filter}
