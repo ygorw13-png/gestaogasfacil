@@ -46,7 +46,7 @@ function AppSidebarComponent() {
             variant="ghost"
             size="icon"
             onClick={toggle}
-            className="h-8 w-8"
+            className="h-8 w-8 max-md:h-11 max-md:w-11"
             aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
           >
             {isMobile ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}

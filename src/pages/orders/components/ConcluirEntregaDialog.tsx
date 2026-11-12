@@ -139,7 +139,7 @@ export function ConcluirEntregaDialog({ order, isOpen, onOpenChange, onConcluida
             )}
             <div className="space-y-2">
               <Label htmlFor="cascosRecebidos">Cascos vazios recebidos *</Label>
-              <Input id="cascosRecebidos" type="number" min={0} step={1} placeholder="0" value={cascos} onChange={(e) => setCascos(e.target.value)} />
+              <Input id="cascosRecebidos" type="number" inputMode="numeric" min={0} step={1} placeholder="0" value={cascos} onChange={(e) => setCascos(e.target.value)} />
             </div>
             {diverge && (
               <div className="space-y-2">

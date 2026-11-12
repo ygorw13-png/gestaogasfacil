@@ -8,6 +8,7 @@ import { TopSellers } from "./dashboard/components/TopSellers";
 import { AdminSection } from "./dashboard/components/AdminSection";
 import { PromissoryStats } from "./dashboard/components/PromissoryStats";
 import { ReversoesResumo } from "./dashboard/components/ReversoesResumo";
+import { ResumoMovel } from "./dashboard/components/ResumoMovel";
 import {
   useDashboardOverview,
   useSalesSeries,
@@ -23,9 +24,9 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-in">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Dashboard</h1>
+        <div className="flex items-center gap-2 max-sm:text-xs">
           <span className="text-sm text-muted-foreground">Última atualização: </span>
           <span className="text-sm font-medium">
             {new Date(dataUpdatedAt || Date.now()).toLocaleString("pt-BR")}
@@ -57,6 +58,11 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
+          <ResumoMovel
+            vendas={{ valor: overview.todaySalesValue, qtd: overview.ordersToday }}
+            recebido={overview.painel.recebido}
+            vencidas={{ qtd: overview.painel.vencido.count, valor: overview.painel.vencido.value }}
+          />
           <OverviewCards data={overview} />
           <ReversoesResumo />
 

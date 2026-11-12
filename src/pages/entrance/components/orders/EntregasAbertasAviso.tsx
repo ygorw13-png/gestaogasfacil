@@ -33,7 +33,7 @@ export function EntregasAbertasAviso() {
       {data.atrasadas.slice(0, 4).map((o) => (
         <Link key={o.id} to={`/orders/${o.id}`} className="font-mono text-xs text-primary underline">{numeroPedido(o.id)}</Link>
       ))}
-      <Link to={data.atrasadas.length > 0 ? "/orders?filtro=atrasadas" : "/orders"} className="ml-auto text-primary underline">Ver em Pedidos</Link>
+      <Link to={data.atrasadas.length > 0 ? "/orders?filtro=atrasadas" : "/orders"} className="ml-auto inline-flex min-h-11 items-center px-1 text-primary underline">Ver em Pedidos</Link>
     </div>
   );
 }

@@ -11,6 +11,8 @@ import { ConcluirEntregaDialog } from "./components/ConcluirEntregaDialog";
 import { ReatribuirDialog } from "./components/ReatribuirDialog";
 import { RegularizarDialog } from "./components/RegularizarDialog";
 import { OrderTableRow } from "./components/OrderTableRow";
+import { OrderCard } from "./components/OrderCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { TablePagination, paginate } from "@/components/ui/TablePagination";
 import { exportToCsv } from "@/utils/csvExport";
 import { numeroPedido, estadoEntrega, ROTULO_ESTADO } from "@/lib/entregas";
@@ -34,6 +36,7 @@ type Dialogo = "atribuir" | "reatribuir" | "concluir" | "regularizar" | null;
 
 function OrdersListComponent({ orders, loading, hoje, vazio, onAssignOrder, onCancelOrder, onViewDetails, onRefresh }: OrdersListProps) {
   const { isAdmin } = useUserRole();
+  const isMobile = useIsMobile();
   const [dialogo, setDialogo] = useState<Dialogo>(null);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [selectedDeliveryPerson, setSelectedDeliveryPerson] = useState("");
@@ -90,6 +93,9 @@ function OrdersListComponent({ orders, loading, hoje, vazio, onAssignOrder, onCa
     </TableHeader>
   );
 
+  if (loading && orders.length === 0 && isMobile) {
+    return <div className="space-y-2">{Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-36 w-full" />)}</div>;
+  }
   if (loading && orders.length === 0) {
     return (
       <Table>
@@ -115,6 +121,24 @@ function OrdersListComponent({ orders, loading, hoje, vazio, onAssignOrder, onCa
           <div className="mb-2 flex justify-end">
             <Button variant="outline" size="sm" onClick={handleExport}><Download className="mr-2 h-4 w-4" /> Exportar CSV</Button>
           </div>
+          {isMobile ? (
+            <div className="space-y-2">
+              {paginatedOrders.map((order) => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  hoje={hoje}
+                  isAdmin={isAdmin}
+                  onAssign={abrir("atribuir")}
+                  onReassign={abrir("reatribuir")}
+                  onComplete={abrir("concluir")}
+                  onRegularize={abrir("regularizar")}
+                  onCancel={onCancelOrder}
+                  onViewDetails={() => onViewDetails(order.id)}
+                />
+              ))}
+            </div>
+          ) : (
           <Table>
             {cabecalho}
             <TableBody>
@@ -134,6 +158,7 @@ function OrdersListComponent({ orders, loading, hoje, vazio, onAssignOrder, onCa
               ))}
             </TableBody>
           </Table>
+          )}
           <TablePagination page={page} pageSize={PAGE_SIZE} totalItems={orders.length} onPageChange={setPage} />
         </>
       )}

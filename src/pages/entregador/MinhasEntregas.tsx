@@ -59,7 +59,7 @@ function DeliveryCard({ order }: { order: DeliveryOrder }) {
               </p>
             )}
             {order.client_phone && (
-              <a href={`tel:${order.client_phone}`} className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+              <a href={`tel:${order.client_phone}`} className="text-sm text-muted-foreground flex min-h-11 items-center gap-1">
                 <Phone className="h-3 w-3" /> {order.client_phone}
               </a>
             )}
