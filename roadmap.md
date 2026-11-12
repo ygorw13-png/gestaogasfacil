@@ -49,3 +49,13 @@ Validação da Etapa 1 (concluída, 26/26 + 11/11) + candidato de segurança 002
 - [x] Telas: solicitar/autorizar, confirmar recolhimento, reembolsos, conferência, painel separado
 - [x] Navegador isolado dos fluxos novos
 - [x] Cópia de segurança atual, aplicar 011 no Cloud, conferir dados, publicar e confirmar versão
+
+## Fluxo de entregas (12/11)
+- [x] Pedido como fonte única; modalidade por origem_venda; data prevista
+- [x] Filtros Hoje/Atrasadas/Agendadas; estados corretos; número do pedido abre detalhes
+- [x] Atribuir/Reatribuir (motivo, novo aceite, transferência física opcional); cancelar formulário sem erro
+- [x] "Concluir entrega" com dados explícitos; a prazo gera promissória
+- [x] Fechamento total bloqueado no banco com trava contra concorrência
+- [x] Registros antigos: revisão necessária + regularização pelo admin
+- [x] Testes SQL 72/72, navegador 24/24; cópia de segurança; aplicado no Cloud
+- [ ] Decisão do administrador sobre os 8 registros antigos (ver docs/IMPLANTACAO_G1_012.md)

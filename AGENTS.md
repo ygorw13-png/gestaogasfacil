@@ -13,3 +13,4 @@
 - Candidate SQL files are numbered in application order (`g1/candidate/sql/00N_*.sql`); check existing numbers before adding one, and add a `reset_com00N.sh` + `run_*.py` suite for it.
 - `docs/CHECKLIST_UNICO.md` is the single checklist (implemented / tested / pending / published); update it with each batch.
 - Completed sales are never cancelled or rewritten: cancel/return/exchange/duplicate go through the reversal RPCs (`reversao_*`, `reembolso_registrar`, `conferencia_resolver`, candidate 011) that record authorization, physical facts and refunds separately, because history and closed days must stay intact.
+- Deliveries are orders with `origem_venda` 'pedido'/'online'; their date is `entrega_prevista` or the Bahia creation day; a total cash closing is refused in SQL (trigger + advisory lock shared with order writes) while such deliveries are open for that day or the previous one, because a screen-only check can be bypassed.

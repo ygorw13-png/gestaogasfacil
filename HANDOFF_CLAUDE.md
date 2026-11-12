@@ -1,3 +1,6 @@
+> **IMPLANTADO — 12/11/2026: fluxo de entregas (candidato 012).** Aplicado no Cloud como `drizzle/migrations/0011_g1_012_fluxo_entregas.sql`
+> (idêntico ao candidato). Registro, testes e os 8 registros antigos pendentes: `docs/IMPLANTACAO_G1_012.md`.
+>
 # GásFácil — Handoff para continuidade
 
 > **IMPLANTADO — 11/11/2026 (~17h UTC): decisão B (reversão controlada, candidato 011).** Aplicado no banco do Cloud

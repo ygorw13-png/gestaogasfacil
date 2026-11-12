@@ -98,3 +98,8 @@ Nenhum indica regressão funcional. A correção recomendada é atualizar os tes
 ## 5. Decisões que bloqueiam a próxima entrega
 
 Ver `docs/DECISOES_PENDENTES.md`.
+
+## G1 012 — fluxo de entregas (12/11/2026)
+- Implementado e testado: SQL 72/72, navegador 24/24, regressões verdes (ver `docs/IMPLANTACAO_G1_012.md`).
+- Aplicado no Cloud (0011) com cópia de segurança conferida; publicado.
+- Pendente: decisão administrativa dos 8 registros antigos de entrega.
