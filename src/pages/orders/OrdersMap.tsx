@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEntregadoresLocalizacoes } from "@/hooks/useEntregadorLocation";
 import { formatAddress, mapsRouteUrl, mapsCoordUrl } from "@/utils/mapsLinks";
 import { tipoVendaShort } from "@/lib/saleTypes";
-import { EntregasAtrasadasAlert } from "@/pages/entrance/components/orders/EntregasAtrasadasAlert";
 
 const statusLabel: Record<string, string> = {
   pending: "Aguardando",
@@ -50,7 +49,6 @@ export default function OrdersMap() {
 
   return (
     <div className="space-y-4">
-      <EntregasAtrasadasAlert />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">

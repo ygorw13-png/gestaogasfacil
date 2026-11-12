@@ -14,7 +14,8 @@ export function useLateOrdersCount() {
         .from("orders")
         .select("id", { count: "exact", head: true })
         .eq("status", "pending")
-        .is("delivery_person", null)
+        .in("origem_venda", ["pedido", "online"])
+        .is("delivery_person_id", null)
         .lt("created_at", limit);
       if (error) return 0;
       return count ?? 0;

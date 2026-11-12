@@ -1,7 +1,7 @@
 {
  "rotulo": "lab",
  "total": 72,
- "ok": 65,
+ "ok": 72,
  "itens": [
   {
    "cat": "fonte",
@@ -151,32 +151,32 @@
   {
    "cat": "concluir",
    "nome": "paga em dinheiro: 1 recebimento de 125 com o entregador, carga consumida",
-   "ok": false
+   "ok": true
   },
   {
    "cat": "concluir",
    "nome": "a prazo: promissória de 125 sem recebimento fictício",
-   "ok": false
+   "ok": true
   },
   {
    "cat": "concluir",
    "nome": "valor diferente sem motivo é recusado",
-   "ok": false
+   "ok": true
   },
   {
    "cat": "concluir",
    "nome": "valor diferente com motivo: divergência registrada, preço original preservado",
-   "ok": false
+   "ok": true
   },
   {
    "cat": "concluir",
    "nome": "toque duplo / resposta perdida com a mesma chave: uma conclusão só",
-   "ok": false
+   "ok": true
   },
   {
    "cat": "concluir",
    "nome": "mesma chave com conteúdo diferente é recusada",
-   "ok": false
+   "ok": true
   },
   {
    "cat": "concluir",
@@ -216,7 +216,7 @@
   {
    "cat": "fechamento",
    "nome": "entrega concluída não bloqueia",
-   "ok": false
+   "ok": true
   },
   {
    "cat": "fechamento",

@@ -1,0 +1,217 @@
+[
+ {
+  "cat": "H1",
+  "test": "operador não insere venda já entregue",
+  "ok": true
+ },
+ {
+  "cat": "H1",
+  "test": "operador não insere venda já concluída",
+  "ok": true
+ },
+ {
+  "cat": "H1",
+  "test": "administrador também não (vende pela ação)",
+  "ok": true
+ },
+ {
+  "cat": "H1",
+  "test": "pedido novo não nasce com entregador (C)",
+  "ok": true
+ },
+ {
+  "cat": "H1",
+  "test": "pedido novo não nasce atribuído",
+  "ok": true
+ },
+ {
+  "cat": "H1",
+  "test": "continua: pedido novo na fila por gravação direta (formulário de pedido)",
+  "ok": true
+ },
+ {
+  "cat": "H2",
+  "test": "operador não conclui por gravação direta (delivered)",
+  "ok": true
+ },
+ {
+  "cat": "H2",
+  "test": "operador não conclui por gravação direta (completed)",
+  "ok": true
+ },
+ {
+  "cat": "H2",
+  "test": "administrador também não conclui por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "H2",
+  "test": "pedido atribuído com carga não conclui por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "H2",
+  "test": "continua: conclusão pela ação consome a carga e registra o recebimento",
+  "ok": true
+ },
+ {
+  "cat": "H3",
+  "test": "operador não atribui por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "H3",
+  "test": "operador não atribui pelo nome",
+  "ok": true
+ },
+ {
+  "cat": "H3",
+  "test": "operador não troca o entregador por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "H3",
+  "test": "operador não devolve à fila por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "H3",
+  "test": "pedido na fila não vai direto para 'em entrega'",
+  "ok": true
+ },
+ {
+  "cat": "H3",
+  "test": "continua: troca pela reatribuição com motivo, registrada no histórico",
+  "ok": true
+ },
+ {
+  "cat": "H3",
+  "test": "continua: endereço/observação editáveis no atribuído; 'em entrega' só pelo aceite (012)",
+  "ok": true
+ },
+ {
+  "cat": "H4",
+  "test": "operador não cria promissória já paga",
+  "ok": true
+ },
+ {
+  "cat": "H4",
+  "test": "operador não cria promissória com pagamento parcial",
+  "ok": true
+ },
+ {
+  "cat": "H4",
+  "test": "operador não cria promissória com valor pago escondido",
+  "ok": true
+ },
+ {
+  "cat": "H4",
+  "test": "operador não liga promissória a uma venda por fora",
+  "ok": true
+ },
+ {
+  "cat": "H4",
+  "test": "promissória sem valor é recusada",
+  "ok": true
+ },
+ {
+  "cat": "H4",
+  "test": "continua: dívida avulsa em aberto, com ou sem cobrador",
+  "ok": true
+ },
+ {
+  "cat": "H4",
+  "test": "continua: venda a prazo pela portaria gera promissória ligada, sem recebimento",
+  "ok": true
+ },
+ {
+  "cat": "H4",
+  "test": "continua: recebimento parcial pela ação",
+  "ok": true
+ },
+ {
+  "cat": "H5",
+  "test": "venda concluída: payment_method não muda por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "H5",
+  "test": "venda concluída: product não muda por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "H5",
+  "test": "venda concluída: tipo_venda não muda por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "H5",
+  "test": "venda concluída: client_name não muda por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "H5",
+  "test": "venda concluída: vasilhames_recebidos não muda por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "H5",
+  "test": "venda concluída: delivered_at não muda por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "H5",
+  "test": "administrador também não muda por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "H5",
+  "test": "continua: observação de venda concluída editável",
+  "ok": true
+ },
+ {
+  "cat": "H5",
+  "test": "produto já na carga não troca por gravação direta",
+  "ok": true
+ },
+ {
+  "cat": "H6",
+  "test": "operador não registra baixa 'venda' direto na portaria",
+  "ok": true
+ },
+ {
+  "cat": "H6",
+  "test": "operador não registra baixa 'venda_comodato' direto",
+  "ok": true
+ },
+ {
+  "cat": "H6",
+  "test": "continua: ajuste de estoque com movimento próprio",
+  "ok": true
+ },
+ {
+  "cat": "contexto",
+  "test": "depois de venda a prazo na mesma transação, gravação direta continua recusada",
+  "ok": true
+ },
+ {
+  "cat": "contexto",
+  "test": "depois de conclusão pela ação, inserção de venda concluída continua recusada",
+  "ok": true
+ },
+ {
+  "cat": "contexto",
+  "test": "depois de venda na rua a prazo, promissória paga direta continua recusada",
+  "ok": true
+ },
+ {
+  "cat": "contexto",
+  "test": "função interna de pagamento não é exposta",
+  "ok": true
+ },
+ {
+  "cat": "rastro",
+  "test": "nenhuma tentativa recusada deixou pedido, recebimento ou promissória",
+  "ok": true
+ }
+]

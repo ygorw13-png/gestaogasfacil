@@ -95,8 +95,10 @@ check("H3", "pedido na fila não vai direto para 'em entrega'", "atribuição/re
 check("H3", "continua: troca pela reatribuição com motivo, registrada no histórico",
   out([("userA", f"SELECT atribuir_entrega('{Q2}','{E}')"), ("userA", f"SELECT reatribuir_entrega('{Q2}','{E2}','Entregador A com pneu furado')"),
        ("adminA", f"SELECT (SELECT delivery_person_id FROM orders WHERE id='{Q2}')||'/'||(SELECT count(*) FROM auditoria_correcoes WHERE registro_id='{Q2}')")]) == f"{E2}/1")
-check("H3", "continua: atribuído -> em entrega e endereço/observação editáveis",
-  out([("userA", f"SELECT atribuir_entrega('{Q2}','{E}')"), ("userA", f"UPDATE orders SET status='delivering', notes='Portão azul', address='{{\"street\":\"Rua Fictícia\"}}' WHERE id='{Q2}' RETURNING status")]) == "delivering")
+# 012: "em entrega" passou a ser só pelo aceite do próprio entregador; endereço/observação seguem editáveis.
+check("H3", "continua: endereço/observação editáveis no atribuído; 'em entrega' só pelo aceite (012)",
+  out([("userA", f"SELECT atribuir_entrega('{Q2}','{E}')"), ("userA", f"UPDATE orders SET notes='Portão azul', address='{{\"street\":\"Rua Fictícia\"}}' WHERE id='{Q2}' RETURNING status")]) == "assigned"
+  and "Aceite só pelo próprio entregador" in err([("userA", f"SELECT atribuir_entrega('{Q2}','{E}')"), ("userA", f"UPDATE orders SET status='delivering' WHERE id='{Q2}'")]))
 
 # ── H4 promissória por inserção direta
 PN = lambda cols, vals: (f"INSERT INTO promissory_notes(organization_id,client_name,value,due_date{cols}) "

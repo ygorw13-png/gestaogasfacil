@@ -11,6 +11,9 @@ import { formSchema, type FormValues } from "./types/formTypes";
 import { Order } from "./types";
 import { useOperacaoUnica } from "@/hooks/useOperacaoUnica";
 import { idDaChave } from "@/lib/g1/operacao";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { dataOperacional } from "@/lib/dataOperacional";
 
 interface NewOrderFormProps {
   onSubmit: (order: Order) => void | Promise<void>;
@@ -45,6 +48,8 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
   // Um pedido por vez; reenvio do MESMO pedido usa o mesmo id (não duplica).
   const operacao = useOperacaoUnica("pedido");
   const [erro, setErro] = useState<string | null>(null);
+  // Data prevista da entrega: vazio = hoje (America/Bahia). Datas futuras viram agendamento.
+  const [entregaPrevista, setEntregaPrevista] = useState("");
 
   const handleProductToggle = (product: 'gasP13' | 'gasP20' | 'gasP45' | 'water', checked: boolean) => {
     switch (product) {
@@ -124,7 +129,9 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
       isCompletePackage: false,
       createdAt: new Date(),
       status: "pending",
-      notes: values.observations
+      notes: values.observations,
+      origemVenda: "pedido",
+      entregaPrevista: entregaPrevista || null,
     };
     
     if (operacao.enviando) return;
@@ -138,6 +145,7 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
       setHasGasP20(false);
       setHasGasP45(false);
       setHasWater(false);
+      setEntregaPrevista("");
     } catch (e) {
       // O chamador já avisou; aqui mantém os dados e explica o que fazer
       setErro(e instanceof Error ? e.message : "Pedido não registrado. Os dados foram mantidos.");
@@ -157,6 +165,19 @@ export default function NewOrderForm({ onSubmit }: NewOrderFormProps) {
           onToggleProduct={handleProductToggle}
         />
         <PaymentFormSection control={form.control} />
+
+        <div className="space-y-1">
+          <Label htmlFor="entregaPrevista">Entregar em (opcional)</Label>
+          <Input
+            id="entregaPrevista"
+            type="date"
+            min={dataOperacional()}
+            value={entregaPrevista}
+            onChange={(e) => setEntregaPrevista(e.target.value)}
+            className="w-[180px]"
+          />
+          <p className="text-xs text-muted-foreground">Em branco = entrega para hoje. Uma data futura fica em Agendadas.</p>
+        </div>
         
         {erro && (
           <div role="alert" className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">

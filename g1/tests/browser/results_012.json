@@ -1,0 +1,126 @@
+{
+ "total": 24,
+ "ok": 24,
+ "itens": [
+  {
+   "test": "B01 lista padrão mostra o pedido pelo número",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "test": "B02 entrega de ontem continua na lista, marcada como atrasada",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "test": "B03 balcão, agendada e outra empresa fora da lista padrão",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "test": "B04 registro antigo aparece com 'Revisão necessária' e sem Atribuir/Concluir para o operador",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "test": "B05 filtro Agendadas mostra a entrega futura",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "test": "B06 Atribuir grava por ID e aguarda aceite; produto vai para a carga dele",
+   "ok": true,
+   "detail": "('assigned/a0000000-0000-4000-8000-00000000000d/false', '1')"
+  },
+  {
+   "test": "B07 cancelar Reatribuir e fechar Concluir: nenhuma gravação, nenhum aviso de erro, pedido igual",
+   "ok": true,
+   "detail": "([], '1 pedido crítico (+10 min sem entregador)\\nCliente Ontem 012 (1440 min)')"
+  },
+  {
+   "test": "B08 app do entregador mostra o mesmo número do pedido",
+   "ok": true,
+   "detail": "Minhas Entregas\nAtivar alertas\n\nEntregues hoje\n\n0\n\nA acertar\n\nR$ 0.00\n\nVazios na moto\n\n0\n\nNovas\n2\nEm rota\nEntregues\n\n#E8CD8E9B\n\nCliente Rota 012\nAguardando seu aceite\n0 min\nRua Fictícia, 1\nGás P13 (1)\nR$ 125.00\nTroca\nmoney\nVer rota\nAceitar\nRecusar entrega\n\n#C1CE49CA\n\nCliente Recusa 012\nAguardando se"
+  },
+  {
+   "test": "B09 Aceitar pela tela: em rota, sem concluir nem receber",
+   "ok": true,
+   "detail": "delivering/a0000000-0000-4000-8000-00000000000d/true"
+  },
+  {
+   "test": "B10 recusa registrada aparece diferente de 'aguardando aceite'",
+   "ok": true,
+   "detail": "#C1CE49CA\n12/11 07:53\nhá 1 minuto\n\t\nCliente Recusa 012\n\t\nRua Fictícia, 1\n\tGás P13\t1\t\nRecusada — aguardando nova atribuição\nRecusa: Pneu furado na rota\n\t\nAtribuir"
+  },
+  {
+   "test": "B11 Reatribuir mostra o entregador atual",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "test": "B12 reatribuição exige novo aceite e não move o produto",
+   "ok": true,
+   "detail": "('assigned/a0000000-0000-4000-8000-0000000000f2/false', '1', '0')"
+  },
+  {
+   "test": "B13 Concluir com produto ainda na carga anterior: explica e não deixa concluir",
+   "ok": true,
+   "detail": "Concluir entrega #E8CD8E9B\n\nRegistre o que realmente aconteceu na entrega. O preço do pedido não muda.\n\nCliente\nCliente Rota 012\nEntregador\nEntregador Dois A\nProduto\n1× Gás P13\nPreço original\nR$ 125,00\nCombinado\nDinheiro\n\nA carga de Entregador Dois A tem 0 cheio(s) de Gás P13; este pedido precisa de"
+  },
+  {
+   "test": "B14 resposta perdida: formulário continua aberto com aviso",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "test": "B15 nova tentativa + toque duplo: uma conclusão, um recebimento de 125 e uma baixa",
+   "ok": true,
+   "detail": "1/125"
+  },
+  {
+   "test": "B16 transferência física registrada: carga 1 → carga 2, sem baixa dupla na portaria",
+   "ok": true,
+   "detail": "('0', '1', 'assigned/a0000000-0000-4000-8000-0000000000f2/false')"
+  },
+  {
+   "test": "B17 conclusão a prazo: promissória de 125, nenhum recebimento, carga 2 consumida",
+   "ok": true,
+   "detail": "125.00/pending"
+  },
+  {
+   "test": "B18 tela do fechamento total mostra as entregas que impedem, com o número do pedido",
+   "ok": true,
+   "detail": "Abertura: 100 · Vendas: 0 · Esperado: 100\n\nCheios restantes\n\nEsperado: 100\n\nVazios restantes\n\nEsperado: 0\n\nÁgua 20L\nOk\n\nAbertura: 100 · Vendas: 0 · Esperado: 100\n\nCheios restantes\n\nEsperado: 100\n\nVazios restantes\n\nEsperado: 0\n\nFechamento total bloqueado: 2 entrega(s) em aberto\n\nEntregas de 12/11 ou do dia anterior ainda não foram concluídas nem canceladas. Nada é concluído ou reagendado automatica"
+  },
+  {
+   "test": "B19 chamada direta de fechamento total é recusada pelo banco",
+   "ok": true,
+   "detail": "{\"code\":\"P0001\",\"details\":null,\"hint\":\"entregas_pendentes\",\"message\":\"Fechamento total bloqueado: 2 entrega(s) em aberto com previsão para 12/11/2026 ou o dia anterior. Conclua, reatribua ou cancele e"
+  },
+  {
+   "test": "B20 nenhum pedido foi concluído ou reagendado para liberar o caixa",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "test": "B21 balcão sem o quadro antigo; aviso leva a Pedidos com o número da atrasada",
+   "ok": true,
+   "detail": "Balcão\nPedidos\n1\nAcerto Entregadores\nHistórico Diário\nDespesas\nEntregas em aberto: 1 de hoje, 2 atrasada(s).\n#8409135A\n#2DD76FCF\nVer em Pedidos\nVendas da Portaria\n\nRegistre vendas, controle o caixa e gerencia o estoque da portaria.\n\nNova Venda\nFechar Caixa\nEstoque da Portaria — Hoje\nReceber do pátio"
+  },
+  {
+   "test": "B22 número do pedido abre os detalhes direto",
+   "ok": true,
+   "detail": "Pedido #8409135A\n\nCriado em 11/11/2026, 07:53\n\nAguardando atribuição\nCliente\nCliente Ontem 012\nEndereço\n—\nProduto\n1× Gás P13\nPreço\nR$ 125,00\nPagamento\nmoney\nData da entrega\n11/11/2026 (dia do pedido)\n"
+  },
+  {
+   "test": "B23 regularização: volta para a fila, histórico guarda o entregador anotado, nada de estoque ou dinheiro",
+   "ok": true,
+   "detail": "pending/-/false"
+  },
+  {
+   "test": "B24 nenhuma requisição saiu para o Cloud",
+   "ok": true,
+   "detail": "[]"
+  }
+ ]
+}

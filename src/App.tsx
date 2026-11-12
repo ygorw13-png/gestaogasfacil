@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AppLayout } from "./components/layout/AppLayout";
 import { Suspense } from "react";
@@ -124,8 +124,8 @@ function App() {
                 } />
                 {/* Acesso direto: o formulário fica no diálogo da tela de pedidos (antes abria um formulário que não gravava nada). */}
                 <Route path="/orders/new" element={<Navigate to="/orders?novo=1" replace />} />
-                {/* Detalhe sem dados carregados: volta para a lista. */}
-                <Route path="/orders/:id" element={<Navigate to="/orders" replace />} />
+                {/* Link direto para um pedido: abre os detalhes dele na tela de Pedidos. */}
+                <Route path="/orders/:id" element={<PedidoPorId />} />
                 <Route path="/entrance" element={
                   <Suspense fallback={<LoadingComponent />}>
                     <EntranceSales />
@@ -262,3 +262,8 @@ function App() {
 }
 
 export default App;
+
+function PedidoPorId() {
+  const { id } = useParams();
+  return <Navigate to={id ? `/orders?pedido=${encodeURIComponent(id)}` : "/orders"} replace />;
+}

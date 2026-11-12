@@ -188,7 +188,7 @@ AS $$ DECLARE o uuid := public._ctx_org(); r record; aid uuid; prev uuid; k text
   prev := public._reenvio(o, _chave, 'reatribuir_entrega', h); IF prev IS NOT NULL THEN RETURN prev; END IF;
   SELECT * INTO r FROM public.orders WHERE id=_order_id AND organization_id=o FOR UPDATE;
   IF r.id IS NULL THEN RAISE EXCEPTION 'Pedido não encontrado'; END IF;
-  IF r.status NOT IN ('assigned','delivering') THEN RAISE EXCEPTION 'Só entregas atribuídas podem ser reatribuídas (status: %)', r.status; END IF;
+  IF r.status NOT IN ('assigned','delivering') THEN RAISE EXCEPTION 'Só pedidos em aberto e atribuídos podem ser reatribuídos (status: %)', r.status; END IF;
   IF r.delivery_person_id IS NULL THEN
     RAISE EXCEPTION 'Registro sem entregador identificado: precisa de regularização administrativa'; END IF;
   IF r.delivery_person_id IS NOT DISTINCT FROM _novo_entregador_id THEN RAISE EXCEPTION 'Pedido já está com esse entregador'; END IF;

@@ -999,6 +999,65 @@ export type Database = {
         }
         Relationships: []
       }
+      entrega_eventos: {
+        Row: {
+          criado_em: string
+          detalhes: Json
+          entregador_anterior: string | null
+          entregador_anterior_texto: string | null
+          entregador_novo: string | null
+          id: string
+          motivo: string | null
+          order_id: string
+          organization_id: string
+          registrado_por: string | null
+          registrado_por_nome: string | null
+          status_anterior: string | null
+          status_novo: string | null
+          tipo: string
+        }
+        Insert: {
+          criado_em?: string
+          detalhes?: Json
+          entregador_anterior?: string | null
+          entregador_anterior_texto?: string | null
+          entregador_novo?: string | null
+          id?: string
+          motivo?: string | null
+          order_id: string
+          organization_id: string
+          registrado_por?: string | null
+          registrado_por_nome?: string | null
+          status_anterior?: string | null
+          status_novo?: string | null
+          tipo: string
+        }
+        Update: {
+          criado_em?: string
+          detalhes?: Json
+          entregador_anterior?: string | null
+          entregador_anterior_texto?: string | null
+          entregador_novo?: string | null
+          id?: string
+          motivo?: string | null
+          order_id?: string
+          organization_id?: string
+          registrado_por?: string | null
+          registrado_por_nome?: string | null
+          status_anterior?: string | null
+          status_novo?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entrega_eventos_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entregador_localizacoes: {
         Row: {
           accuracy: number | null
@@ -1281,6 +1340,7 @@ export type Database = {
           delivered_at: string | null
           delivery_person: string | null
           delivery_person_id: string | null
+          entrega_prevista: string | null
           has_empty_cylinder: boolean | null
           id: string
           is_complete_package: boolean | null
@@ -1312,6 +1372,7 @@ export type Database = {
           delivered_at?: string | null
           delivery_person?: string | null
           delivery_person_id?: string | null
+          entrega_prevista?: string | null
           has_empty_cylinder?: boolean | null
           id?: string
           is_complete_package?: boolean | null
@@ -1343,6 +1404,7 @@ export type Database = {
           delivered_at?: string | null
           delivery_person?: string | null
           delivery_person_id?: string | null
+          entrega_prevista?: string | null
           has_empty_cylinder?: boolean | null
           id?: string
           is_complete_package?: boolean | null
@@ -2550,6 +2612,23 @@ export type Database = {
         Args: { _destino: string; _forma: string; _origem: string }
         Returns: string
       }
+      _eh_entrega: { Args: { _origem: string }; Returns: boolean }
+      _entrega_aberta: { Args: { _status: string }; Returns: boolean }
+      _entrega_data: {
+        Args: { _criado: string; _prevista: string }
+        Returns: string
+      }
+      _entregas_pendentes_fechamento: {
+        Args: { _data: string; _org: string }
+        Returns: {
+          client_name: string
+          created_at: string
+          data_prevista: string
+          delivery_person_id: string
+          id: string
+          status: string
+        }[]
+      }
       _forma_chave: { Args: { _f: string }; Returns: string }
       _g1_ctl: { Args: never; Returns: boolean }
       _meu_nome: { Args: never; Returns: string }
@@ -2604,6 +2683,7 @@ export type Database = {
         }
         Returns: string
       }
+      _travar_fechamento: { Args: { _org: string }; Returns: undefined }
       _travar_portaria: {
         Args: { _data: string; _org: string; _produto: string }
         Returns: undefined
@@ -2721,6 +2801,19 @@ export type Database = {
           total: number
         }[]
       }
+      entrega_motivo_revisao: {
+        Args: { _aceite: string; _dp: string; _dp_id: string; _status: string }
+        Returns: string
+      }
+      entrega_regularizar: {
+        Args: {
+          _chave: string
+          _entregador_id: string
+          _motivo: string
+          _order_id: string
+        }
+        Returns: string
+      }
       entregador_aceitar_entrega: {
         Args: { _order_id: string }
         Returns: undefined
@@ -2755,6 +2848,17 @@ export type Database = {
         }
         Returns: string
       }
+      entregas_bloqueando_fechamento: {
+        Args: { _data: string }
+        Returns: {
+          client_name: string
+          created_at: string
+          data_prevista: string
+          entregador_nome: string
+          id: string
+          status: string
+        }[]
+      }
       g0_recover_own_profile: { Args: never; Returns: undefined }
       get_my_org: { Args: never; Returns: string }
       has_role: {
@@ -2775,6 +2879,13 @@ export type Database = {
           situacao: string
         }[]
       }
+      listar_entregadores: {
+        Args: never
+        Returns: {
+          id: string
+          nome: string
+        }[]
+      }
       operador_concluir_entrega: {
         Args: {
           _chave: string
@@ -2786,14 +2897,25 @@ export type Database = {
         }
         Returns: string
       }
-      reatribuir_entrega: {
-        Args: {
-          _motivo: string
-          _novo_entregador_id: string
-          _order_id: string
-        }
-        Returns: string
-      }
+      reatribuir_entrega:
+        | {
+            Args: {
+              _motivo: string
+              _novo_entregador_id: string
+              _order_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _chave: string
+              _motivo: string
+              _novo_entregador_id: string
+              _order_id: string
+              _transferir_carga: boolean
+            }
+            Returns: string
+          }
       receber_promissoria: {
         Args: {
           _chave: string

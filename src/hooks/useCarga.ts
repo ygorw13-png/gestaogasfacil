@@ -41,7 +41,7 @@ export interface CargaMovimento {
   carga_id: string;
   entregador_id: string;
   entregador_nome: string;
-  tipo: "saida_portaria" | "consumo_entrega" | "consumo_venda_rua" | "devolucao";
+  tipo: "saida_portaria" | "consumo_entrega" | "consumo_venda_rua" | "devolucao" | "reversao" | "correcao_duplicidade" | "transferencia_carga";
   produto: string;
   delta_cheios: number;
   delta_vazios: number;
@@ -56,6 +56,9 @@ export const ROTULO_MOVIMENTO: Record<CargaMovimento["tipo"], string> = {
   consumo_entrega: "Entrega concluída",
   consumo_venda_rua: "Venda na rua",
   devolucao: "Devolução à portaria",
+  reversao: "Reversão (devolução/troca)",
+  correcao_duplicidade: "Correção de duplicidade",
+  transferencia_carga: "Transferência entre cargas (reatribuição)",
 };
 
 /** Saldo da carga aberta. `entregadorId` vazio: operador vê todos; entregador vê a própria. */

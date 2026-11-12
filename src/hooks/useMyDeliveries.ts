@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/auth";
 import { useToast } from "@/hooks/use-toast";
 import { playDeliveryAlert } from "@/utils/deliveryAlert";
 import { G1_ACOES, acao } from "@/lib/g1/acoes";
+import { dataOperacional } from "@/lib/dataOperacional";
 
 export interface DeliveryOrder {
   id: string;
@@ -21,6 +22,8 @@ export interface DeliveryOrder {
   delivered_at: string | null;
   delivery_person: string | null;
   created_at: string;
+  entrega_prevista?: string | null;
+  delivery_person_id?: string | null;
   tipo_venda?: string | null;
   vasilhames_entregues?: number | null;
   vasilhames_recebidos?: number | null;
@@ -40,16 +43,18 @@ export function useMyDeliveries() {
     queryKey: ["my-deliveries", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const inicioHoje = new Date();
-      inicioHoje.setHours(0, 0, 0, 0);
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("delivery_person", user.id)
-        .gte("created_at", inicioHoje.toISOString())
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as DeliveryOrder[];
+      // Mesma entrega (mesmo ID) de Pedidos e da portaria, ligada à conta do entregador.
+      // Abertas de qualquer data (não somem na virada do dia) + concluídas hoje (horário da Bahia).
+      const hoje = dataOperacional();
+      const [abertas, feitas] = await Promise.all([
+        supabase.from("orders").select("*").eq("delivery_person_id", user.id)
+          .not("status", "in", "(completed,delivered,cancelled)").order("created_at", { ascending: true }),
+        supabase.from("orders").select("*").eq("delivery_person_id", user.id).in("status", ["completed", "delivered"])
+          .gte("delivered_at", `${hoje}T00:00:00-03:00`).order("delivered_at", { ascending: false }),
+      ]);
+      if (abertas.error) throw abertas.error;
+      if (feitas.error) throw feitas.error;
+      return [...(abertas.data ?? []), ...(feitas.data ?? [])] as DeliveryOrder[];
     },
     enabled: !!user?.id,
   });
@@ -60,7 +65,7 @@ export function useMyDeliveries() {
       .channel(`deliveries-${user.id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "orders", filter: `delivery_person=eq.${user.id}` },
+        { event: "*", schema: "public", table: "orders", filter: `delivery_person_id=eq.${user.id}` },
         (payload) => {
           qc.invalidateQueries({ queryKey: ["my-deliveries", user.id] });
           // Toca alerta só em mudanças após o load inicial

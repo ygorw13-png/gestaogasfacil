@@ -60,7 +60,7 @@ ATR = lambda cli, e=E1, retirar="false", k=None, who="userA": (who, f"SELECT atr
 ACE = lambda cli, who="entregadorA": (who, f"SELECT entregador_aceitar_entrega({ORD(cli)})")
 REC = lambda cli, who="entregadorA": (who, f"SELECT entregador_recusar_entrega({ORD(cli)},'pneu furado')")
 REA = lambda cli, novo, k, mot="'troca de rota hoje'", tr="false", who="userA": (who, f"SELECT reatribuir_entrega({ORD(cli)},{novo},{mot},{tr},'{k}')")
-CON = lambda cli, k, forma="'money'", valor="125", vz="1", motivo="NULL", who="userA": (who, f"SELECT operador_concluir_entrega({ORD(cli)},{forma},{valor},{vz},{motivo},'{k}')")
+CON = lambda cli, k, forma="'money'", valor="125", vz="1", motivo="NULL", who="userA": (who, f"SELECT operador_concluir_entrega({ORD(cli)},{forma},{valor},{vz},{motivo},'k012-{k}')")
 BLOQ = lambda dia="data_operacional()", who="userA": (who, f"SELECT count(*) FROM entregas_bloqueando_fechamento({dia})")
 BLOQ_IDS = lambda cli, dia="data_operacional()", who="userA": (who, f"SELECT count(*) FROM entregas_bloqueando_fechamento({dia}) b WHERE b.id={ORD(cli)}")
 FECHA = lambda tipo="total", dia="data_operacional()", who="userA": (who, f"INSERT INTO fechamentos_caixa(data_fechamento,tipo,total_vendas,total_dinheiro,total_pix,total_cartao,total_outros,quantidades,estoque_final,divergencias,tem_divergencia,retroativo) VALUES ({dia},'{tipo}',0,0,0,0,0,'{{}}','[]','[]',false,false)")
@@ -144,14 +144,14 @@ check("concluir", "sem quantidade de cascos é recusado (não presume zero)", "c
 check("concluir", "dinheiro sem valor recebido é recusado (não presume o preço)", "valor" in err(pronto("Co 3", "atr-co3-012") + [CON("Co 3", "con-co3", valor="NULL")]).lower())
 check("concluir", "paga em dinheiro: 1 recebimento de 125 com o entregador, carga consumida",
       out(pronto("Co 4", "atr-co4-012") + [CON("Co 4", "con-co4"),
-          Q(f"SELECT (SELECT string_agg(valor::text||'/'||destino,',') FROM recebimentos WHERE order_id={ORD('Co 4')}) || ':' || {CARGA(E1)} || ':' || (SELECT vasilhames_recebidos FROM orders WHERE id={ORD('Co 4')})")]) == "125.00/entregador:0:1")
+          Q(f"SELECT (SELECT string_agg(valor::text||'/'||destino,',') FROM recebimentos WHERE order_id={ORD('Co 4')}) || ':' || {CARGA(E1)} || ':' || (SELECT vasilhames_recebidos FROM orders WHERE id={ORD('Co 4')})")]) == "125/entregador:0:1")
 check("concluir", "a prazo: promissória de 125 sem recebimento fictício",
       out(pronto("Co 5", "atr-co5-012") + [CON("Co 5", "con-co5", forma="'promissoria'", valor="NULL", vz="0"),
           Q(f"SELECT (SELECT count(*) FROM recebimentos WHERE order_id={ORD('Co 5')}) || ':' || (SELECT string_agg(value::text||'/'||status,',') FROM promissory_notes WHERE order_id={ORD('Co 5')})")]) == "0:125.00/pending")
 check("concluir", "valor diferente sem motivo é recusado", "motivo" in err(pronto("Co 6", "atr-co6-012") + [CON("Co 6", "con-co6", valor="100")]))
 check("concluir", "valor diferente com motivo: divergência registrada, preço original preservado",
       out(pronto("Co 7", "atr-co7-012") + [CON("Co 7", "con-co7", valor="100", motivo="'cliente pagou menos'"),
-          Q(f"SELECT (SELECT price FROM orders WHERE id={ORD('Co 7')}) || ':' || (SELECT esperado||'/'||recebido FROM divergencias WHERE order_id={ORD('Co 7')}) || ':' || (SELECT sum(valor) FROM recebimentos WHERE order_id={ORD('Co 7')})")]) == "125.00:125.00/100.00:100.00")
+          Q(f"SELECT (SELECT price FROM orders WHERE id={ORD('Co 7')}) || ':' || (SELECT esperado||'/'||recebido FROM divergencias WHERE order_id={ORD('Co 7')}) || ':' || (SELECT sum(valor) FROM recebimentos WHERE order_id={ORD('Co 7')})")]) == "125.00:125.00/100:100")
 check("concluir", "toque duplo / resposta perdida com a mesma chave: uma conclusão só",
       out(pronto("Co 8", "atr-co8-012") + [CON("Co 8", "con-co8"), CON("Co 8", "con-co8"),
           Q(f"SELECT (SELECT count(*) FROM recebimentos WHERE order_id={ORD('Co 8')}) || ':' || (SELECT count(*) FROM carga_movimentos WHERE order_id={ORD('Co 8')} AND tipo='consumo_entrega')")]) == "1:1")

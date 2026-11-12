@@ -12,6 +12,5 @@ INSERT INTO public.profiles(id,name,role,organization_id,ativo) VALUES
  ('a0000000-0000-4000-8000-0000000000f2','Entregador Dois A','entregador','0a000000-0000-4000-8000-000000000000',true) ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles(user_id,role) VALUES ('a0000000-0000-4000-8000-0000000000f2','entregador') ON CONFLICT DO NOTHING;
 SET session_replication_role = origin;
-GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated, service_role;
 SQL
 echo "012 aplicado"

@@ -37,6 +37,12 @@ import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import { hojePortaria } from "@/lib/g1/dataPortaria";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { acao, G1_ACOES } from "@/lib/g1/acoes";
+import { numeroPedido } from "@/lib/entregas";
+
+interface EntregaBloqueando { id: string; client_name: string; status: string; data_prevista: string; entregador_nome: string | null }
 interface CashierClosingFormProps {
   onSubmit: (type: "partial" | "total", observations?: string, isRetroactive?: boolean) => void;
   onCancel: () => void;
@@ -96,6 +102,16 @@ export function CashierClosingForm({
 
 
   const isRetroactive = !isSameDayAsToday(closingDate);
+
+  // Fechamento total: entregas realmente abertas com previsão para o dia ou o dia anterior impedem.
+  // O banco confere de novo, com trava, na gravação; aqui é só para mostrar quais são.
+  const bloqueio = useQuery({
+    queryKey: ["entregas-bloqueando-fechamento", closingDate],
+    enabled: G1_ACOES && closingType === "total",
+    queryFn: () => acao<EntregaBloqueando[]>("entregas_bloqueando_fechamento", { _data: closingDate }),
+    refetchInterval: 30_000,
+  });
+  const bloqueioTotal = G1_ACOES && closingType === "total" && (bloqueio.isLoading || bloqueio.isError || (bloqueio.data?.length ?? 0) > 0);
 
   // Restaurar rascunho salvo (caso o usuário não tenha finalizado o fechamento)
   useEffect(() => {
@@ -253,6 +269,18 @@ export function CashierClosingForm({
     }
 
     if (submitting) return;
+
+    if (closingType === "total" && G1_ACOES) {
+      const r = await bloqueio.refetch();
+      if (r.error || !r.data) {
+        toast({ title: "Fechamento total não liberado", description: "Não foi possível conferir as entregas em aberto. Nada foi salvo.", variant: "destructive" });
+        return;
+      }
+      if (r.data.length > 0) {
+        toast({ title: "Fechamento total bloqueado", description: `${r.data.length} entrega(s) em aberto. Resolva em Pedidos.`, variant: "destructive" });
+        return;
+      }
+    }
 
 
     if (fechamentoExistente && motivoAlteracao.trim().length < 5) {
@@ -532,6 +560,33 @@ export function CashierClosingForm({
         </div>
       )}
 
+      {closingType === "total" && G1_ACOES && (bloqueio.isLoading ? (
+        <p className="text-sm text-muted-foreground">Conferindo entregas em aberto…</p>
+      ) : bloqueio.isError ? (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Não foi possível conferir as entregas em aberto</AlertTitle>
+          <AlertDescription>O fechamento total fica bloqueado até a consulta funcionar. O fechamento parcial continua disponível.</AlertDescription>
+        </Alert>
+      ) : (bloqueio.data?.length ?? 0) > 0 ? (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Fechamento total bloqueado: {bloqueio.data!.length} entrega(s) em aberto</AlertTitle>
+          <AlertDescription>
+            <p className="text-sm">Entregas de {format(new Date(closingDate + "T00:00:00"), "dd/MM", { locale: ptBR })} ou do dia anterior ainda não foram concluídas nem canceladas. Nada é concluído ou reagendado automaticamente.</p>
+            <ul className="mt-1 space-y-0.5 text-sm">
+              {bloqueio.data!.slice(0, 8).map((e) => (
+                <li key={e.id}>
+                  <Link to={`/orders/${e.id}`} className="font-mono underline">{numeroPedido(e.id)}</Link> · {e.client_name}
+                  {e.entregador_nome ? ` · ${e.entregador_nome}` : " · sem entregador"}
+                </li>
+              ))}
+            </ul>
+            <Link to="/orders?filtro=operacional" className="mt-2 inline-block text-sm font-medium underline">Abrir em Pedidos</Link>
+          </AlertDescription>
+        </Alert>
+      ) : null)}
+
       <ObservationsSection value={observations} onChange={setObservations} />
 
       <DialogFooter className="gap-2 sm:gap-2">
@@ -542,7 +597,7 @@ export function CashierClosingForm({
           <FileText className="h-4 w-4" />
           Gerar PDF
         </Button>
-        <Button type="button" onClick={() => handleSubmit()} disabled={isSaving} className="gap-2">
+        <Button type="button" onClick={() => handleSubmit()} disabled={isSaving || bloqueioTotal} className="gap-2">
           {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
           {isSaving
             ? "Registrando fechamento..."

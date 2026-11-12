@@ -17,6 +17,8 @@ export interface AssignOptions {
   chave?: string;
   /** Nome do entregador para a confirmação (antes aparecia o ID). */
   nomeEntregador?: string;
+  /** Reatribuição: o produto passou fisicamente da carga do entregador anterior para a do novo. */
+  transferirCarga?: boolean;
 }
 
 export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<React.SetStateAction<Order[]>>) {
@@ -45,6 +47,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
         is_complete_package: order.isCompletePackage || false,
         status: "pending" as OrderStatus,
         origem_venda: "pedido",
+        entrega_prevista: order.entregaPrevista || null,
         tipo_venda: order.tipoVenda ?? "completa",
         vasilhames_entregues: order.tipoVenda === "recarga" ? 0 : (order.quantity || 0),
         vasilhames_recebidos: 0,
@@ -133,10 +136,13 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
     try {
       if (G1_ACOES) {
         const atual = orders.find((o) => o.id === orderId);
-        if (atual?.deliveryPerson && atual.deliveryPerson !== deliveryPerson) {
-          // Troca explícita, por ID, com motivo. Histórico não é alterado.
+        if (atual?.deliveryPersonId && atual.deliveryPersonId !== deliveryPerson) {
+          // Troca explícita, por ID, com motivo; o produto só muda de carga com transferência física registrada.
           if (!opts.motivo?.trim()) throw new Error("Informe o motivo da troca de entregador.");
-          await acao("reatribuir_entrega", { _order_id: orderId, _novo_entregador_id: deliveryPerson, _motivo: opts.motivo.trim() });
+          await acao("reatribuir_entrega", {
+            _order_id: orderId, _novo_entregador_id: deliveryPerson, _motivo: opts.motivo.trim(),
+            _transferir_carga: !!opts.transferirCarga, _chave: opts.chave ?? novaChave("reatribuir"),
+          });
         } else {
           await acao("atribuir_entrega", {
             _order_id: orderId, _entregador_id: deliveryPerson,
@@ -177,6 +183,9 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
               ...order,
               status: "assigned",
               deliveryPerson,
+              deliveryPersonId: deliveryPerson,
+              acceptedAt: undefined,
+              rejectionReason: null,
               ...(opts.nomeEntregador ? { deliveryPersonName: opts.nomeEntregador } : {}),
               assignedAt: new Date(),
             };
@@ -224,6 +233,8 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
         const motivo = window.prompt(isAdmin
           ? "Motivo do cancelamento (fica no histórico):"
           : "Motivo do pedido de cancelamento (o administrador autoriza):")?.trim();
+        // Fechar a caixa de motivo = desistir: nada é enviado e não há aviso de erro.
+        if (motivo === undefined || motivo === null) return;
         if (!motivo) throw new Error("Cancelamento exige motivo.");
         await acao("reversao_solicitar", {
           _order_id: orderId, _tipo: "cancelamento", _motivo: motivo, _order_valida_id: null,

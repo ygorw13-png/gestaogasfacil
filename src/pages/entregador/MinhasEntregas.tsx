@@ -1,4 +1,6 @@
 import { ReverterVendaDialog } from "@/components/reversao/ReverterVendaDialog";
+import { dataEntrega, numeroPedido } from "@/lib/entregas";
+import { dataOperacional } from "@/lib/dataOperacional";
 import { G1_ACOES } from "@/lib/g1/acoes";
 import { Undo2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -49,7 +51,13 @@ function DeliveryCard({ order }: { order: DeliveryOrder }) {
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start gap-2">
           <div className="min-w-0">
+            <p className="font-mono text-xs font-semibold text-muted-foreground">{numeroPedido(order.id)}</p>
             <CardTitle className="text-lg truncate">{order.client_name}</CardTitle>
+            {!isDone && dataEntrega(order.entrega_prevista, order.created_at) < dataOperacional() && (
+              <p className="text-xs font-semibold text-destructive">
+                Atrasada · pedido de {dataEntrega(order.entrega_prevista, order.created_at).split("-").reverse().join("/")}
+              </p>
+            )}
             {order.client_phone && (
               <a href={`tel:${order.client_phone}`} className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                 <Phone className="h-3 w-3" /> {order.client_phone}
@@ -58,7 +66,7 @@ function DeliveryCard({ order }: { order: DeliveryOrder }) {
           </div>
           <div className="flex flex-col items-end gap-1">
             <Badge variant={isDone ? "secondary" : isInProgress ? "default" : "destructive"}>
-              {isDone ? "Entregue" : isInProgress ? "Em rota" : "Nova"}
+              {isDone ? "Entregue" : isInProgress ? "Aceita / em rota" : "Aguardando seu aceite"}
             </Badge>
             {!isDone && (
               <span className={`text-xs flex items-center gap-1 ${atrasado ? "text-destructive font-semibold" : "text-muted-foreground"}`}>

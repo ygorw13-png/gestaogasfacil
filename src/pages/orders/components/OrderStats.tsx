@@ -10,7 +10,7 @@ interface OrderStatsProps {
 export default function OrderStats({ orders }: OrderStatsProps) {
   const pendingOrders = orders.filter(order => order.status === "pending").length;
   const assignedOrders = orders.filter(order => order.status === "assigned" || order.status === "delivering").length;
-  const completedOrders = orders.filter(order => order.status === "delivered").length;
+  const completedOrders = orders.filter(order => order.status === "delivered" || order.status === "completed").length;
   
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -16,6 +16,7 @@ import { msgEntregaAtribuida } from "@/utils/whatsappLinks";
 import type { Order } from "../types";
 import type { AssignOptions } from "../hooks/useOrderMutations";
 import { G1_ACOES } from "@/lib/g1/acoes";
+import { numeroPedido } from "@/lib/entregas";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
@@ -47,7 +48,8 @@ export function AssignOrderDialog({
   const [erro, setErro] = useState<string | null>(null);
   const operacao = useOperacaoUnica("atribuir");
   useEffect(() => { if (isOpen) { setRetirar(false); setMotivo(""); setErro(null); } }, [isOpen]);
-  const troca = G1_ACOES && !!order?.deliveryPerson && order.deliveryPerson !== selectedDeliveryPerson;
+  // Só para pedidos sem entregador identificado; troca de entregador usa o formulário "Reatribuir".
+  const troca = false;
 
   // Origem do produto (G1): sai agora da portaria (transferência) OU já está na carga do entregador.
   const produto = produtoCarga(order?.product);
@@ -78,7 +80,7 @@ export function AssignOrderDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Atribuir Pedido</DialogTitle>
+          <DialogTitle>Atribuir pedido {order ? numeroPedido(order.id) : ""}</DialogTitle>
           <DialogDescription>
             Selecione o entregador para realizar esta entrega. Só aparecem
             entregadores com acesso ao app — assim a entrega chega no celular dele.
