@@ -59,3 +59,10 @@ Validação da Etapa 1 (concluída, 26/26 + 11/11) + candidato de segurança 002
 - [x] Registros antigos: revisão necessária + regularização pelo admin
 - [x] Testes SQL 72/72, navegador 24/24; cópia de segurança; aplicado no Cloud
 - [ ] Decisão do administrador sobre os 8 registros antigos (ver docs/IMPLANTACAO_G1_012.md)
+
+## Uso no celular (12/11)
+- [x] Pedidos em cartões no celular; ações secundárias em menu (também no computador)
+- [x] Janelas com rolagem interna, botão de confirmar fixo embaixo, campo em foco visível com teclado
+- [x] Toques de ~44px em botões, campos, abas e links; teclado numérico nos cascos
+- [x] Resumo do dia (vendas, recebido, pendências) no topo do Dashboard no celular
+- [x] Conferido em 360/390px e 1280px; navegador 012 24/24

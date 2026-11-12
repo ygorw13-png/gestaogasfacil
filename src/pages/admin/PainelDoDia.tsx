@@ -68,7 +68,7 @@ export default function PainelDoDia() {
             </CardTitle>
             <CardDescription>Confira o saldo físico de cheios e vazios da portaria.</CardDescription>
           </div>
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex min-h-11 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap px-1 text-sm">
             <Checkbox
               checked={!!conferencia?.estoque_ok}
               onCheckedChange={(v) => marcar.mutate({ estoque_ok: !!v })}
@@ -113,7 +113,7 @@ export default function PainelDoDia() {
                 : "Carregando..."}
             </CardDescription>
           </div>
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex min-h-11 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap px-1 text-sm">
             <Checkbox
               checked={!!conferencia?.caixa_ok}
               onCheckedChange={(v) => marcar.mutate({ caixa_ok: !!v })}
@@ -147,7 +147,7 @@ export default function PainelDoDia() {
                 : `${rotas?.length} rota(s) programada(s).`}
             </CardDescription>
           </div>
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex min-h-11 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap px-1 text-sm">
             <Checkbox
               checked={!!conferencia?.rotas_ok}
               onCheckedChange={(v) => marcar.mutate({ rotas_ok: !!v })}
