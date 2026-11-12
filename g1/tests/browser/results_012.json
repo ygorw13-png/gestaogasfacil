@@ -40,7 +40,7 @@
   {
    "test": "B08 app do entregador mostra o mesmo número do pedido",
    "ok": true,
-   "detail": "Minhas Entregas\nAtivar alertas\n\nEntregues hoje\n\n0\n\nA acertar\n\nR$ 0.00\n\nVazios na moto\n\n0\n\nNovas\n2\nEm rota\nEntregues\n\n#8DAC6872\n\nCliente Rota 012\nAguardando seu aceite\n0 min\nRua Fictícia, 1\nGás P13 (1)\nR$ 125.00\nTroca\nmoney\nVer rota\nAceitar\nRecusar entrega\n\n#632DF2E8\n\nCliente Recusa 012\nAguardando se"
+   "detail": "Minhas Entregas\nAtivar alertas\n\nEntregues hoje\n\n0\n\nA acertar\n\nR$ 0.00\n\nVazios na moto\n\n0\n\nNovas\n2\nEm rota\nEntregues\n\n#55B4F6BF\n\nCliente Rota 012\nAguardando seu aceite\n0 min\nRua Fictícia, 1\nGás P13 (1)\nR$ 125.00\nTroca\nmoney\nVer rota\nAceitar\nRecusar entrega\n\n#0F1DDB9C\n\nCliente Recusa 012\nAguardando se"
   },
   {
    "test": "B09 Aceitar pela tela: em rota, sem concluir nem receber",
@@ -50,7 +50,7 @@
   {
    "test": "B10 recusa registrada aparece diferente de 'aguardando aceite'",
    "ok": true,
-   "detail": "#632DF2E8\n12/11 09:00\nhá 1 minuto\n\t\nCliente Recusa 012\n\t\nRua Fictícia, 1\n\tGás P13\t1\t\nRecusada — aguardando nova atribuição\nRecusa: Pneu furado na rota\n\t\nAtribuir"
+   "detail": "#0F1DDB9C\n12/11 09:17\nhá 1 minuto\n\t\nCliente Recusa 012\n\t\nRua Fictícia, 1\n\tGás P13\t1\t\nRecusada — aguardando nova atribuição\nRecusa: Pneu furado na rota\n\t\nAtribuir"
   },
   {
    "test": "B11 Reatribuir mostra o entregador atual",
@@ -65,7 +65,7 @@
   {
    "test": "B13 Concluir com produto ainda na carga anterior: explica e não deixa concluir",
    "ok": true,
-   "detail": "Concluir entrega #8DAC6872\n\nRegistre o que realmente aconteceu na entrega. O preço do pedido não muda.\n\nCliente\nCliente Rota 012\nEntregador\nEntregador Dois A\nProduto\n1× Gás P13\nPreço original\nR$ 125,00\nCombinado\nDinheiro\n\nA carga de Entregador Dois A tem 0 cheio(s) de Gás P13; este pedido precisa de"
+   "detail": "Concluir entrega #55B4F6BF\n\nRegistre o que realmente aconteceu na entrega. O preço do pedido não muda.\n\nCliente\nCliente Rota 012\nEntregador\nEntregador Dois A\nProduto\n1× Gás P13\nPreço original\nR$ 125,00\nCombinado\nDinheiro\n\nA carga de Entregador Dois A tem 0 cheio(s) de Gás P13; este pedido precisa de"
   },
   {
    "test": "B14 resposta perdida: formulário continua aberto com aviso",
@@ -105,12 +105,12 @@
   {
    "test": "B21 balcão sem o quadro antigo; aviso leva a Pedidos com o número da atrasada",
    "ok": true,
-   "detail": "Balcão\nPedidos\n1\nAcerto Entregadores\nHistórico Diário\nDespesas\nEntregas em aberto: 1 de hoje, 2 atrasada(s).\n#40AE41E0\n#A2AFD3C6\nVer em Pedidos\nVendas da Portaria\n\nRegistre vendas, controle o caixa e gerencia o estoque da portaria.\n\nNova Venda\nFechar Caixa\nEstoque da Portaria — Hoje\nReceber do pátio"
+   "detail": "Balcão\nPedidos\n1\nAcerto Entregadores\nHistórico Diário\nDespesas\nEntregas em aberto: 1 de hoje, 2 atrasada(s).\n#7D6E549A\n#8AD5C981\nVer em Pedidos\nVendas da Portaria\n\nRegistre vendas, controle o caixa e gerencia o estoque da portaria.\n\nNova Venda\nFechar Caixa\nEstoque da Portaria — Hoje\nReceber do pátio"
   },
   {
    "test": "B22 número do pedido abre os detalhes direto",
    "ok": true,
-   "detail": "Pedido #40AE41E0\n\nCriado em 11/11/2026, 09:00\n\nAguardando atribuição\nCliente\nCliente Ontem 012\nEndereço\n—\nProduto\n1× Gás P13\nPreço\nR$ 125,00\nPagamento\nmoney\nData da entrega\n11/11/2026 (dia do pedido)\n"
+   "detail": "Pedido #7D6E549A\n\nCriado em 11/11/2026, 09:17\n\nAguardando atribuição\nCliente\nCliente Ontem 012\nEndereço\n—\nProduto\n1× Gás P13\nPreço\nR$ 125,00\nPagamento\nmoney\nData da entrega\n11/11/2026 (dia do pedido)\n"
   },
   {
    "test": "B23 regularização: volta para a fila, histórico guarda o entregador anotado, nada de estoque ou dinheiro",
