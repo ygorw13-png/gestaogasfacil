@@ -103,3 +103,9 @@ Ver `docs/DECISOES_PENDENTES.md`.
 - Implementado e testado: SQL 72/72, navegador 24/24, regressões verdes (ver `docs/IMPLANTACAO_G1_012.md`).
 - Aplicado no Cloud (0011) com cópia de segurança conferida; publicado.
 - Pendente: decisão administrativa dos 8 registros antigos de entrega.
+
+## Lote 013 — bloqueio do fechamento total sem limite de antiguidade (12/11/2026)
+- Implementado: entrega aberta com data ≤ dia do fechamento bloqueia (sem data prevista = dia operacional da criação); futuras, balcão, concluídas e canceladas fora. Mesma regra no banco, na lista e na mensagem do caixa. Trava consultiva mantida. Nada é alterado nos pedidos.
+- Testado (127.0.0.1, fictício): `run_bloqueio013` 17/17, `run_entregas012` 72/72 (2 expectativas da regra antiga atualizadas), `run_security` 27/27 (expectativa do entregador ajustada à restrição intencional do 003, sem mudar permissões).
+- Publicado: Cloud `0012_g1_013_bloqueio_fechamento_sem_limite.sql` + frontend.
+- Pendente: os 8 registros antigos (12/08 e 09/09) seguem em "Revisão necessária", sem regularização auditada, e bloqueiam o fechamento total até decisão individual do proprietário.

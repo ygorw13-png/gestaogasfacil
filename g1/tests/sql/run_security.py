@@ -27,7 +27,9 @@ mov = "SELECT registrar_movimentacao_portaria('ajuste','P13',1,0,0) AS mid \\gse
 # Continuidade
 check("continuidade","userA lê pedidos da própria empresa", val("userA","SELECT count(*) FROM orders")=="2")
 check("continuidade","userA grava pedido na própria empresa", allowed("userA", ins(ORG_A, U["userA"])))
-check("continuidade","entregadorA lê pedidos da própria empresa (regra atual)", val("entregadorA","SELECT count(*) FROM orders")=="2")
+# Restrição intencional desde o 003 ("g1 entregador le suas entregas"): o entregador só lê pedidos atribuídos a ele.
+# Nenhum dos 2 pedidos da empresa A da base está atribuído ao entregadorA, então ele lê 0 (antes a expectativa era 2).
+check("continuidade","entregadorA lê só as próprias entregas (nenhuma atribuída na base)", val("entregadorA","SELECT count(*) FROM orders")=="0")
 check("continuidade","adminA lê colaboradores da própria empresa", val("adminA","SELECT count(*) FROM colaboradores")=="1")
 check("continuidade","userA registra movimentação na própria empresa", val("userA", mov)==ORG_A)
 check("continuidade","entregadorA atualiza a própria localização", allowed("entregadorA","UPDATE entregador_localizacoes SET latitude=-12.2 WHERE user_id=auth.uid() RETURNING 1"))

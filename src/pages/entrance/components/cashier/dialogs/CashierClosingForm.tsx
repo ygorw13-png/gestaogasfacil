@@ -103,7 +103,7 @@ export function CashierClosingForm({
 
   const isRetroactive = !isSameDayAsToday(closingDate);
 
-  // Fechamento total: entregas realmente abertas com previsão para o dia ou o dia anterior impedem.
+  // Fechamento total: qualquer entrega aberta com previsão até o dia do fechamento impede (sem limite de antiguidade).
   // O banco confere de novo, com trava, na gravação; aqui é só para mostrar quais são.
   const bloqueio = useQuery({
     queryKey: ["entregas-bloqueando-fechamento", closingDate],
@@ -573,15 +573,16 @@ export function CashierClosingForm({
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Fechamento total bloqueado: {bloqueio.data!.length} entrega(s) em aberto</AlertTitle>
           <AlertDescription>
-            <p className="text-sm">Entregas de {format(new Date(closingDate + "T00:00:00"), "dd/MM", { locale: ptBR })} ou do dia anterior ainda não foram concluídas nem canceladas. Nada é concluído ou reagendado automaticamente.</p>
+            <p className="text-sm">Entregas com previsão até {format(new Date(closingDate + "T00:00:00"), "dd/MM/yyyy", { locale: ptBR })} ainda não foram concluídas nem canceladas. Nada é concluído ou reagendado automaticamente.</p>
             <ul className="mt-1 space-y-0.5 text-sm">
               {bloqueio.data!.slice(0, 8).map((e) => (
                 <li key={e.id}>
-                  <Link to={`/orders/${e.id}`} className="font-mono underline">{numeroPedido(e.id)}</Link> · {e.client_name}
+                  <Link to={`/orders/${e.id}`} className="font-mono underline">{numeroPedido(e.id)}</Link> · {e.data_prevista ? format(new Date(e.data_prevista + "T00:00:00"), "dd/MM/yyyy", { locale: ptBR }) + " · " : ""}{e.client_name}
                   {e.entregador_nome ? ` · ${e.entregador_nome}` : " · sem entregador"}
                 </li>
               ))}
             </ul>
+            {bloqueio.data!.length > 8 && <p className="mt-1 text-sm">e mais {bloqueio.data!.length - 8} em Pedidos.</p>}
             <Link to="/orders?filtro=operacional" className="mt-2 inline-block text-sm font-medium underline">Abrir em Pedidos</Link>
           </AlertDescription>
         </Alert>

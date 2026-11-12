@@ -85,6 +85,13 @@
       "when": 1794481076581,
       "tag": "0011_g1_012_fluxo_entregas",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794486929319,
+      "tag": "0012_g1_013_bloqueio_fechamento_sem_limite",
+      "breakpoints": true
     }
   ]
 }

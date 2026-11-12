@@ -1,0 +1,367 @@
+{
+ "rotulo": "com013",
+ "total": 72,
+ "ok": 72,
+ "itens": [
+  {
+   "cat": "fonte",
+   "nome": "entrega de hoje aparece nas pendências do fechamento",
+   "ok": true
+  },
+  {
+   "cat": "fonte",
+   "nome": "balcão (venda da portaria) não aparece como entrega pendente",
+   "ok": true
+  },
+  {
+   "cat": "fonte",
+   "nome": "agendada para depois de amanhã fica fora das pendências de hoje",
+   "ok": true
+  },
+  {
+   "cat": "fonte",
+   "nome": "agendada aparece no dia previsto",
+   "ok": true
+  },
+  {
+   "cat": "fonte",
+   "nome": "data prevista no passado é recusada",
+   "ok": true
+  },
+  {
+   "cat": "fonte",
+   "nome": "entrega de ontem continua aberta hoje e bloqueia o fechamento de hoje",
+   "ok": true
+  },
+  {
+   "cat": "fonte",
+   "nome": "entrega de ontem continua com o mesmo status (sem baixa pela virada)",
+   "ok": true
+  },
+  {
+   "cat": "fonte",
+   "nome": "regra 013: entrega de 3 dias atrás em aberto bloqueia o fechamento de hoje (sem limite de antiguidade)",
+   "ok": true
+  },
+  {
+   "cat": "atribuir",
+   "nome": "atribuição grava status 'aguardando aceite' por ID e evento",
+   "ok": true
+  },
+  {
+   "cat": "aceite",
+   "nome": "operador não aceita pelo entregador (gravação direta)",
+   "ok": true
+  },
+  {
+   "cat": "aceite",
+   "nome": "outro entregador não aceita atribuição alheia",
+   "ok": true
+  },
+  {
+   "cat": "aceite",
+   "nome": "entregador aceita a própria atribuição; aceitar não conclui nem movimenta dinheiro",
+   "ok": true
+  },
+  {
+   "cat": "reatribuir",
+   "nome": "reatribuição sem motivo é recusada",
+   "ok": true
+  },
+  {
+   "cat": "reatribuir",
+   "nome": "reatribuição invalida o aceite anterior e exige novo aceite",
+   "ok": true
+  },
+  {
+   "cat": "reatribuir",
+   "nome": "entregador anterior não aceita mais depois da reatribuição",
+   "ok": true
+  },
+  {
+   "cat": "reatribuir",
+   "nome": "novo entregador aceita depois da reatribuição",
+   "ok": true
+  },
+  {
+   "cat": "reatribuir",
+   "nome": "histórico preserva o motivo da reatribuição",
+   "ok": true
+  },
+  {
+   "cat": "reatribuir",
+   "nome": "duplo toque com a mesma chave grava uma reatribuição só",
+   "ok": true
+  },
+  {
+   "cat": "recusa",
+   "nome": "recusa registrada fica distinta de 'aguardando aceite'",
+   "ok": true
+  },
+  {
+   "cat": "recusa",
+   "nome": "outro entregador não recusa atribuição alheia",
+   "ok": true
+  },
+  {
+   "cat": "carga",
+   "nome": "saída da portaria para a carga do entregador 1 (uma baixa só)",
+   "ok": true
+  },
+  {
+   "cat": "carga",
+   "nome": "reatribuir sem transferência mantém o produto na carga do entregador 1",
+   "ok": true
+  },
+  {
+   "cat": "carga",
+   "nome": "conclusão pelo entregador 2 sem produto na carga dele é recusada",
+   "ok": true
+  },
+  {
+   "cat": "carga",
+   "nome": "transferência física registrada move 1 cheio da carga 1 para a carga 2, portaria intacta",
+   "ok": true
+  },
+  {
+   "cat": "carga",
+   "nome": "depois da transferência a conclusão consome a carga 2, sem baixa dupla",
+   "ok": true
+  },
+  {
+   "cat": "carga",
+   "nome": "transferência sem produto na carga anterior é recusada",
+   "ok": true
+  },
+  {
+   "cat": "concluir",
+   "nome": "sem forma de pagamento é recusado",
+   "ok": true
+  },
+  {
+   "cat": "concluir",
+   "nome": "sem quantidade de cascos é recusado (não presume zero)",
+   "ok": true
+  },
+  {
+   "cat": "concluir",
+   "nome": "dinheiro sem valor recebido é recusado (não presume o preço)",
+   "ok": true
+  },
+  {
+   "cat": "concluir",
+   "nome": "paga em dinheiro: 1 recebimento de 125 com o entregador, carga consumida",
+   "ok": true
+  },
+  {
+   "cat": "concluir",
+   "nome": "a prazo: promissória de 125 sem recebimento fictício",
+   "ok": true
+  },
+  {
+   "cat": "concluir",
+   "nome": "valor diferente sem motivo é recusado",
+   "ok": true
+  },
+  {
+   "cat": "concluir",
+   "nome": "valor diferente com motivo: divergência registrada, preço original preservado",
+   "ok": true
+  },
+  {
+   "cat": "concluir",
+   "nome": "toque duplo / resposta perdida com a mesma chave: uma conclusão só",
+   "ok": true
+  },
+  {
+   "cat": "concluir",
+   "nome": "mesma chave com conteúdo diferente é recusada",
+   "ok": true
+  },
+  {
+   "cat": "concluir",
+   "nome": "entregador atribuído inativo: conclusão recusada",
+   "ok": true
+  },
+  {
+   "cat": "concluir",
+   "nome": "pedido pendente (sem atribuição) não conclui",
+   "ok": true
+  },
+  {
+   "cat": "fechamento",
+   "nome": "fechamento total com entrega aberta de hoje é recusado (chamada direta)",
+   "ok": true
+  },
+  {
+   "cat": "fechamento",
+   "nome": "marca de fechamento da portaria também é recusada",
+   "ok": true
+  },
+  {
+   "cat": "fechamento",
+   "nome": "fechamento parcial continua permitido (conferência)",
+   "ok": true
+  },
+  {
+   "cat": "fechamento",
+   "nome": "entrega aguardando aceite bloqueia",
+   "ok": true
+  },
+  {
+   "cat": "fechamento",
+   "nome": "entrega em rota bloqueia",
+   "ok": true
+  },
+  {
+   "cat": "fechamento",
+   "nome": "entrega concluída não bloqueia",
+   "ok": true
+  },
+  {
+   "cat": "fechamento",
+   "nome": "entrega cancelada (reversão autorizada) não bloqueia",
+   "ok": true
+  },
+  {
+   "cat": "fechamento",
+   "nome": "agendamento futuro não bloqueia",
+   "ok": true
+  },
+  {
+   "cat": "fechamento",
+   "nome": "balcão não bloqueia",
+   "ok": true
+  },
+  {
+   "cat": "fechamento",
+   "nome": "entrega de ontem em aberto bloqueia o fechamento de hoje",
+   "ok": true
+  },
+  {
+   "cat": "fechamento",
+   "nome": "depois do fechamento total, entrega nova para o mesmo dia é recusada",
+   "ok": true
+  },
+  {
+   "cat": "fechamento",
+   "nome": "depois do fechamento total, entrega agendada para amanhã é aceita",
+   "ok": true
+  },
+  {
+   "cat": "fechamento",
+   "nome": "reagendar uma entrega para o dia já fechado é recusado",
+   "ok": true
+  },
+  {
+   "cat": "antigos",
+   "nome": "registro antigo (entregador por cadastro, sem conta) pede revisão",
+   "ok": true
+  },
+  {
+   "cat": "antigos",
+   "nome": "registro antigo não pode ser reatribuído por operador (exige regularização)",
+   "ok": true
+  },
+  {
+   "cat": "antigos",
+   "nome": "registro antigo não pode ser concluído sem regularização",
+   "ok": true
+  },
+  {
+   "cat": "antigos",
+   "nome": "operador não regulariza",
+   "ok": true
+  },
+  {
+   "cat": "antigos",
+   "nome": "administrador devolve à fila com motivo; histórico guarda o entregador antigo; nada de estoque ou dinheiro",
+   "ok": true
+  },
+  {
+   "cat": "antigos",
+   "nome": "administrador atribui por ID com motivo: exige novo aceite",
+   "ok": true
+  },
+  {
+   "cat": "antigos",
+   "nome": "regularização sem motivo é recusada",
+   "ok": true
+  },
+  {
+   "cat": "antigos",
+   "nome": "pedido normal não usa regularização",
+   "ok": true
+  },
+  {
+   "cat": "antigos",
+   "nome": "registro antigo cancelado pela reversão: sem estoque nem dinheiro",
+   "ok": true
+  },
+  {
+   "cat": "antigos",
+   "nome": "regra 013: registro de 90 dias atrás em aberto bloqueia o fechamento de hoje (sem limite de antiguidade)",
+   "ok": true
+  },
+  {
+   "cat": "papeis",
+   "nome": "lista de entregadores usa os papéis (2 da empresa A, ativos)",
+   "ok": true
+  },
+  {
+   "cat": "papeis",
+   "nome": "entregador inativo sai da lista",
+   "ok": true
+  },
+  {
+   "cat": "papeis",
+   "nome": "entregador não lista entregadores nem pendências",
+   "ok": true
+  },
+  {
+   "cat": "papeis",
+   "nome": "entregador não regulariza nem reatribui",
+   "ok": true
+  },
+  {
+   "cat": "empresa",
+   "nome": "entrega aberta da empresa B não bloqueia o fechamento da empresa A",
+   "ok": true
+  },
+  {
+   "cat": "empresa",
+   "nome": "pendências da empresa A não mostram pedidos da empresa B",
+   "ok": true
+  },
+  {
+   "cat": "empresa",
+   "nome": "operador da empresa A não reatribui pedido da empresa B",
+   "ok": true
+  },
+  {
+   "cat": "empresa",
+   "nome": "entregador da empresa A não pode ser atribuído na empresa B",
+   "ok": true
+  },
+  {
+   "cat": "empresa",
+   "nome": "fechamento da empresa B não bloqueia entrega nova da empresa A",
+   "ok": true
+  },
+  {
+   "cat": "corrida",
+   "nome": "entrega criada durante o fechamento: o fechamento espera e é recusado",
+   "ok": true
+  },
+  {
+   "cat": "corrida",
+   "nome": "fechamento em andamento: entrega nova para o mesmo dia espera e é recusada",
+   "ok": true
+  },
+  {
+   "cat": "corrida",
+   "nome": "duas conclusões simultâneas com a mesma chave: um recebimento e uma baixa",
+   "ok": true
+  }
+ ]
+}

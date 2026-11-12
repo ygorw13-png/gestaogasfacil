@@ -333,3 +333,7 @@ psql 'postgresql://g0test@127.0.0.1:55439/postgres?sslmode=disable' -X -v ON_ERR
 | Em Files: `gasfacil_g0_1_isolated_validation.md`, ZIPs `gasfacil_g0_1_*` (admin v1/v2, revisao, revisao_v2, consolidado v3/v4, validacao_v1) | `g0.1/` deste pacote (inclui README, INTEGRATION_RESULTS, BROWSER_RESULTS, PUBLICATION_SEQUENCE) |
 | Em Files: `gasfacil_g1_CHECKLIST.md`, `gasfacil_g1_DECISOES_OPERACIONAIS.md` e `_v3.md`, `gasfacil_g1_relatorio_lote1/2.md`, `gasfacil_g1_lote3_relatorio.md`, ZIPs `gasfacil_g1_seguranca_candidato_v1`, `gasfacil_g1_lote2_v1`, `gasfacil_g1_lote3` | `g1/` deste pacote (versões atuais dos mesmos documentos) |
 | Seções históricas abaixo do topo em `g0.1/README.md` | o topo do `g0.1/README.md` e este arquivo |
+
+
+## Atualização 12/11/2026 — candidato 013 publicado
+Fechamento total bloqueia qualquer entrega aberta com data ≤ dia do fechamento (sem limite). Cloud: `drizzle/migrations/0012_g1_013_bloqueio_fechamento_sem_limite.sql`. Testes: `reset_com013.sh com_abertura` + `run_bloqueio013.py` 17/17; entregas 72/72; segurança 27/27. Os 8 registros antigos sem regularização bloqueiam o fechamento total até decisão do proprietário.

@@ -87,8 +87,8 @@ check("fonte", "entrega de ontem continua aberta hoje e bloqueia o fechamento de
       out([PED("Ontem 1", criado="now()-interval '1 day'"), BLOQ_IDS("Ontem 1")]) == "1")
 check("fonte", "entrega de ontem continua com o mesmo status (sem baixa pela virada)",
       out([PED("Ontem 1", criado="now()-interval '1 day'"), Q(f"SELECT {ST('Ontem 1')}")]).startswith("pending/"))
-check("fonte", "regra literal: entrega de 3 dias atrás não bloqueia o fechamento de hoje (só dia e dia anterior)",
-      out([PED("Velha 1", criado="now()-interval '3 days'"), BLOQ()]) == "0")
+check("fonte", "regra 013: entrega de 3 dias atrás em aberto bloqueia o fechamento de hoje (sem limite de antiguidade)",
+      out([PED("Velha 1", criado="now()-interval '3 days'"), BLOQ()]) == "1")
 
 # ── 2. Atribuir, aceitar, recusar, reatribuir
 check("atribuir", "atribuição grava status 'aguardando aceite' por ID e evento",
@@ -208,8 +208,8 @@ check("antigos", "pedido normal não usa regularização", "não precisa" in err
 check("antigos", "registro antigo cancelado pela reversão: sem estoque nem dinheiro",
       out([ANTIGO("Antigo 9"), ("adminA", f"SELECT reversao_solicitar({ORD('Antigo 9')},'cancelamento','registro antigo sem entrega',NULL,NULL,true,'canc-ant9-012')"),
            Q(f"SELECT (SELECT status FROM orders WHERE id={ORD('Antigo 9')}) || ':' || {PORT} || ':' || (SELECT count(*) FROM carga_movimentos WHERE order_id={ORD('Antigo 9')})")]) == "cancelled:100:0")
-check("antigos", "registro de 90 dias atrás não bloqueia o fechamento de hoje (regra do dia e dia anterior)",
-      out([ANTIGO("Antigo 10"), BLOQ()]) == "0")
+check("antigos", "regra 013: registro de 90 dias atrás em aberto bloqueia o fechamento de hoje (sem limite de antiguidade)",
+      out([ANTIGO("Antigo 10"), BLOQ()]) == "1")
 
 # ── 7. Papéis e outra empresa
 check("papeis", "lista de entregadores usa os papéis (2 da empresa A, ativos)",
