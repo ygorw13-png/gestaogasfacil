@@ -1,0 +1,57 @@
+[
+ {
+  "test": "P01 sem sessão válida: recusado",
+  "ok": true,
+  "detail": "(401, {'error': 'Não autenticado'})"
+ },
+ {
+  "test": "P02 tipo desconhecido: recusado",
+  "ok": true,
+  "detail": "(400, {'error': 'Tipo de aviso inválido'})"
+ },
+ {
+  "test": "P03 pedido ainda sem entregador: nenhum aviso",
+  "ok": true,
+  "detail": "(200, {'sent': 0, 'motivo': 'pedido não está aguardando aceite'}, [])"
+ },
+ {
+  "test": "P04 atribuição: aviso só para o entregador do pedido (e inscrição vencida removida)",
+  "ok": true,
+  "detail": "(200, {'sent': 1, 'inscricoes': 1}, ['/e1', '/velha'])"
+ },
+ {
+  "test": "P05 aviso urgente, cifrado, válido por 30 min",
+  "ok": true,
+  "detail": "[{'path': '/e1', 'ttl': '1800', 'urgency': 'high', 'enc': 'aes128gcm'}]"
+ },
+ {
+  "test": "P06 entregador não dispara aviso de atribuição",
+  "ok": true,
+  "detail": "(403, {'error': 'Sem permissão'})"
+ },
+ {
+  "test": "P07 outra empresa: pedido não encontrado, nenhum aviso",
+  "ok": true,
+  "detail": "(404, {'error': 'Pedido não encontrado'})"
+ },
+ {
+  "test": "P08 reatribuição: aviso vai para o novo responsável, não para o anterior",
+  "ok": true,
+  "detail": "(200, '\"897e1ca5-9784-4c09-9e1b-0906473c3b3d\"', {'sent': 1, 'inscricoes': 1}, [{'path': '/e2', 'ttl': '1800', 'urgency': 'high', 'enc': 'aes128gcm'}])"
+ },
+ {
+  "test": "P09 depois do aceite: nenhum aviso (não aguarda mais aceite)",
+  "ok": true,
+  "detail": "(204, {'sent': 0, 'motivo': 'pedido não está aguardando aceite'})"
+ },
+ {
+  "test": "P10 'Testar aviso': só nas inscrições da própria conta",
+  "ok": true,
+  "detail": "(200, {'sent': 1, 'inscricoes': 1}, [{'path': '/e1', 'ttl': '1800', 'urgency': 'high', 'enc': 'aes128gcm'}])"
+ },
+ {
+  "test": "P11 pedido inválido: recusado",
+  "ok": true,
+  "detail": "(400, {'error': 'Pedido inválido'})"
+ }
+]

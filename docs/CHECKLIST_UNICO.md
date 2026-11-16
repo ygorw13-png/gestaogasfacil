@@ -109,3 +109,10 @@ Ver `docs/DECISOES_PENDENTES.md`.
 - Testado (127.0.0.1, fictício): `run_bloqueio013` 17/17, `run_entregas012` 72/72 (2 expectativas da regra antiga atualizadas), `run_security` 27/27 (expectativa do entregador ajustada à restrição intencional do 003, sem mudar permissões).
 - Publicado: Cloud `0012_g1_013_bloqueio_fechamento_sem_limite.sql` + frontend.
 - Pendente: os 8 registros antigos (12/08 e 09/09) seguem em "Revisão necessária", sem regularização auditada, e bloqueiam o fechamento total até decisão individual do proprietário.
+
+## Lote 014 — formas de pagamento e aviso do entregador (16/11/2026)
+- Causa: na Portaria, Gás do Povo (e seleção vazia) virava "Convênio", que o banco tratava como promissória; vale-gás/Gás do Povo eram recusados pela ação controlada; o aviso do entregador e a cópia offline disputavam o mesmo espaço no navegador.
+- Implementado: código único por forma (`src/lib/formasPagamento.ts` = `public._forma_pedido`); valor obrigatório (> 0) para dinheiro, PIX, crédito, débito, promissória; opcional (vazio = "Não informado", sem recebimento/promissória) para vale-gás, Gás do Povo, convênio; forma inválida = erro. Aviso: `send-push` lê o destinatário do pedido no banco (atribuição e reatribuição), worker próprio em `/push/`, "Ativar notificações"/"Testar aviso", toque abre o pedido, lembrete confere o servidor antes de tocar.
+- Testado (127.0.0.1, fictício): `run_formas014` 38/38, `run_security` 27/27, navegador `g1_014_browser` 20/20, `g1_014_avisos_browser` 7/7, aviso `g1/tests/push/run_push014.py` 11/11, vitest 44/44.
+- Publicado: Cloud `0013_g1_014_formas_pagamento.sql` + função `send-push` + frontend.
+- Pendente: conferência no Android real (aberto, segundo plano, tela bloqueada); venda 9899b5ca (16/11, R$ 108, gravada como convênio com promissória 79322b47) e vendas antigas "convênio" da Portaria podem ser Gás do Povo — decisão do proprietário; nada foi reclassificado.

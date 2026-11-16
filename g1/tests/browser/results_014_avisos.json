@@ -1,0 +1,37 @@
+[
+ {
+  "test": "V01 painel de avisos com 'Ativar notificações' e aviso sobre silencioso/Não perturbe",
+  "ok": true,
+  "detail": "Minhas Entregas\nReceba aviso de nova entrega\n\nAtive para ser avisado mesmo com o app em segundo plano ou a tela bloqueada. Som e vibração seguem a configuração "
+ },
+ {
+  "test": "V02 aberto pelo aviso (?pedido=): pedido destacado e visível na tela",
+  "ok": true,
+  "detail": "('order-2 shadow-lg ring-4 ring-primary/40', {'x': 12, 'y': 393.5, 'width': 366, 'height': 322})"
+ },
+ {
+  "test": "V03 pedido sem aceite há mais de 5 min: lembrete aparece",
+  "ok": true,
+  "detail": "4"
+ },
+ {
+  "test": "V04 aceite feito em outro lugar: lembrete para (o app confere no servidor antes de tocar)",
+  "ok": true,
+  "detail": "(204, 4, 4)"
+ },
+ {
+  "test": "V05 cópia offline ('/') e avisos ('/push/') registrados lado a lado, sem se substituírem",
+  "ok": true,
+  "detail": "['/', '/push/']"
+ },
+ {
+  "test": "V06 permissão negada: mensagem clara de como liberar",
+  "ok": true,
+  "detail": "Minhas Entregas\nNotificações bloqueadas neste aparelho\nVocê não vai receber aviso de entrega com o app fechado. No Chrome: toque no cadeado ao lado do endereço "
+ },
+ {
+  "test": "V07 nenhuma chamada saiu para o backend real",
+  "ok": true,
+  "detail": "[]"
+ }
+]

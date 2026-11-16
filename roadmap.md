@@ -66,3 +66,6 @@ Validação da Etapa 1 (concluída, 26/26 + 11/11) + candidato de segurança 002
 - [x] Toques de ~44px em botões, campos, abas e links; teclado numérico nos cascos
 - [x] Resumo do dia (vendas, recebido, pendências) no topo do Dashboard no celular
 - [x] Conferido em 360/390px e 1280px; navegador 012 24/24
+- [x] Lote 014: valor obrigatório/opcional por forma, forma preservada (Gás do Povo ≠ Convênio), aviso do entregador em segundo plano
+- [ ] Lote 014: conferir aviso em Android real (aberto, segundo plano, tela bloqueada) — precisa do aparelho do usuário
+- [ ] Lote 014: decidir venda 9899b5ca/promissória 79322b47 e vendas antigas "convênio" — decisão do proprietário

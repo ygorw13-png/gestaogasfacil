@@ -51,18 +51,18 @@
  },
  {
   "test": "F6 Gás do Povo: aceito sem valor — preço não informado, sem recebimento nem promissória",
-  "ok": false,
-  "detail": "gas-povo/NULL/0/0 Venda registrada\nVenda, estoque e recebimento gravados juntos."
+  "ok": true,
+  "detail": "gas-povo/NULL/0/0 total=Não informado Venda registrada\nVenda e estoque gravados. Valor não informado: nenhum recebimento foi lançado."
  },
  {
   "test": "F7 Vale Gás: aceito sem valor — preço não informado, sem recebimento nem promissória",
-  "ok": false,
-  "detail": "vale-gas/NULL/0/0 Venda registrada\nVenda, estoque e recebimento gravados juntos."
+  "ok": true,
+  "detail": "vale-gas/NULL/0/0 total=Não informado Venda registrada\nVenda e estoque gravados. Valor não informado: nenhum recebimento foi lançado."
  },
  {
   "test": "F8 Convênio: aceito sem valor — preço não informado, sem recebimento nem promissória",
-  "ok": false,
-  "detail": "convenio/NULL/0/0 Venda registrada\nVenda, estoque e recebimento gravados juntos."
+  "ok": true,
+  "detail": "convenio/NULL/0/0 total=Não informado Venda registrada\nVenda e estoque gravados. Valor não informado: nenhum recebimento foi lançado."
  },
  {
   "test": "F09 Vendas recentes após recarregar: as 8 formas com nome próprio",
@@ -77,7 +77,7 @@
  {
   "test": "F11 Gás do Povo não vira Convênio (linha da venda e banco)",
   "ok": true,
-  "detail": "12:38\tVenda Avulsa\tGLP P13\t1\tTroca (1 vazio)\tGás do Povo\tNão informado\t\nEditar\nReverter"
+  "detail": "12:41\tVenda Avulsa\tGLP P13\t1\tTroca (1 vazio)\tGás do Povo\tNão informado\t\nEditar\nReverter"
  },
  {
   "test": "F12 sem internet: venda Gás do Povo fica no aparelho (nada no banco ainda)",
@@ -86,8 +86,8 @@
  },
  {
   "test": "F13 fila guarda a forma 'gas-povo' e a chave de reenvio",
-  "ok": false,
-  "detail": "{\"id\":\"a0000000-0000-4000-8000-00000000000d\",\"email\":\"entregador.a@ficticio.test\",\"name\":null,\"role\":null,\"cachedAt\":1794832757212}"
+  "ok": true,
+  "detail": "[{\"target\":\"entregador_venda_rua\",\"action\":\"rpc\",\"payload\":{\"_cliente_id\":null,\"_cliente_nome\":\"Cliente Rua 014\",\"_cliente_fone\":\"(71) 90000-0014\",\"_produto\":\"P13\",\"_quantidade\":1,\"_valor\":null,\"_form"
  },
  {
   "test": "F14 volta da internet + reenvio: uma venda só, Gás do Povo, valor não informado, sem recebimento",

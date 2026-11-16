@@ -268,7 +268,9 @@ export function useCashierSales() {
       queryClient.invalidateQueries({ queryKey: [k] }));
     toast({
       title: 'Venda registrada',
-      description: G1_ACOES ? 'Venda, estoque e recebimento gravados juntos.' : 'A venda foi registrada com sucesso.',
+      description: !G1_ACOES ? 'A venda foi registrada com sucesso.'
+        : valor === null ? 'Venda e estoque gravados. Valor não informado: nenhum recebimento foi lançado.'
+        : 'Venda, estoque e recebimento gravados juntos.',
     });
     setNewSaleOpen(false);
   }, [toast, registrarMov, queryClient, operacao]);

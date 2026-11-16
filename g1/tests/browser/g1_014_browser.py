@@ -68,12 +68,12 @@ async def main():
             antes = conta()
             dlg = await nova_venda(pg, opcao)
             await dlg.locator("#unitPrice").fill("")
-            t = await dlg.inner_text()
+            t = await dlg.locator("#totalPrice").input_value()
             if j == 0: await pg.screenshot(path=str(S / "f6_gas_povo_sem_valor.png"))
             await dlg.get_by_role("button", name="Registrar Venda").click(); await pg.wait_for_timeout(2500)
-            r = ultima()
+            r = ultima(); tt = await toasts(pg)
             rec(f"F{6+j} {rot}: aceito sem valor — preço não informado, sem recebimento nem promissória",
-                conta() == antes + 1 and r == f"{cod}/NULL/0/0" and not await dlg.is_visible() and "Não informado" in t, f"{r} {await toasts(pg)}"[:200])
+                conta() == antes + 1 and r == f"{cod}/NULL/0/0" and not await dlg.is_visible() and t == "Não informado" and "nenhum recebimento" in tt, f"{r} total={t} {tt}"[:200])
 
         # Recarregar e conferir as 8 identidades em Vendas recentes
         await pg.reload(wait_until="networkidle"); await pg.wait_for_timeout(3000)
@@ -105,7 +105,9 @@ async def main():
         t = await toasts(pg)
         n = lambda: q("select count(*)||'/'||coalesce(string_agg(payment_method||':'||coalesce(price::text,'NULL'),','),'-') from orders where client_name='Cliente Rua 014'")
         rec("F12 sem internet: venda Gás do Povo fica no aparelho (nada no banco ainda)", n().startswith("0/") and re.search("aparelho|internet|fila", t, re.I), f"{n()} {t[:140]}")
-        fila = await pg.evaluate("() => Object.keys(localStorage).filter(k => /fila|queue|offline/i.test(k)).map(k => localStorage.getItem(k)).join(' ')")
+        fila = await pg.evaluate("""() => new Promise((ok) => { const r = indexedDB.open('gasfacil-offline'); r.onsuccess = () => {
+            const t = r.result.transaction('queue', 'readonly').objectStore('queue').getAll(); t.onsuccess = () => ok(JSON.stringify(t.result)); t.onerror = () => ok(''); };
+            r.onerror = () => ok(''); })""")
         rec("F13 fila guarda a forma 'gas-povo' e a chave de reenvio", '"_forma":"gas-povo"' in fila and '"_chave"' in fila, fila[:200])
         await pg.screenshot(path=str(S / "f12_rua_offline.png"))
         await c.set_offline(False); await pg.evaluate("() => window.dispatchEvent(new Event('online'))"); await pg.wait_for_timeout(6000)
