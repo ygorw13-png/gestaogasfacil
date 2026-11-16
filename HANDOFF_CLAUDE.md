@@ -87,6 +87,8 @@ Estrela-guia (`.lovable/north-star/north-star.md`): os clientes recebem seu gás
 
 ## 3. Estado: publicado × preview × candidato × pendente
 
+- QR opcional (Evolution API v2, sem Facebook): função `whatsapp-qr` e Configurações > WhatsApp > "Conectar por QR" publicadas; sem secrets `EVOLUTION_API_URL`/`EVOLUTION_API_KEY` mostra "Servidor não configurado". Não envia nem usa a fila.
+
 > **Atualização 16/11/2026:** candidatos 014–016 aplicados no Cloud (migrações 0013–0016). 016 = canal obrigatório do aviso
 > (App + WhatsApp) e fila `whatsapp_envios`; funções `whatsapp-envio` e `whatsapp-admin` publicadas. Pendente: conectar o
 > WhatsApp Business da empresa, aprovar o modelo e ativar o envio; "Só WhatsApp", Entregue/Lido e aceite pelo WhatsApp

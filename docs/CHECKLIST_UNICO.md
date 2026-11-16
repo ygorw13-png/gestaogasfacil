@@ -141,3 +141,8 @@ Ver `docs/DECISOES_PENDENTES.md`.
 - [ ] Só WhatsApp, aceite/recusa e Entregue/Lido: exigem receber webhooks (não disponível nesta pilha; depende de atualizar o app). Número real da empresa: aguarda o administrador conectar.
 - [ ] Conectar o WhatsApp Business da empresa, criar/aprovar o modelo, ativar o envio (custo Meta por mensagem). Entregue/Lido e aceite pelo WhatsApp dependem de receber respostas (atualização do app).
 - [ ] Telas não conferidas no navegador (sem sessão de teste).
+
+## Lote QR (Evolution, opcional)
+- Implementado: Configurações > WhatsApp > "Conectar por QR" (admin), função `whatsapp-qr` (estado/conectar), "Servidor não configurado" sem secrets.
+- Testado: `whatsapp-qr-core.test.ts` 8/8 (mocks), função recusa sem login (401).
+- Pendente: servidor Evolution + secrets; QR real e leitura não comprovados; envio pela fila via QR não adaptado (exige campo de provedor no banco).

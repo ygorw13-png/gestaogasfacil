@@ -69,3 +69,5 @@ Validação da Etapa 1 (concluída, 26/26 + 11/11) + candidato de segurança 002
 - [x] Lote 014: valor obrigatório/opcional por forma, forma preservada (Gás do Povo ≠ Convênio), aviso do entregador em segundo plano
 - [ ] Lote 014: conferir aviso em Android real (aberto, segundo plano, tela bloqueada) — precisa do aparelho do usuário
 - [ ] Lote 014: decidir venda 9899b5ca/promissória 79322b47 e vendas antigas "convênio" — decisão do proprietário
+
+- [x] WhatsApp por QR: conferido no navegador (admin) que aparece "Servidor não configurado" em vez de "Failed to send a request"
