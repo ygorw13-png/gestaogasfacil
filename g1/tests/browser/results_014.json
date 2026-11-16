@@ -1,0 +1,102 @@
+[
+ {
+  "test": "F1a Dinheiro: valor vazio recusado na tela, nada gravado",
+  "ok": true,
+  "detail": "Devolução extra de vasilhames Venda não registrada Informe um valor maior que zero para Dinheiro. Os dados continuam preenchidos. Cancelar Registrar Venda Close"
+ },
+ {
+  "test": "F1b Dinheiro: valor válido aceito, gravado como 'money'",
+  "ok": true,
+  "detail": "money/120.00/1/0"
+ },
+ {
+  "test": "F2a Crédito: valor vazio recusado na tela, nada gravado",
+  "ok": true,
+  "detail": " Devolução extra de vasilhames Venda não registrada Informe um valor maior que zero para Crédito. Os dados continuam preenchidos. Cancelar Registrar Venda Close"
+ },
+ {
+  "test": "F2b Crédito: valor válido aceito, gravado como 'credit'",
+  "ok": true,
+  "detail": "credit/120.50/1/0"
+ },
+ {
+  "test": "F3a Débito: valor vazio recusado na tela, nada gravado",
+  "ok": true,
+  "detail": ") Devolução extra de vasilhames Venda não registrada Informe um valor maior que zero para Débito. Os dados continuam preenchidos. Cancelar Registrar Venda Close"
+ },
+ {
+  "test": "F3b Débito: valor válido aceito, gravado como 'debit'",
+  "ok": true,
+  "detail": "debit/120.00/1/0"
+ },
+ {
+  "test": "F4a PIX: valor vazio recusado na tela, nada gravado",
+  "ok": true,
+  "detail": "sco) Devolução extra de vasilhames Venda não registrada Informe um valor maior que zero para PIX. Os dados continuam preenchidos. Cancelar Registrar Venda Close"
+ },
+ {
+  "test": "F4b PIX: valor válido aceito, gravado como 'pix'",
+  "ok": true,
+  "detail": "pix/120.00/1/0"
+ },
+ {
+  "test": "F5a Promissória: valor vazio recusado na tela, nada gravado",
+  "ok": true,
+  "detail": "olução extra de vasilhames Venda não registrada Informe um valor maior que zero para Promissória. Os dados continuam preenchidos. Cancelar Registrar Venda Close"
+ },
+ {
+  "test": "F5b Promissória: valor válido aceito, gravado como 'promissoria'",
+  "ok": true,
+  "detail": "promissoria/120.00/0/1"
+ },
+ {
+  "test": "F6 Gás do Povo: aceito sem valor — preço não informado, sem recebimento nem promissória",
+  "ok": false,
+  "detail": "gas-povo/NULL/0/0 Venda registrada\nVenda, estoque e recebimento gravados juntos."
+ },
+ {
+  "test": "F7 Vale Gás: aceito sem valor — preço não informado, sem recebimento nem promissória",
+  "ok": false,
+  "detail": "vale-gas/NULL/0/0 Venda registrada\nVenda, estoque e recebimento gravados juntos."
+ },
+ {
+  "test": "F8 Convênio: aceito sem valor — preço não informado, sem recebimento nem promissória",
+  "ok": false,
+  "detail": "convenio/NULL/0/0 Venda registrada\nVenda, estoque e recebimento gravados juntos."
+ },
+ {
+  "test": "F09 Vendas recentes após recarregar: as 8 formas com nome próprio",
+  "ok": true,
+  "detail": "faltam=[]"
+ },
+ {
+  "test": "F10 Vendas recentes: 3 vendas com 'Não informado'",
+  "ok": true,
+  "detail": "3"
+ },
+ {
+  "test": "F11 Gás do Povo não vira Convênio (linha da venda e banco)",
+  "ok": true,
+  "detail": "12:38\tVenda Avulsa\tGLP P13\t1\tTroca (1 vazio)\tGás do Povo\tNão informado\t\nEditar\nReverter"
+ },
+ {
+  "test": "F12 sem internet: venda Gás do Povo fica no aparelho (nada no banco ainda)",
+  "ok": true,
+  "detail": "0/- Venda salva no aparelho\nSem internet agora. Ela será enviada sozinha quando a conexão voltar."
+ },
+ {
+  "test": "F13 fila guarda a forma 'gas-povo' e a chave de reenvio",
+  "ok": false,
+  "detail": "{\"id\":\"a0000000-0000-4000-8000-00000000000d\",\"email\":\"entregador.a@ficticio.test\",\"name\":null,\"role\":null,\"cachedAt\":1794832757212}"
+ },
+ {
+  "test": "F14 volta da internet + reenvio: uma venda só, Gás do Povo, valor não informado, sem recebimento",
+  "ok": true,
+  "detail": "1/gas-povo:NULL"
+ },
+ {
+  "test": "F15 nenhuma chamada saiu para o backend real",
+  "ok": true,
+  "detail": "[]"
+ }
+]

@@ -6,9 +6,10 @@ set -uo pipefail
 unset PGHOST PGPORT PGUSER PGPASSWORD PGDATABASE PGSSLMODE
 ROOT=$(cd "$(dirname "$0")/../../.." && pwd)
 U="postgresql://postgres@127.0.0.1:55450/postgres?sslmode=disable"
-MODE=${1:-com012}; shift || true
+MODE=${1:-com014}; shift || true
 # com012 = 001–012 com abertura fictícia e segundo entregador fictício. com011 = 001–011 com abertura fictícia do dia (atual). com010 = 001–010. com005/com004 = históricos.
 case "$MODE" in
+  com014) G1DB=/tmp/g1db bash "$ROOT/g1/tests/sql/reset_com014.sh" com_abertura >/tmp/lab_reset.log 2>&1 || { echo "reset falhou"; tail /tmp/lab_reset.log; exit 1; } ;;
   com012) G1DB=/tmp/g1db bash "$ROOT/g1/tests/sql/reset_com012.sh" com_abertura >/tmp/lab_reset.log 2>&1 || { echo "reset falhou"; tail /tmp/lab_reset.log; exit 1; } ;;
   com011) G1DB=/tmp/g1db bash "$ROOT/g1/tests/sql/reset_com011.sh" com_abertura >/tmp/lab_reset.log 2>&1 || { echo "reset falhou"; tail /tmp/lab_reset.log; exit 1; } ;;
   com010) G1DB=/tmp/g1db bash "$ROOT/g1/tests/sql/reset_com010.sh" >/tmp/lab_reset.log 2>&1 || { echo "reset falhou"; tail /tmp/lab_reset.log; exit 1; } ;;
