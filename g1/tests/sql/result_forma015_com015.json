@@ -1,0 +1,94 @@
+[
+ {
+  "nome": "correção autorizada: Gás do Povo, R$108/produto/qtd/data/cliente preservados, título cancelado e mantido, sem recebimento/reembolso/estoque, 2 auditorias",
+  "ok": true
+ },
+ {
+  "nome": "auditoria guarda forma anterior, nova, motivo, responsável e data",
+  "ok": true
+ },
+ {
+  "nome": "histórico do título preservado com nota do ajuste",
+  "ok": true
+ },
+ {
+  "nome": "outro título do cliente, mesmo nome e valor, continua em aberto",
+  "ok": true
+ },
+ {
+  "nome": "título com pagamento parcial bloqueia e pede conciliação",
+  "ok": true
+ },
+ {
+  "nome": "título quitado bloqueia",
+  "ok": true
+ },
+ {
+  "nome": "venda bloqueada continua como estava",
+  "ok": true
+ },
+ {
+  "nome": "convênio antigo sem título vinculado bloqueia (não procura por nome/valor)",
+  "ok": true
+ },
+ {
+  "nome": "venda a prazo sem título vinculado bloqueia",
+  "ok": true
+ },
+ {
+  "nome": "título vinculado criado depois da venda (não comprovado) bloqueia",
+  "ok": true
+ },
+ {
+  "nome": "título vinculado com outro valor bloqueia",
+  "ok": true
+ },
+ {
+  "nome": "toque duplo com a mesma chave: um ajuste só",
+  "ok": true
+ },
+ {
+  "nome": "segunda correção com outra chave é recusada (já está com essa forma)",
+  "ok": true
+ },
+ {
+  "nome": "mesma chave com outro conteúdo é recusada",
+  "ok": true
+ },
+ {
+  "nome": "toque duplo simultâneo, mesma chave: ambos respondem o mesmo ajuste, gravado uma vez",
+  "ok": true
+ },
+ {
+  "nome": "dois envios simultâneos com chaves diferentes: um aplica, o outro é recusado",
+  "ok": true
+ },
+ {
+  "nome": "userA: recusado",
+  "ok": true
+ },
+ {
+  "nome": "entregadorA: recusado",
+  "ok": true
+ },
+ {
+  "nome": "adminB: recusado",
+  "ok": true
+ },
+ {
+  "nome": "motivo obrigatório",
+  "ok": true
+ },
+ {
+  "nome": "trocar para PIX (exigiria recebimento) é recusado",
+  "ok": true
+ },
+ {
+  "nome": "forma inválida é recusada",
+  "ok": true
+ },
+ {
+  "nome": "gravação direta continua bloqueada",
+  "ok": true
+ }
+]

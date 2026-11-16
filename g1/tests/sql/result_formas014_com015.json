@@ -1,0 +1,192 @@
+[
+ {
+  "cat": "obrigatoria",
+  "nome": "promissoria: valor vazio recusado",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "promissoria: valor zero recusado",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "pix: valor vazio recusado",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "pix: valor zero recusado",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "money: valor vazio recusado",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "money: valor zero recusado",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "credit: valor vazio recusado",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "credit: valor zero recusado",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "debit: valor vazio recusado",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "debit: valor zero recusado",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "promissoria: valor válido aceito e gravado com a própria forma",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "pix: valor válido aceito e gravado com a própria forma",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "money: valor válido aceito e gravado com a própria forma",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "credit: valor válido aceito e gravado com a própria forma",
+  "ok": true
+ },
+ {
+  "cat": "obrigatoria",
+  "nome": "debit: valor válido aceito e gravado com a própria forma",
+  "ok": true
+ },
+ {
+  "cat": "opcional",
+  "nome": "vale-gas: sem valor aceito, preço 'não informado', sem recebimento nem promissória",
+  "ok": true
+ },
+ {
+  "cat": "opcional",
+  "nome": "vale-gas: valor informado gravado, sem recebimento nem promissória",
+  "ok": true
+ },
+ {
+  "cat": "opcional",
+  "nome": "vale-gas: valor zero explícito recusado (vazio ou > 0)",
+  "ok": true
+ },
+ {
+  "cat": "opcional",
+  "nome": "gas-povo: sem valor aceito, preço 'não informado', sem recebimento nem promissória",
+  "ok": true
+ },
+ {
+  "cat": "opcional",
+  "nome": "gas-povo: valor informado gravado, sem recebimento nem promissória",
+  "ok": true
+ },
+ {
+  "cat": "opcional",
+  "nome": "gas-povo: valor zero explícito recusado (vazio ou > 0)",
+  "ok": true
+ },
+ {
+  "cat": "opcional",
+  "nome": "convenio: sem valor aceito, preço 'não informado', sem recebimento nem promissória",
+  "ok": true
+ },
+ {
+  "cat": "opcional",
+  "nome": "convenio: valor informado gravado, sem recebimento nem promissória",
+  "ok": true
+ },
+ {
+  "cat": "opcional",
+  "nome": "convenio: valor zero explícito recusado (vazio ou > 0)",
+  "ok": true
+ },
+ {
+  "cat": "identidade",
+  "nome": "grafia 'gasPovo' grava Gás do Povo, não convênio",
+  "ok": true
+ },
+ {
+  "cat": "identidade",
+  "nome": "grafia 'Gas do Povo' grava gas-povo (acentos: conferidos no banco UTF-8)",
+  "ok": true
+ },
+ {
+  "cat": "identidade",
+  "nome": "crédito e débito ficam separados no registro da venda",
+  "ok": true
+ },
+ {
+  "cat": "identidade",
+  "nome": "forma inválida gera erro claro e não grava",
+  "ok": true
+ },
+ {
+  "cat": "identidade",
+  "nome": "forma ambígua 'cartao' gera erro (não vira crédito nem débito)",
+  "ok": true
+ },
+ {
+  "cat": "identidade",
+  "nome": "forma vazia gera erro",
+  "ok": true
+ },
+ {
+  "cat": "reenvio",
+  "nome": "reenvio da mesma venda Gás do Povo não duplica nem troca a forma",
+  "ok": true
+ },
+ {
+  "cat": "reenvio",
+  "nome": "mesma chave com outra forma é recusada (não vira outra venda)",
+  "ok": true
+ },
+ {
+  "cat": "rua",
+  "nome": "venda na rua Gás do Povo sem valor, reenviada: uma venda, forma preservada",
+  "ok": true
+ },
+ {
+  "cat": "rua",
+  "nome": "venda na rua PIX sem valor recusada",
+  "ok": true
+ },
+ {
+  "cat": "rua",
+  "nome": "venda na rua débito grava 'debit' com recebimento",
+  "ok": true
+ },
+ {
+  "cat": "entrega",
+  "nome": "conclusão com Gás do Povo sem valor: grava gas-povo, sem recebimento/promissória",
+  "ok": true
+ },
+ {
+  "cat": "entrega",
+  "nome": "conclusão com convênio não cria promissória",
+  "ok": true
+ },
+ {
+  "cat": "entrega",
+  "nome": "conclusão com dinheiro sem valor continua recusada",
+  "ok": true
+ }
+]
