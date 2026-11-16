@@ -97,7 +97,9 @@ export function useRegisterForm() {
       
       if (user) {
         // Criar o perfil do usuário e organização usando a RPC function
-        const { error: profileError } = await supabase.functions.invoke('create_profile', {
+        // Sem sessão (cadastro aguardando confirmação de e-mail) a função protegida não é chamada.
+        const { data: { session: novaSessao } } = await supabase.auth.getSession();
+        const { error: profileError } = !novaSessao ? { error: null } : await supabase.functions.invoke('create_profile', {
           body: {
             user_id: user.id,
             name: sanitizedName,
