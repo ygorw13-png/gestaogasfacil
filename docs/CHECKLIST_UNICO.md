@@ -152,3 +152,9 @@ Ver `docs/DECISOES_PENDENTES.md`.
 - [x] Testado isolado: `run_agregado017.py` 51/51; `run_reversao011.py` 67/67 com 017; navegador isolado 5/5 (portaria → Vendas recentes → ficha operador → por conta → acerto com crédito), 0 chamadas ao backend real.
 - [x] Aplicado no Cloud: `drizzle/migrations/0017_g1_017_agregados.sql` (nenhum preço antigo cadastrado: 0 copiados).
 - [x] Decidido 16/11: conta antiga (102 botijões) fica só como histórico; dinheiro de por conta/acerto só no extrato do administrador, fora do fechamento da portaria.
+
+## WhatsApp — Aplicativo do PC (candidato 018 + 018c, 16/11/2026)
+- [x] Implementado: provedor explícito Meta/Aplicativo do PC, número esperado, configuração de vínculo de uso único (10 min, só hash), 1 PC ativo por empresa, revogação, envio do PC desligado por padrão, fila com reserva/begin/result, reenvio manual ligado ao anterior, função `whatsapp-desktop` (protocolo 1).
+- [x] Testado isolado: `run_desktop018.py` 61/61; `run_aviso016.py` 25/25; unitários do protocolo 14/14 + núcleo Meta 8/8; tela no navegador isolado 6/6 (0 chamadas ao backend real).
+- [x] Aplicado no Cloud: migrações 0018, 0019 (revogação de privilégios herdados) e 0020 (recuperação do journal). Função publicada e testada só com entradas inválidas (405/401/400).
+- [ ] Teste real com o app Windows (pareamento + envio) — feito pelo usuário depois. Envio continua DESLIGADO.

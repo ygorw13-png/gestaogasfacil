@@ -141,6 +141,13 @@
       "when": 1794860660197,
       "tag": "0019_g1_018b_desktop_revoke",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794860958101,
+      "tag": "0020_g1_018c_desktop_recuperacao",
+      "breakpoints": true
     }
   ]
 }

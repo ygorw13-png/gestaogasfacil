@@ -4,7 +4,7 @@
 export const PROTOCOLO = 1;
 export const MAX_CORPO = 8 * 1024;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const SEGREDO = /^[A-Za-z0-9_-]{32,128}$/;
+const SEGREDO = /^[A-Za-z0-9_-]{22,256}$/; // pairing_code / attempt_token: base64url ou hex
 const TELEFONE = /^55[0-9]{10,11}$/;
 const CODIGO_ERRO = /^[A-Za-z0-9_.:-]{1,80}$/;
 
@@ -29,7 +29,7 @@ const erro = (status: number, msg: string): Saida => ({ status, body: { error: m
 const telefone = (v: unknown) => typeof v === "string" && TELEFONE.test(v);
 
 function bearer(h: string | null): string | null {
-  const m = /^Bearer ([A-Za-z0-9_-]{32,128})$/.exec(h ?? "");
+  const m = /^Bearer ([A-Za-z0-9_-]{32,512})$/.exec(h ?? "");
   return m ? m[1] : null;
 }
 

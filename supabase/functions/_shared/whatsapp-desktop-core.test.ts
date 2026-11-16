@@ -68,3 +68,20 @@ describe("whatsapp-desktop protocolo 1", () => {
     expect(novoToken()).toMatch(/^[A-Za-z0-9_-]{43}$/);
   });
 });
+
+describe("compatibilidade com o cliente Windows", () => {
+  it("pairing_code base64url/hex de 22 a 256 caracteres; fora disso 400", async () => {
+    const ok = rpcCom({ device_id: JOB, company_name: "E", expected_phone: "557533330000" });
+    for (const cod of ["A".repeat(22), "f".repeat(256), "Ab_-".repeat(10)]) {
+      expect((await processar(req({ action: "pair", pairing_code: cod, device_name: "PC", protocol_version: 1 }, null), ok, () => TOKEN)).status).toBe(200);
+    }
+    for (const cod of ["A".repeat(21), "f".repeat(257), "a+b/".repeat(8)]) {
+      expect((await processar(req({ action: "pair", pairing_code: cod, device_name: "PC", protocol_version: 1 }, null), ok)).status).toBe(400);
+    }
+  });
+  it("token de 32+ caracteres aceito; menor recusado", async () => {
+    const r = rpcCom({ job: null });
+    expect((await processar(req({ action: "poll", phone: "557533330000" }, `Bearer ${"z".repeat(32)}`), r)).status).toBe(200);
+    expect((await processar(req({ action: "poll", phone: "557533330000" }, `Bearer ${"z".repeat(31)}`), r)).status).toBe(401);
+  });
+});

@@ -127,8 +127,25 @@ check("Cancelamento do pedido antes do begin nega",
 check("Revogação antes do begin: 401 e cancelado",
       '"status": 401' in out(PRONTO + [ATR(), POLLCAP(), ("adminA", "SELECT whatsapp_desktop_revogar()"), ("service", f"SELECT whatsapp_desktop_begin({H(repr('tokA'))},{JOB('id')}::uuid,{JOB('attempt_token')},'{TEL}','ip')")]))
 check("Revogado durante envio vira incerto", out(PRONTO + [ATR(), POLLCAP(), BEGIN(), ("adminA", "SELECT whatsapp_desktop_revogar()"), ST]) == "desktop:incerto")
-check("Lease antes do begin vencido: volta à fila",
-      '"job": {' in out(PRONTO + [ATR(), POLLCAP(), ("root", "UPDATE whatsapp_envios SET lease_ate=now()-interval '1 second'"), POLL()]))
+VENCE = ("root", "UPDATE whatsapp_envios SET lease_ate=now()-interval '1 second' WHERE lease_ate IS NOT NULL")
+check("Lease antes do begin vencido: FALHA e o mesmo job nunca é reoferecido",
+      out(PRONTO + [ATR(), POLLCAP(), VENCE, ("root", SETV("p2", f"whatsapp_desktop_poll({H(repr('tokA'))},'{TEL}','ip')")), ST,]) == "desktop:falha")
+check("Nova consulta enquanto reservado: sem job (o mesmo id não é reoferecido)",
+      '"job": null' in out(PRONTO + [ATR(), POLLCAP(), POLL()]))
+# Recuperação do journal: queda ambígua após begin -> app reporta uncertain; não bloqueia a fila.
+SEG = [("userA", f"INSERT INTO orders(user_id,organization_id,client_name,address,product,quantity,price,payment_method,tipo_venda,origem_venda) VALUES ('{U['userA']}','{ORG}','Cliente PC 3','{{}}','GLP P13',1,120,'money','recarga','pedido')"),
+       ("userA", f"SELECT atribuir_entrega_aviso((SELECT id FROM orders WHERE client_name='Cliente PC 3'),'{E1}',false,'k-pc-atrib-3','app_whatsapp')")]
+r = out(PRONTO + [ATR(), POLLCAP(), BEGIN(), VENCE] + SEG + [POLL(), RES("uncertain"),
+     ("root", f"SELECT status||'|'||resultado_origem FROM whatsapp_envios WHERE order_id={ORD}")])
+check("Queda após begin: prazo vira incerto, recibo 'uncertain' do journal aceito", r == "incerto|dispositivo", r)
+r = out(PRONTO + [ATR(), POLLCAP(), BEGIN(), VENCE] + SEG + [POLL()])
+check("Queda após begin não bloqueia a fila (próximo job entregue)", '"job": {' in r and "Cliente PC 3" in r, r)
+r = out(PRONTO + [ATR(), POLLCAP(), VENCE, POLL(), RES("uncertain"), ST])
+check("Recibo de job não iniciado e já encerrado: confirmado sem alterar", r == "desktop:falha", r)
+r = out(PRONTO + [ATR(), POLLCAP(), REA(), RES("failed")])
+check("Recibo de job cancelado por reatribuição: ok (sem 409 eterno)", '"ok": true' in r, r)
+check("Recibo 'sent' para job nunca iniciado continua recusado",
+      '"status": 409' in out(PRONTO + [ATR(), POLLCAP(), VENCE, POLL(), RES("sent")]))
 check("Lease após begin vencido: INCERTO sem reenvio automático",
       out(PRONTO + [ATR(), POLLCAP(), BEGIN(), ("root", "UPDATE whatsapp_envios SET lease_ate=now()-interval '1 second'"), POLL(), ST]) == "desktop:incerto")
 check("Um job por vez: iniciado em aberto bloqueia o próximo",

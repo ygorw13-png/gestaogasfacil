@@ -147,7 +147,7 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $$
 BEGIN
   IF OLD.provedor = 'desktop' AND OLD.envio_ativo AND NOT (NEW.provedor = 'desktop' AND NEW.envio_ativo) THEN
     UPDATE public.whatsapp_envios SET status = 'cancelado', erro = 'Envio pelo Aplicativo do PC desligado antes do envio',
-      dispositivo_id = NULL, tentativa_hash = NULL, lease_ate = NULL, atualizado_em = now()
+      lease_ate = NULL, atualizado_em = now()
      WHERE organization_id = NEW.organization_id AND provedor = 'desktop'
        AND (status = 'aguardando' OR (status = 'enviando' AND iniciado_em IS NULL));
   END IF;
@@ -189,7 +189,7 @@ DECLARE o uuid := public._ctx_org(); BEGIN
   PERFORM public._destino_whatsapp(o, _novo_entregador_id, _canal);
   PERFORM public.reatribuir_entrega(_order_id, _novo_entregador_id, _motivo, coalesce(_transferir_carga,false), _chave);
   UPDATE public.whatsapp_envios SET status='cancelado', erro='Pedido reatribuído antes do envio',
-      dispositivo_id = NULL, tentativa_hash = NULL, lease_ate = NULL, atualizado_em=now()
+      lease_ate = NULL, atualizado_em=now()
    WHERE organization_id=o AND order_id=_order_id AND entregador_id <> _novo_entregador_id
      AND (status IN ('aguardando','falha','incerto') OR (status = 'enviando' AND provedor = 'desktop' AND iniciado_em IS NULL));
   RETURN public._whatsapp_enfileirar(o, _order_id, _novo_entregador_id, _canal, _chave); END $$;
@@ -215,14 +215,15 @@ DECLARE e record; r record; BEGIN
     'id', r.id, 'client_name', r.client_name, 'address', r.address, 'product', r.product, 'quantity', r.quantity,
     'price', CASE WHEN r.payment_method = 'agregado' THEN NULL ELSE r.price END, 'payment_method', r.payment_method, 'notes', r.notes)); END $$;
 
--- Prazos vencidos: iniciado sem resultado = INCERTO (sem reenvio automático); só reservado = volta à fila.
+-- Prazos vencidos: iniciado sem resultado = INCERTO; só reservado = FALHA (não enviado). O mesmo job_id nunca é oferecido de novo.
 CREATE OR REPLACE FUNCTION public._wd_vencer(_org uuid) RETURNS void
 LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $$
 BEGIN
   UPDATE public.whatsapp_envios SET status = 'incerto', resultado_origem = 'prazo', lease_ate = NULL, atualizado_em = now(),
       erro = 'O aplicativo do PC começou o envio e não informou o resultado no prazo: confira no celular do entregador'
    WHERE organization_id = _org AND provedor = 'desktop' AND status = 'enviando' AND iniciado_em IS NOT NULL AND lease_ate < now();
-  UPDATE public.whatsapp_envios SET status = 'aguardando', dispositivo_id = NULL, tentativa_hash = NULL, lease_ate = NULL, atualizado_em = now()
+  UPDATE public.whatsapp_envios SET status = 'falha', resultado_origem = 'prazo', lease_ate = NULL, atualizado_em = now(),
+      erro = 'O aplicativo do PC não iniciou o envio no prazo (não enviado)'
    WHERE organization_id = _org AND provedor = 'desktop' AND status = 'enviando' AND iniciado_em IS NULL AND lease_ate < now();
 END $$;
 
@@ -308,7 +309,7 @@ DECLARE o uuid := public._wd_admin(); BEGIN
   PERFORM pg_advisory_xact_lock(hashtext('wd:' || o));
   UPDATE public.whatsapp_desktop_dispositivos SET ativo = false, revogado_em = now(), revogado_por = auth.uid() WHERE organization_id = o AND ativo;
   UPDATE public.whatsapp_config SET envio_ativo = false, atualizado_por = auth.uid(), atualizado_em = now() WHERE organization_id = o AND envio_ativo AND provedor = 'desktop';
-  UPDATE public.whatsapp_envios SET status = 'cancelado', erro = 'Aplicativo do PC revogado antes do envio', dispositivo_id = NULL, tentativa_hash = NULL, lease_ate = NULL, atualizado_em = now()
+  UPDATE public.whatsapp_envios SET status = 'cancelado', erro = 'Aplicativo do PC revogado antes do envio', lease_ate = NULL, atualizado_em = now()
    WHERE organization_id = o AND provedor = 'desktop' AND status = 'enviando' AND iniciado_em IS NULL;
   UPDATE public.whatsapp_envios SET status = 'incerto', resultado_origem = 'revogado', lease_ate = NULL, atualizado_em = now(),
       erro = 'Aplicativo do PC revogado durante o envio: confira no celular do entregador'
@@ -390,12 +391,9 @@ DECLARE d public.whatsapp_desktop_dispositivos; c public.whatsapp_config; e reco
   IF d.id IS NULL THEN RETURN public._wd_negado(_origem); END IF;
   PERFORM pg_advisory_xact_lock(hashtext('wd:' || d.organization_id));
   PERFORM public._wd_vencer(d.organization_id);
-  -- Nova consulta do mesmo dispositivo: a reserva não iniciada volta à fila (o token anterior deixa de valer).
-  UPDATE public.whatsapp_envios SET status = 'aguardando', dispositivo_id = NULL, tentativa_hash = NULL, lease_ate = NULL, atualizado_em = now()
-   WHERE organization_id = d.organization_id AND provedor = 'desktop' AND status = 'enviando' AND iniciado_em IS NULL AND dispositivo_id = d.id;
   SELECT * INTO c FROM public.whatsapp_config WHERE organization_id = d.organization_id;
   IF NOT coalesce(public._wd_pronto(d, c, _telefone), false) THEN RETURN jsonb_build_object('job', NULL); END IF;
-  -- Um envio por vez: com um iniciado em aberto, não entrega outro.
+  -- Um envio por vez: com um reservado/iniciado em aberto, não entrega outro (nem o mesmo de novo).
   IF EXISTS (SELECT 1 FROM public.whatsapp_envios WHERE organization_id = d.organization_id AND provedor = 'desktop' AND status = 'enviando') THEN
     RETURN jsonb_build_object('job', NULL); END IF;
   LOOP
@@ -431,7 +429,7 @@ DECLARE d public.whatsapp_desktop_dispositivos; c public.whatsapp_config; e reco
     RETURN jsonb_build_object('allowed', false); END IF;
   IF r.delivery_person_id IS DISTINCT FROM e.entregador_id OR r.status NOT IN ('assigned', 'delivering') THEN
     UPDATE public.whatsapp_envios SET status = 'cancelado', erro = 'Pedido não está mais com este entregador',
-      dispositivo_id = NULL, tentativa_hash = NULL, lease_ate = NULL, atualizado_em = now() WHERE id = e.id;
+      lease_ate = NULL, atualizado_em = now() WHERE id = e.id;
     RETURN jsonb_build_object('allowed', false); END IF;
   IF NOT coalesce(public._wd_pronto(d, c, _telefone), false) THEN RETURN jsonb_build_object('allowed', false); END IF;
   UPDATE public.whatsapp_envios SET iniciado_em = now(), lease_ate = now() + interval '120 seconds', tentativas = tentativas + 1, atualizado_em = now()
@@ -452,6 +450,9 @@ DECLARE d record; e record; st text; BEGIN
   IF e.resultado_origem = 'dispositivo' THEN
     IF e.status = st THEN RETURN jsonb_build_object('ok', true); END IF;
     RETURN jsonb_build_object('error', 'Resultado já registrado com outro valor', 'status', 409); END IF;
+  -- Recibo de um envio que nunca foi autorizado (begin) e já está encerrado: confirma sem alterar, para o app encerrar o journal.
+  IF e.iniciado_em IS NULL AND e.status IN ('falha', 'cancelado') AND st <> 'enviado' THEN
+    RETURN jsonb_build_object('ok', true); END IF;
   IF e.iniciado_em IS NULL AND st <> 'falha' THEN
     RETURN jsonb_build_object('error', 'Envio não foi iniciado (begin)', 'status', 409); END IF;
   IF e.status NOT IN ('enviando', 'incerto') THEN

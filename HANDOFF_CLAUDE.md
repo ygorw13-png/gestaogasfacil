@@ -356,3 +356,6 @@ Correção da forma de pagamento de venda concluída: `public.admin_corrigir_for
 
 ## Atualização 16/11/2026 — agregados (candidato 017)
 Publicado/aplicado: retirada de agregado sem preço, preço sigiloso, por conta e acerto do administrador (`g1/candidate/sql/017_agregados.sql` = `drizzle/migrations/0017_g1_017_agregados.sql`). Testes: `g1/tests/sql/reset_com017.sh com_abertura` + `run_agregado017.py` (51/51). Decisões abertas no `docs/CHECKLIST_UNICO.md`.
+
+## Atualização 16/11/2026 — Aplicativo do PC (candidato 018/018c)
+Endpoint `https://dufsbwslvnucptjwvtvd.supabase.co/functions/v1/whatsapp-desktop` (protocolo 1). Banco: `g1/candidate/sql/018_whatsapp_desktop.sql` (= drizzle 0018+0019+0020; `018c_recuperacao_journal.sql` é o recorte da 0020). Testes: `reset_com018.sh com_abertura` + `run_desktop018.py` (61/61). Envio do PC desligado; nenhum dispositivo pareado em produção.

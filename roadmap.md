@@ -77,4 +77,4 @@ Validação da Etapa 1 (concluída, 26/26 + 11/11) + candidato de segurança 002
 - [x] Telas conferidas no navegador (isolado 5/5) + publicação
 
 ## Próxima tarefa (só depois dos agregados)
-- [ ] WhatsApp "Aplicativo do PC": função whatsapp-desktop (pareamento, heartbeat, poll, begin, result), tela admin, provedor explícito, testes isolados, publicar
+- [x] WhatsApp "Aplicativo do PC": função, tela admin, provedor explícito, testes isolados, publicação (teste real com o app Windows: usuário)
