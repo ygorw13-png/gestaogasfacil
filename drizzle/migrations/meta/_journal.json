@@ -127,6 +127,20 @@
       "when": 1794851092174,
       "tag": "0017_g1_017_agregados",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794860634714,
+      "tag": "0018_g1_018_whatsapp_desktop",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794860660197,
+      "tag": "0019_g1_018b_desktop_revoke",
+      "breakpoints": true
     }
   ]
 }

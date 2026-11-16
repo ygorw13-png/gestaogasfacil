@@ -151,4 +151,4 @@ Ver `docs/DECISOES_PENDENTES.md`.
 - [x] Implementado: retirada pela portaria sem preço (`retirada_agregado`), preço sigiloso (`agregado_precos`, coluna antiga sem acesso), por conta, acerto, recebimento parcial, ajuste, devolução após acerto com ajuste, devolução de crédito, anulação de por conta não usado, extrato PDF administrativo.
 - [x] Testado isolado: `run_agregado017.py` 51/51; `run_reversao011.py` 67/67 com 017; navegador isolado 5/5 (portaria → Vendas recentes → ficha operador → por conta → acerto com crédito), 0 chamadas ao backend real.
 - [x] Aplicado no Cloud: `drizzle/migrations/0017_g1_017_agregados.sql` (nenhum preço antigo cadastrado: 0 copiados).
-- [ ] Pendente de decisão: 102 botijões da conta antiga (10/08–09/09/2026) entram no acerto novo?; dinheiro de por conta aparece no fechamento da portaria?
+- [x] Decidido 16/11: conta antiga (102 botijões) fica só como histórico; dinheiro de por conta/acerto só no extrato do administrador, fora do fechamento da portaria.

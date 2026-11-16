@@ -14,7 +14,7 @@ export const EXEMPLO_MODELO = ["#A1B2C3D4", "Maria Exemplo", "Rua Exemplo, 10, C
 /** Os mesmos 8 nomes de src/lib/formasPagamento.ts (FORMAS_PAGAMENTO[].nome), pelo código gravado. */
 export const NOMES_FORMA: Record<string, string> = {
   money: "Dinheiro", pix: "PIX", credit: "Crédito", debit: "Débito", promissoria: "Nota promissória",
-  "vale-gas": "Vale-gás", "gas-povo": "Gás do Povo", convenio: "Convênio",
+  "vale-gas": "Vale-gás", "gas-povo": "Gás do Povo", convenio: "Convênio", agregado: "Retirada de agregado — a acertar",
 };
 
 export interface PedidoAviso {
@@ -70,7 +70,8 @@ export function classificar(httpStatus: number | null, corpo: string): Resultado
 }
 
 /** Motivo para não enviar antes de tocar na plataforma (null = pode enviar). */
-export function impedimento(cfg: { modelo?: string | null; envio_ativo?: boolean | null } | null, conectado: boolean): string | null {
+export function impedimento(cfg: { modelo?: string | null; envio_ativo?: boolean | null; provedor?: string | null } | null, conectado: boolean): string | null {
+  if (cfg?.provedor && cfg.provedor !== "meta") return "O provedor selecionado é o Aplicativo do PC (Configurações > WhatsApp)";
   if (!conectado) return "WhatsApp da empresa não conectado (Configurações > WhatsApp)";
   if (!cfg?.modelo) return "Modelo de mensagem não configurado (Configurações > WhatsApp)";
   if (!cfg.envio_ativo) return "Envio pelo WhatsApp não ativado pelo administrador (Configurações > WhatsApp)";

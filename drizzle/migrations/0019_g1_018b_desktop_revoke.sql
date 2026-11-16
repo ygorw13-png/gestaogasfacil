@@ -1,0 +1,1 @@
+REVOKE ALL ON public.whatsapp_desktop_pareamentos, public.whatsapp_desktop_dispositivos, public.whatsapp_desktop_limites FROM PUBLIC, anon, authenticated;

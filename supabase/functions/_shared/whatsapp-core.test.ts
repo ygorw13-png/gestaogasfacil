@@ -32,6 +32,7 @@ describe("aviso de entrega pelo WhatsApp", () => {
   it("sem conexão / sem modelo / envio desativado: não envia", () => {
     expect(impedimento({ modelo: "m", envio_ativo: true }, false)).toMatch(/não conectado/);
     expect(impedimento({ modelo: null, envio_ativo: true }, true)).toMatch(/Modelo/);
+    expect(impedimento({ modelo: "m", envio_ativo: true, provedor: "desktop" }, true)).toMatch(/Aplicativo do PC/);
     expect(impedimento({ modelo: "m", envio_ativo: false }, true)).toMatch(/não ativado/);
     expect(impedimento({ modelo: "m", envio_ativo: true }, true)).toBeNull();
   });

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppQrSettings } from "./WhatsAppQrSettings";
+import { WhatsAppDesktopSettings, WhatsAppProvedor } from "./WhatsAppDesktopSettings";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Json = any;
@@ -52,8 +53,12 @@ export function WhatsAppSettings() {
   const teste = d?.ambiente === "teste";
   const producao = d?.ambiente === "producao";
 
+  const pc = cfg?.provedor === "desktop";
+
   return (
     <div className="space-y-4">
+    <WhatsAppProvedor />
+    <WhatsAppDesktopSettings />
     <Card>
       <CardHeader>
         <CardTitle>WhatsApp da empresa</CardTitle>
@@ -113,9 +118,10 @@ export function WhatsAppSettings() {
                 <Label htmlFor="wa-ativo">Envio automático ao atribuir entregas</Label>
                 <p className="text-xs text-muted-foreground">Desligado, o pedido é atribuído e o aviso fica como "Falha" com o motivo, para tentar depois. Pedidos antigos nunca recebem aviso automático.</p>
               </div>
-              <Switch id="wa-ativo" checked={!!cfg?.envio_ativo} disabled={ocupado || (!cfg?.envio_ativo && !!(d.motivo_nao_ativar ?? !d.conectado))} onCheckedChange={ativar} />
+              <Switch id="wa-ativo" checked={!!cfg?.envio_ativo && !pc} disabled={ocupado || pc || (!cfg?.envio_ativo && !!(d.motivo_nao_ativar ?? !d.conectado))} onCheckedChange={ativar} />
             </div>
-            {!cfg?.envio_ativo && (d.motivo_nao_ativar || !d.conectado) && <p className="text-xs text-muted-foreground">Ainda não pode ser ligado: {d.motivo_nao_ativar ?? "WhatsApp não conectado."}</p>}
+            {pc && <p className="text-xs text-muted-foreground">O provedor selecionado é o Aplicativo do PC; a Meta não envia avisos.</p>}
+            {!pc && !cfg?.envio_ativo && (d.motivo_nao_ativar || !d.conectado) && <p className="text-xs text-muted-foreground">Ainda não pode ser ligado: {d.motivo_nao_ativar ?? "WhatsApp não conectado."}</p>}
             <p className="text-xs text-muted-foreground">Custo: {CUSTO}</p>
           </div>
         )}

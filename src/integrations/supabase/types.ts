@@ -2738,26 +2738,128 @@ export type Database = {
         Row: {
           atualizado_em: string
           atualizado_por: string | null
+          desktop_telefone: string | null
           envio_ativo: boolean
           idioma: string
           modelo: string | null
           organization_id: string
+          provedor: string
         }
         Insert: {
           atualizado_em?: string
           atualizado_por?: string | null
+          desktop_telefone?: string | null
           envio_ativo?: boolean
           idioma?: string
           modelo?: string | null
           organization_id: string
+          provedor?: string
         }
         Update: {
           atualizado_em?: string
           atualizado_por?: string | null
+          desktop_telefone?: string | null
           envio_ativo?: boolean
           idioma?: string
           modelo?: string | null
           organization_id?: string
+          provedor?: string
+        }
+        Relationships: []
+      }
+      whatsapp_desktop_dispositivos: {
+        Row: {
+          app_version: string | null
+          ativo: boolean
+          criado_em: string
+          estado: string
+          id: string
+          nome: string
+          organization_id: string
+          pausado: boolean
+          revogado_em: string | null
+          revogado_por: string | null
+          telefone_reportado: string | null
+          token_hash: string
+          ultimo_contato: string | null
+        }
+        Insert: {
+          app_version?: string | null
+          ativo?: boolean
+          criado_em?: string
+          estado?: string
+          id?: string
+          nome: string
+          organization_id: string
+          pausado?: boolean
+          revogado_em?: string | null
+          revogado_por?: string | null
+          telefone_reportado?: string | null
+          token_hash: string
+          ultimo_contato?: string | null
+        }
+        Update: {
+          app_version?: string | null
+          ativo?: boolean
+          criado_em?: string
+          estado?: string
+          id?: string
+          nome?: string
+          organization_id?: string
+          pausado?: boolean
+          revogado_em?: string | null
+          revogado_por?: string | null
+          telefone_reportado?: string | null
+          token_hash?: string
+          ultimo_contato?: string | null
+        }
+        Relationships: []
+      }
+      whatsapp_desktop_limites: {
+        Row: {
+          chave: string
+          janela: string
+          n: number
+        }
+        Insert: {
+          chave: string
+          janela: string
+          n?: number
+        }
+        Update: {
+          chave?: string
+          janela?: string
+          n?: number
+        }
+        Relationships: []
+      }
+      whatsapp_desktop_pareamentos: {
+        Row: {
+          codigo_hash: string
+          criado_em: string
+          criado_por: string | null
+          expira_em: string
+          id: string
+          organization_id: string
+          usado_em: string | null
+        }
+        Insert: {
+          codigo_hash: string
+          criado_em?: string
+          criado_por?: string | null
+          expira_em: string
+          id?: string
+          organization_id: string
+          usado_em?: string | null
+        }
+        Update: {
+          codigo_hash?: string
+          criado_em?: string
+          criado_por?: string | null
+          expira_em?: string
+          id?: string
+          organization_id?: string
+          usado_em?: string | null
         }
         Relationships: []
       }
@@ -2769,15 +2871,22 @@ export type Database = {
           colaborador_id: string | null
           criado_em: string
           criado_por: string | null
+          dispositivo_id: string | null
           entregador_id: string
           enviado_em: string | null
           erro: string | null
           id: string
+          iniciado_em: string | null
+          lease_ate: string | null
           order_id: string
           organization_id: string
+          provedor: string
           provider_message_id: string | null
+          reenvio_de: string | null
+          resultado_origem: string | null
           status: string
           telefone: string
+          tentativa_hash: string | null
           tentativas: number
         }
         Insert: {
@@ -2787,15 +2896,22 @@ export type Database = {
           colaborador_id?: string | null
           criado_em?: string
           criado_por?: string | null
+          dispositivo_id?: string | null
           entregador_id: string
           enviado_em?: string | null
           erro?: string | null
           id?: string
+          iniciado_em?: string | null
+          lease_ate?: string | null
           order_id: string
           organization_id: string
+          provedor?: string
           provider_message_id?: string | null
+          reenvio_de?: string | null
+          resultado_origem?: string | null
           status?: string
           telefone: string
+          tentativa_hash?: string | null
           tentativas?: number
         }
         Update: {
@@ -2805,15 +2921,22 @@ export type Database = {
           colaborador_id?: string | null
           criado_em?: string
           criado_por?: string | null
+          dispositivo_id?: string | null
           entregador_id?: string
           enviado_em?: string | null
           erro?: string | null
           id?: string
+          iniciado_em?: string | null
+          lease_ate?: string | null
           order_id?: string
           organization_id?: string
+          provedor?: string
           provider_message_id?: string | null
+          reenvio_de?: string | null
+          resultado_origem?: string | null
           status?: string
           telefone?: string
+          tentativa_hash?: string | null
           tentativas?: number
         }
         Relationships: [
@@ -2822,6 +2945,13 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_envios_reenvio_de_fkey"
+            columns: ["reenvio_de"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_envios"
             referencedColumns: ["id"]
           },
         ]
@@ -3047,6 +3177,24 @@ export type Database = {
         Args: { _data: string; _org: string; _produto: string }
         Returns: undefined
       }
+      _wd_admin: { Args: never; Returns: string }
+      _wd_hash: { Args: { _t: string }; Returns: string }
+      _wd_limite: {
+        Args: { _chave: string; _max: number; _segundos: number }
+        Returns: boolean
+      }
+      _wd_negado: { Args: { _origem: string }; Returns: Json }
+      _wd_pronto: {
+        Args: {
+          _telefone: string
+          c: Database["public"]["Tables"]["whatsapp_config"]["Row"]
+          d: Database["public"]["Tables"]["whatsapp_desktop_dispositivos"]["Row"]
+        }
+        Returns: boolean
+      }
+      _wd_segredo: { Args: never; Returns: string }
+      _wd_texto: { Args: { _order: string }; Returns: string }
+      _wd_vencer: { Args: { _org: string }; Returns: undefined }
       _whatsapp_enfileirar: {
         Args: {
           _canal: string
@@ -3538,6 +3686,64 @@ export type Database = {
         }
         Returns: string
       }
+      whatsapp_desktop_ativar: { Args: { _ativo: boolean }; Returns: Json }
+      whatsapp_desktop_begin: {
+        Args: {
+          _job: string
+          _origem: string
+          _telefone: string
+          _tentativa: string
+          _token_hash: string
+        }
+        Returns: Json
+      }
+      whatsapp_desktop_gerar_pareamento: { Args: never; Returns: Json }
+      whatsapp_desktop_heartbeat: {
+        Args: {
+          _estado: string
+          _origem: string
+          _pausado: boolean
+          _telefone: string
+          _token_hash: string
+          _versao: string
+        }
+        Returns: Json
+      }
+      whatsapp_desktop_parear: {
+        Args: {
+          _codigo_hash: string
+          _nome: string
+          _origem: string
+          _token_hash: string
+        }
+        Returns: Json
+      }
+      whatsapp_desktop_poll: {
+        Args: { _origem: string; _telefone: string; _token_hash: string }
+        Returns: Json
+      }
+      whatsapp_desktop_reenviar: {
+        Args: { _chave: string; _confirmar_incerto: boolean; _envio: string }
+        Returns: string
+      }
+      whatsapp_desktop_resultado: {
+        Args: {
+          _erro: string
+          _job: string
+          _message_id: string
+          _origem: string
+          _resultado: string
+          _tentativa: string
+          _token_hash: string
+        }
+        Returns: Json
+      }
+      whatsapp_desktop_revogar: { Args: never; Returns: Json }
+      whatsapp_desktop_status: { Args: never; Returns: Json }
+      whatsapp_desktop_telefone_definir: {
+        Args: { _telefone: string }
+        Returns: Json
+      }
       whatsapp_envio_reservar: {
         Args: { _confirmar_incerto?: boolean; _envio: string }
         Returns: Json
@@ -3551,6 +3757,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      whatsapp_provedor_definir: { Args: { _provedor: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user" | "entregador"

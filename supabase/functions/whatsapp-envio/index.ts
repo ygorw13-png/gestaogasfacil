@@ -31,13 +31,13 @@ Deno.serve(async (req) => {
     if (!orderId && !envioId) return json({ error: "Informe order_id ou envio_id" }, 400);
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
-    let q = admin.from("whatsapp_envios").select("id, status").eq("organization_id", org);
+    let q = admin.from("whatsapp_envios").select("id, status").eq("organization_id", org).eq("provedor", "meta");
     q = envioId ? q.eq("id", envioId) : q.eq("order_id", orderId!).eq("status", "aguardando");
     const { data: envios, error } = await q;
     if (error) throw error;
     if (envioId && !envios?.length) return json({ error: "Envio não encontrado" }, 404);
 
-    const { data: cfg } = await admin.from("whatsapp_config").select("modelo, idioma, envio_ativo").eq("organization_id", org).maybeSingle();
+    const { data: cfg } = await admin.from("whatsapp_config").select("modelo, idioma, envio_ativo, provedor").eq("organization_id", org).maybeSingle();
     const conectado = !!(LOVABLE_API_KEY && WHATSAPP_API_KEY);
     const resultados: unknown[] = [];
 

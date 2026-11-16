@@ -17,15 +17,23 @@ export function AvisosWhatsApp({ orderId, nome }: { orderId: string; nome: (id?:
     queryFn: async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any).from("whatsapp_envios")
-        .select("id, entregador_id, telefone, canal, status, erro, tentativas, criado_em, enviado_em").eq("order_id", orderId).order("criado_em");
+        .select("id, entregador_id, telefone, canal, status, erro, tentativas, criado_em, enviado_em, provedor, reenvio_de").eq("order_id", orderId).order("criado_em");
       if (error) throw error;
       return (data ?? []) as Record<string, string | number | null>[];
     },
   });
-  const tentar = async (id: string, confirmar = false) => {
+  const tentar = async (id: string, confirmar = false, pc = false) => {
     if (confirmar && !window.confirm("O resultado anterior ficou incerto. Confirme que conferiu no celular do entregador e a mensagem NÃO chegou. Reenviar?")) return;
+    if (pc && !confirmar && !window.confirm("Criar um novo aviso para o Aplicativo do PC enviar?")) return;
     setOcupado(id); setMsg(null);
     try {
+      if (pc) {
+        // Reenvio manual do PC: novo aviso ligado ao anterior (o banco recusa um segundo reenvio do mesmo aviso).
+        const { error } = await supabase.rpc("whatsapp_desktop_reenviar", { _envio: id, _confirmar_incerto: confirmar, _chave: `reenvio-pc:${crypto.randomUUID()}` });
+        if (error) throw new Error(error.message);
+        setMsg("Novo aviso criado; o Aplicativo do PC envia quando estiver pronto.");
+        return;
+      }
       setMsg(resumoEnvio(await processarAviso({ envio_id: id, confirmar_incerto: confirmar })).texto);
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "Falha ao pedir o envio.");
@@ -35,6 +43,7 @@ export function AvisosWhatsApp({ orderId, nome }: { orderId: string; nome: (id?:
     }
   };
   if (!envios.data?.length) return null;
+  const reenviados = new Set(envios.data.map((e) => e.reenvio_de).filter(Boolean).map(String));
   return (
     <div>
       <h3 className="mb-1 font-medium">Avisos pelo WhatsApp</h3>
@@ -50,8 +59,9 @@ export function AvisosWhatsApp({ orderId, nome }: { orderId: string; nome: (id?:
                 <span className="text-xs text-muted-foreground">{quando(String(e.enviado_em ?? e.criado_em))}{Number(e.tentativas) > 1 ? ` · ${e.tentativas} tentativas` : ""}</span>
               </div>
               {e.erro && <p className="mt-1 text-xs text-muted-foreground">{String(e.erro)}</p>}
-              {st === "falha" && <Button size="sm" variant="outline" className="mt-2" disabled={ocupado === id} onClick={() => tentar(id)}>{ocupado === id ? "Enviando…" : "Tentar de novo"}</Button>}
-              {st === "incerto" && <Button size="sm" variant="outline" className="mt-2" disabled={ocupado === id} onClick={() => tentar(id, true)}>Conferi e não chegou: reenviar</Button>}
+              {e.provedor === "desktop" && <p className="mt-1 text-xs text-muted-foreground">Pelo Aplicativo do PC{e.reenvio_de ? " · reenvio manual" : ""}</p>}
+              {st === "falha" && !reenviados.has(id) && <Button size="sm" variant="outline" className="mt-2" disabled={ocupado === id} onClick={() => tentar(id, false, e.provedor === "desktop")}>{ocupado === id ? "Enviando…" : "Tentar de novo"}</Button>}
+              {st === "incerto" && !reenviados.has(id) && <Button size="sm" variant="outline" className="mt-2" disabled={ocupado === id} onClick={() => tentar(id, true, e.provedor === "desktop")}>Conferi e não chegou: reenviar</Button>}
             </li>
           );
         })}

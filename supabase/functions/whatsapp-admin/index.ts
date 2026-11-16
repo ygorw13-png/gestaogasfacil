@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const acao = String(body?.acao ?? "status");
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
-    const { data: cfg } = await admin.from("whatsapp_config").select("modelo, idioma, envio_ativo").eq("organization_id", org).maybeSingle();
+    const { data: cfg } = await admin.from("whatsapp_config").select("modelo, idioma, envio_ativo, provedor").eq("organization_id", org).maybeSingle();
     const conectado = !!(LOVABLE_API_KEY && WHATSAPP_API_KEY);
     if (!conectado) {
       if (acao === "ativar" && body?.ativo !== true) {
@@ -70,6 +70,7 @@ Deno.serve(async (req) => {
     }
     if (acao === "ativar") {
       const ligar = body?.ativo === true;
+      if (ligar && cfg?.provedor && cfg.provedor !== "meta") return json({ ok: false, error: "O provedor selecionado é o Aplicativo do PC" }, 409);
       if (ligar) {
         const { ambiente, statusModelo } = await consultar();
         const motivo = motivoNaoAtivar(ambiente, statusModelo);
