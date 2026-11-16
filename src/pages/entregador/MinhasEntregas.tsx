@@ -2,6 +2,7 @@ import { ReverterVendaDialog } from "@/components/reversao/ReverterVendaDialog";
 import { dataEntrega, numeroPedido } from "@/lib/entregas";
 import { dataOperacional } from "@/lib/dataOperacional";
 import { G1_ACOES } from "@/lib/g1/acoes";
+import { nomeForma } from "@/lib/formasPagamento";
 import { Undo2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,7 +97,7 @@ function DeliveryCard({ order, destaque = false }: { order: DeliveryOrder; desta
             <Badge variant="outline">{tipoVendaShort((order as any).tipo_venda)}</Badge>
             {order.payment_method && (
               <span className="flex items-center gap-1 text-muted-foreground">
-                <CreditCard className="h-4 w-4" /> {order.payment_method}
+                <CreditCard className="h-4 w-4" /> {nomeForma(order.payment_method)}
               </span>
             )}
           </div>

@@ -29,6 +29,8 @@ import {
   useFechamentosComissao,
   useRegistrarFechamento,
   periodoQuinzenal,
+  NOME_GRUPO,
+  type GrupoComissao,
 } from "@/hooks/useComissoes";
 
 const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -174,6 +176,12 @@ function PainelComissoes({ inicio, fim }: { inicio: string; fim: string }) {
               <Linha label="Promissórias recebidas" valor={r.promissoriasRecebidas} muted />
               <Linha label="Comissão de promissórias" valor={r.comissaoPromissorias} />
               <Linha label="Bônus por meta" valor={r.bonus} />
+              {Object.keys(r.semTaxa ?? {}).length > 0 && (
+                <p className="rounded border border-dashed p-2 text-xs text-muted-foreground">
+                  Sem taxa configurada (não comissionado):{" "}
+                  {Object.entries(r.semTaxa).map(([g, v]) => `${NOME_GRUPO[g as GrupoComissao] ?? g} ${brl(v)}`).join(" · ")}
+                </p>
+              )}
               <div className="flex justify-between border-t pt-2 font-semibold">
                 <span>Total a receber</span>
                 <span>{brl(r.totalReceber)}</span>

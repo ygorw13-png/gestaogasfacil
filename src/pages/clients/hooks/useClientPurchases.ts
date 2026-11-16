@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { nomeForma } from "@/lib/formasPagamento";
 
 interface ClientPurchase {
   id: string;
@@ -29,7 +30,7 @@ export function useClientPurchases(clientId?: string, clientName?: string) {
         product: o.product || "—",
         quantity: o.quantity || 0,
         amount: Number(o.price) || 0,
-        paymentMethod: o.payment_method || "—",
+        paymentMethod: nomeForma(o.payment_method),
       })));
     })();
   }, [clientId, clientName]);

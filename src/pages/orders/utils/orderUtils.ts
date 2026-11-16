@@ -1,18 +1,6 @@
+import { nomeForma } from "@/lib/formasPagamento";
 
-export const getPaymentMethodName = (method: string | undefined) => {
-  if (!method) return "Não informado";
-  
-  const methods: Record<string, string> = {
-    cash: "Dinheiro",
-    credit: "Cartão de Crédito",
-    debit: "Cartão de Débito",
-    pix: "PIX",
-    promissory: "Promissória",
-    voucher: "Vale Gás",
-  };
-  
-  return methods[method] || method;
-};
+export const getPaymentMethodName = (method: string | undefined) => nomeForma(method);
 
 export const getDeliveryType = (order: { isCompletePackage: boolean; hasEmptyCylinder: boolean }) => {
   if (order.isCompletePackage) {

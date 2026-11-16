@@ -15,17 +15,19 @@ export interface FormaInfo {
   opcao: string;
   /** Valor obrigatório e maior que zero. As demais aceitam "não informado". */
   valorObrigatorio: boolean;
+  /** Nome exibido em detalhes, compras, cartão do entregador e formulários impressos. */
+  nome: string;
 }
 
 export const FORMAS_PAGAMENTO: FormaInfo[] = [
-  { codigo: "money", rotulo: "Dinheiro", opcao: "Dinheiro", valorObrigatorio: true },
-  { codigo: "pix", rotulo: "PIX", opcao: "PIX", valorObrigatorio: true },
-  { codigo: "credit", rotulo: "Crédito", opcao: "Cartão de Crédito", valorObrigatorio: true },
-  { codigo: "debit", rotulo: "Débito", opcao: "Cartão de Débito", valorObrigatorio: true },
-  { codigo: "promissoria", rotulo: "Promissória", opcao: "Nota Promissória", valorObrigatorio: true },
-  { codigo: "vale-gas", rotulo: "Vale Gás", opcao: "Vale-Gás", valorObrigatorio: false },
-  { codigo: "gas-povo", rotulo: "Gás do Povo", opcao: "Gás do Povo", valorObrigatorio: false },
-  { codigo: "convenio", rotulo: "Convênio", opcao: "Convênio", valorObrigatorio: false },
+  { codigo: "money", rotulo: "Dinheiro", opcao: "Dinheiro", valorObrigatorio: true, nome: "Dinheiro" },
+  { codigo: "pix", rotulo: "PIX", opcao: "PIX", valorObrigatorio: true, nome: "PIX" },
+  { codigo: "credit", rotulo: "Crédito", opcao: "Cartão de Crédito", valorObrigatorio: true, nome: "Crédito" },
+  { codigo: "debit", rotulo: "Débito", opcao: "Cartão de Débito", valorObrigatorio: true, nome: "Débito" },
+  { codigo: "promissoria", rotulo: "Promissória", opcao: "Nota Promissória", valorObrigatorio: true, nome: "Nota promissória" },
+  { codigo: "vale-gas", rotulo: "Vale Gás", opcao: "Vale-Gás", valorObrigatorio: false, nome: "Vale-gás" },
+  { codigo: "gas-povo", rotulo: "Gás do Povo", opcao: "Gás do Povo", valorObrigatorio: false, nome: "Gás do Povo" },
+  { codigo: "convenio", rotulo: "Convênio", opcao: "Convênio", valorObrigatorio: false, nome: "Convênio" },
 ];
 
 const SINONIMOS: Record<string, FormaPagamento> = {
@@ -55,6 +57,15 @@ export function infoForma(v?: string | null): FormaInfo | null {
 /** Rótulo da forma gravada; código desconhecido = "Outros" (não é atribuído a outra modalidade). */
 export function rotuloForma(v?: string | null): string {
   return infoForma(v)?.rotulo ?? "Outros";
+}
+
+/**
+ * Nome da forma gravada para exibição. Não altera o código gravado: vazio = "Não informado";
+ * código desconhecido é mostrado como está (nunca atribuído a outra modalidade).
+ */
+export function nomeForma(v?: string | null): string {
+  if (!v || !String(v).trim()) return "Não informado";
+  return infoForma(v)?.nome ?? String(v);
 }
 
 export function valorObrigatorio(v?: string | null): boolean {

@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { supabase } from "@/integrations/supabase/client";
 import { dataEntrega, motivoRevisao, numeroPedido } from "@/lib/entregas";
 import { EstadoEntregaBadge } from "./EstadoEntregaBadge";
+import { nomeForma } from "@/lib/formasPagamento";
 
 const TIPO_EVENTO: Record<string, string> = {
   atribuicao: "Atribuído", reatribuicao: "Reatribuído", retirada_fila: "Voltou para a fila", recusa: "Recusado pelo entregador",
@@ -58,7 +59,7 @@ export function EntregaDetalhesDialog({ orderId, onOpenChange }: { orderId: stri
               <dt className="text-muted-foreground">Endereço</dt><dd>{[o.address?.street, o.address?.number, o.address?.neighborhood].filter(Boolean).join(", ") || "—"}</dd>
               <dt className="text-muted-foreground">Produto</dt><dd>{o.quantity}× {o.product}</dd>
               <dt className="text-muted-foreground">Preço</dt><dd>{Number(o.price ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</dd>
-              <dt className="text-muted-foreground">Pagamento</dt><dd>{o.payment_method ?? "—"}</dd>
+              <dt className="text-muted-foreground">Pagamento</dt><dd>{nomeForma(o.payment_method)}</dd>
               <dt className="text-muted-foreground">Data da entrega</dt><dd>{dataBR(dataEntrega(o.entrega_prevista, o.created_at))}{o.entrega_prevista ? " (prevista)" : " (dia do pedido)"}</dd>
               <dt className="text-muted-foreground">Entregador</dt><dd>{nome(o.delivery_person_id || o.delivery_person)}</dd>
               {o.rejection_reason && <><dt className="text-muted-foreground">Recusa</dt><dd>{o.rejection_reason}</dd></>}

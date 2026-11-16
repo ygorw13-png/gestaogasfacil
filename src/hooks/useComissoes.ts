@@ -1,3 +1,4 @@
+import { normalizarForma } from "@/lib/formasPagamento";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -172,15 +173,64 @@ export interface ResumoVendedor {
   bonus: number;
   totalReceber: number;
   semRegra: boolean;
+  /** Vendas (R$ por grupo) que a regra percentual não cobre: não comissionadas. */
+  semTaxa: Record<string, number>;
 }
 
-const grupoPagamento = (m?: string | null) => {
-  const v = (m ?? "").toLowerCase();
-  if (v.includes("pix")) return "pix";
-  if (v.includes("dinheiro") || v.includes("cash")) return "dinheiro";
-  if (v.includes("cart") || v.includes("credito") || v.includes("debito")) return "cartao";
-  if (v.includes("promiss")) return "promissoria";
-  return "outros";
+/**
+ * Grupo de comissão da forma gravada (código canônico de formasPagamento).
+ * Dinheiro/PIX/Cartão usam a taxa configurada; promissória só é comissionada no recebimento;
+ * Vale-gás, Gás do Povo e Convênio não têm taxa configurável e nunca viram recebimento/promissória.
+ */
+export type GrupoComissao = "dinheiro" | "pix" | "cartao" | "promissoria" | "vale-gas" | "gas-povo" | "convenio" | "nao-reconhecida";
+
+export function grupoPagamento(m?: string | null): GrupoComissao {
+  const c = normalizarForma(m);
+  switch (c) {
+    case "money": return "dinheiro";
+    case "pix": return "pix";
+    case "credit":
+    case "debit": return "cartao";
+    case "promissoria": return "promissoria";
+    case "vale-gas":
+    case "gas-povo":
+    case "convenio": return c;
+    default: return "nao-reconhecida";
+  }
+}
+
+export interface RegraCalculo {
+  modo: string;
+  perc_dinheiro: number | string;
+  perc_pix: number | string;
+  perc_cartao: number | string;
+  fixo_por_botijao: number | string;
+}
+
+/**
+ * Comissão de uma venda pela regra configurada. `semTaxa` = venda que a regra não cobre
+ * (forma sem taxa configurável ou não reconhecida): não é comissionada nem jogada em "outros".
+ */
+export function comissaoVenda(regra: RegraCalculo, forma: string | null | undefined, valor: number, qtd: number) {
+  const g = grupoPagamento(forma);
+  if (regra.modo === "fixo") {
+    // promissória só é comissionada no recebimento
+    return { grupo: g, comissao: g === "promissoria" ? 0 : Number(regra.fixo_por_botijao) * qtd, semTaxa: false };
+  }
+  const taxa: Partial<Record<GrupoComissao, number | string>> = {
+    dinheiro: regra.perc_dinheiro,
+    pix: regra.perc_pix,
+    cartao: regra.perc_cartao,
+  };
+  if (g === "promissoria") return { grupo: g, comissao: 0, semTaxa: false };
+  const perc = taxa[g];
+  if (perc === undefined || perc === null || !Number.isFinite(Number(perc))) return { grupo: g, comissao: 0, semTaxa: true };
+  return { grupo: g, comissao: (valor * Number(perc)) / 100, semTaxa: false };
+}
+
+export const NOME_GRUPO: Record<GrupoComissao, string> = {
+  dinheiro: "Dinheiro", pix: "PIX", cartao: "Crédito/Débito", promissoria: "Nota promissória",
+  "vale-gas": "Vale-gás", "gas-povo": "Gás do Povo", convenio: "Convênio", "nao-reconhecida": "Forma não reconhecida",
 };
 
 export function useComissoesPeriodo(inicio: string, fim: string) {
@@ -223,6 +273,7 @@ export function useComissoesPeriodo(inicio: string, fim: string) {
             bonus: 0,
             totalReceber: 0,
             semRegra: false,
+            semTaxa: {},
           });
         }
         return mapa.get(nome)!;
@@ -244,20 +295,9 @@ export function useComissoesPeriodo(inicio: string, fim: string) {
           r.semRegra = true;
           continue;
         }
-        if (regra.modo === "fixo") {
-          // promissória só é comissionada no recebimento
-          if (g !== "promissoria") r.comissaoVendas += Number(regra.fixo_por_botijao) * qtd;
-        } else {
-          const perc =
-            g === "pix"
-              ? regra.perc_pix
-              : g === "dinheiro"
-              ? regra.perc_dinheiro
-              : g === "cartao"
-              ? regra.perc_cartao
-              : 0;
-          r.comissaoVendas += (valor * Number(perc)) / 100;
-        }
+        const cv = comissaoVenda(regra, o.payment_method, valor, qtd);
+        r.comissaoVendas += cv.comissao;
+        if (cv.semTaxa) r.semTaxa[cv.grupo] = (r.semTaxa[cv.grupo] ?? 0) + valor;
       }
 
       for (const n of (notas ?? []) as any[]) {

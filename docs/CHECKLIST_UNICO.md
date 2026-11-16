@@ -121,3 +121,9 @@ Ver `docs/DECISOES_PENDENTES.md`.
 - Implementado: `admin_corrigir_forma_pagamento` (só admin, motivo, chave); muda só a forma; cancela apenas a promissória vinculada à venda, criada na mesma transação, mesmo valor, totalmente em aberto; demais casos bloqueiam para conciliação. Tela "Editar venda" usa a ação; produto/quantidade travados.
 - Testado (127.0.0.1, fictício): `run_forma015` 23/23 (inclui toque duplo simultâneo), `run_reversao011` 67/67, `run_formas014` 38/38.
 - Publicado: Cloud `0014_g1_015_corrigir_forma_pagamento.sql` + frontend. Pendente: o administrador confirmar a correção da venda #9899B5CA na tela (não foi feita por mim).
+
+## Lote — nomes das formas e comissões (16/11/2026)
+- [x] `nomeForma` único (8 nomes) em Detalhes do pedido, Detalhes da entrega, Compras do cliente, cartão do entregador e formulários impressos; códigos gravados intactos.
+- [x] Comissões: Dinheiro/Crédito/Débito pelo código canônico; taxa 0 válida; Vale-gás/Gás do Povo/Convênio/desconhecida ficam "sem taxa configurada" (não comissionadas, sem "outros"); promissória só no recebimento.
+- [x] Testes: formasPagamento 8/8, comissões 5/5. Sem fechamentos de comissão salvos (impacto histórico nenhum).
+- [ ] Telas não conferidas no navegador (sem sessão de teste).

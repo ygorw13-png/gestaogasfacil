@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizarForma, rotuloForma, valorParaForma, lerValor, FORMAS_PAGAMENTO } from "./formasPagamento";
+import { normalizarForma, rotuloForma, nomeForma, valorParaForma, lerValor, FORMAS_PAGAMENTO } from "./formasPagamento";
 
 describe("formas de pagamento", () => {
   it("cada uma das oito modalidades mantém o próprio código e rótulo", () => {
@@ -57,5 +57,16 @@ describe("formas de pagamento", () => {
     expect(lerValor("108.5")).toBe(108.5);
     expect(lerValor("")).toBeNull();
     expect(Number.isNaN(lerValor("abc") as number)).toBe(true);
+  });
+  it("nome exibido das oito modalidades, sem alterar o código gravado", () => {
+    const esperado: Record<string, string> = {
+      "gas-povo": "Gás do Povo", "vale-gas": "Vale-gás", convenio: "Convênio", money: "Dinheiro",
+      pix: "PIX", credit: "Crédito", debit: "Débito", promissoria: "Nota promissória",
+    };
+    for (const [c, n] of Object.entries(esperado)) expect(nomeForma(c)).toBe(n);
+    expect(FORMAS_PAGAMENTO.map((f) => f.nome)).toHaveLength(8);
+    expect(nomeForma("promissory")).toBe("Nota promissória");
+    expect(nomeForma(null)).toBe("Não informado");
+    expect(nomeForma("boleto")).toBe("boleto");
   });
 });

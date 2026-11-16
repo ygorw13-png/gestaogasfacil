@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { FORMAS_PAGAMENTO } from "@/lib/formasPagamento";
 
 const AZUL: [number, number, number] = [30, 64, 175];
 
@@ -140,7 +141,7 @@ export function gerarFolhaVendasPortaria(linhas = 16) {
   const yy = (doc as any).lastAutoTable.finalY + 6;
   doc.setFontSize(8);
   doc.text(
-    "Formas de pagamento: Dinheiro | PIX | Cartão débito | Cartão crédito | Nota promissória (anotar o nome do cliente) | Vale-Gás | Convênio | Gás-Povo",
+    `Formas de pagamento: ${FORMAS_PAGAMENTO.map((f) => f.nome).join(" | ")} (Nota promissória: anotar o nome do cliente)`,
     14,
     yy
   );
@@ -161,7 +162,7 @@ export function gerarFolhaFechamentoManual() {
   autoTable(doc, {
     startY: y,
     head: [["Forma de pagamento", "Qtd. de vendas", "Valor R$"]],
-    body: ["Dinheiro", "PIX", "Cartão de débito", "Cartão de crédito", "Nota promissória", "Vale-Gás", "Convênio / Gás-Povo"].map((f) => [f, "", ""]),
+    body: FORMAS_PAGAMENTO.map((f) => [f.nome, "", ""]),
     foot: [["TOTAL", "", ""]],
     theme: "grid",
     headStyles: { fillColor: AZUL },
