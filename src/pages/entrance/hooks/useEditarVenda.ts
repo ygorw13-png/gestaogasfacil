@@ -1,8 +1,11 @@
+import { useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { G1_ACOES, acao } from "@/lib/g1/acoes";
 import { useRegistrarMovimentacao, type PortariaProduto } from "./usePortariaStock";
+import { normalizarForma } from "@/lib/formasPagamento";
+import { ControleChave, falhaIncerta } from "@/lib/g1/operacao";
 import { vasilhameDeltas, normalizarTipoVenda, type TipoVenda } from "@/lib/saleTypes";
 
 export const produtoFrom = (product?: string | null): PortariaProduto | null => {
@@ -27,19 +30,37 @@ export interface EditarVendaInput {
 export function useEditarVenda() {
   const qc = useQueryClient();
   const registrarMov = useRegistrarMovimentacao();
+  const chaveForma = useRef(new ControleChave("forma"));
 
   return useMutation({
     mutationFn: async (input: EditarVendaInput) => {
       if (G1_ACOES) {
         // Decisão A: só administrador muda preço, com motivo e auditoria.
-        // Produto, quantidade e forma mexem em estoque/recebimento: bloqueados até a decisão B.
+        // Forma de pagamento: correção administrativa controlada (candidato 015), sem estoque nem financeiro novo.
+        // Produto e quantidade continuam fora da edição (mexem em estoque): usar a reversão.
         const { data: atual, error: e0 } = await supabase.from("orders").select("product, quantity, payment_method, price").eq("id", input.orderId).maybeSingle();
         if (e0) throw e0;
         if (!atual) throw new Error("Venda não encontrada");
         const a = atual as any;
-        if (a.product !== input.product || Number(a.quantity) !== input.quantity || (a.payment_method || "") !== (input.payment_method || ""))
-          throw new Error("Trocar produto, quantidade ou forma de pagamento de venda lançada ainda não tem regra aprovada (decisão B). Só o valor pode ser corrigido pelo administrador.");
-        if (Number(a.price) === input.price) throw new Error("Nada a corrigir.");
+        if (a.product !== input.product || Number(a.quantity) !== input.quantity)
+          throw new Error("Produto e quantidade de venda lançada não mudam pela edição (mexem no estoque). Use a reversão.");
+        const formaAtual = normalizarForma(a.payment_method) ?? a.payment_method ?? "";
+        const formaNova = normalizarForma(input.payment_method) ?? input.payment_method ?? "";
+        const precoMudou = Number(a.price ?? 0) !== input.price;
+        if (formaNova !== formaAtual) {
+          if (precoMudou) throw new Error("Corrija a forma de pagamento e o valor separadamente.");
+          const conteudo = { orderId: input.orderId, forma: formaNova, motivo: input.motivo };
+          const chave = chaveForma.current.obter(conteudo);
+          try {
+            await acao("admin_corrigir_forma_pagamento", { _order_id: input.orderId, _nova_forma: formaNova, _motivo: input.motivo, _chave: chave });
+            chaveForma.current.confirmar();
+          } catch (e) {
+            chaveForma.current.falhou(falhaIncerta(e));
+            throw e;
+          }
+          return;
+        }
+        if (!precoMudou) throw new Error("Nada a corrigir.");
         await acao("admin_corrigir_pedido", { _order_id: input.orderId, _novo_preco: input.price, _novo_status: null, _motivo: input.motivo });
         return;
       }
@@ -163,6 +184,8 @@ export function useEditarVenda() {
       qc.invalidateQueries({ queryKey: ["estoque_retirado"] });
       qc.invalidateQueries({ queryKey: ["movimentacoes_portaria_periodo"] });
       qc.invalidateQueries({ queryKey: ["promissory_notes"] });
+      qc.invalidateQueries({ queryKey: ["promissorias-vencidas"] });
+      qc.invalidateQueries({ queryKey: ["vendas_por_data"] });
 
     },
     onError: (e: Error) => toast.error(`Erro ao editar venda: ${e.message}`),

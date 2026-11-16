@@ -99,6 +99,13 @@
       "when": 1794832011692,
       "tag": "0013_g1_014_formas_pagamento",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794837240868,
+      "tag": "0014_g1_015_corrigir_forma_pagamento",
+      "breakpoints": true
     }
   ]
 }

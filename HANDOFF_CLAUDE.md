@@ -343,3 +343,6 @@ Sair ou perder a sessão num aparelho não derruba os outros (`signOut({ scope: 
 
 ## Atualização 16/11/2026 — candidato 014 publicado
 Formas de pagamento com código próprio (`src/lib/formasPagamento.ts` ↔ `public._forma_pedido`); vale-gás/Gás do Povo/convênio aceitam valor não informado (NULL, sem recebimento/promissória). Cloud: `drizzle/migrations/0013_g1_014_formas_pagamento.sql`. Aviso do entregador: `send-push` (tipos `atribuicao`/`teste`, destinatário lido do banco), `public/push-sw.js` com escopo `/push/`. Testes: `reset_com014.sh com_abertura` + `run_formas014.py` 38/38; segurança 27/27; navegador `g1_014_browser.py` 20/20 e `g1_014_avisos_browser.py` 7/7 (`lab_reset.sh com014`); `g1/tests/push/run_push014.py` 11/11. Android real não conferido.
+
+## Atualização 16/11/2026 — candidato 015 publicado
+Correção da forma de pagamento de venda concluída: `public.admin_corrigir_forma_pagamento(order, forma, motivo, chave)` (Cloud `0014_g1_015_corrigir_forma_pagamento.sql`, candidato `g1/candidate/sql/015_corrigir_forma_pagamento.sql`). Auditoria em `auditoria_correcoes` (venda e título). Testes: `reset_com015.sh com_abertura` + `run_forma015.py` 23/23. Tela: `useEditarVenda` (G1) chama a ação quando só a forma muda.

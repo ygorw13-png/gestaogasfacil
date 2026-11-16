@@ -81,7 +81,7 @@ export function usePromissoriasVencidas() {
       const { data, error } = await supabase
         .from("promissory_notes")
         .select("id, client_name, value, due_date, status")
-        .neq("status", "paid")
+        .not("status", "in", "(paid,cancelled)")
         .lt("due_date", hoje())
         .order("due_date");
       if (error) throw error;

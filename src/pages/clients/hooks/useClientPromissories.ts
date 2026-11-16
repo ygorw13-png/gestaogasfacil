@@ -23,7 +23,7 @@ export function useClientPromissories(clientId?: string, clientName?: string) {
       setLoading(false);
       if (error || !data) { setPromissories([]); return; }
       const today = new Date().toISOString().slice(0, 10);
-      setPromissories(data.map((p: any) => ({
+      setPromissories(data.filter((p: any) => p.status !== "cancelled").map((p: any) => ({
         id: p.id,
         amount: Number(p.value) || 0,
         dueDate: p.due_date,

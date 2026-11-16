@@ -116,3 +116,8 @@ Ver `docs/DECISOES_PENDENTES.md`.
 - Testado (127.0.0.1, fictício): `run_formas014` 38/38, `run_security` 27/27, navegador `g1_014_browser` 20/20, `g1_014_avisos_browser` 7/7, aviso `g1/tests/push/run_push014.py` 11/11, vitest 44/44.
 - Publicado: Cloud `0013_g1_014_formas_pagamento.sql` + função `send-push` + frontend.
 - Pendente: conferência no Android real (aberto, segundo plano, tela bloqueada); venda 9899b5ca (16/11, R$ 108, gravada como convênio com promissória 79322b47) e vendas antigas "convênio" da Portaria podem ser Gás do Povo — decisão do proprietário; nada foi reclassificado.
+
+## Lote 015 — correção administrativa da forma de pagamento (16/11/2026)
+- Implementado: `admin_corrigir_forma_pagamento` (só admin, motivo, chave); muda só a forma; cancela apenas a promissória vinculada à venda, criada na mesma transação, mesmo valor, totalmente em aberto; demais casos bloqueiam para conciliação. Tela "Editar venda" usa a ação; produto/quantidade travados.
+- Testado (127.0.0.1, fictício): `run_forma015` 23/23 (inclui toque duplo simultâneo), `run_reversao011` 67/67, `run_formas014` 38/38.
+- Publicado: Cloud `0014_g1_015_corrigir_forma_pagamento.sql` + frontend. Pendente: o administrador confirmar a correção da venda #9899B5CA na tela (não foi feita por mim).

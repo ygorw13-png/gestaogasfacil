@@ -2700,6 +2700,15 @@ export type Database = {
           total: number
         }[]
       }
+      admin_corrigir_forma_pagamento: {
+        Args: {
+          _chave: string
+          _motivo: string
+          _nova_forma: string
+          _order_id: string
+        }
+        Returns: string
+      }
       admin_corrigir_pedido: {
         Args: {
           _motivo: string

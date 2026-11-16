@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useEditarVenda } from "../../hooks/useEditarVenda";
 import { normalizarForma } from "@/lib/formasPagamento";
+import { G1_ACOES } from "@/lib/g1/acoes";
 
 const PRODUTOS = ["GLP P13", "GLP P20", "GLP P45", "Vasilhame P13", "Água 20L"];
 
@@ -71,7 +72,7 @@ export function EditSaleButton({
   }, [open, product, quantity, amount, paymentCode]);
 
   const qtdNum = Number(qtd);
-  const valido = qtdNum > 0 && motivo.trim().length >= 3;
+  const valido = qtdNum > 0 && motivo.trim().length >= 5;
 
   const salvar = () => {
     if (!valido) return;
@@ -99,14 +100,16 @@ export function EditSaleButton({
           <DialogHeader>
             <DialogTitle>Editar venda</DialogTitle>
             <DialogDescription>
-              {client} — o estoque da portaria e a ficha do parceiro são ajustados pela diferença.
+              {G1_ACOES
+                ? `${client} — correção feita pelo administrador, com motivo. Não ajusta estoque nem ficha de parceiro, e não cria recebimento nem promissória.`
+                : `${client} — o estoque da portaria e a ficha do parceiro são ajustados pela diferença.`}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4">
             <div className="space-y-2">
               <Label>Produto</Label>
-              <Select value={prod} onValueChange={setProd}>
+              <Select value={prod} onValueChange={setProd} disabled={G1_ACOES}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -127,6 +130,7 @@ export function EditSaleButton({
                   id={`qtd-${saleId}`}
                   type="number"
                   min={1}
+                  disabled={G1_ACOES}
                   value={qtd}
                   onChange={(e) => setQtd(e.target.value)}
                 />
@@ -158,6 +162,12 @@ export function EditSaleButton({
                   ))}
                 </SelectContent>
               </Select>
+              {G1_ACOES && pagamento !== (normalizarForma(paymentCode) ?? "") && (
+                <p className="text-xs text-muted-foreground">
+                  Só a forma muda: valor, produto, quantidade, cliente e data continuam iguais. Promissória em aberto
+                  gerada junto com esta venda é cancelada e fica no histórico; se houver pagamento, a correção é bloqueada para conciliação.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -166,7 +176,7 @@ export function EditSaleButton({
                 id={`motivo-edicao-${saleId}`}
                 value={motivo}
                 onChange={(e) => setMotivo(e.target.value)}
-                placeholder="Ex.: quantidade lançada errada, valor incorreto..."
+                placeholder="Ex.: forma de pagamento lançada errada, valor incorreto..."
               />
             </div>
           </div>
