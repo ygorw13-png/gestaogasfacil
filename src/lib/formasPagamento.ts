@@ -54,8 +54,21 @@ export function infoForma(v?: string | null): FormaInfo | null {
   return c ? FORMAS_PAGAMENTO.find((f) => f.codigo === c)! : null;
 }
 
+/**
+ * Retirada de agregado "a acertar" (candidato 017): não é forma de pagamento nem venda com valor.
+ * O pedido fica sem preço; o valor existe só no acerto do administrador.
+ */
+export const FORMA_AGREGADO = "agregado";
+export const ROTULO_AGREGADO = "Retirada de agregado — a acertar";
+export const VALOR_RESERVADO = "Valor reservado ao administrador";
+export const ehRetiradaAgregado = (v?: string | null) => v === FORMA_AGREGADO;
+
+/** Texto do valor de uma retirada de agregado conforme o acesso (nunca "R$ 0,00"). */
+export const textoValorAgregado = (ehAdmin: boolean) => (ehAdmin ? "Pendente: valor no acerto" : VALOR_RESERVADO);
+
 /** Rótulo da forma gravada; código desconhecido = "Outros" (não é atribuído a outra modalidade). */
 export function rotuloForma(v?: string | null): string {
+  if (ehRetiradaAgregado(v)) return ROTULO_AGREGADO;
   return infoForma(v)?.rotulo ?? "Outros";
 }
 
@@ -65,6 +78,7 @@ export function rotuloForma(v?: string | null): string {
  */
 export function nomeForma(v?: string | null): string {
   if (!v || !String(v).trim()) return "Não informado";
+  if (ehRetiradaAgregado(v)) return ROTULO_AGREGADO;
   return infoForma(v)?.nome ?? String(v);
 }
 

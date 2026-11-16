@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ValorVenda } from "@/components/common/ValorVenda";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -82,7 +83,7 @@ export function ClosingSalesEditor({ date }: ClosingSalesEditorProps) {
                     <td className="px-3 py-2">{s.product}</td>
                     <td className="px-3 py-2 text-center">{s.quantity}</td>
                     <td className="px-3 py-2">{s.payment}</td>
-                    <td className="px-3 py-2 text-right">{s.valorInformado ? formatBRL(s.amount) : <span className="text-muted-foreground">Não informado</span>}</td>
+                    <td className="px-3 py-2 text-right"><ValorVenda paymentCode={s.paymentCode} valorInformado={s.valorInformado} amount={s.amount} /></td>
                     <td className="px-3 py-2">
                       {s.status === "cancelled" ? (
                         <div className="flex justify-end">

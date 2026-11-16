@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEditarVenda } from "../../hooks/useEditarVenda";
-import { normalizarForma } from "@/lib/formasPagamento";
+import { ehRetiradaAgregado, normalizarForma } from "@/lib/formasPagamento";
 import { G1_ACOES } from "@/lib/g1/acoes";
 
 const PRODUTOS = ["GLP P13", "GLP P20", "GLP P45", "Vasilhame P13", "Água 20L"];
@@ -45,7 +45,13 @@ interface EditSaleButtonProps {
   paymentCode?: string;
 }
 
-export function EditSaleButton({
+/** Retirada de agregado não se edita (sem preço; valor só no acerto, devolução pela reversão). */
+export function EditSaleButton(props: EditSaleButtonProps) {
+  if (ehRetiradaAgregado(props.paymentCode)) return null;
+  return <EditarVendaBotao {...props} />;
+}
+
+function EditarVendaBotao({
   saleId,
   client,
   product,

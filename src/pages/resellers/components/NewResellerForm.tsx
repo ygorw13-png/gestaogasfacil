@@ -18,11 +18,13 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface NewResellerFormProps {
-  onSubmit: (data: FormValues & { priceP20: number; priceP45: number; priceWater: number }) => void;
+  onSubmit: (data: FormValues) => void;
   isSubmitting?: boolean;
+  /** Preço é sigiloso: o campo só aparece para o administrador. */
+  mostrarPreco?: boolean;
 }
 
-export function NewResellerForm({ onSubmit, isSubmitting }: NewResellerFormProps) {
+export function NewResellerForm({ onSubmit, isSubmitting, mostrarPreco = false }: NewResellerFormProps) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -37,8 +39,7 @@ export function NewResellerForm({ onSubmit, isSubmitting }: NewResellerFormProps
   });
 
   const handleSubmit = (data: FormValues) => {
-    // Mantém compatibilidade com tipo Reseller
-    onSubmit({ ...data, priceP20: 0, priceP45: 0, priceWater: 0, priceP13: Number(data.priceP13 || 0) });
+    onSubmit({ ...data, priceP13: mostrarPreco ? Number(data.priceP13 || 0) : undefined });
   };
 
   return (
@@ -62,13 +63,15 @@ export function NewResellerForm({ onSubmit, isSubmitting }: NewResellerFormProps
           )} />
         </div>
 
+        {mostrarPreco && (
         <FormField control={form.control} name="priceP13" render={({ field }) => (
           <FormItem className="max-w-xs">
-            <FormLabel>Preço P13 (R$) <span className="text-muted-foreground font-normal">(opcional)</span></FormLabel>
+            <FormLabel>Preço P13 (R$) <span className="text-muted-foreground font-normal">(opcional, só o administrador vê)</span></FormLabel>
             <FormControl><Input type="number" step="0.01" placeholder="Ex: 80,00" {...field} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />
+        )}
 
         <FormField control={form.control} name="notes" render={({ field }) => (
           <FormItem><FormLabel>Observações</FormLabel><FormControl><Textarea placeholder="Observações adicionais" rows={3} {...field} /></FormControl><FormMessage /></FormItem>

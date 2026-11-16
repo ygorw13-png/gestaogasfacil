@@ -119,6 +119,232 @@ export type Database = {
         }
         Relationships: []
       }
+      agregado_acerto_itens: {
+        Row: {
+          acerto_id: string
+          criado_em: string
+          id: string
+          order_id: string
+          organization_id: string
+          quantidade: number
+        }
+        Insert: {
+          acerto_id: string
+          criado_em?: string
+          id?: string
+          order_id: string
+          organization_id: string
+          quantidade: number
+        }
+        Update: {
+          acerto_id?: string
+          criado_em?: string
+          id?: string
+          order_id?: string
+          organization_id?: string
+          quantidade?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agregado_acerto_itens_acerto_id_fkey"
+            columns: ["acerto_id"]
+            isOneToOne: false
+            referencedRelation: "agregado_acertos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agregado_acerto_itens_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agregado_acertos: {
+        Row: {
+          criado_em: string
+          criado_por: string
+          criado_por_nome: string | null
+          data_operacao: string
+          id: string
+          observacoes: string | null
+          organization_id: string
+          reseller_id: string
+          valor: number
+        }
+        Insert: {
+          criado_em?: string
+          criado_por: string
+          criado_por_nome?: string | null
+          data_operacao: string
+          id?: string
+          observacoes?: string | null
+          organization_id: string
+          reseller_id: string
+          valor: number
+        }
+        Update: {
+          criado_em?: string
+          criado_por?: string
+          criado_por_nome?: string | null
+          data_operacao?: string
+          id?: string
+          observacoes?: string | null
+          organization_id?: string
+          reseller_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agregado_acertos_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agregado_lancamentos: {
+        Row: {
+          acerto_id: string | null
+          anulado_em: string | null
+          anulado_motivo: string | null
+          anulado_por: string | null
+          credito_id: string | null
+          criado_em: string
+          data_operacao: string
+          destino: string | null
+          forma: string | null
+          id: string
+          observacoes: string | null
+          order_id: string | null
+          organization_id: string
+          recebido_em: string
+          registrado_por: string
+          registrado_por_nome: string | null
+          reseller_id: string
+          reversao_id: string | null
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          acerto_id?: string | null
+          anulado_em?: string | null
+          anulado_motivo?: string | null
+          anulado_por?: string | null
+          credito_id?: string | null
+          criado_em?: string
+          data_operacao: string
+          destino?: string | null
+          forma?: string | null
+          id?: string
+          observacoes?: string | null
+          order_id?: string | null
+          organization_id: string
+          recebido_em?: string
+          registrado_por: string
+          registrado_por_nome?: string | null
+          reseller_id: string
+          reversao_id?: string | null
+          tipo: string
+          valor: number
+        }
+        Update: {
+          acerto_id?: string | null
+          anulado_em?: string | null
+          anulado_motivo?: string | null
+          anulado_por?: string | null
+          credito_id?: string | null
+          criado_em?: string
+          data_operacao?: string
+          destino?: string | null
+          forma?: string | null
+          id?: string
+          observacoes?: string | null
+          order_id?: string | null
+          organization_id?: string
+          recebido_em?: string
+          registrado_por?: string
+          registrado_por_nome?: string | null
+          reseller_id?: string
+          reversao_id?: string | null
+          tipo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agregado_lancamentos_acerto_id_fkey"
+            columns: ["acerto_id"]
+            isOneToOne: false
+            referencedRelation: "agregado_acertos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agregado_lancamentos_credito_id_fkey"
+            columns: ["credito_id"]
+            isOneToOne: false
+            referencedRelation: "agregado_lancamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agregado_lancamentos_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agregado_lancamentos_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agregado_lancamentos_reversao_id_fkey"
+            columns: ["reversao_id"]
+            isOneToOne: false
+            referencedRelation: "reversoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agregado_precos: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          organization_id: string
+          preco: number
+          produto: string
+          reseller_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          organization_id: string
+          preco: number
+          produto: string
+          reseller_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          organization_id?: string
+          preco?: number
+          produto?: string
+          reseller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agregado_precos_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auditoria_correcoes: {
         Row: {
           antes: Json
@@ -2677,6 +2903,33 @@ export type Database = {
       }
     }
     Functions: {
+      _agregado_acerto_saldo: { Args: { _acerto: string }; Returns: number }
+      _agregado_ajustar: {
+        Args: {
+          _acerto: string
+          _motivo: string
+          _order: string
+          _valor: number
+        }
+        Returns: undefined
+      }
+      _agregado_credito_saldo: { Args: { _credito: string }; Returns: number }
+      _agregado_forma: { Args: { _f: string }; Returns: string }
+      _agregado_pagar: {
+        Args: {
+          _acerto: string
+          _creditos: Json
+          _forma: string
+          _obs: string
+          _pagamento: number
+        }
+        Returns: undefined
+      }
+      _agregado_qtd: {
+        Args: { _order: string }
+        Returns: Record<string, unknown>
+      }
+      _agregado_travar: { Args: { _reseller: string }; Returns: undefined }
       _carga_alvo: { Args: { _entregador_id: string }; Returns: string }
       _cobrador_valido: {
         Args: { _cobrador: string; _org: string }
@@ -2830,6 +3083,94 @@ export type Database = {
           _order_id: string
         }
         Returns: string
+      }
+      agregado_acerto_ajustar: {
+        Args: {
+          _acerto_id: string
+          _chave: string
+          _motivo: string
+          _valor: number
+        }
+        Returns: string
+      }
+      agregado_acerto_pagar: {
+        Args: {
+          _acerto_id: string
+          _chave: string
+          _creditos: Json
+          _forma: string
+          _observacoes: string
+          _pagamento: number
+        }
+        Returns: string
+      }
+      agregado_acerto_registrar: {
+        Args: {
+          _chave: string
+          _creditos: Json
+          _forma: string
+          _itens: Json
+          _observacoes: string
+          _pagamento: number
+          _reseller_id: string
+          _valor: number
+        }
+        Returns: string
+      }
+      agregado_conta: {
+        Args: { _reseller_id: string }
+        Returns: {
+          acertada: number
+          criado_em: string
+          devolvida: number
+          em_devolucao: boolean
+          order_id: string
+          pendente: number
+          produto: string
+          quantidade: number
+          status: string
+          tipo_venda: string
+        }[]
+      }
+      agregado_credito_devolver: {
+        Args: {
+          _chave: string
+          _credito_id: string
+          _forma: string
+          _motivo: string
+          _valor: number
+        }
+        Returns: string
+      }
+      agregado_devolucao_acertada: {
+        Args: {
+          _acerto_id: string
+          _chave: string
+          _motivo: string
+          _order_id: string
+          _valor_ajuste: number
+        }
+        Returns: string
+      }
+      agregado_financeiro: { Args: { _reseller_id: string }; Returns: Json }
+      agregado_por_conta_anular: {
+        Args: { _chave: string; _id: string; _motivo: string }
+        Returns: string
+      }
+      agregado_por_conta_registrar: {
+        Args: {
+          _chave: string
+          _forma: string
+          _observacoes: string
+          _recebido_em: string
+          _reseller_id: string
+          _valor: number
+        }
+        Returns: string
+      }
+      agregado_preco_definir: {
+        Args: { _preco: number; _produto: string; _reseller_id: string }
+        Returns: undefined
       }
       atribuir_cobrador: {
         Args: { _cobrador_id: string; _id: string }
@@ -3112,6 +3453,19 @@ export type Database = {
           _produto: string
           _referencia_id?: string
           _tipo: string
+        }
+        Returns: string
+      }
+      retirada_agregado: {
+        Args: {
+          _chave: string
+          _comodato: boolean
+          _observacoes: string
+          _produto: string
+          _quantidade: number
+          _reseller_id: string
+          _tipo_venda: string
+          _vasilhames_recebidos: number
         }
         Returns: string
       }

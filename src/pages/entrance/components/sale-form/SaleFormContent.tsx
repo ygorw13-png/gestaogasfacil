@@ -8,7 +8,7 @@ import { CylinderMovement } from "./CylinderMovement";
 import { ResellerSelection } from "./ResellerSelection";
 import { useResellers } from "../../../resellers/hooks/useResellers";
 import { useSaleClients } from "../../hooks/useSaleClients";
-import { useAuth } from "@/contexts/AuthContext";
+import { VALOR_RESERVADO } from "@/lib/formasPagamento";
 import { useSaleForm } from "../../hooks/useSaleForm";
 import type { Sale } from "../../types/saleTypes";
 import { useContext } from "react";
@@ -22,7 +22,6 @@ interface SaleFormContentProps {
 }
 
 export function SaleFormContent({ onSubmit, onOpenChange }: SaleFormContentProps) {
-  const { user } = useAuth();
   const { resellers } = useResellers();
   const { data: clients = [], isLoading: loadingClients } = useSaleClients();
 
@@ -81,7 +80,6 @@ export function SaleFormContent({ onSubmit, onOpenChange }: SaleFormContentProps
           selectedReseller={selectedReseller}
           onSelectReseller={setSelectedReseller}
           resellers={resellers}
-          showPrices={user?.role === 'admin' || user?.role === 'gerente'}
         />
       )}
       
@@ -105,10 +103,10 @@ export function SaleFormContent({ onSubmit, onOpenChange }: SaleFormContentProps
       ) : (
         <>
           <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
-            <p className="font-medium">Venda a acertar (nota promissória)</p>
+            <p className="font-medium">Retirada de agregado — a acertar</p>
             <p className="text-muted-foreground">
-              Não é preciso informar valor agora. Os botijões entram na conta do agregado e o preço
-              é definido no recebimento, pelo menu Revendedores.
+              Registre só o produto, a quantidade e os cascos. Não é promissória nem venda com valor:
+              {" "}{VALOR_RESERVADO.toLowerCase()}, que faz o acerto.
             </p>
           </div>
 

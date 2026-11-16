@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { CashierData } from "../types/cashierTypes";
 import { formatCurrency } from "@/lib/formatUtils";
+import { textoValorAgregados } from "../hooks/useResumoPagamentos";
 
 export interface PdfCategoriaPagamento {
   label: string;
@@ -46,7 +47,7 @@ export interface ClosingPdfInput {
   /** Todas as formas de pagamento (exceto agregados, que vão consolidados) */
   categorias?: PdfCategoriaPagamento[];
   /** Total consolidado dos agregados (revendedores) */
-  agregados?: { quantidade: number; valor: number; produtos: { p13: number; p20: number; p45: number; water: number } };
+  agregados?: { quantidade: number; valor: number; produtos: { p13: number; p20: number; p45: number; water: number }; aAcertar?: number };
   despesas?: PdfDespesa[];
   movimento?: PdfMovimentoProduto[];
 }
@@ -124,7 +125,7 @@ export function gerarPdfFechamento(input: ClosingPdfInput) {
         agregados.produtos.p45 || "-",
         agregados.produtos.water || "-",
         agregados.quantidade,
-        formatCurrency(agregados.valor),
+        textoValorAgregados(agregados.valor, agregados.aAcertar ?? 0, formatCurrency),
       ]);
     }
   } else {

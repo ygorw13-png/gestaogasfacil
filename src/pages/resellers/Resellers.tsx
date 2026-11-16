@@ -16,6 +16,9 @@ import { ContaAgregadosTab } from "./components/ContaAgregadosTab";
 import { Reseller } from "./types";
 import { ResellerDetailsDialog } from "./components/ResellerDetailsDialog";
 import { useResellers } from "./hooks/useResellers";
+import { useEhAdmin } from "@/hooks/useEhAdmin";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Resellers() {
   const { resellers, isLoading, createReseller, removeReseller } = useResellers();
@@ -24,6 +27,18 @@ export default function Resellers() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const canManageResellers = true;
+  const { ehAdmin } = useEhAdmin();
+  // Preço sigiloso: só o administrador consulta (o banco devolve nada aos demais).
+  const { data: precos } = useQuery({
+    queryKey: ["agregado-precos"],
+    enabled: ehAdmin,
+    queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any).from("agregado_precos").select("reseller_id, preco").eq("produto", "P13");
+      if (error) throw error;
+      return Object.fromEntries((data ?? []).map((p: { reseller_id: string; preco: number }) => [p.reseller_id, Number(p.preco)])) as Record<string, number>;
+    },
+  });
 
   const handleAddReseller = async (data: any) => {
     await createReseller.mutateAsync({
@@ -59,7 +74,7 @@ export default function Resellers() {
           <DialogHeader>
             <DialogTitle>Cadastrar Novo Agregado</DialogTitle>
           </DialogHeader>
-          <NewResellerForm onSubmit={handleAddReseller} isSubmitting={createReseller.isPending} />
+          <NewResellerForm onSubmit={handleAddReseller} isSubmitting={createReseller.isPending} mostrarPreco={ehAdmin} />
         </DialogContent>
       </Dialog>
 
@@ -67,7 +82,6 @@ export default function Resellers() {
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
         reseller={selectedReseller}
-        canViewPrices={canManageResellers}
       />
 
       <Tabs defaultValue="list" className="space-y-4">
@@ -90,7 +104,7 @@ export default function Resellers() {
               ) : (
                 <ResellersList 
                   resellers={resellers} 
-                  canViewPrices={canManageResellers}
+                  precos={ehAdmin ? precos ?? {} : undefined}
                   onViewReseller={handleViewReseller}
                   onRemoveReseller={(id) => removeReseller.mutate(id)}
                 />
@@ -101,10 +115,10 @@ export default function Resellers() {
         <TabsContent value="conta" className="mt-0">
           <Card>
             <CardHeader>
-              <CardTitle>Botijões a acertar</CardTitle>
+              <CardTitle>Conta dos agregados (quantidades)</CardTitle>
             </CardHeader>
             <CardContent>
-              <ContaAgregadosTab />
+              <ContaAgregadosTab resellers={resellers} onAbrir={handleViewReseller} />
             </CardContent>
           </Card>
         </TabsContent>

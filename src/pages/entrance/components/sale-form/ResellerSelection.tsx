@@ -15,10 +15,9 @@ interface ResellerSelectionProps {
   selectedReseller: Reseller | null;
   onSelectReseller: (reseller: Reseller) => void;
   resellers: Reseller[];
-  showPrices: boolean;
 }
 
-export function ResellerSelection({ selectedReseller, onSelectReseller, resellers, showPrices }: ResellerSelectionProps) {
+export function ResellerSelection({ selectedReseller, onSelectReseller, resellers }: ResellerSelectionProps) {
   const handleSelectReseller = (resellerId: string) => {
     const reseller = resellers.find((item) => item.id === resellerId);
     if (reseller) onSelectReseller(reseller);
@@ -37,9 +36,6 @@ export function ResellerSelection({ selectedReseller, onSelectReseller, reseller
               <SelectItem key={reseller.id} value={reseller.id}>
                 {reseller.name}
                 {reseller.phone ? ` — ${reseller.phone}` : ""}
-                {showPrices && reseller.priceP13 > 0
-                  ? ` — P13: R$ ${reseller.priceP13.toFixed(2)}`
-                  : ""}
               </SelectItem>
             ))}
           </SelectContent>

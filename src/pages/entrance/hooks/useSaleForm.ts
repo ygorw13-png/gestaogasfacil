@@ -2,13 +2,12 @@
 import { useReducer, useCallback, useRef, useState } from "react";
 import type { Sale } from "../types/saleTypes";
 import type { Reseller } from "../../resellers/types";
-import { useRegistrarEntregaConta } from "@/hooks/useContaBotijoes";
-import { infoForma, valorParaForma, type FormaPagamento } from "@/lib/formasPagamento";
+import { infoForma, valorParaForma, FORMA_AGREGADO, ROTULO_AGREGADO, type FormaPagamento } from "@/lib/formasPagamento";
 
 /**
  * Venda Regular da portaria: grava sempre o total informado, inclusive para cliente cadastrado como
  * ponto de revenda (ser ponto não zera o valor). Nota promissória exige cliente e total positivo.
- * Retirada de parceiro "a acertar" (sem valor) é só a aba de agregado, bloqueada pela decisão 13.
+ * Retirada de parceiro "a acertar" (sem valor) é só a aba de agregado (ação retirada_agregado, candidato 017).
  * O id de um ponto não é de `clients`: vai só o nome, para a promissória não ser recusada.
  */
 export function dadosVendaRegular(p: {
@@ -101,45 +100,19 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<void>, onOp
   const enviandoRef = useRef(false);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const registrarEntrega = useRegistrarEntregaConta();
   
   // Effect to update price when reseller or product changes
   // Since we're using a reducer, we can handle this in the reducer
   // or via a separate useEffect if needed
   
-  // Handle product change with appropriate price updates
+  // Agregado: o preço é sigiloso (só administrador, no acerto); a portaria registra só a quantidade.
   const setProduct = useCallback((product: string) => {
     dispatch({ type: 'SET_PRODUCT', payload: product });
-    
-    // Update price based on product and reseller
-    if (state.saleType === "reseller" && state.selectedReseller && product) {
-      const prices: Record<string, number> = {
-        p13: state.selectedReseller.priceP13,
-        p20: state.selectedReseller.priceP20,
-        p45: state.selectedReseller.priceP45,
-        water: state.selectedReseller.priceWater,
-      };
-      
-      dispatch({ type: 'SET_UNIT_PRICE', payload: prices[product] || 120 });
-    }
-  }, [state.saleType, state.selectedReseller]);
+  }, []);
 
-  // Handle reseller change with price updates
   const setSelectedReseller = useCallback((reseller: Reseller | null) => {
     dispatch({ type: 'SET_RESELLER', payload: reseller });
-    
-    // Update price if product is selected
-    if (reseller && state.product) {
-      const prices: Record<string, number> = {
-        p13: reseller.priceP13,
-        p20: reseller.priceP20,
-        p45: reseller.priceP45,
-        water: reseller.priceWater,
-      };
-      
-      dispatch({ type: 'SET_UNIT_PRICE', payload: prices[state.product] || 120 });
-    }
-  }, [state.product]);
+  }, []);
 
   // Função para lidar com o envio do formulário.
   // Só limpa, fecha e dispara efeitos ligados à venda DEPOIS da gravação confirmada; em falha,
@@ -162,13 +135,17 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<void>, onOp
 
     // Forma escolhida -> código único (o mesmo gravado no banco). Sem forma válida, não registra:
     // nunca cai em "Convênio" ou outra modalidade por omissão.
-    const forma = isReseller ? infoForma('promissoria') : infoForma(state.paymentMethod);
-    if (!forma) {
+    if (isReseller && !state.selectedReseller) {
+      setErro("Selecione o agregado.");
+      return;
+    }
+    const forma = isReseller ? null : infoForma(state.paymentMethod);
+    if (!isReseller && !forma) {
       setErro("Selecione a forma de pagamento.");
       return;
     }
     const total = state.quantity * state.unitPrice;
-    // Agregado (aba própria): retirada "a acertar", sem valor no ato (decisão 13).
+    // Agregado (aba própria): retirada "a acertar", sem valor (o preço não chega ao navegador).
     let valor: number | null = null;
     let clientId: string | null = null;
     if (!isReseller) {
@@ -191,10 +168,11 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<void>, onOp
               state.product === 'p45' ? 'GLP P45' :
               isVasilhame ? 'Vasilhame P13' : 'Água 20L',
       quantity: state.quantity,
-      payment: forma.rotulo,
-      paymentCode: forma.codigo,
+      payment: forma ? forma.rotulo : ROTULO_AGREGADO,
+      paymentCode: forma ? forma.codigo : FORMA_AGREGADO,
       amount: valor ?? 0,
       valorInformado: valor !== null,
+      resellerId: isReseller ? state.selectedReseller!.id : null,
       productCode: state.product as 'p13' | 'p20' | 'p45' | 'water' | 'vasilhame_p13',
       tipoVenda,
       clientId,
@@ -216,19 +194,7 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<void>, onOp
     }
 
     // ── gravação confirmada ──
-    // Agregado: lança na conta de botijões (acerto por quantidade)
-    if (isReseller && state.selectedReseller) {
-      registrarEntrega.mutate({
-        parceiro_tipo: "agregado",
-        parceiro_id: state.selectedReseller.id,
-        parceiro_nome: state.selectedReseller.name,
-        produto: state.product ? state.product.toUpperCase() : "P13",
-        quantidade: state.quantity,
-        vasilhames_recebidos: state.cylinderMovement === "return" ? state.movementQuantity : 0,
-        observacoes: "Venda na portaria - a acertar",
-      });
-    }
-
+    // Agregado: a conta quantitativa é a própria retirada (mesmo pedido, gravado junto no banco).
     // Venda Regular (com ponto ou não) já foi cobrada pela própria venda/promissória:
     // não lança dívida de botijões na ficha do parceiro (evita cobrança duplicada).
 
@@ -238,7 +204,6 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<void>, onOp
     state,
     onSubmit,
     onOpenChange,
-    registrarEntrega
   ]);
 
   // Reset form function

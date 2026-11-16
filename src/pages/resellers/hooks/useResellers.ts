@@ -9,7 +9,6 @@ interface ResellerRow {
   phone: string | null;
   contact_person: string | null;
   address: string | null;
-  price_p13: number;
   notes: string | null;
   active: boolean;
   created_at: string;
@@ -21,10 +20,6 @@ const toReseller = (r: ResellerRow): Reseller => ({
   phone: r.phone ?? "",
   address: r.address ?? undefined,
   contactPerson: r.contact_person ?? undefined,
-  priceP13: Number(r.price_p13 ?? 0),
-  priceP20: 0,
-  priceP45: 0,
-  priceWater: 0,
   notes: r.notes ?? undefined,
   createdAt: new Date(r.created_at),
 });
@@ -46,7 +41,7 @@ export function useResellers() {
     queryFn: async (): Promise<Reseller[]> => {
       const { data, error } = await supabase
         .from("resellers")
-        .select("*")
+        .select("id, name, phone, contact_person, address, notes, active, created_at")
         .eq("active", true)
         .order("name");
       if (error) throw error;
@@ -56,15 +51,22 @@ export function useResellers() {
 
   const createReseller = useMutation({
     mutationFn: async (input: ResellerInput) => {
-      const { error } = await supabase.from("resellers").insert({
+      // Preço é sigiloso: não vai no cadastro; só o administrador define, pela ação própria.
+      const { data, error } = await supabase.from("resellers").insert({
         name: input.name,
         phone: input.phone ?? null,
         contact_person: input.contactPerson ?? null,
         address: input.address ?? null,
-        price_p13: input.priceP13,
         notes: input.notes ?? null,
-      });
+      } as never).select("id").single();
       if (error) throw error;
+      if (input.priceP13 && input.priceP13 > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: e2 } = await (supabase as any).rpc("agregado_preco_definir", {
+          _reseller_id: (data as { id: string }).id, _produto: "P13", _preco: input.priceP13,
+        });
+        if (e2) throw new Error(`Agregado cadastrado, mas o preço não foi salvo: ${e2.message}`);
+      }
     },
     onSuccess: () => {
       toast.success("Agregado cadastrado com sucesso");
@@ -99,7 +101,8 @@ export interface ResellerSale {
   resellerName: string;
   product: string | null;
   quantity: number;
-  price: number;
+  price: number | null;
+  paymentCode: string | null;
 }
 
 export function useResellerSales() {
@@ -108,7 +111,7 @@ export function useResellerSales() {
     queryFn: async (): Promise<ResellerSale[]> => {
       const { data, error } = await supabase
         .from("orders")
-        .select("id, created_at, product, quantity, price, client_name, reseller_id, resellers(name)")
+        .select("id, created_at, product, quantity, price, payment_method, client_name, reseller_id, resellers(name)")
         .not("reseller_id", "is", null)
         .order("created_at", { ascending: false })
         .limit(200);
@@ -119,7 +122,8 @@ export function useResellerSales() {
         resellerName: o.resellers?.name ?? o.client_name,
         product: o.product,
         quantity: Number(o.quantity ?? 0),
-        price: Number(o.price ?? 0),
+        price: o.price === null || o.price === undefined ? null : Number(o.price),
+        paymentCode: o.payment_method ?? null,
       }));
     },
   });

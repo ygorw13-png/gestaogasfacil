@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Coins } from "lucide-react";
-import { useResumoPagamentos } from "../../../hooks/useResumoPagamentos";
+import { useResumoPagamentos, textoValorAgregados } from "../../../hooks/useResumoPagamentos";
 
 const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -11,7 +11,7 @@ interface Props {
 
 /** Painel compacto com a quantidade e o valor vendido por categoria de pagamento. */
 export function PaymentBreakdownPanel({ date }: Props) {
-  const { categorias, agregados, totalAgregadosQtd, totalAgregadosValor, totalQtd, totalValor, isLoading } =
+  const { categorias, agregados, totalAgregadosQtd, totalAgregadosValor, totalAgregadosAAcertar, totalQtd, totalValor, isLoading } =
     useResumoPagamentos(date);
 
   const pagamentos = categorias.filter((c) => !c.agregado);
@@ -57,13 +57,13 @@ export function PaymentBreakdownPanel({ date }: Props) {
                     <span className="text-sm font-medium">{c.label}</span>
                     <span className="text-sm font-semibold">{c.quantidade}</span>
                   </div>
-                  <div className="text-xs text-muted-foreground">{brl(c.valor)}</div>
+                  <div className="text-xs text-muted-foreground">{textoValorAgregados(c.valor, c.aAcertar, brl)}</div>
                 </div>
               ))}
             </div>
             <div className="flex justify-between border-t pt-2 text-xs font-medium">
               <span>Total agregados ({totalAgregadosQtd} itens)</span>
-              <span>{brl(totalAgregadosValor)}</span>
+              <span>{textoValorAgregados(totalAgregadosValor, totalAgregadosAAcertar, brl)}</span>
             </div>
           </div>
         )}

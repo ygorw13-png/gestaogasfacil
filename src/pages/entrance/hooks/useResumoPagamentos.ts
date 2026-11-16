@@ -23,7 +23,13 @@ export interface ResumoCategoria {
   conferivel: boolean;
   /** Venda para agregado/revendedor */
   agregado?: boolean;
+  /** Botijões retirados por agregado "a acertar" (sem valor: o valor só existe no acerto do administrador) */
+  aAcertar: number;
 }
+
+/** Valor de agregados no caixa: retiradas "a acertar" não viram R$ 0,00 (o valor é do acerto do administrador). */
+export const textoValorAgregados = (valor: number, aAcertar: number, brl: (v: number) => string) =>
+  aAcertar > 0 ? (valor > 0 ? `${brl(valor)} + ${aAcertar} a acertar` : `${aAcertar} a acertar (valor reservado ao administrador)`) : brl(valor);
 
 const zeroProdutos = (): ProdutoQtd => ({ p13: 0, p20: 0, p45: 0, water: 0 });
 
@@ -77,11 +83,13 @@ export function useResumoPagamentos(date: string) {
             produtos: zeroProdutos(),
             conferivel: grupo.conferivel,
             agregado: isAgregado,
+            aAcertar: 0,
           } as ResumoCategoria);
 
         const pKey = productKey(s.product);
         const isAgua = pKey === "water";
         atual.quantidade += s.quantity || 0;
+        if (s.paymentCode === "agregado") atual.aAcertar += s.quantity || 0;
         atual.valor += s.amount || 0;
         if (pKey) atual.produtos[pKey] += s.quantity || 0;
         if (isAgua) atual.valorAgua += s.amount || 0;
@@ -110,6 +118,7 @@ export function useResumoPagamentos(date: string) {
       agregados,
       totalAgregadosValor: agregados.reduce((a, c) => a + c.valor, 0),
       totalAgregadosQtd: agregados.reduce((a, c) => a + c.quantidade, 0),
+      totalAgregadosAAcertar: agregados.reduce((a, c) => a + c.aAcertar, 0),
       totalAgregadosProdutos: somaProdutos(agregados),
       conferiveis: categorias.filter((c) => c.conferivel),
       outras: categorias.filter((c) => !c.conferivel && !c.agregado),

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, CheckCircle2, Wallet } from "lucide-react";
-import { useResumoPagamentos } from "../../../hooks/useResumoPagamentos";
+import { useResumoPagamentos, textoValorAgregados } from "../../../hooks/useResumoPagamentos";
 
 const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -18,7 +18,7 @@ interface Props {
  * As demais formas de pagamento entram apenas como conferência de quantidade.
  */
 export function ValueConferenceSection({ date }: Props) {
-  const { conferiveis, outras, agregados, totalAgregadosQtd, totalAgregadosValor } =
+  const { conferiveis, outras, agregados, totalAgregadosQtd, totalAgregadosValor, totalAgregadosAAcertar } =
     useResumoPagamentos(date);
   const [conferido, setConferido] = useState<Record<string, string>>({});
 
@@ -93,13 +93,13 @@ export function ValueConferenceSection({ date }: Props) {
             <div className="flex flex-wrap gap-2">
               {agregados.map((c) => (
                 <Badge key={c.key} variant="outline" className="text-xs">
-                  {c.label}: {c.quantidade} · {brl(c.valor)}
+                  {c.label}: {c.quantidade} · {textoValorAgregados(c.valor, c.aAcertar, brl)}
                 </Badge>
               ))}
             </div>
             <div className="flex justify-between border-t pt-2 text-xs font-medium">
               <span>Total agregados ({totalAgregadosQtd} itens)</span>
-              <span>{brl(totalAgregadosValor)}</span>
+              <span>{textoValorAgregados(totalAgregadosValor, totalAgregadosAAcertar, brl)}</span>
             </div>
           </div>
         )}

@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { ValorVenda } from "@/components/common/ValorVenda";
+import { ehRetiradaAgregado, VALOR_RESERVADO } from "@/lib/formasPagamento";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -201,7 +203,7 @@ export default function SalesHistory() {
         { header: "Produto", accessor: (s: HistorySale) => s.product },
         { header: "Quantidade", accessor: (s: HistorySale) => s.quantity },
         { header: "Pagamento", accessor: (s: HistorySale) => s.payment },
-        { header: "Valor", accessor: (s: HistorySale) => (s.valorInformado ? s.amount.toFixed(2) : "Não informado") },
+        { header: "Valor", accessor: (s: HistorySale) => (ehRetiradaAgregado(s.paymentCode) ? VALOR_RESERVADO : s.valorInformado ? s.amount.toFixed(2) : "Não informado") },
         {
           header: "Situação",
           accessor: (s: HistorySale) => (s.status === "cancelled" ? "Cancelada" : "Concluída"),
@@ -438,7 +440,7 @@ export default function SalesHistory() {
                             sale.status === "cancelled" ? "line-through text-destructive" : ""
                           }`}
                         >
-                          {sale.valorInformado ? brl(sale.amount) : <span className="text-muted-foreground">Não informado</span>}
+                          <ValorVenda paymentCode={sale.paymentCode} valorInformado={sale.valorInformado} amount={sale.amount} />
                         </TableCell>
                         <TableCell className="text-right">
                           {sale.status === "delivered" ? (
@@ -457,7 +459,7 @@ export default function SalesHistory() {
                                 client={sale.client}
                                 product={sale.product}
                                 quantity={sale.quantity}
-                                amount={sale.amount}
+                                amount={ehRetiradaAgregado(sale.paymentCode) ? undefined : sale.amount}
                               />
                               )}
                             </div>

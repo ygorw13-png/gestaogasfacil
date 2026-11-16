@@ -5,10 +5,6 @@ export interface Reseller {
   phone: string;
   address?: string;
   contactPerson?: string;
-  priceP13: number;
-  priceP20: number;
-  priceP45: number;
-  priceWater: number;
   notes?: string;
   createdAt: Date;
 }

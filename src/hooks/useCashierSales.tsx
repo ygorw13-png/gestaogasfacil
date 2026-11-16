@@ -140,13 +140,15 @@ export function useCashierSales() {
         : 0;
 
     // Código único da forma escolhida (o mesmo gravado no banco). Desconhecida = erro, nunca outra forma.
-    const paymentCode = normalizarForma(newSale.paymentCode ?? newSale.payment);
-    if (!paymentCode) throw new Error('Forma de pagamento inválida. Selecione uma das opções da lista.');
+    const paymentCode = newSale.resellerId ? null : normalizarForma(newSale.paymentCode ?? newSale.payment);
+    if (!newSale.resellerId && !paymentCode) throw new Error('Forma de pagamento inválida. Selecione uma das opções da lista.');
     // null = valor não informado (só vale-gás, Gás do Povo e convênio; o banco recusa nas demais).
     const valor: number | null = newSale.valorInformado === false ? null : newSale.amount;
 
     // Conteúdo que identifica ESTA venda (não inclui o id/hora gerados a cada clique).
+    const agregadoId = newSale.resellerId ?? null;
     const conteudo = {
+      agregado: agregadoId,
       cliente: newSale.clientId ?? newSale.client, produto: newSale.product, codigo: newSale.productCode ?? null,
       quantidade: newSale.quantity, valor, pagamento: paymentCode, tipoVenda,
       movimento: newSale.cylinderMovement ?? 'none', movimentoQtd: newSale.movementQuantity ?? 0, dataVenda,
@@ -157,12 +159,21 @@ export function useCashierSales() {
     if (!userId) throw new Error('Sessão expirada. Entre novamente para registrar a venda.');
 
     await operacao.executar(conteudo, async (chave) => {
+      if (agregadoId) {
+        // Retirada de agregado: pedido, saída do estoque e conta quantitativa numa transação, sem preço.
+        if (!G1_ACOES) throw new Error('Retirada de agregado exige as ações controladas ligadas.');
+        if (dataVenda) throw new Error('Retirada de agregado só na data de hoje.');
+        await acao('retirada_agregado', {
+          _reseller_id: agregadoId, _produto: newSale.product, _quantidade: newSale.quantity, _tipo_venda: tipoVenda,
+          _vasilhames_recebidos: vasilhamesRecebidos, _comodato: newSale.cylinderMovement === 'loan',
+          _observacoes: null, _chave: chave,
+        });
+        return;
+      }
       if (G1_ACOES) {
         if (dataVenda) throw new Error('Lançamento retroativo ainda sem regra na ação controlada. Use a correção administrativa.');
         if (paymentCode === 'promissoria' && !(valor && valor > 0)) {
-          throw new Error(valor === null
-            ? 'Retirada de agregado "a acertar" (sem valor) ainda não tem regra na ação controlada: depende da decisão sobre revendedores.'
-            : 'Informe um valor maior que zero para Nota promissória.');
+          throw new Error('Informe um valor maior que zero para Nota promissória.');
         }
         await acao('venda_portaria', {
           _cliente_id: newSale.clientId || null, _cliente_nome: newSale.client, _produto: newSale.product,
@@ -266,11 +277,12 @@ export function useCashierSales() {
       else if (newSale.product.includes('Água')) updateInventorySales('Água', newSale.quantity);
     }
     ['vendas_hoje', 'vendas_por_data', 'relatorio-vasilhames', 'promissory_notes', 'sales_history',
-      'estoque_retirado', 'saldo_portaria_atual', 'dashboard'].forEach((k) =>
+      'estoque_retirado', 'saldo_portaria_atual', 'dashboard', 'agregado-conta'].forEach((k) =>
       queryClient.invalidateQueries({ queryKey: [k] }));
     toast({
       title: 'Venda registrada',
       description: !G1_ACOES ? 'A venda foi registrada com sucesso.'
+        : agregadoId ? 'Retirada do agregado e estoque gravados juntos. Valor fica para o acerto do administrador.'
         : valor === null ? 'Venda e estoque gravados. Valor não informado: nenhum recebimento foi lançado.'
         : 'Venda, estoque e recebimento gravados juntos.',
     });

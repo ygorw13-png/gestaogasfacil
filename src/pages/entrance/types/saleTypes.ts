@@ -14,6 +14,8 @@ export interface Sale {
   productCode?: 'p13' | 'p20' | 'p45' | 'water' | 'vasilhame_p13';
   tipoVenda?: 'completa' | 'recarga' | 'vasilhame';
   clientId?: string | null;
+  /** Retirada de agregado (sem valor): id do agregado. */
+  resellerId?: string | null;
   cylinderMovement?: 'none' | 'loan' | 'return';
   movementQuantity?: number;
 }

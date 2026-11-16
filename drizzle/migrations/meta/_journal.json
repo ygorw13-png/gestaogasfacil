@@ -120,6 +120,13 @@
       "when": 1794839024538,
       "tag": "0016_g1_016b_listar_entregadores_aviso",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794851092174,
+      "tag": "0017_g1_017_agregados",
+      "breakpoints": true
     }
   ]
 }

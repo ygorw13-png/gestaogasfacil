@@ -95,7 +95,7 @@ export function CashierClosingForm({
   const { data: vendasPorData, refetch: refetchVendasPorData } = useVendasPorData(closingDate);
   const { data: saldo } = useSaldoPortariaDia(closingDate);
   const { data: fechamentoExistente } = useFechamentoPorData(closingDate);
-  const { categorias, agregados, totalAgregadosQtd, totalAgregadosValor, totalAgregadosProdutos } =
+  const { categorias, agregados, totalAgregadosQtd, totalAgregadosValor, totalAgregadosProdutos, totalAgregadosAAcertar } =
     useResumoPagamentos(closingDate);
   const { data: despesasDia = [] } = useDespesasPorData(closingDate);
   const { toast } = useToast();
@@ -244,6 +244,7 @@ export function CashierClosingForm({
               quantidade: totalAgregadosQtd,
               valor: totalAgregadosValor,
               produtos: totalAgregadosProdutos,
+              aAcertar: totalAgregadosAAcertar,
             }
           : undefined,
       despesas: despesasDia.map((d) => ({

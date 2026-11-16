@@ -19,6 +19,8 @@ import { AVISO_CANCELAMENTO, useCancelarVenda } from "../../hooks/useCancelarVen
 import { EditSaleButton } from "./EditSaleButton";
 import { CancelSaleButton } from "./CancelSaleButton";
 import { G1_ACOES } from "@/lib/g1/acoes";
+import { ValorVenda } from "@/components/common/ValorVenda";
+import { ehRetiradaAgregado } from "@/lib/formasPagamento";
 import { normalizarTipoVenda } from "@/lib/saleTypes";
 
 interface Sale {
@@ -106,9 +108,7 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
               <td className="py-2"><VasilhameCell sale={sale} /></td>
               <td className="py-2">{sale.payment}</td>
               <td className="py-2 text-right">
-                {sale.valorInformado === false
-                  ? <span className="text-muted-foreground">Não informado</span>
-                  : `R$ ${sale.amount.toFixed(2).replace('.', ',')}`}
+                <ValorVenda paymentCode={sale.paymentCode} valorInformado={sale.valorInformado} amount={sale.amount} />
               </td>
               <td className="py-2 text-right">
                 <div className="flex justify-end gap-1">
@@ -122,7 +122,7 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
                 />
                 {G1_ACOES ? (
                   <CancelSaleButton saleId={String(sale.id)} client={sale.client} product={sale.product}
-                    quantity={sale.quantity} amount={sale.amount} tipoVenda={sale.tipoVenda} />
+                    quantity={sale.quantity} amount={ehRetiradaAgregado(sale.paymentCode) ? undefined : sale.amount} tipoVenda={sale.tipoVenda} />
                 ) : (
                 <Button
                   type="button"

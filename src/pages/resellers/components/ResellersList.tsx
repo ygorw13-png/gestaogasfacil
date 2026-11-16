@@ -13,12 +13,13 @@ import { Reseller } from "../types";
 
 interface ResellersListProps {
   resellers: Reseller[];
-  canViewPrices: boolean;
+  /** Preços sigilosos: só chegam aqui para o administrador. */
+  precos?: Record<string, number>;
   onViewReseller: (reseller: Reseller) => void;
   onRemoveReseller?: (id: string) => void;
 }
 
-export function ResellersList({ resellers, canViewPrices, onViewReseller, onRemoveReseller }: ResellersListProps) {
+export function ResellersList({ resellers, precos, onViewReseller, onRemoveReseller }: ResellersListProps) {
 
   return (
     <div className="overflow-x-auto">
@@ -27,14 +28,14 @@ export function ResellersList({ resellers, canViewPrices, onViewReseller, onRemo
           <TableRow>
             <TableHead>Nome</TableHead>
             <TableHead>Contato</TableHead>
-            {canViewPrices && <TableHead className="text-right">P13</TableHead>}
+            {precos && <TableHead className="text-right">P13</TableHead>}
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {resellers.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={canViewPrices ? 4 : 3} className="text-center py-10 text-muted-foreground">
+              <TableCell colSpan={precos ? 4 : 3} className="text-center py-10 text-muted-foreground">
                 Nenhum agregado cadastrado
               </TableCell>
             </TableRow>
@@ -58,8 +59,8 @@ export function ResellersList({ resellers, canViewPrices, onViewReseller, onRemo
                     <div className="text-xs text-muted-foreground">{reseller.address}</div>
                   )}
                 </TableCell>
-                {canViewPrices && (
-                  <TableCell className="text-right font-medium">R$ {reseller.priceP13.toFixed(2)}</TableCell>
+                {precos && (
+                  <TableCell className="text-right font-medium">{precos[reseller.id] ? `R$ ${precos[reseller.id].toFixed(2)}` : "—"}</TableCell>
                 )}
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
