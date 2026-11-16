@@ -51,6 +51,7 @@ export const buildCashierDataFromVendasPorData = (vendas: VendasPorData | undefi
         break;
       case "Vale Gás":
       case "Gás-Povo":
+      case "Gás do Povo":
       case "Convênio":
       case "Outros":
         data.gasVoucher += amount;
@@ -84,6 +85,7 @@ export const buildCashierDataFromVendasPorData = (vendas: VendasPorData | undefi
         break;
       case "Vale Gás":
       case "Gás-Povo":
+      case "Gás do Povo":
       case "Convênio":
       case "Outros":
         applyQuantities(data.quantities.gasVoucher, qts);

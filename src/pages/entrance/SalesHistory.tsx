@@ -201,7 +201,7 @@ export default function SalesHistory() {
         { header: "Produto", accessor: (s: HistorySale) => s.product },
         { header: "Quantidade", accessor: (s: HistorySale) => s.quantity },
         { header: "Pagamento", accessor: (s: HistorySale) => s.payment },
-        { header: "Valor", accessor: (s: HistorySale) => s.amount.toFixed(2) },
+        { header: "Valor", accessor: (s: HistorySale) => (s.valorInformado ? s.amount.toFixed(2) : "Não informado") },
         {
           header: "Situação",
           accessor: (s: HistorySale) => (s.status === "cancelled" ? "Cancelada" : "Concluída"),
@@ -438,7 +438,7 @@ export default function SalesHistory() {
                             sale.status === "cancelled" ? "line-through text-destructive" : ""
                           }`}
                         >
-                          {brl(sale.amount)}
+                          {sale.valorInformado ? brl(sale.amount) : <span className="text-muted-foreground">Não informado</span>}
                         </TableCell>
                         <TableCell className="text-right">
                           {sale.status === "delivered" ? (

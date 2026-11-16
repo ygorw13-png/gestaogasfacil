@@ -12,6 +12,8 @@ export interface HistorySale {
   payment: string;
   paymentCode: string;
   amount: number;
+  /** false = valor não informado (preço NULL no banco). */
+  valorInformado: boolean;
   status: "delivered" | "cancelled";
   seller: string;
   /** Preenchido quando a venda foi feita para um agregado/revendedor */
@@ -93,8 +95,9 @@ export function useSalesHistory(from: Date, to: Date) {
             product: (o.product as string) || "—",
             quantity: Number(o.quantity ?? 1),
             payment: paymentLabelFromCode(o.payment_method as string | null),
-            paymentCode: (o.payment_method as string) || "money",
+            paymentCode: (o.payment_method as string) || "",
             amount: Number(o.price ?? 0),
+            valorInformado: o.price !== null && o.price !== undefined,
             status: (o.status === "cancelled" ? "cancelled" : "delivered") as
               | "delivered"
               | "cancelled",

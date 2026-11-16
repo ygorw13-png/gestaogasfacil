@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MapPin, Phone, Package, DollarSign, CreditCard, Navigation, Check, X, Bell, BellOff, Clock, Bike } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useMyDeliveries, useAcceptDelivery, useRejectDelivery, useConfirmDelivery, type DeliveryOrder } from "@/hooks/useMyDeliveries";
 import { useTrackMyLocation } from "@/hooks/useEntregadorLocation";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -22,13 +22,14 @@ import { formatAddress, mapsRouteUrl, hasMapAddress } from "@/utils/mapsLinks";
 import { tipoVendaShort, normalizarTipoVenda } from "@/lib/saleTypes";
 import { playDeliveryAlert } from "@/utils/deliveryAlert";
 import { useToast } from "@/hooks/use-toast";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { usePushNotifications, mostrarAvisoLocal, ehIOS } from "@/hooks/usePushNotifications";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 const minutesSince = (iso?: string | null) =>
   iso ? Math.floor((Date.now() - new Date(iso).getTime()) / 60000) : 0;
 
-function DeliveryCard({ order }: { order: DeliveryOrder }) {
+function DeliveryCard({ order, destaque = false }: { order: DeliveryOrder; destaque?: boolean }) {
   const accept = useAcceptDelivery();
   const reject = useRejectDelivery();
   const confirm = useConfirmDelivery();
@@ -47,7 +48,7 @@ function DeliveryCard({ order }: { order: DeliveryOrder }) {
   const atrasado = !isDone && espera >= 10;
 
   return (
-    <Card className={atrasado ? "border-destructive border-2" : isPending ? "border-primary border-2 shadow-lg" : ""}>
+    <Card id={`pedido-${order.id}`} className={`${atrasado ? "border-destructive border-2" : isPending ? "border-primary border-2 shadow-lg" : ""} ${destaque ? "ring-4 ring-primary/40" : ""}`}>
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start gap-2">
           <div className="min-w-0">
@@ -205,11 +206,14 @@ function DeliveryCard({ order }: { order: DeliveryOrder }) {
 }
 
 export default function MinhasEntregas() {
-  const { data: orders = [], isLoading } = useMyDeliveries();
+  const { data: orders = [], isLoading, refetch } = useMyDeliveries();
   const { name, isEntregador } = useUserRole();
   const { toast } = useToast();
   const push = usePushNotifications();
   const lastReminder = useRef(0);
+  const [params] = useSearchParams();
+  const pedidoAberto = params.get("pedido");
+  const [aba, setAba] = useState("pendentes");
 
 
   // Atualiza a localização no mapa de entregas sempre que acessa o app
@@ -225,52 +229,60 @@ export default function MinhasEntregas() {
     0
   );
 
-  // Relembra a cada 2 min se houver entrega parada há mais de 5/10 minutos
+  // Aberto pelo toque na notificação: vai para a aba do pedido e rola até ele.
   useEffect(() => {
-    const timer = setInterval(() => {
-      // Não aceitou em 5 minutos: alerta sem parar, a cada 20 segundos
-      const naoAceitas = pendentes.filter((o) => minutesSince(o.created_at) >= 5);
-      const paradas = emRota.filter((o) => minutesSince(o.accepted_at) >= 15);
-      const insistente = naoAceitas.length > 0;
-      const intervalo = insistente ? 20000 : 120000;
-      const atrasadas = [...naoAceitas, ...paradas];
+    if (!pedidoAberto || orders.length === 0) return;
+    const o = orders.find((x) => x.id === pedidoAberto);
+    if (!o) return;
+    setAba(pendentes.includes(o) ? "pendentes" : emRota.includes(o) ? "rota" : "feitas");
+    const t = setTimeout(() => document.getElementById(`pedido-${o.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 150);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pedidoAberto, orders]);
 
-      if (atrasadas.length && Date.now() - lastReminder.current > intervalo) {
-        lastReminder.current = Date.now();
-        playDeliveryAlert();
-        toast({
-          title: insistente ? "🚨 Aceite a entrega!" : "⏰ Entrega pendente",
-          description: `${atrasadas.length} entrega(s) aguardando sua ação.`,
-          variant: "destructive",
-        });
-        if ("Notification" in window && Notification.permission === "granted") {
-          new Notification(insistente ? "Aceite a entrega!" : "Entrega pendente", {
-            body: `${atrasadas.length} entrega(s) aguardando você.`,
-            tag: "entrega-pendente",
-            renotify: true,
-            requireInteraction: true,
-          } as NotificationOptions);
-        }
-      }
+  // Lembretes com o app aberto (mesmos tempos de antes): sem aceite em 5 min, a cada 20 s;
+  // em rota há 15 min, a cada 2 min. Antes de avisar, confere no servidor se o pedido
+  // continua aguardando aceite / em rota com este entregador (aceite ou reatribuição param o lembrete).
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      const espera = (o: DeliveryOrder) => minutesSince((o as any).assigned_at ?? o.created_at);
+      const temNaoAceita = pendentes.some((o) => espera(o) >= 5);
+      const temParada = emRota.some((o) => minutesSince(o.accepted_at) >= 15);
+      if (!temNaoAceita && !temParada) return;
+      const intervalo = temNaoAceita ? 20000 : 120000;
+      if (Date.now() - lastReminder.current <= intervalo) return;
+      lastReminder.current = Date.now();
+
+      const atual = ((await refetch()).data ?? []) as DeliveryOrder[];
+      const naoAceitas = atual.filter((o) => (o.status === "pending" || o.status === "assigned") && espera(o) >= 5);
+      const paradas = atual.filter((o) => (o.status === "in-progress" || o.status === "delivering") && minutesSince(o.accepted_at) >= 15);
+      const atrasadas = [...naoAceitas, ...paradas];
+      if (!atrasadas.length) return;
+      const insistente = naoAceitas.length > 0;
+
+      playDeliveryAlert();
+      toast({
+        title: insistente ? "🚨 Aceite a entrega!" : "⏰ Entrega pendente",
+        description: `${atrasadas.length} entrega(s) aguardando sua ação.`,
+        variant: "destructive",
+      });
+      void mostrarAvisoLocal(
+        insistente ? "Aceite a entrega!" : "Entrega pendente",
+        `${atrasadas.length} entrega(s) aguardando você.`,
+        "entrega-pendente",
+        atrasadas[0] ? `/entregador/entregas?pedido=${atrasadas[0].id}` : "/entregador/entregas",
+      );
     }, 10000);
     return () => clearInterval(timer);
-  }, [pendentes, emRota, toast]);
+  }, [pendentes, emRota, toast, refetch]);
 
   return (
     <div className="space-y-4 pb-8">
       <div className="flex justify-between items-center gap-2">
         <h1 className="text-2xl font-bold">Minhas Entregas</h1>
-        <Button
-          variant={push.subscribed ? "secondary" : "default"}
-          size="sm"
-          disabled={push.loading || !push.supported}
-          onClick={() => (push.subscribed ? push.unsubscribe() : push.subscribe())}
-        >
-          {push.subscribed ? <BellOff className="h-4 w-4 mr-1" /> : <Bell className="h-4 w-4 mr-1" />}
-          {push.subscribed ? "Alertas ativos" : "Ativar alertas"}
-        </Button>
       </div>
 
+      <PainelAvisos push={push} />
 
       <div className="grid grid-cols-3 gap-2">
         <Card><CardContent className="p-3 text-center">
@@ -287,7 +299,7 @@ export default function MinhasEntregas() {
         </CardContent></Card>
       </div>
 
-      <Tabs defaultValue="pendentes" className="w-full">
+      <Tabs value={aba} onValueChange={setAba} className="w-full">
         <TabsList className="grid grid-cols-3 w-full">
           <TabsTrigger value="pendentes">
             Novas {pendentes.length > 0 && <Badge variant="destructive" className="ml-2">{pendentes.length}</Badge>}
@@ -299,17 +311,17 @@ export default function MinhasEntregas() {
         <TabsContent value="pendentes" className="space-y-3 mt-4">
           {isLoading ? <p className="text-center text-muted-foreground py-8">Carregando...</p> :
             pendentes.length === 0 ? <p className="text-center text-muted-foreground py-8">Nenhuma entrega nova</p> :
-            pendentes.map((o) => <DeliveryCard key={o.id} order={o} />)}
+            pendentes.map((o) => <DeliveryCard key={o.id} order={o} destaque={o.id === pedidoAberto} />)}
         </TabsContent>
 
         <TabsContent value="rota" className="space-y-3 mt-4">
           {emRota.length === 0 ? <p className="text-center text-muted-foreground py-8">Sem entregas em rota</p> :
-            emRota.map((o) => <DeliveryCard key={o.id} order={o} />)}
+            emRota.map((o) => <DeliveryCard key={o.id} order={o} destaque={o.id === pedidoAberto} />)}
         </TabsContent>
 
         <TabsContent value="feitas" className="space-y-3 mt-4">
           {concluidas.length === 0 ? <p className="text-center text-muted-foreground py-8">Nenhuma entrega concluída</p> :
-            concluidas.map((o) => <DeliveryCard key={o.id} order={o} />)}
+            concluidas.map((o) => <DeliveryCard key={o.id} order={o} destaque={o.id === pedidoAberto} />)}
         </TabsContent>
       </Tabs>
 
@@ -323,5 +335,64 @@ export default function MinhasEntregas() {
         </Link>
       </Button>
     </div>
+  );
+}
+
+/** Estado dos avisos neste aparelho, com o que fazer em cada caso. */
+function PainelAvisos({ push }: { push: ReturnType<typeof usePushNotifications> }) {
+  const { estado, loading } = push;
+  if (estado === "ativo") {
+    return (
+      <div className="flex flex-wrap items-center gap-2 rounded-md border p-3">
+        <Bell className="h-4 w-4 text-primary" aria-hidden />
+        <p className="mr-auto text-sm">Notificações ativas neste aparelho.</p>
+        <Button size="sm" variant="outline" className="min-h-11" disabled={loading} onClick={() => push.testar()}>Testar aviso</Button>
+        <Button size="sm" variant="ghost" className="min-h-11" disabled={loading} onClick={() => push.unsubscribe()}>
+          <BellOff className="mr-1 h-4 w-4" /> Desativar
+        </Button>
+      </div>
+    );
+  }
+  if (estado === "negado") {
+    return (
+      <Alert variant="destructive">
+        <BellOff className="h-4 w-4" />
+        <AlertTitle>Notificações bloqueadas neste aparelho</AlertTitle>
+        <AlertDescription>
+          Você não vai receber aviso de entrega com o app fechado. No Chrome: toque no cadeado ao lado do endereço →
+          Permissões → Notificações → Permitir. Depois volte aqui e toque em “Ativar notificações”.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  if (estado === "ios_instalar" || estado === "sem_suporte") {
+    return (
+      <Alert>
+        <BellOff className="h-4 w-4" />
+        <AlertTitle>Avisos em segundo plano indisponíveis</AlertTitle>
+        <AlertDescription>
+          {estado === "ios_instalar"
+            ? "No iPhone, instale o app (Compartilhar → Adicionar à Tela de Início) e abra pelo ícone para ativar as notificações."
+            : "Este navegador não recebe avisos com o app fechado. Use o Chrome no Android."}{" "}
+          Com o app aberto, o alerta sonoro continua funcionando.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  return (
+    <Alert>
+      <Bell className="h-4 w-4" />
+      <AlertTitle>Receba aviso de nova entrega</AlertTitle>
+      <AlertDescription className="space-y-2">
+        <p>
+          Ative para ser avisado mesmo com o app em segundo plano ou a tela bloqueada. Som e vibração seguem a
+          configuração do celular: modo silencioso e “Não perturbe” podem calar o aviso.
+          {ehIOS() ? "" : " No Android, deixe as notificações do Chrome com som."}
+        </p>
+        <Button size="sm" className="min-h-11" disabled={loading} onClick={() => push.subscribe()}>
+          <Bell className="mr-1 h-4 w-4" /> Ativar notificações
+        </Button>
+      </AlertDescription>
+    </Alert>
   );
 }

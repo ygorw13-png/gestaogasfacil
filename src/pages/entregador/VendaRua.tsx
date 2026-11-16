@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { runOrQueue } from "@/lib/offline/queue";
-import { G1_ACOES, acaoOuFila, formaRecebimento } from "@/lib/g1/acoes";
+import { G1_ACOES, acaoOuFila } from "@/lib/g1/acoes";
+import { FORMAS_PAGAMENTO, lerValor, valorParaForma } from "@/lib/formasPagamento";
 import { ControleChave } from "@/lib/g1/operacao";
 import { cheiosNaCarga, produtoCarga, useCargaResumo } from "@/hooks/useCarga";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,14 +18,8 @@ import { exigeValor, vasilhameDeltas, type TipoVenda } from "@/lib/saleTypes";
 import { useSaleClients } from "@/pages/entrance/hooks/useSaleClients";
 
 const PRODUTOS = ["P13", "P20", "P45", "Água 20L"];
-const PAGAMENTOS = [
-  { value: "money", label: "Dinheiro" },
-  { value: "pix", label: "PIX" },
-  { value: "credit", label: "Cartão de Crédito" },
-  { value: "debit", label: "Cartão de Débito" },
-  { value: "promissoria", label: "Nota Promissória" },
-  { value: "vale-gas", label: "Vale-Gás" },
-];
+// As oito formas, com o mesmo código gravado no banco.
+const PAGAMENTOS = FORMAS_PAGAMENTO.map((f) => ({ value: f.codigo, label: f.opcao }));
 
 const onlyDigits = (v: string) => v.replace(/\D/g, "");
 
@@ -97,11 +92,17 @@ export default function VendaRua() {
       return;
     }
 
-    const valor = Number(String(form.price).replace(",", "."));
-    if (precisaValor && (!valor || valor <= 0)) {
-      toast({ title: "Informe o valor da venda", description: "Obrigatório para dinheiro, PIX e cartão.", variant: "destructive" });
+    // null = não informado (só vale-gás, Gás do Povo e convênio); as demais exigem valor > 0.
+    let valorInf: number | null;
+    try {
+      const lido = lerValor(form.price);
+      if (lido !== null && Number.isNaN(lido)) throw new Error("Valor inválido. Use números, por exemplo 108,50.");
+      valorInf = valorParaForma(form.payment_method, lido);
+    } catch (e) {
+      toast({ title: "Confira o valor", description: e instanceof Error ? e.message : "Valor inválido.", variant: "destructive" });
       return;
     }
+    const valor = valorInf ?? 0;
 
     const vas = vasilhameDeltas(tipoVenda, form.quantity);
 
@@ -114,7 +115,7 @@ export default function VendaRua() {
       client_phone: form.client_phone.trim(),
       product: form.product,
       quantity: form.quantity,
-      price: valor || 0,
+      price: valorInf,
       payment_method: form.payment_method,
       notes: form.notes,
       status: "completed",
@@ -128,16 +129,11 @@ export default function VendaRua() {
     };
 
     if (G1_ACOES) {
-      if (!formaRecebimento(form.payment_method)) {
-        setLoading(false);
-        toast({ title: "Forma de pagamento sem regra", description: "Esta forma ainda não tem regra de recebimento definida. Use outra.", variant: "destructive" });
-        return;
-      }
       // Uma ação só: cria a venda, baixa da SUA carga e registra o recebimento
       // (ou a promissória). A chave acompanha cada reenvio da fila offline.
       const args = {
         _cliente_id: clientId, _cliente_nome: nome, _cliente_fone: form.client_phone.trim(),
-        _produto: form.product, _quantidade: form.quantity, _valor: valor || 0, _forma: form.payment_method,
+        _produto: form.product, _quantidade: form.quantity, _valor: valorInf, _forma: form.payment_method,
         _tipo_venda: tipoVenda, _vasilhames_entregues: vas.entregues, _vasilhames_recebidos: vas.recebidos,
         _observacoes: form.notes || null,
       };

@@ -7,6 +7,7 @@ import { useTrackMyLocation } from "@/hooks/useEntregadorLocation";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { OfflineBanner } from "@/components/offline/OfflineBanner";
 import { cn } from "@/lib/utils";
+import { useAbrirPedidoDoAviso } from "@/hooks/usePushNotifications";
 
 const tabs = [
   { to: "/entregador/entregas", icon: Package, label: "Entregas" },
@@ -23,6 +24,7 @@ export function EntregadorLayout() {
   const { signOut } = useAuth();
   const { name } = useUserRole();
   useTrackMyLocation(true, name);
+  useAbrirPedidoDoAviso();
 
   return (
     <div className="flex min-h-[100dvh] w-full flex-col bg-background">

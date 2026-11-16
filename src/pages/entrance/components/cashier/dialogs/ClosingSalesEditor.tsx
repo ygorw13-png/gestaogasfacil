@@ -82,7 +82,7 @@ export function ClosingSalesEditor({ date }: ClosingSalesEditorProps) {
                     <td className="px-3 py-2">{s.product}</td>
                     <td className="px-3 py-2 text-center">{s.quantity}</td>
                     <td className="px-3 py-2">{s.payment}</td>
-                    <td className="px-3 py-2 text-right">{formatBRL(s.amount)}</td>
+                    <td className="px-3 py-2 text-right">{s.valorInformado ? formatBRL(s.amount) : <span className="text-muted-foreground">Não informado</span>}</td>
                     <td className="px-3 py-2">
                       {s.status === "cancelled" ? (
                         <div className="flex justify-end">

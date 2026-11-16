@@ -30,6 +30,7 @@ interface Sale {
   payment: string;
   paymentCode?: string;
   amount: number;
+  valorInformado?: boolean;
   tipoVenda?: "completa" | "recarga" | "vasilhame";
   vasilhamesEntregues?: number;
   vasilhamesRecebidos?: number;
@@ -104,7 +105,11 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
               <td className="py-2 text-center">{sale.quantity}</td>
               <td className="py-2"><VasilhameCell sale={sale} /></td>
               <td className="py-2">{sale.payment}</td>
-              <td className="py-2 text-right">R$ {sale.amount.toFixed(2).replace('.', ',')}</td>
+              <td className="py-2 text-right">
+                {sale.valorInformado === false
+                  ? <span className="text-muted-foreground">Não informado</span>
+                  : `R$ ${sale.amount.toFixed(2).replace('.', ',')}`}
+              </td>
               <td className="py-2 text-right">
                 <div className="flex justify-end gap-1">
                 <EditSaleButton

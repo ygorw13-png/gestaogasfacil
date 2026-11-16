@@ -12,6 +12,7 @@ import { createPromissoryFromSale } from '@/lib/promissory';
 import { G1_ACOES, acao, AcaoError } from '@/lib/g1/acoes';
 import { ehIncerta, idDaChave } from '@/lib/g1/operacao';
 import { normalizarTipoVenda } from '@/lib/saleTypes';
+import { normalizarForma } from '@/lib/formasPagamento';
 import { useOperacaoUnica } from '@/hooks/useOperacaoUnica';
 import { hojePortaria } from '@/lib/g1/dataPortaria';
 
@@ -42,6 +43,8 @@ export const initialSalesByType: SalesByType[] = [
   { type: 'PIX', amount: 0, icon: <CreditCard className="h-4 w-4 text-yellow-600" /> },
   { type: 'Promissória', amount: 0, icon: <FileText className="h-4 w-4 text-red-600" /> },
   { type: 'Vale Gás', amount: 0, icon: <CreditCard className="h-4 w-4 text-orange-600" /> },
+  { type: 'Gás do Povo', amount: 0, icon: <CreditCard className="h-4 w-4 text-orange-600" /> },
+  { type: 'Convênio', amount: 0, icon: <CreditCard className="h-4 w-4 text-orange-600" /> },
 ];
 
 export function useCashierSales() {
@@ -136,21 +139,16 @@ export function useCashierSales() {
         ? newSale.movementQuantity ?? 0
         : 0;
 
-    const paymentCodeMap: Record<string, string> = {
-      'Dinheiro': 'money',
-      'Crédito': 'credit',
-      'Débito': 'debit',
-      'PIX': 'pix',
-      'Promissória': 'promissoria',
-      'Vale Gás': 'vale-gas',
-      'Convênio': 'convenio',
-    };
-    const paymentCode = paymentCodeMap[newSale.payment] || null;
+    // Código único da forma escolhida (o mesmo gravado no banco). Desconhecida = erro, nunca outra forma.
+    const paymentCode = normalizarForma(newSale.paymentCode ?? newSale.payment);
+    if (!paymentCode) throw new Error('Forma de pagamento inválida. Selecione uma das opções da lista.');
+    // null = valor não informado (só vale-gás, Gás do Povo e convênio; o banco recusa nas demais).
+    const valor: number | null = newSale.valorInformado === false ? null : newSale.amount;
 
     // Conteúdo que identifica ESTA venda (não inclui o id/hora gerados a cada clique).
     const conteudo = {
       cliente: newSale.clientId ?? newSale.client, produto: newSale.product, codigo: newSale.productCode ?? null,
-      quantidade: newSale.quantity, valor: newSale.amount, pagamento: newSale.payment, tipoVenda,
+      quantidade: newSale.quantity, valor, pagamento: paymentCode, tipoVenda,
       movimento: newSale.cylinderMovement ?? 'none', movimentoQtd: newSale.movementQuantity ?? 0, dataVenda,
     };
 
@@ -161,12 +159,12 @@ export function useCashierSales() {
     await operacao.executar(conteudo, async (chave) => {
       if (G1_ACOES) {
         if (dataVenda) throw new Error('Lançamento retroativo ainda sem regra na ação controlada. Use a correção administrativa.');
-        if (paymentCode === 'promissoria' && !(newSale.amount > 0)) {
+        if (paymentCode === 'promissoria' && !(valor && valor > 0)) {
           throw new Error('Venda a prazo sem valor (agregado/ponto) ainda não tem regra na ação controlada: depende da decisão sobre revendedores.');
         }
         await acao('venda_portaria', {
           _cliente_id: newSale.clientId || null, _cliente_nome: newSale.client, _produto: newSale.product,
-          _quantidade: newSale.quantity, _valor: newSale.amount, _forma: paymentCode,
+          _quantidade: newSale.quantity, _valor: valor, _forma: paymentCode,
           _tipo_venda: tipoVenda, _devolveu_vazio: newSale.cylinderMovement !== 'loan',
           _reseller_id: null, _observacoes: isVasilhame ? 'Venda de vasilhame vazio na portaria' : 'Venda registrada na portaria',
           _vasilhames_recebidos: vasilhamesRecebidos, _comodato: newSale.cylinderMovement === 'loan',
@@ -186,8 +184,8 @@ export function useCashierSales() {
         address: {},
         product: newSale.product,
         quantity: newSale.quantity,
-        price: newSale.amount,
-        payment_method: paymentCode || 'money',
+        price: valor,
+        payment_method: paymentCode,
         status: 'delivered',
         delivered_at: now,
         origem_venda: 'portaria',

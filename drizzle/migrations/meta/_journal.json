@@ -92,6 +92,13 @@
       "when": 1794486929319,
       "tag": "0012_g1_013_bloqueio_fechamento_sem_limite",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794832011692,
+      "tag": "0013_g1_014_formas_pagamento",
+      "breakpoints": true
     }
   ]
 }

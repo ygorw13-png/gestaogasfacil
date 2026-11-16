@@ -81,7 +81,7 @@ export function SalesFilters({
             <SelectItem value="Débito">Débito</SelectItem>
             <SelectItem value="PIX">PIX</SelectItem>
             <SelectItem value="Vale Gás">Vale Gás</SelectItem>
-            <SelectItem value="Gás-Povo">Gás-Povo</SelectItem>
+            <SelectItem value="Gás do Povo">Gás do Povo</SelectItem>
             <SelectItem value="Convênio">Convênio</SelectItem>
             <SelectItem value="Promissória">Promissória</SelectItem>
           </SelectContent>

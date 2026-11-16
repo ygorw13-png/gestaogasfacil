@@ -162,16 +162,10 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
       if (error) throw error;
       }
 
-      // Notificação push para o entregador (não bloqueia o fluxo)
+      // Atribuição confirmada no banco: o servidor avisa quem está no pedido AGORA
+      // (na reatribuição, o novo responsável). Não bloqueia o fluxo.
       supabase.functions
-        .invoke("send-push", {
-          body: {
-            userIds: [deliveryPerson],
-            title: "Nova entrega atribuída",
-            body: "Você recebeu uma nova entrega. Abra o app para aceitar.",
-            url: "/entregador/entregas",
-          },
-        })
+        .invoke("send-push", { body: { tipo: "atribuicao", orderId } })
         .catch((e) => console.warn("Falha ao enviar push:", e));
 
 

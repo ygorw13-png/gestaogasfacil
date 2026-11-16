@@ -203,7 +203,7 @@ check("pix", "com referência: realizado pela conta da empresa; reversão conclu
       == "conta_empresa:E2E-123/concluida")
 c = "Cli Cartao"
 check("pix", "cartão: mesmo tratamento (pendente até confirmação com referência)",
-      out([VB("k-p2-venda", c, forma="cartao"), SOL(c, "devolucao", "k-p2-aaaa", who="adminA", aut="true"), FIS(c, "k-p2-fis", ch=1, vc=1),
+      out([VB("k-p2-venda", c, forma="credit"), SOL(c, "devolucao", "k-p2-aaaa", who="adminA", aut="true"), FIS(c, "k-p2-fis", ch=1, vc=1),
            Q("SELECT forma||':'||status FROM reembolsos")]) == "cartao:pendente")
 
 # ═══ 7. promissória parcialmente paga (exemplo obrigatório)

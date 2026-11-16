@@ -29,6 +29,8 @@ export interface Sale {
   payment: string;
   paymentCode?: string;
   amount: number;
+  /** false = valor não informado (preço NULL no banco). */
+  valorInformado?: boolean;
   // Metadados opcionais para registrar movimentação no estoque da portaria
   productCode?: 'p13' | 'p20' | 'p45' | 'water' | 'vasilhame_p13';
   tipoVenda?: 'completa' | 'recarga' | 'vasilhame';

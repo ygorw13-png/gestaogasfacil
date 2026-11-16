@@ -2,6 +2,8 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DollarSign } from "lucide-react";
+import { useEffect, useState } from "react";
+import { infoForma, lerValor } from "@/lib/formasPagamento";
 import {
   Select,
   SelectContent,
@@ -22,7 +24,7 @@ interface ProductSelectionProps {
   paymentMethod?: string;
 }
 
-const ELECTRONIC_PAYMENTS = ["cash", "credit", "debit", "pix"];
+const ELECTRONIC_PAYMENTS = ["cash", "money", "credit", "debit", "pix"];
 const GAS_PRODUCTS = ["p13", "p20", "p45"];
 
 export function ProductSelection({
@@ -36,10 +38,25 @@ export function ProductSelection({
   hidePrice = false,
   paymentMethod = "",
 }: ProductSelectionProps) {
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9.]/g, '');
-    onUnitPriceChange(Number(value));
+  // Texto digitado (aceita vírgula). Vazio = valor não informado (0 no formulário).
+  const ler = (t: string) => {
+    const n = lerValor(t.replace(/[.,]$/, ""));
+    return n !== null && !Number.isNaN(n) ? n : 0;
   };
+  const fmt = (n: number) => (n > 0 ? String(n).replace(".", ",") : "");
+  const [texto, setTexto] = useState(() => fmt(unitPrice));
+  useEffect(() => {
+    // Preço trocado por fora (agregado, limpeza do formulário): mostra o novo valor.
+    if (ler(texto) !== unitPrice) setTexto(fmt(unitPrice));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unitPrice]);
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const t = e.target.value.replace(/[^0-9.,]/g, "");
+    setTexto(t);
+    onUnitPriceChange(ler(t));
+  };
+  const forma = infoForma(paymentMethod);
+  const valorOpcional = !!forma && !forma.valorObrigatorio;
 
   const highlightPrice =
     GAS_PRODUCTS.includes(product) &&
@@ -92,7 +109,8 @@ export function ProductSelection({
             type="text"
             inputMode="decimal"
             id="unitPrice"
-            value={unitPrice}
+            value={texto}
+            placeholder={valorOpcional ? "Opcional" : "0,00"}
             onChange={handlePriceChange}
             readOnly={readOnlyPrice}
             className={
@@ -110,6 +128,14 @@ export function ProductSelection({
           {highlightPrice && (
             <p className="text-xs text-primary">Informe o valor cobrado nesta venda</p>
           )}
+          {forma?.valorObrigatorio && !readOnlyPrice && !highlightPrice && (
+            <p className="text-xs text-muted-foreground">Obrigatório para {forma.rotulo}</p>
+          )}
+          {valorOpcional && !readOnlyPrice && (
+            <p className="text-xs text-muted-foreground">
+              Opcional para {forma!.rotulo}. Em branco, a venda fica com valor não informado.
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -117,7 +143,7 @@ export function ProductSelection({
           <Input
             type="text"
             id="totalPrice"
-            value={(quantity * unitPrice).toFixed(2)}
+            value={valorOpcional && !(unitPrice > 0) ? "Não informado" : (quantity * unitPrice).toFixed(2)}
             readOnly
             className={highlightPrice ? "bg-primary/5 font-semibold text-base" : "bg-muted"}
           />

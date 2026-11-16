@@ -1,3 +1,4 @@
+import { normalizarForma, valorObrigatorio } from "@/lib/formasPagamento";
 import {
   Dialog,
   DialogContent,
@@ -28,16 +29,14 @@ const PAYMENTS = [
   { value: "credit", label: "Cartão de Crédito" },
   { value: "debit", label: "Cartão de Débito" },
   { value: "convenio", label: "Convênio" },
-  { value: "gas-povo", label: "Gás-Povo" },
+  { value: "gas-povo", label: "Gás do Povo" },
   { value: "vale-gas", label: "Vale-Gás" },
   { value: "promissoria", label: "Nota Promissória" },
 ];
 
-/** Formas de pagamento que exigem informar o valor recebido. */
-const VALUE_REQUIRED = ["money", "pix", "credit", "debit"];
 
 const paymentLabel = (v?: string) =>
-  PAYMENTS.find((p) => p.value === v)?.label || v || "não informada";
+  PAYMENTS.find((p) => p.value === normalizarForma(v))?.label || v || "não informada";
 
 const formatBRL = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -66,7 +65,7 @@ export function CompleteOrderDialog({
   const [reason, setReason] = useState("");
 
   const expectedValue = Number(order?.price || 0);
-  const expectedPayment = order?.paymentMethod || "";
+  const expectedPayment = normalizarForma(order?.paymentMethod) ?? "";
 
   useEffect(() => {
     if (isOpen) {
@@ -77,7 +76,8 @@ export function CompleteOrderDialog({
   }, [isOpen, expectedPayment, expectedValue]);
 
   const received = Number((value || "").replace(",", ".")) || 0;
-  const requiresValue = VALUE_REQUIRED.includes(paymentMethod);
+  // Nota promissória usa o valor do pedido; vale-gás, Gás do Povo e convênio aceitam sem valor.
+  const requiresValue = valorObrigatorio(paymentMethod) && paymentMethod !== "promissoria";
   const valueDiffers =
     requiresValue && expectedValue > 0 && !!received && Math.abs(received - expectedValue) > 0.009;
   const paymentDiffers = !!expectedPayment && !!paymentMethod && paymentMethod !== expectedPayment;

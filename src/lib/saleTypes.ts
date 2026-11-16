@@ -1,3 +1,4 @@
+import { valorObrigatorio } from "@/lib/formasPagamento";
 /**
  * Valor canônico: "completa" (padrão da coluna orders.tipo_venda, das telas e
  * dos relatórios). "completo" aparece como entrada legada/alternativa e é lido
@@ -66,24 +67,9 @@ export function vasilhameDeltas(tipo: TipoVenda, quantidade: number) {
   }
 }
 
-/** Formas de pagamento que exigem o valor da venda preenchido. */
-const METODOS_COM_VALOR = [
-  "money",
-  "dinheiro",
-  "pix",
-  "credit",
-  "debit",
-  "credito",
-  "debito",
-  "cartão de crédito",
-  "cartão de débito",
-  "cartão crédito",
-  "cartão débito",
-];
-
+/** Formas de pagamento que exigem o valor da venda (> 0): dinheiro, PIX, crédito, débito, promissória. */
 export function exigeValor(metodo?: string | null) {
-  if (!metodo) return false;
-  return METODOS_COM_VALOR.includes(metodo.toLowerCase());
+  return valorObrigatorio(metodo);
 }
 
 /** Formas de pagamento que exigem identificar o cliente. */

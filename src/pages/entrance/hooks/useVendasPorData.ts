@@ -100,8 +100,9 @@ export function useVendasPorData(dateStr: string | null) {
         product: o.product || "",
         quantity: Number(o.quantity) || 0,
         payment: paymentLabelFromCode(o.payment_method),
-        paymentCode: o.payment_method || "money",
+        paymentCode: o.payment_method ?? undefined,
         amount: Number(o.price) || 0,
+        valorInformado: o.price !== null && o.price !== undefined,
       })) as Sale[];
 
       return result;

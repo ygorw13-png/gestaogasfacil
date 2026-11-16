@@ -1,18 +1,36 @@
 /**
- * Toca um som de alerta sintetizado (sem precisar de arquivo mp3)
- * e vibra o celular se suportado.
+ * Alerta de entrega em primeiro plano: som sintetizado (sem arquivo) + vibração.
+ * Navegadores de celular só tocam som depois de um toque do usuário: `desbloquearSom()`
+ * é chamado no botão "Ativar notificações"/"Testar aviso" e o mesmo contexto de áudio é reutilizado.
+ * Em segundo plano quem avisa é a notificação do sistema (push-sw.js), não este som.
  */
+let ctxCompartilhado: AudioContext | null = null;
+
+function contexto(): AudioContext | null {
+  const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioCtx) return null;
+  if (!ctxCompartilhado) ctxCompartilhado = new AudioCtx();
+  return ctxCompartilhado;
+}
+
+/** Chamar dentro de um toque do usuário. */
+export function desbloquearSom() {
+  try {
+    const ctx = contexto();
+    if (ctx && ctx.state === "suspended") void ctx.resume();
+  } catch {
+    /* sem áudio */
+  }
+}
+
 export function playDeliveryAlert() {
   try {
-    // Vibração
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       navigator.vibrate([300, 100, 300, 100, 500]);
     }
-
-    // Som sintetizado (3 beeps agudos)
-    const AudioCtx = (window.AudioContext || (window as any).webkitAudioContext);
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
+    const ctx = contexto();
+    if (!ctx) return;
+    if (ctx.state === "suspended") void ctx.resume().catch(() => undefined);
 
     const playBeep = (startTime: number, freq: number) => {
       const osc = ctx.createOscillator();

@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useRegistrarMovimentacao, type PortariaProduto } from "@/pages/entrance/hooks/usePortariaStock";
 import { SaleTypeSelect } from "@/components/forms/SaleTypeSelect";
+import { lerValor, valorParaForma } from "@/lib/formasPagamento";
 import { exigeValor, vasilhameDeltas, tipoVendaLabel, type TipoVenda } from "@/lib/saleTypes";
 import { G1_ACOES, acao, AcaoError } from "@/lib/g1/acoes";
 import { ehIncerta, idDaChave } from "@/lib/g1/operacao";
@@ -41,7 +42,7 @@ const PAYMENTS = [
   { value: "credit", label: "Cartão de Crédito" },
   { value: "debit", label: "Cartão de Débito" },
   { value: "convenio", label: "Convênio" },
-  { value: "gas-povo", label: "Gás-Povo" },
+  { value: "gas-povo", label: "Gás do Povo" },
   { value: "vale-gas", label: "Vale-Gás" },
   { value: "promissoria", label: "Nota Promissória" },
 ];
@@ -106,15 +107,17 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
       });
       return;
     }
-    const value = Number(price.replace(",", "."));
-    if (requiresValue && (!value || value <= 0)) {
-      toast({
-        title: "Informe o valor da venda",
-        description: "Obrigatório para dinheiro, PIX e cartão.",
-        variant: "destructive",
-      });
+    // null = não informado (só vale-gás, Gás do Povo e convênio); obrigatórias exigem > 0.
+    let valor: number | null;
+    try {
+      const lido = lerValor(price);
+      if (lido !== null && Number.isNaN(lido)) throw new Error("Valor inválido. Use números, por exemplo 108,50.");
+      valor = valorParaForma(paymentMethod, lido);
+    } catch (e) {
+      toast({ title: "Confira o valor", description: e instanceof Error ? e.message : "Valor inválido.", variant: "destructive" });
       return;
     }
+    const value = valor ?? 0;
 
     travaRef.current = true;
     setSaving(true);
@@ -129,7 +132,7 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
       const deltas = vasilhameDeltas(tipoVenda, quantity);
 
       // Conteúdo que identifica ESTA venda: o mesmo conteúdo reenviado usa a mesma chave.
-      const conteudo = { cliente: finalName, produto: product, quantidade: quantity, valor: value || 0, pagamento: paymentMethod, tipoVenda };
+      const conteudo = { cliente: finalName, produto: product, quantidade: quantity, valor, pagamento: paymentMethod, tipoVenda };
 
       await operacao.executar(conteudo, async (chave) => {
         if (G1_ACOES) {
@@ -137,7 +140,7 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
           // Se algo falhar, nada fica gravado pela metade.
           await acao("venda_portaria", {
             _cliente_id: null, _cliente_nome: finalName, _produto: productLabel, _quantidade: quantity,
-            _valor: value || 0, _forma: paymentMethod, _tipo_venda: tipoVenda, _devolveu_vazio: returnedEmpty,
+            _valor: valor, _forma: paymentMethod, _tipo_venda: tipoVenda, _devolveu_vazio: returnedEmpty,
             _reseller_id: null, _observacoes: `Venda rápida - ${tipoVendaLabel(tipoVenda)}`,
             _vasilhames_recebidos: deltas.recebidos, _comodato: false, _chave: chave,
           });
@@ -154,7 +157,7 @@ export default function QuickSaleDialog({ isOpen, onOpenChange, onSaved }: Quick
           address: {},
           product: productLabel,
           quantity,
-          price: value || 0,
+          price: valor,
           payment_method: paymentMethod,
           status: "delivered",
           delivered_at: new Date().toISOString(),

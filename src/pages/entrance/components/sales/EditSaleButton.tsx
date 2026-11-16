@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEditarVenda } from "../../hooks/useEditarVenda";
+import { normalizarForma } from "@/lib/formasPagamento";
 
 const PRODUTOS = ["GLP P13", "GLP P20", "GLP P45", "Vasilhame P13", "Água 20L"];
 
@@ -30,7 +31,7 @@ const PAGAMENTOS = [
   { value: "debit", label: "Débito" },
   { value: "promissoria", label: "Promissória" },
   { value: "convenio", label: "Convênio" },
-  { value: "gas-povo", label: "Gás-Povo" },
+  { value: "gas-povo", label: "Gás do Povo" },
   { value: "vale-gas", label: "Vale Gás" },
 ];
 
@@ -56,7 +57,7 @@ export function EditSaleButton({
   const [prod, setProd] = useState(product);
   const [qtd, setQtd] = useState(String(quantity));
   const [valor, setValor] = useState(String(amount ?? 0));
-  const [pagamento, setPagamento] = useState(paymentCode || "money");
+  const [pagamento, setPagamento] = useState<string>(normalizarForma(paymentCode) ?? "");
   const [motivo, setMotivo] = useState("");
 
   useEffect(() => {
@@ -64,7 +65,7 @@ export function EditSaleButton({
       setProd(PRODUTOS.includes(product) ? product : PRODUTOS[0]);
       setQtd(String(quantity));
       setValor(String(amount ?? 0));
-      setPagamento(paymentCode || "money");
+      setPagamento(normalizarForma(paymentCode) ?? "");
       setMotivo("");
     }
   }, [open, product, quantity, amount, paymentCode]);

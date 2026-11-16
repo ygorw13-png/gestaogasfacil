@@ -1,3 +1,4 @@
+import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -53,6 +54,9 @@ export function ReatribuirDialog({ order, isOpen, onOpenChange, onFeito }: Props
       await operacao.executar({ pedido: order.id, novo, motivo: motivo.trim(), transferir }, (chave) =>
         acao("reatribuir_entrega", { _order_id: order.id, _novo_entregador_id: novo, _motivo: motivo.trim(), _transferir_carga: transferir, _chave: chave }));
       qc.invalidateQueries();
+      // Confirmado no banco: o aviso vai para o novo responsável (lido do pedido pelo servidor).
+      supabase.functions.invoke("send-push", { body: { tipo: "atribuicao", orderId: order.id } })
+        .catch((e) => console.warn("Falha ao enviar push:", e));
       toast({ title: "Pedido reatribuído", description: `${numeroPedido(order.id)} agora com ${nomeNovo}. Aguardando o aceite dele.` });
       onFeito();
       onOpenChange(false);

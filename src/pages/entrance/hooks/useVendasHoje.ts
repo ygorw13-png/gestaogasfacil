@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Sale } from "../types/entranceTypes";
 import { normalizarTipoVenda } from "@/lib/saleTypes";
+import { rotuloForma } from "@/lib/formasPagamento";
 
 export interface VendasHoje {
   totalSales: number;
@@ -12,33 +13,8 @@ export interface VendasHoje {
   firstSaleAt: Date | null;
 }
 
-// Mapeia os códigos gravados em orders.payment_method para os rótulos exibidos
-export const paymentLabelFromCode = (code?: string | null): string => {
-  switch (code) {
-    case "money":
-    case "cash":
-      return "Dinheiro";
-    case "credit":
-      return "Crédito";
-    case "debit":
-      return "Débito";
-    case "pix":
-      return "PIX";
-    case "promissoria":
-    case "promissory":
-      return "Promissória";
-    case "vale-gas":
-    case "gasVoucher":
-    case "voucher":
-      return "Vale Gás";
-    case "gas-povo":
-      return "Gás-Povo";
-    case "convenio":
-      return "Convênio";
-    default:
-      return "Outros";
-  }
-};
+// Rótulo da forma gravada em orders.payment_method (mesma tabela das telas e do banco).
+export const paymentLabelFromCode = (code?: string | null): string => rotuloForma(code);
 
 export const productKey = (product?: string | null): "p13" | "p20" | "p45" | "water" | null => {
   const p = (product || "").toUpperCase();
@@ -104,8 +80,9 @@ export function useVendasHoje() {
         product: o.product || "",
         quantity: Number(o.quantity) || 0,
         payment: paymentLabelFromCode(o.payment_method),
-        paymentCode: o.payment_method || "money",
+        paymentCode: o.payment_method ?? undefined,
         amount: Number(o.price) || 0,
+        valorInformado: o.price !== null && o.price !== undefined,
         tipoVenda: (normalizarTipoVenda(o.tipo_venda) ?? "recarga") as Sale["tipoVenda"],
         vasilhamesEntregues: Number(o.vasilhames_entregues) || 0,
         vasilhamesRecebidos: Number(o.vasilhames_recebidos) || 0,

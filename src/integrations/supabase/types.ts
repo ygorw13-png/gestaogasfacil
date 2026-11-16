@@ -2630,6 +2630,9 @@ export type Database = {
         }[]
       }
       _forma_chave: { Args: { _f: string }; Returns: string }
+      _forma_pedido: { Args: { _f: string }; Returns: string }
+      _forma_validar: { Args: { _f: string; _valor: number }; Returns: string }
+      _forma_valor_opcional: { Args: { _f: string }; Returns: boolean }
       _g1_ctl: { Args: never; Returns: boolean }
       _meu_nome: { Args: never; Returns: string }
       _produto_chave: { Args: { _p: string }; Returns: string }

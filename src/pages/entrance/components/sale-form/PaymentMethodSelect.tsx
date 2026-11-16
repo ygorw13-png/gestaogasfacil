@@ -27,7 +27,7 @@ export function PaymentMethodSelect({ value, onChange }: PaymentMethodSelectProp
           <SelectItem value="debit">Cartão de Débito</SelectItem>
           <SelectItem value="pix">PIX</SelectItem>
           <SelectItem value="promissory">Promissória</SelectItem>
-          <SelectItem value="gasPovo">Gás-Povo</SelectItem>
+          <SelectItem value="gasPovo">Gás do Povo</SelectItem>
           <SelectItem value="gasVoucher">Vale-Gás</SelectItem>
           <SelectItem value="partner">Convênio</SelectItem>
         </SelectContent>

@@ -44,7 +44,7 @@ export function registerOfflineSupport() {
 
   // Havia controlador antigo? Então uma troca de controlador = versão nova publicada.
   // Só conta troca entre duas versões do sw.js do app (o push-sw.js do entregador
-  // usa o mesmo escopo e não é "versão nova").
+  // tem escopo próprio, /push/, e não é "versão nova").
   const ehDoApp = (sw: ServiceWorker | null | undefined) => !!sw && sw.scriptURL.endsWith(SW_URL);
   const hadController = ehDoApp(navigator.serviceWorker.controller);
   let avisado = false;

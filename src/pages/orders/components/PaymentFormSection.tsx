@@ -56,7 +56,7 @@ export function PaymentFormSection({ control }: PaymentFormSectionProps) {
                 <SelectItem value="pix">PIX</SelectItem>
                 <SelectItem value="promissory">Promissória</SelectItem>
                 <SelectItem value="partner">Convênio</SelectItem>
-                <SelectItem value="gasPovo">Gás-Povo</SelectItem>
+                <SelectItem value="gasPovo">Gás do Povo</SelectItem>
                 <SelectItem value="gasVoucher">Vale-Gás</SelectItem>
               </SelectContent>
             </Select>

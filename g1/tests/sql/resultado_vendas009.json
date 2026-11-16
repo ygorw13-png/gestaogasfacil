@@ -1,19 +1,19 @@
 [
   {
     "teste": "Sem abertura recusa venda",
-    "ok": false
+    "ok": true
   },
   {
     "teste": "Abertura ontem não libera hoje",
-    "ok": false
+    "ok": true
   },
   {
     "teste": "Cheios insuficientes",
-    "ok": false
+    "ok": true
   },
   {
     "teste": "Produto não usa saldo de outro produto",
-    "ok": false
+    "ok": true
   },
   {
     "teste": "Recarga exata zera cheios e recebe vazios",
@@ -21,7 +21,7 @@
   },
   {
     "teste": "Completa consome cheios",
-    "ok": false
+    "ok": true
   },
   {
     "teste": "Vasilhame exige vazio, mesmo com cheio disponível",
@@ -37,7 +37,7 @@
   },
   {
     "teste": "Segunda venda é recusada após esgotar",
-    "ok": false
+    "ok": true
   },
   {
     "teste": "Recusa não deixa pedido, recebimento ou chave",
@@ -49,7 +49,7 @@
   },
   {
     "teste": "Concorrência duas vendas",
-    "ok": false
+    "ok": true
   },
   {
     "teste": "Concorrência venda x carga",

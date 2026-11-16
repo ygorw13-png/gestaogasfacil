@@ -3,6 +3,7 @@ import { useReducer, useCallback, useRef, useState } from "react";
 import type { Sale } from "../types/saleTypes";
 import type { Reseller } from "../../resellers/types";
 import { useRegistrarEntregaConta } from "@/hooks/useContaBotijoes";
+import { infoForma, valorParaForma } from "@/lib/formasPagamento";
 
 // Define action types
 type SaleFormAction =
@@ -144,6 +145,26 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<void>, onOp
       ? 'completa'
       : 'recarga';
 
+    // Forma escolhida -> código único (o mesmo gravado no banco). Sem forma válida, não registra:
+    // nunca cai em "Convênio" ou outra modalidade por omissão.
+    const forma = isReseller ? infoForma('promissoria') : infoForma(state.paymentMethod);
+    if (!forma) {
+      setErro("Selecione a forma de pagamento.");
+      return;
+    }
+    const total = state.quantity * state.unitPrice;
+    // Agregado/ponto a prazo: preço definido no acerto (regra existente, sem valor no ato).
+    const semValorNoAto = isReseller || isPontoAPrazo;
+    let valor: number | null = null;
+    if (!semValorNoAto) {
+      try {
+        valor = valorParaForma(forma.codigo, Number.isFinite(total) && total > 0 ? total : null);
+      } catch (e) {
+        setErro(e instanceof Error ? e.message : "Valor inválido.");
+        return;
+      }
+    }
+
     const newSale: Sale = {
       id: Date.now(),
       time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
@@ -155,15 +176,10 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<void>, onOp
               state.product === 'p45' ? 'GLP P45' :
               isVasilhame ? 'Vasilhame P13' : 'Água 20L',
       quantity: state.quantity,
-      payment: isReseller ? 'Promissória' :
-              state.paymentMethod === 'cash' ? 'Dinheiro' :
-              state.paymentMethod === 'credit' ? 'Crédito' :
-              state.paymentMethod === 'debit' ? 'Débito' :
-              state.paymentMethod === 'pix' ? 'PIX' :
-              state.paymentMethod === 'promissory' ? 'Promissória' :
-              state.paymentMethod === 'gasVoucher' ? 'Vale Gás' : 'Convênio',
-      // Venda para agregado/ponto em promissória não tem valor no ato: preço é definido no acerto
-      amount: isReseller || isPontoAPrazo ? 0 : state.quantity * state.unitPrice,
+      payment: forma.rotulo,
+      paymentCode: forma.codigo,
+      amount: valor ?? 0,
+      valorInformado: valor !== null,
       productCode: state.product as 'p13' | 'p20' | 'p45' | 'water' | 'vasilhame_p13',
       tipoVenda,
       clientId: state.selectedClient?.id ? String(state.selectedClient.id) : null,
