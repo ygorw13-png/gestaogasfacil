@@ -3,7 +3,24 @@ import { useReducer, useCallback, useRef, useState } from "react";
 import type { Sale } from "../types/saleTypes";
 import type { Reseller } from "../../resellers/types";
 import { useRegistrarEntregaConta } from "@/hooks/useContaBotijoes";
-import { infoForma, valorParaForma } from "@/lib/formasPagamento";
+import { infoForma, valorParaForma, type FormaPagamento } from "@/lib/formasPagamento";
+
+/**
+ * Venda Regular da portaria: grava sempre o total informado, inclusive para cliente cadastrado como
+ * ponto de revenda (ser ponto não zera o valor). Nota promissória exige cliente e total positivo.
+ * Retirada de parceiro "a acertar" (sem valor) é só a aba de agregado, bloqueada pela decisão 13.
+ * O id de um ponto não é de `clients`: vai só o nome, para a promissória não ser recusada.
+ */
+export function dadosVendaRegular(p: {
+  forma: FormaPagamento;
+  total: number;
+  cliente: { id: string | number; origem?: "cliente" | "ponto" } | null;
+}): { valor: number | null; clientId: string | null } {
+  if (p.forma === "promissoria" && !p.cliente) throw new Error("Selecione o cliente para venda em Nota promissória.");
+  const valor = valorParaForma(p.forma, Number.isFinite(p.total) && p.total > 0 ? p.total : null);
+  const clientId = p.cliente && p.cliente.origem !== "ponto" ? String(p.cliente.id) : null;
+  return { valor, clientId };
+}
 
 // Define action types
 type SaleFormAction =
@@ -134,8 +151,6 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<void>, onOp
     const isReseller = state.saleType === "reseller";
 
     const isVasilhame = state.product === 'vasilhame_p13';
-    const isPonto = !isReseller && state.selectedClient?.origem === 'ponto';
-    const isPontoAPrazo = isPonto && (state.paymentMethod === 'promissory' || !state.paymentMethod);
     // Padrão da portaria: o cliente traz o casco vazio (troca) => "recarga".
     // Só é "completa" quando o casco sai da empresa (empréstimo/comodato).
     const levaCasco = state.loanGas || state.cylinderMovement === 'loan';
@@ -153,12 +168,12 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<void>, onOp
       return;
     }
     const total = state.quantity * state.unitPrice;
-    // Agregado/ponto a prazo: preço definido no acerto (regra existente, sem valor no ato).
-    const semValorNoAto = isReseller || isPontoAPrazo;
+    // Agregado (aba própria): retirada "a acertar", sem valor no ato (decisão 13).
     let valor: number | null = null;
-    if (!semValorNoAto) {
+    let clientId: string | null = null;
+    if (!isReseller) {
       try {
-        valor = valorParaForma(forma.codigo, Number.isFinite(total) && total > 0 ? total : null);
+        ({ valor, clientId } = dadosVendaRegular({ forma: forma.codigo, total, cliente: state.selectedClient ?? null }));
       } catch (e) {
         setErro(e instanceof Error ? e.message : "Valor inválido.");
         return;
@@ -182,7 +197,7 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<void>, onOp
       valorInformado: valor !== null,
       productCode: state.product as 'p13' | 'p20' | 'p45' | 'water' | 'vasilhame_p13',
       tipoVenda,
-      clientId: state.selectedClient?.id ? String(state.selectedClient.id) : null,
+      clientId,
       cylinderMovement: state.loanGas ? 'loan' : state.cylinderMovement,
       movementQuantity: state.loanGas ? state.quantity : state.movementQuantity,
     };
@@ -214,20 +229,8 @@ export const useSaleForm = (onSubmit: (sale: Sale) => void | Promise<void>, onOp
       });
     }
 
-    // Ponto de revenda que retirou na portaria: lança na ficha do ponto
-    if (isPonto && !isVasilhame && state.selectedClient) {
-      registrarEntrega.mutate({
-        parceiro_tipo: "ponto",
-        parceiro_id: String(state.selectedClient.id),
-        parceiro_nome: String(state.selectedClient.name).replace(/\s*\(.*\)$/, ""),
-        produto: state.product ? state.product.toUpperCase() : "P13",
-        quantidade: state.quantity,
-        vasilhames_recebidos: state.cylinderMovement === "return" ? state.movementQuantity : 0,
-        observacoes: isPontoAPrazo
-          ? "Retirada na portaria - a acertar"
-          : "Retirada na portaria",
-      });
-    }
+    // Venda Regular (com ponto ou não) já foi cobrada pela própria venda/promissória:
+    // não lança dívida de botijões na ficha do parceiro (evita cobrança duplicada).
 
     dispatch({ type: 'RESET_FORM' });
     onOpenChange(false);

@@ -127,3 +127,7 @@ Ver `docs/DECISOES_PENDENTES.md`.
 - [x] Comissões: Dinheiro/Crédito/Débito pelo código canônico; taxa 0 válida; Vale-gás/Gás do Povo/Convênio/desconhecida ficam "sem taxa configurada" (não comissionadas, sem "outros"); promissória só no recebimento.
 - [x] Testes: formasPagamento 8/8, comissões 5/5. Sem fechamentos de comissão salvos (impacto histórico nenhum).
 - [ ] Telas não conferidas no navegador (sem sessão de teste).
+
+## Correção — Venda Regular em promissória para ponto (16/11/2026)
+- [x] Ser ponto não zera o valor: Venda Regular grava o total informado; id de ponto não vai como cliente (só o nome); sem lançamento duplicado na ficha do parceiro. Agregado "a acertar" segue bloqueado (decisão 13). Promissória exige cliente e total > 0.
+- [x] Testes: unitário 4/4; banco isolado `run_venda_regular_ponto.py` 10/10.

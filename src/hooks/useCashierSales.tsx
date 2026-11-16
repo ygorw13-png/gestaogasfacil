@@ -160,7 +160,9 @@ export function useCashierSales() {
       if (G1_ACOES) {
         if (dataVenda) throw new Error('Lançamento retroativo ainda sem regra na ação controlada. Use a correção administrativa.');
         if (paymentCode === 'promissoria' && !(valor && valor > 0)) {
-          throw new Error('Venda a prazo sem valor (agregado/ponto) ainda não tem regra na ação controlada: depende da decisão sobre revendedores.');
+          throw new Error(valor === null
+            ? 'Retirada de agregado "a acertar" (sem valor) ainda não tem regra na ação controlada: depende da decisão sobre revendedores.'
+            : 'Informe um valor maior que zero para Nota promissória.');
         }
         await acao('venda_portaria', {
           _cliente_id: newSale.clientId || null, _cliente_nome: newSale.client, _produto: newSale.product,
