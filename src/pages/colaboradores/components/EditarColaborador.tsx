@@ -8,6 +8,7 @@ import {
   ColaboradorFormFields, 
   ColaboradorFormValues 
 } from "@/components/forms/ColaboradorFormFields";
+import { VinculoContaApp } from "./VinculoContaApp";
 
 interface EditarColaboradorProps {
   colaborador: Colaborador;
@@ -80,6 +81,8 @@ export default function EditarColaborador({
         isSubmitting={isSubmitting}
         submitLabel="Salvar Alterações"
       />
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <VinculoContaApp colaboradorId={colaborador.id} atual={(colaborador as any).user_id ?? null} />
     </div>
   );
 }

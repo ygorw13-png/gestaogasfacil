@@ -87,6 +87,11 @@ Estrela-guia (`.lovable/north-star/north-star.md`): os clientes recebem seu gás
 
 ## 3. Estado: publicado × preview × candidato × pendente
 
+> **Atualização 16/11/2026:** candidatos 014–016 aplicados no Cloud (migrações 0013–0016). 016 = canal obrigatório do aviso
+> (App + WhatsApp) e fila `whatsapp_envios`; funções `whatsapp-envio` e `whatsapp-admin` publicadas. Pendente: conectar o
+> WhatsApp Business da empresa, aprovar o modelo e ativar o envio; "Só WhatsApp", Entregue/Lido e aceite pelo WhatsApp
+> dependem de o app receber respostas (exige atualização da base do app).
+
 ### Publicado (produção, gestaogasfacil.lovable.app — visibilidade pública)
 - **Banco:** esquema das 30 migrações de `supabase/migrations/` (43 tabelas públicas, 52 políticas RLS, 9 funções públicas:
   `current_profile_role, get_my_org, handle_new_user, has_role, orders_set_defaults, profiles_guard_privileged_fields,

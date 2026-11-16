@@ -9,7 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useOperacaoUnica } from "@/hooks/useOperacaoUnica";
-import { useEntregadoresApp } from "@/hooks/useEntregadoresApp";
+import { impedimentoAviso, useEntregadoresApp } from "@/hooks/useEntregadoresApp";
+import { CanalAvisoField } from "@/components/entregas/CanalAvisoField";
+import { processarAviso, resumoEnvio, type CanalAviso } from "@/lib/avisoWhatsapp";
 import { cheiosNaCarga, produtoCarga, rotuloProduto, useCargaResumo } from "@/hooks/useCarga";
 import { acao } from "@/lib/g1/acoes";
 import { numeroPedido } from "@/lib/entregas";
@@ -33,10 +35,11 @@ export function ReatribuirDialog({ order, isOpen, onOpenChange, onFeito }: Props
   const [motivo, setMotivo] = useState("");
   const [transferir, setTransferir] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [canal, setCanal] = useState<CanalAviso | "">("");
   const operacao = useOperacaoUnica("reatribuir");
   const qc = useQueryClient();
   const { toast } = useToast();
-  useEffect(() => { if (isOpen) { setNovo(""); setMotivo(""); setTransferir(false); setErro(null); } }, [isOpen, order?.id]);
+  useEffect(() => { if (isOpen) { setNovo(""); setMotivo(""); setTransferir(false); setErro(null); setCanal(""); } }, [isOpen, order?.id]);
 
   const atual = order?.deliveryPersonId ?? null;
   const produto = produtoCarga(order?.product);
@@ -44,20 +47,30 @@ export function ReatribuirDialog({ order, isOpen, onOpenChange, onFeito }: Props
   const cargaAtual = useCargaResumo(isOpen && atual ? atual : null);
   const comAnterior = cheiosNaCarga(cargaAtual.data, atual, produto);
   const opcoes = entregadores.filter((e) => e.id !== atual);
-  const nomeNovo = entregadores.find((e) => e.id === novo)?.nome;
-  const pode = !!order && !!novo && motivo.trim().length >= 5 && !operacao.enviando && (!transferir || comAnterior >= qtd);
+  const novoE = entregadores.find((e) => e.id === novo);
+  const nomeNovo = novoE?.nome;
+  const pode = !!order && !!novo && motivo.trim().length >= 5 && !operacao.enviando && (!transferir || comAnterior >= qtd)
+    && !!canal && !impedimentoAviso(novoE);
 
   const enviar = async () => {
     if (!order || !pode) return;
     setErro(null);
     try {
-      await operacao.executar({ pedido: order.id, novo, motivo: motivo.trim(), transferir }, (chave) =>
-        acao("reatribuir_entrega", { _order_id: order.id, _novo_entregador_id: novo, _motivo: motivo.trim(), _transferir_carga: transferir, _chave: chave }));
+      await operacao.executar({ pedido: order.id, novo, motivo: motivo.trim(), transferir, canal }, (chave) =>
+        acao("reatribuir_entrega_aviso", { _order_id: order.id, _novo_entregador_id: novo, _motivo: motivo.trim(), _transferir_carga: transferir, _chave: chave, _canal: canal }));
       qc.invalidateQueries();
       // Confirmado no banco: o aviso vai para o novo responsável (lido do pedido pelo servidor).
       supabase.functions.invoke("send-push", { body: { tipo: "atribuicao", orderId: order.id } })
         .catch((e) => console.warn("Falha ao enviar push:", e));
       toast({ title: "Pedido reatribuído", description: `${numeroPedido(order.id)} agora com ${nomeNovo}. Aguardando o aceite dele.` });
+      // Reatribuição e pedido de envio gravados juntos; envios pendentes ao anterior foram cancelados no banco.
+      const id = order.id;
+      processarAviso({ order_id: id }).then((r) => {
+        const x = resumoEnvio(r);
+        toast(x.ok ? { title: "WhatsApp", description: x.texto }
+          : { title: "Pedido reatribuído, WhatsApp não enviado", description: `${x.texto} Abra os detalhes do pedido para tentar de novo.`, variant: "destructive" });
+      }).catch((e) => toast({ title: "Pedido reatribuído, WhatsApp não enviado", description: `${e instanceof Error ? e.message : e} Abra os detalhes do pedido para tentar de novo.`, variant: "destructive" }));
+      qc.invalidateQueries({ queryKey: ["whatsapp-envios", id] });
       onFeito();
       onOpenChange(false);
     } catch (e) {
@@ -106,6 +119,7 @@ export function ReatribuirDialog({ order, isOpen, onOpenChange, onFeito }: Props
                 </span>
               </label>
             </div>
+            {novo && <CanalAvisoField value={canal} onChange={setCanal} entregador={novoE} />}
             {erro && (
               <div role="alert" className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
                 <p className="font-medium text-destructive">Pedido não reatribuído</p><p>{erro}</p>

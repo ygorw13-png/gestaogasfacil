@@ -9,11 +9,14 @@ import { FinanceSettings } from "./components/FinanceSettings";
 import { DeliverySettings } from "./components/DeliverySettings";
 import { SecuritySettings } from "./components/SecuritySettings";
 import { PrinterSettings } from "./components/PrinterSettings";
+import { WhatsAppSettings } from "./components/WhatsAppSettings";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("usuarios");
 
-  // Removed role-based restrictions
+  const { role } = useUserRole();
+  const admin = role === "admin";
 
   return (
     <div className="space-y-6">
@@ -22,7 +25,7 @@ export default function Settings() {
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full justify-start lg:grid lg:grid-cols-8">
+        <TabsList className="w-full justify-start lg:grid lg:grid-cols-9">
 
           <TabsTrigger value="usuarios">Usuários</TabsTrigger>
           <TabsTrigger value="estoque">Estoque</TabsTrigger>
@@ -32,6 +35,7 @@ export default function Settings() {
           <TabsTrigger value="entregas">Entregas</TabsTrigger>
           <TabsTrigger value="impressora">Impressora</TabsTrigger>
           <TabsTrigger value="seguranca">Segurança</TabsTrigger>
+          {admin && <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>}
         </TabsList>
 
         
@@ -67,6 +71,12 @@ export default function Settings() {
         <TabsContent value="seguranca" className="mt-4">
           <SecuritySettings />
         </TabsContent>
+
+        {admin && (
+          <TabsContent value="whatsapp" className="mt-4">
+            <WhatsAppSettings />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

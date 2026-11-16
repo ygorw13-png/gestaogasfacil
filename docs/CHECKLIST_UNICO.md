@@ -131,3 +131,11 @@ Ver `docs/DECISOES_PENDENTES.md`.
 ## Correção — Venda Regular em promissória para ponto (16/11/2026)
 - [x] Ser ponto não zera o valor: Venda Regular grava o total informado; id de ponto não vai como cliente (só o nome); sem lançamento duplicado na ficha do parceiro. Agregado "a acertar" segue bloqueado (decisão 13). Promissória exige cliente e total > 0.
 - [x] Testes: unitário 4/4; banco isolado `run_venda_regular_ponto.py` 10/10.
+
+## Lote — aviso de entrega pelo WhatsApp oficial (candidato 016, 16/11/2026)
+- [x] Canal obrigatório na atribuição/reatribuição: App + WhatsApp; Só WhatsApp visível e recusado (sem recebimento de respostas nesta versão).
+- [x] Telefone só pelo vínculo colaborador ↔ conta (admin); fila `whatsapp_envios` gravada junto com a atribuição; reatribuição cancela pendentes do anterior.
+- [x] `whatsapp-envio` (servidor) e `whatsapp-admin` (Configurações > WhatsApp, só admin). Estados: aguardando, enviado à plataforma, falha, incerto, cancelado.
+- [x] Testes: banco isolado `run_aviso016.py` 25/25, segurança 27/27; unitários 10/10.
+- [ ] Conectar o WhatsApp Business da empresa, criar/aprovar o modelo, ativar o envio (custo Meta por mensagem). Entregue/Lido e aceite pelo WhatsApp dependem de receber respostas (atualização do app).
+- [ ] Telas não conferidas no navegador (sem sessão de teste).

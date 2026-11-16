@@ -1,33 +1,39 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { acao } from "@/lib/g1/acoes";
 
 export interface EntregadorApp {
   id: string;
   nome: string;
-  telefone: string | null;
+  /** Cadastro de colaborador vinculado a esta conta do app (pelo ID, nunca pelo nome). */
+  vinculado: boolean;
+  /** Telefone do colaborador vinculado é válido para WhatsApp. */
+  telefoneValido: boolean;
+  /** Últimos 4 dígitos do telefone (o número completo fica só no servidor). */
+  telefoneFinal: string | null;
 }
 
 /**
- * Entregadores ATIVOS da empresa com conta no app, pela fonte canônica de papéis
- * (`user_roles`, função `listar_entregadores` — SQL 012). O id é o da conta: é ele que
- * vai em orders.delivery_person_id para a entrega aparecer no celular do entregador.
- * O telefone (só para o aviso no WhatsApp) vem do cadastro de colaboradores pelo nome, quando existir.
+ * Entregadores ATIVOS da empresa com conta no app (`listar_entregadores_aviso`, SQL 016). O id é o da conta:
+ * é ele que vai em orders.delivery_person_id. O telefone vem do colaborador vinculado à conta por ID.
  */
 export function useEntregadoresApp() {
   return useQuery({
     queryKey: ["entregadores-app"],
     queryFn: async (): Promise<EntregadorApp[]> => {
-      const lista = await acao<{ id: string; nome: string }[]>("listar_entregadores", {});
-      const { data: colaboradores } = await supabase.from("colaboradores").select("nome, telefone");
-      const phoneByName = new Map<string, string | null>();
-      (colaboradores ?? []).forEach((c) => phoneByName.set(String(c.nome ?? "").trim().toLowerCase(), c.telefone ?? null));
+      const lista = await acao<{ id: string; nome: string; vinculado: boolean; telefone_valido: boolean; telefone_final: string | null }[]>(
+        "listar_entregadores_aviso", {});
       return (lista ?? []).map((p) => ({
-        id: p.id,
-        nome: p.nome,
-        telefone: phoneByName.get(String(p.nome ?? "").trim().toLowerCase()) ?? null,
+        id: p.id, nome: p.nome, vinculado: !!p.vinculado, telefoneValido: !!p.telefone_valido, telefoneFinal: p.telefone_final,
       }));
     },
     staleTime: 60_000,
   });
+}
+
+/** Motivo para o entregador não poder receber o aviso App + WhatsApp (null = pode). */
+export function impedimentoAviso(e?: EntregadorApp | null): string | null {
+  if (!e) return null;
+  if (!e.vinculado) return "Sem cadastro de colaborador vinculado a esta conta do app (Colaboradores > Editar > Conta no app).";
+  if (!e.telefoneValido) return "Telefone do colaborador inválido para WhatsApp (cadastre DDD + número em Colaboradores).";
+  return null;
 }

@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Order, OrderStatus } from "../types";
 import { supabase } from "@/integrations/supabase/client";
 import { createPromissoryFromSale, isPromissoryPayment } from "@/lib/promissory";
+import { processarAviso, resumoEnvio, type CanalAviso } from "@/lib/avisoWhatsapp";
 import { G1_ACOES, acao, novaChave } from "@/lib/g1/acoes";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -17,6 +18,8 @@ export interface AssignOptions {
   chave?: string;
   /** Nome do entregador para a confirmação (antes aparecia o ID). */
   nomeEntregador?: string;
+  /** Canal do aviso (obrigatório com G1): App + WhatsApp ou Só WhatsApp. */
+  canal?: CanalAviso;
   /** Reatribuição: o produto passou fisicamente da carga do entregador anterior para a do novo. */
   transferirCarga?: boolean;
 }
@@ -131,6 +134,16 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
     }
   }, [toast, setOrders]);
 
+  const avisarWhatsApp = useCallback((orderId: string) => {
+    processarAviso({ order_id: orderId })
+      .then((r) => {
+        const x = resumoEnvio(r);
+        toast(x.ok ? { title: "WhatsApp", description: x.texto }
+          : { title: "Pedido atribuído, WhatsApp não enviado", description: `${x.texto} Abra os detalhes do pedido para tentar de novo.`, variant: "destructive" });
+      })
+      .catch((e) => toast({ title: "Pedido atribuído, WhatsApp não enviado", description: `${e instanceof Error ? e.message : e} Abra os detalhes do pedido para tentar de novo.`, variant: "destructive" }));
+  }, [toast]);
+
   const handleAssignOrder = useCallback(async (orderId: string, deliveryPerson: string, opts: AssignOptions = {}): Promise<boolean> => {
     setLoading(true);
     try {
@@ -139,16 +152,18 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
         if (atual?.deliveryPersonId && atual.deliveryPersonId !== deliveryPerson) {
           // Troca explícita, por ID, com motivo; o produto só muda de carga com transferência física registrada.
           if (!opts.motivo?.trim()) throw new Error("Informe o motivo da troca de entregador.");
-          await acao("reatribuir_entrega", {
+          await acao("reatribuir_entrega_aviso", {
             _order_id: orderId, _novo_entregador_id: deliveryPerson, _motivo: opts.motivo.trim(),
-            _transferir_carga: !!opts.transferirCarga, _chave: opts.chave ?? novaChave("reatribuir"),
+            _transferir_carga: !!opts.transferirCarga, _chave: opts.chave ?? novaChave("reatribuir"), _canal: opts.canal ?? null,
           });
         } else {
-          await acao("atribuir_entrega", {
+          await acao("atribuir_entrega_aviso", {
             _order_id: orderId, _entregador_id: deliveryPerson,
-            _retirar_da_portaria: !!opts.retirarDaPortaria, _chave: opts.chave ?? novaChave("atribuir"),
+            _retirar_da_portaria: !!opts.retirarDaPortaria, _chave: opts.chave ?? novaChave("atribuir"), _canal: opts.canal ?? null,
           });
         }
+        // Atribuição e pedido de envio já gravados juntos: o servidor envia agora (sem abrir outra janela).
+        avisarWhatsApp(orderId);
       } else {
       const { error } = await supabase
         .from('orders')
@@ -206,7 +221,7 @@ export function useOrderMutations(orders: Order[], setOrders: React.Dispatch<Rea
     } finally {
       setLoading(false);
     }
-  }, [toast, setOrders, orders]);
+  }, [toast, setOrders, orders, avisarWhatsApp]);
 
   const handleStatusChange = useCallback(async (
     orderId: string, 

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { dataEntrega, motivoRevisao, numeroPedido } from "@/lib/entregas";
 import { EstadoEntregaBadge } from "./EstadoEntregaBadge";
 import { nomeForma } from "@/lib/formasPagamento";
+import { AvisosWhatsApp } from "@/components/entregas/AvisosWhatsApp";
 
 const TIPO_EVENTO: Record<string, string> = {
   atribuicao: "Atribuído", reatribuicao: "Reatribuído", retirada_fila: "Voltou para a fila", recusa: "Recusado pelo entregador",
@@ -62,9 +63,11 @@ export function EntregaDetalhesDialog({ orderId, onOpenChange }: { orderId: stri
               <dt className="text-muted-foreground">Pagamento</dt><dd>{nomeForma(o.payment_method)}</dd>
               <dt className="text-muted-foreground">Data da entrega</dt><dd>{dataBR(dataEntrega(o.entrega_prevista, o.created_at))}{o.entrega_prevista ? " (prevista)" : " (dia do pedido)"}</dd>
               <dt className="text-muted-foreground">Entregador</dt><dd>{nome(o.delivery_person_id || o.delivery_person)}</dd>
+              {o.canal_aviso && <><dt className="text-muted-foreground">Aviso</dt><dd>{o.canal_aviso === "whatsapp" ? "Só WhatsApp" : "App + WhatsApp"}</dd></>}
               {o.rejection_reason && <><dt className="text-muted-foreground">Recusa</dt><dd>{o.rejection_reason}</dd></>}
               {o.delivered_at && <><dt className="text-muted-foreground">Entregue em</dt><dd>{quando(o.delivered_at)}</dd></>}
             </dl>
+            {orderId && <AvisosWhatsApp orderId={orderId} nome={nome} />}
             <div>
               <h3 className="mb-1 font-medium">Histórico da entrega</h3>
               {d.eventos.length === 0 ? <p className="text-muted-foreground">Sem eventos registrados (registros anteriores a esta versão não têm histórico detalhado).</p> : (

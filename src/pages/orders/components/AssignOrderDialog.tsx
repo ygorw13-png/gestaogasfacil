@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { WhatsAppButton } from "@/components/common/WhatsAppButton";
-import { useEntregadoresApp } from "@/hooks/useEntregadoresApp";
-import { msgEntregaAtribuida } from "@/utils/whatsappLinks";
+import { impedimentoAviso, useEntregadoresApp } from "@/hooks/useEntregadoresApp";
+import { CanalAvisoField } from "@/components/entregas/CanalAvisoField";
+import type { CanalAviso } from "@/lib/avisoWhatsapp";
 import type { Order } from "../types";
 import type { AssignOptions } from "../hooks/useOrderMutations";
 import { G1_ACOES } from "@/lib/g1/acoes";
@@ -46,8 +46,9 @@ export function AssignOrderDialog({
   const [retirar, setRetirar] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [erro, setErro] = useState<string | null>(null);
+  const [canal, setCanal] = useState<CanalAviso | "">("");
   const operacao = useOperacaoUnica("atribuir");
-  useEffect(() => { if (isOpen) { setRetirar(false); setMotivo(""); setErro(null); } }, [isOpen]);
+  useEffect(() => { if (isOpen) { setRetirar(false); setMotivo(""); setErro(null); setCanal(""); } }, [isOpen]);
   // Só para pedidos sem entregador identificado; troca de entregador usa o formulário "Reatribuir".
   const troca = false;
 
@@ -60,21 +61,21 @@ export function AssignOrderDialog({
   const portariaBloqueia = retirar && (!portaria.data || !portaria.data.abertura_registrada || portaria.data.cheios < qtd);
 
   const entregador = entregadores.find((c) => c.id === selectedDeliveryPerson);
-  const bloqueado = !selectedDeliveryPerson || (troca && !motivo.trim()) || (G1_ACOES && portariaBloqueia) || operacao.enviando;
+  const bloqueado = !selectedDeliveryPerson || (troca && !motivo.trim()) || (G1_ACOES && portariaBloqueia) || operacao.enviando
+    || (G1_ACOES && (!canal || !!impedimentoAviso(entregador)));
   const enviar = async () => {
     if (bloqueado) return;
     setErro(null);
-    const conteudo = { pedido: order?.id, entregador: selectedDeliveryPerson, retirar, motivo: motivo.trim() };
+    const conteudo = { pedido: order?.id, entregador: selectedDeliveryPerson, retirar, motivo: motivo.trim(), canal };
     try {
       await operacao.executar(conteudo, (chave) =>
         Promise.resolve(onSubmit(G1_ACOES
-          ? { retirarDaPortaria: retirar, motivo, chave, nomeEntregador: entregador?.nome }
+          ? { retirarDaPortaria: retirar, motivo, chave, nomeEntregador: entregador?.nome, canal: canal as CanalAviso }
           : { nomeEntregador: entregador?.nome })));
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Não foi possível atribuir o pedido.");
     }
   };
-  const mensagem = order ? msgEntregaAtribuida(order, entregador?.nome) : "";
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -82,8 +83,8 @@ export function AssignOrderDialog({
         <DialogHeader>
           <DialogTitle>Atribuir pedido {order ? numeroPedido(order.id) : ""}</DialogTitle>
           <DialogDescription>
-            Selecione o entregador para realizar esta entrega. Só aparecem
-            entregadores com acesso ao app — assim a entrega chega no celular dele.
+            Selecione o entregador e o canal do aviso. Ao confirmar, o sistema envia o WhatsApp
+            pelo servidor; mensagem enviada não é aceite da entrega.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -177,12 +178,8 @@ export function AssignOrderDialog({
             </div>
           )}
 
-          {entregador && (
-            <p className="text-xs text-muted-foreground">
-              {entregador.telefone
-                ? `WhatsApp do entregador: ${entregador.telefone}`
-                : "Este entregador não tem telefone cadastrado — cadastre em Colaboradores para enviar o aviso."}
-            </p>
+          {G1_ACOES && selectedDeliveryPerson && (
+            <CanalAvisoField value={canal} onChange={setCanal} entregador={entregador} />
           )}
         </div>
         <DialogFooter className="gap-2 sm:gap-2">
@@ -192,16 +189,6 @@ export function AssignOrderDialog({
           >
             Cancelar
           </Button>
-          {order && (
-            <WhatsAppButton
-              phone={entregador?.telefone}
-              message={mensagem}
-              label="Confirmar e avisar no WhatsApp"
-              size="default"
-              disabled={bloqueado}
-              onSent={enviar}
-            />
-          )}
           <Button 
             onClick={enviar}
             disabled={bloqueado}
