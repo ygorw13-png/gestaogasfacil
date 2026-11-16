@@ -38,6 +38,8 @@ export interface Sale {
   vasilhamesRecebidos?: number;
 
   clientId?: string | null;
+  /** Retirada de agregado (sem valor): id do agregado. */
+  resellerId?: string | null;
   cylinderMovement?: 'none' | 'loan' | 'return';
   movementQuantity?: number;
 }

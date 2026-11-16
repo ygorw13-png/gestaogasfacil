@@ -70,3 +70,16 @@ describe("formas de pagamento", () => {
     expect(nomeForma("boleto")).toBe("boleto");
   });
 });
+
+import { rotuloForma as rotulo017, nomeForma as nome017, normalizarForma as norm017, textoValorAgregado } from "./formasPagamento";
+describe("retirada de agregado (017)", () => {
+  it("tem identificação própria e não vira forma de pagamento", () => {
+    expect(rotulo017("agregado")).toBe("Retirada de agregado — a acertar");
+    expect(nome017("agregado")).toBe("Retirada de agregado — a acertar");
+    expect(norm017("agregado")).toBeNull();
+  });
+  it("valor nunca aparece como zero: reservado ao operador, pendente ao administrador", () => {
+    expect(textoValorAgregado(false)).toBe("Valor reservado ao administrador");
+    expect(textoValorAgregado(true)).toBe("Pendente: valor no acerto");
+  });
+});

@@ -75,7 +75,7 @@ function AcaoDialog({ open, onOpenChange, titulo, descricao, children, pronto, o
 function FormaSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger><SelectValue placeholder="Forma real do recebimento" /></SelectTrigger>
+      <SelectTrigger aria-label="Forma real do recebimento"><SelectValue placeholder="Forma real do recebimento" /></SelectTrigger>
       <SelectContent>{FORMAS.map((f) => <SelectItem key={f.v} value={f.v}>{f.l}</SelectItem>)}</SelectContent>
     </Select>
   );
@@ -119,7 +119,7 @@ function Pagamento({ devido, creditos, usos, setUsos, dinheiro, setDinheiro, for
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="space-y-1">
           <Label>Dinheiro novo recebido (R$)</Label>
-          <Input inputMode="decimal" value={dinheiro} placeholder="0,00" onChange={(e) => setDinheiro(e.target.value.replace(/[^0-9.,]/g, ""))} />
+          <Input aria-label="Dinheiro novo recebido" inputMode="decimal" value={dinheiro} placeholder="0,00" onChange={(e) => setDinheiro(e.target.value.replace(/[^0-9.,]/g, ""))} />
         </div>
         {novo > 0 && <div className="space-y-1"><Label>Forma</Label><FormaSelect value={forma} onChange={setForma} /></div>}
       </div>
@@ -256,7 +256,7 @@ function PrecoDialog({ reseller, atual, onClose }: { reseller: { id: string }; a
       descricao="Sigiloso: só o administrador vê. Alterar não muda acertos já feitos." pronto={preco > 0}
       onConfirmar={() => acao("agregado_preco_definir", { _reseller_id: reseller.id, _produto: "P13", _preco: preco })}>
       <Label>Preço por botijão (R$)</Label>
-      <Input inputMode="decimal" value={v} onChange={(e) => setV(e.target.value.replace(/[^0-9.,]/g, ""))} />
+      <Input aria-label="Preço por botijão" inputMode="decimal" value={v} onChange={(e) => setV(e.target.value.replace(/[^0-9.,]/g, ""))} />
     </AcaoDialog>
   );
 }
@@ -276,11 +276,11 @@ function PorContaDialog({ reseller, onClose }: { reseller: { id: string; name: s
       onConfirmar={(chave) => acao("agregado_por_conta_registrar", { _reseller_id: reseller.id, _valor: valor, _forma: forma,
         _recebido_em: new Date(quando).toISOString(), _observacoes: obs.trim() || null, _chave: chave })}>
       <div className="grid gap-2 sm:grid-cols-2">
-        <div className="space-y-1"><Label>Valor (R$)</Label><Input inputMode="decimal" value={v} onChange={(e) => setV(e.target.value.replace(/[^0-9.,]/g, ""))} /></div>
-        <div className="space-y-1"><Label>Recebido em</Label><Input type="datetime-local" value={quando} max={agora} onChange={(e) => setQuando(e.target.value)} /></div>
+        <div className="space-y-1"><Label>Valor (R$)</Label><Input aria-label="Valor (R$)" inputMode="decimal" value={v} onChange={(e) => setV(e.target.value.replace(/[^0-9.,]/g, ""))} /></div>
+        <div className="space-y-1"><Label>Recebido em</Label><Input aria-label="Recebido em" type="datetime-local" value={quando} max={agora} onChange={(e) => setQuando(e.target.value)} /></div>
       </div>
       <div className="space-y-1"><Label>Forma real</Label><FormaSelect value={forma} onChange={setForma} /></div>
-      <div className="space-y-1"><Label>Observação (opcional)</Label><Textarea rows={2} value={obs} onChange={(e) => setObs(e.target.value)} /></div>
+      <div className="space-y-1"><Label>Observação (opcional)</Label><Textarea aria-label="Observação (opcional)" rows={2} value={obs} onChange={(e) => setObs(e.target.value)} /></div>
     </AcaoDialog>
   );
 }
@@ -323,7 +323,7 @@ function AcertoDialog({ reseller, retiradas, fin, onClose }: { reseller: { id: s
       </div>
       <div className="space-y-1">
         <Label>Valor combinado do acerto (R$) · {qtd} botijão(ões)</Label>
-        <Input inputMode="decimal" value={valorTxt} onChange={(e) => { setValorTxt(e.target.value.replace(/[^0-9.,]/g, "")); setConfirma(false); }} />
+        <Input aria-label="Valor combinado do acerto" inputMode="decimal" value={valorTxt} onChange={(e) => { setValorTxt(e.target.value.replace(/[^0-9.,]/g, "")); setConfirma(false); }} />
         {sugestao !== null && qtd > 0 && (
           <Button type="button" variant="link" className="h-auto p-0 text-xs" onClick={() => setValorTxt(String(sugestao).replace(".", ","))}>
             Usar preço cadastrado: {brl(sugestao)}
@@ -332,7 +332,7 @@ function AcertoDialog({ reseller, retiradas, fin, onClose }: { reseller: { id: s
       </div>
       {valor > 0 && <Pagamento devido={valor} creditos={fin.creditos} usos={usos} setUsos={setUsos} dinheiro={dinheiro} setDinheiro={setDinheiro}
         forma={forma} setForma={setForma} confirmaCredito={confirma} setConfirmaCredito={setConfirma} />}
-      <div className="space-y-1"><Label>Observação (opcional)</Label><Textarea rows={2} value={obs} onChange={(e) => setObs(e.target.value)} /></div>
+      <div className="space-y-1"><Label>Observação (opcional)</Label><Textarea aria-label="Observação (opcional)" rows={2} value={obs} onChange={(e) => setObs(e.target.value)} /></div>
     </AcaoDialog>
   );
 }
@@ -370,8 +370,8 @@ function AjusteDialog({ acerto, onClose }: { acerto: AcertoFin; onClose: () => v
         <SelectTrigger><SelectValue /></SelectTrigger>
         <SelectContent><SelectItem value="menos">Diminuir o valor do acerto</SelectItem><SelectItem value="mais">Aumentar o valor do acerto</SelectItem></SelectContent>
       </Select>
-      <div className="space-y-1"><Label>Valor (R$)</Label><Input inputMode="decimal" value={v} onChange={(e) => setV(e.target.value.replace(/[^0-9.,]/g, ""))} /></div>
-      <div className="space-y-1"><Label>Motivo</Label><Textarea rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>
+      <div className="space-y-1"><Label>Valor (R$)</Label><Input aria-label="Valor (R$)" inputMode="decimal" value={v} onChange={(e) => setV(e.target.value.replace(/[^0-9.,]/g, ""))} /></div>
+      <div className="space-y-1"><Label>Motivo</Label><Textarea aria-label="Motivo" rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>
     </AcaoDialog>
   );
 }
@@ -386,9 +386,9 @@ function DevolverCreditoDialog({ credito, onClose }: { credito: CreditoFin; onCl
       descricao={`Registre só o dinheiro efetivamente devolvido (disponível ${brl(credito.saldo)}). Nenhuma transferência é feita pelo sistema.`}
       pronto={valor > 0 && valor <= credito.saldo && !!forma && motivo.trim().length >= 5}
       onConfirmar={(chave) => acao("agregado_credito_devolver", { _credito_id: credito.id, _valor: valor, _forma: forma, _motivo: motivo.trim(), _chave: chave })}>
-      <div className="space-y-1"><Label>Valor devolvido (R$)</Label><Input inputMode="decimal" value={v} onChange={(e) => setV(e.target.value.replace(/[^0-9.,]/g, ""))} /></div>
+      <div className="space-y-1"><Label>Valor devolvido (R$)</Label><Input aria-label="Valor devolvido (R$)" inputMode="decimal" value={v} onChange={(e) => setV(e.target.value.replace(/[^0-9.,]/g, ""))} /></div>
       <div className="space-y-1"><Label>Como foi devolvido</Label><FormaSelect value={forma} onChange={setForma} /></div>
-      <div className="space-y-1"><Label>Motivo</Label><Textarea rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>
+      <div className="space-y-1"><Label>Motivo</Label><Textarea aria-label="Motivo" rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>
     </AcaoDialog>
   );
 }
@@ -400,7 +400,7 @@ function AnularDialog({ credito, onClose }: { credito: CreditoFin; onClose: () =
       descricao={`Por conta de ${brl(credito.valor)} em ${dt(credito.recebido_em)}. Só é possível porque nada dele foi usado. Fica no histórico como anulado.`}
       pronto={motivo.trim().length >= 5} rotulo="Anular"
       onConfirmar={(chave) => acao("agregado_por_conta_anular", { _id: credito.id, _motivo: motivo.trim(), _chave: chave })}>
-      <div className="space-y-1"><Label>Motivo</Label><Textarea rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>
+      <div className="space-y-1"><Label>Motivo</Label><Textarea aria-label="Motivo" rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>
     </AcaoDialog>
   );
 }
@@ -425,8 +425,8 @@ export function DevolucaoAcertadaDialog({ retirada, fin, onClose }: { retirada: 
           <SelectContent>{acertos.map((a) => <SelectItem key={a.id} value={a.id}>{dt(a.criado_em)} · {brl(a.valor + a.ajustes)}</SelectItem>)}</SelectContent>
         </Select>
       </div>
-      <div className="space-y-1"><Label>Quanto o acerto diminui (R$)</Label><Input inputMode="decimal" value={v} onChange={(e) => setV(e.target.value.replace(/[^0-9.,]/g, ""))} /></div>
-      <div className="space-y-1"><Label>Motivo</Label><Textarea rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>
+      <div className="space-y-1"><Label>Quanto o acerto diminui (R$)</Label><Input aria-label="Quanto o acerto diminui (R$)" inputMode="decimal" value={v} onChange={(e) => setV(e.target.value.replace(/[^0-9.,]/g, ""))} /></div>
+      <div className="space-y-1"><Label>Motivo</Label><Textarea aria-label="Motivo" rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>
     </AcaoDialog>
   );
 }

@@ -146,3 +146,9 @@ Ver `docs/DECISOES_PENDENTES.md`.
 - Implementado: Configurações > WhatsApp > "Conectar por QR" (admin), função `whatsapp-qr` (estado/conectar), "Servidor não configurado" sem secrets.
 - Testado: `whatsapp-qr-core.test.ts` 8/8 (mocks), função recusa sem login (401).
 - Pendente: servidor Evolution + secrets; QR real e leitura não comprovados; envio pela fila via QR não adaptado (exige campo de provedor no banco).
+
+## Agregados — candidato 017 (16/11/2026)
+- [x] Implementado: retirada pela portaria sem preço (`retirada_agregado`), preço sigiloso (`agregado_precos`, coluna antiga sem acesso), por conta, acerto, recebimento parcial, ajuste, devolução após acerto com ajuste, devolução de crédito, anulação de por conta não usado, extrato PDF administrativo.
+- [x] Testado isolado: `run_agregado017.py` 51/51; `run_reversao011.py` 67/67 com 017; navegador isolado 5/5 (portaria → Vendas recentes → ficha operador → por conta → acerto com crédito), 0 chamadas ao backend real.
+- [x] Aplicado no Cloud: `drizzle/migrations/0017_g1_017_agregados.sql` (nenhum preço antigo cadastrado: 0 copiados).
+- [ ] Pendente de decisão: 102 botijões da conta antiga (10/08–09/09/2026) entram no acerto novo?; dinheiro de por conta aparece no fechamento da portaria?

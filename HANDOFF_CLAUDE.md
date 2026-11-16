@@ -353,3 +353,6 @@ Formas de pagamento com código próprio (`src/lib/formasPagamento.ts` ↔ `publ
 
 ## Atualização 16/11/2026 — candidato 015 publicado
 Correção da forma de pagamento de venda concluída: `public.admin_corrigir_forma_pagamento(order, forma, motivo, chave)` (Cloud `0014_g1_015_corrigir_forma_pagamento.sql`, candidato `g1/candidate/sql/015_corrigir_forma_pagamento.sql`). Auditoria em `auditoria_correcoes` (venda e título). Testes: `reset_com015.sh com_abertura` + `run_forma015.py` 23/23. Tela: `useEditarVenda` (G1) chama a ação quando só a forma muda.
+
+## Atualização 16/11/2026 — agregados (candidato 017)
+Publicado/aplicado: retirada de agregado sem preço, preço sigiloso, por conta e acerto do administrador (`g1/candidate/sql/017_agregados.sql` = `drizzle/migrations/0017_g1_017_agregados.sql`). Testes: `g1/tests/sql/reset_com017.sh com_abertura` + `run_agregado017.py` (51/51). Decisões abertas no `docs/CHECKLIST_UNICO.md`.

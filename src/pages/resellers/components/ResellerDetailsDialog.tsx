@@ -106,7 +106,7 @@ export function ResellerDetailsDialog({ open, onOpenChange, reseller }: Reseller
                     {ehAdmin && (
                       <td className="p-2 text-right">
                         {r.acertada > 0 && !r.em_devolucao && (
-                          <Button size="sm" variant="ghost" className="h-7" onClick={() => setDevolver(r)}>Devolução c/ ajuste</Button>
+                          <Button size="sm" variant="ghost" className="h-7" onClick={() => setDevolver(r)}>Devolver</Button>
                         )}
                       </td>
                     )}

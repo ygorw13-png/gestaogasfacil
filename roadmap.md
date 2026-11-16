@@ -71,3 +71,10 @@ Validação da Etapa 1 (concluída, 26/26 + 11/11) + candidato de segurança 002
 - [ ] Lote 014: decidir venda 9899b5ca/promissória 79322b47 e vendas antigas "convênio" — decisão do proprietário
 
 - [x] WhatsApp por QR: conferido no navegador (admin) que aparece "Servidor não configurado" em vez de "Failed to send a request"
+
+## Agregados (16/11) — candidato 017
+- [x] Banco: retirada sem preço, preço sigiloso, por conta, acerto, devolução (51/51 isolado; reversões 67/67) — aplicado no Cloud
+- [x] Telas conferidas no navegador (isolado 5/5) + publicação
+
+## Próxima tarefa (só depois dos agregados)
+- [ ] WhatsApp "Aplicativo do PC": função whatsapp-desktop (pareamento, heartbeat, poll, begin, result), tela admin, provedor explícito, testes isolados, publicar
