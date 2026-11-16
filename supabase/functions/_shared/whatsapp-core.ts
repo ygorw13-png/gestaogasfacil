@@ -76,3 +76,20 @@ export function impedimento(cfg: { modelo?: string | null; envio_ativo?: boolean
   if (!cfg.envio_ativo) return "Envio pelo WhatsApp não ativado pelo administrador (Configurações > WhatsApp)";
   return null;
 }
+
+/** Número de teste da Meta (sandbox ou +1 555…) nunca é tratado como o número da empresa. */
+export function ambienteNumero(n: { display_phone_number?: string | null; account_mode?: string | null } | null | undefined): "teste" | "producao" | "desconhecido" {
+  if (!n || typeof n !== "object") return "desconhecido";
+  const digitos = String(n.display_phone_number ?? "").replace(/\D/g, "");
+  if (String(n.account_mode ?? "").toUpperCase() === "SANDBOX" || /^1555/.test(digitos)) return "teste";
+  if (!digitos) return "desconhecido";
+  return "producao";
+}
+
+/** Motivo para recusar ligar o envio automático (null = pode ligar). */
+export function motivoNaoAtivar(ambiente: string, statusModelo: string | null | undefined): string | null {
+  if (ambiente === "teste") return "O WhatsApp conectado é um número de teste da Meta, não o número da empresa. Conecte o número real antes de ligar o envio.";
+  if (ambiente !== "producao") return "Não foi possível confirmar o número conectado.";
+  if (statusModelo !== "APPROVED") return "O modelo de mensagem ainda não foi aprovado pela Meta.";
+  return null;
+}

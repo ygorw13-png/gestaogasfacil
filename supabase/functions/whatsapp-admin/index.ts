@@ -1,7 +1,7 @@
 // Configurações > WhatsApp (só administrador): situação real da conexão, modelo de mensagem e teste.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { classificar, corpoModelo, EXEMPLO_MODELO, GATEWAY_URL, MODELO_PADRAO, TEXTO_MODELO } from "../_shared/whatsapp-core.ts";
+import { ambienteNumero, motivoNaoAtivar, classificar, corpoModelo, EXEMPLO_MODELO, GATEWAY_URL, MODELO_PADRAO, TEXTO_MODELO } from "../_shared/whatsapp-core.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -45,15 +45,39 @@ Deno.serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
     const { data: cfg } = await admin.from("whatsapp_config").select("modelo, idioma, envio_ativo").eq("organization_id", org).maybeSingle();
     const conectado = !!(LOVABLE_API_KEY && WHATSAPP_API_KEY);
-    if (!conectado) return json({ conectado: false, motivo: "WhatsApp Business da empresa ainda não conectado ao GásFácil", config: cfg });
+    if (!conectado) {
+      if (acao === "ativar" && body?.ativo !== true) {
+        await admin.from("whatsapp_config").upsert({ organization_id: org, envio_ativo: false, atualizado_por: u.user.id, atualizado_em: new Date().toISOString() });
+        return json({ ok: true, envio_ativo: false });
+      }
+      return json({ conectado: false, motivo: "WhatsApp Business da empresa ainda não conectado ao GásFácil", config: cfg });
+    }
 
-    if (acao === "status") {
-      const numero = await gw("GET", "/phone_number?fields=display_phone_number,verified_name,quality_rating,is_on_biz_app,platform_type,name_status");
+    const consultar = async () => {
+      const numero = await gw("GET", "/phone_number?fields=display_phone_number,verified_name,quality_rating,is_on_biz_app,platform_type,name_status,account_mode");
       const modelo = cfg?.modelo
         ? await gw("GET", `/message_templates?name=${encodeURIComponent(cfg.modelo)}&fields=name,status,language,category,rejected_reason`)
         : null;
-      return json({ conectado: true, config: cfg, numero: { ok: numero.ok, http: numero.http, dados: numero.dados },
-        modelo: modelo ? { ok: modelo.ok, http: modelo.http, dados: modelo.dados } : null });
+      const ambiente = numero.ok ? ambienteNumero(numero.dados) : "desconhecido";
+      const statusModelo: string | null = modelo?.ok ? (modelo.dados?.data?.[0]?.status ?? null) : null;
+      return { numero, modelo, ambiente, statusModelo };
+    };
+    if (acao === "status") {
+      const { numero, modelo, ambiente, statusModelo } = await consultar();
+      return json({ conectado: true, ambiente, config: cfg, numero: { ok: numero.ok, http: numero.http, dados: numero.dados },
+        modelo: modelo ? { ok: modelo.ok, http: modelo.http, dados: modelo.dados } : null,
+        motivo_nao_ativar: motivoNaoAtivar(ambiente, statusModelo) });
+    }
+    if (acao === "ativar") {
+      const ligar = body?.ativo === true;
+      if (ligar) {
+        const { ambiente, statusModelo } = await consultar();
+        const motivo = motivoNaoAtivar(ambiente, statusModelo);
+        if (motivo) return json({ ok: false, error: motivo }, 409);
+      }
+      const { error } = await admin.from("whatsapp_config").upsert({ organization_id: org, envio_ativo: ligar, atualizado_por: u.user.id, atualizado_em: new Date().toISOString() });
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true, envio_ativo: ligar });
     }
     if (acao === "criar_modelo") {
       const nome = MODELO_PADRAO;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { classificar, impedimento, parametrosAviso, NOMES_FORMA, TEXTO_MODELO, EXEMPLO_MODELO, param } from "./whatsapp-core";
+import { ambienteNumero, motivoNaoAtivar, classificar, impedimento, parametrosAviso, NOMES_FORMA, TEXTO_MODELO, EXEMPLO_MODELO, param } from "./whatsapp-core";
 import { FORMAS_PAGAMENTO } from "../../../src/lib/formasPagamento";
 
 describe("aviso de entrega pelo WhatsApp", () => {
@@ -34,5 +34,17 @@ describe("aviso de entrega pelo WhatsApp", () => {
     expect(impedimento({ modelo: null, envio_ativo: true }, true)).toMatch(/Modelo/);
     expect(impedimento({ modelo: "m", envio_ativo: false }, true)).toMatch(/não ativado/);
     expect(impedimento({ modelo: "m", envio_ativo: true }, true)).toBeNull();
+  });
+  it("número +1 555 ou sandbox é teste; número real é produção", () => {
+    expect(ambienteNumero({ display_phone_number: "+1 555-821-2628" })).toBe("teste");
+    expect(ambienteNumero({ display_phone_number: "+55 75 99999-0000", account_mode: "SANDBOX" })).toBe("teste");
+    expect(ambienteNumero({ display_phone_number: "+55 75 99999-0000", account_mode: "LIVE" })).toBe("producao");
+    expect(ambienteNumero(null)).toBe("desconhecido");
+  });
+  it("envio automático só liga com número real e modelo aprovado", () => {
+    expect(motivoNaoAtivar("teste", "APPROVED")).toMatch(/teste/);
+    expect(motivoNaoAtivar("producao", "PENDING")).toMatch(/aprovado/);
+    expect(motivoNaoAtivar("desconhecido", "APPROVED")).not.toBeNull();
+    expect(motivoNaoAtivar("producao", "APPROVED")).toBeNull();
   });
 });
