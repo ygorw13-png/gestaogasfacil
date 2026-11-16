@@ -197,7 +197,7 @@ export async function mostrarAvisoLocal(titulo: string, corpo: string, tag: stri
   if (!isSupported() || Notification.permission !== "granted") return;
   const reg = await navigator.serviceWorker.getRegistration(PUSH_SCOPE).catch(() => undefined);
   await reg?.showNotification(titulo, {
-    body: corpo, tag, icon: "/icon-192.png", badge: "/icon-192.png", requireInteraction: true,
+    body: corpo, tag, icon: "/icon-v2-192.png", badge: "/icon-v2-192.png", requireInteraction: true,
     data: { url }, vibrate: [300, 100, 300], renotify: true,
   } as NotificationOptions).catch(() => undefined);
 }

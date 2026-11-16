@@ -15,8 +15,8 @@ self.addEventListener("push", (event) => {
   const title = payload.title || "GásFácil";
   const options = {
     body: payload.body || "",
-    icon: "/icon-192.png",
-    badge: "/icon-192.png",
+    icon: "/icon-v2-192.png",
+    badge: "/icon-v2-192.png",
     // Som e vibração seguem a configuração do aparelho (modo silencioso / Não Perturbe são respeitados).
     vibrate: [300, 100, 300, 100, 500],
     silent: false,
