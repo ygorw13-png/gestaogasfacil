@@ -337,3 +337,6 @@ psql 'postgresql://g0test@127.0.0.1:55439/postgres?sslmode=disable' -X -v ON_ERR
 
 ## Atualização 12/11/2026 — candidato 013 publicado
 Fechamento total bloqueia qualquer entrega aberta com data ≤ dia do fechamento (sem limite). Cloud: `drizzle/migrations/0012_g1_013_bloqueio_fechamento_sem_limite.sql`. Testes: `reset_com013.sh com_abertura` + `run_bloqueio013.py` 17/17; entregas 72/72; segurança 27/27. Os 8 registros antigos sem regularização bloqueiam o fechamento total até decisão do proprietário.
+
+## Atualização 16/11/2026 — correção de sessão publicada
+Sair ou perder a sessão num aparelho não derruba os outros (`signOut({ scope: 'local' })`). Sem sessão local o app não chama `get_user_profile` nem `create_profile`; chamadas simultâneas compartilham a verificação; falha de rede não encerra a sessão (offline preservado). Testes: `userProfile.test.ts` 7/7, `AuthContext.test.tsx` 6/6. Browser: sessão revogada fictícia vai direto ao login sem chamar a função. Publicado em gestaogasfacil.lovable.app; o pacote publicado contém o marcador `AuthSessionMissingError` (commit 74c30a8). Teste antigo de `g0.1/candidate/src/contexts/AuthContext.test.tsx` continua falhando por import ausente (fora do sistema em uso).
