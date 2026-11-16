@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MapPin, Phone, Package, DollarSign, CreditCard, Navigation, Check, X, Bell, BellOff, Clock, Bike } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useMyDeliveries, useAcceptDelivery, useRejectDelivery, useConfirmDelivery, type DeliveryOrder } from "@/hooks/useMyDeliveries";
 import { useTrackMyLocation } from "@/hooks/useEntregadorLocation";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -208,7 +208,7 @@ function DeliveryCard({ order, destaque = false }: { order: DeliveryOrder; desta
 
 export default function MinhasEntregas() {
   const { data: orders = [], isLoading, refetch } = useMyDeliveries();
-  const { name, isEntregador } = useUserRole();
+  const { name, isEntregador, isLoading: carregandoPapel } = useUserRole();
   const { toast } = useToast();
   const push = usePushNotifications();
   const lastReminder = useRef(0);
@@ -240,6 +240,9 @@ export default function MinhasEntregas() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pedidoAberto, orders]);
+
+  // O banco só devolve pedidos atualmente com este entregador (conta ativa, mesma empresa).
+  const pedidoIndisponivel = !!pedidoAberto && !isLoading && !orders.some((o) => o.id === pedidoAberto);
 
   // Lembretes com o app aberto (mesmos tempos de antes): sem aceite em 5 min, a cada 20 s;
   // em rota há 15 min, a cada 2 min. Antes de avisar, confere no servidor se o pedido
@@ -277,6 +280,11 @@ export default function MinhasEntregas() {
     return () => clearInterval(timer);
   }, [pendentes, emRota, toast, refetch]);
 
+  // Link do aviso aberto por quem não é entregador (admin/operador): abre o pedido na tela de Pedidos.
+  if (pedidoAberto && !carregandoPapel && !isEntregador) {
+    return <Navigate to={`/orders?pedido=${encodeURIComponent(pedidoAberto)}`} replace />;
+  }
+
   return (
     <div className="space-y-4 pb-8">
       <div className="flex justify-between items-center gap-2">
@@ -299,6 +307,13 @@ export default function MinhasEntregas() {
           <p className="text-xl font-bold">{vasilhamesPendentes}</p>
         </CardContent></Card>
       </div>
+
+      {pedidoIndisponivel && (
+        <Alert variant="destructive">
+          <AlertTitle>Pedido indisponível</AlertTitle>
+          <AlertDescription>Este pedido não está mais com você (foi reatribuído, cancelado ou já encerrado).</AlertDescription>
+        </Alert>
+      )}
 
       <Tabs value={aba} onValueChange={setAba} className="w-full">
         <TabsList className="grid grid-cols-3 w-full">

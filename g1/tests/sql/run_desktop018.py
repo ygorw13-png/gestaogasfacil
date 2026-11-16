@@ -1,5 +1,5 @@
 """Testes do 018 (provedor Aplicativo do PC para avisos de WhatsApp). Banco DESCARTÁVEL em 127.0.0.1, só dados fictícios.
-Rode depois de reset_com018.sh com_abertura. Uso: python3 run_desktop018.py <URL>"""
+Rode depois de reset_com019.sh com_abertura (texto do aviso = 019). Uso: python3 run_desktop018.py <URL>"""
 import subprocess, sys, json, threading, uuid
 URL = sys.argv[1]
 assert "127.0.0.1" in URL, "somente banco local descartável"
@@ -100,7 +100,7 @@ check("Atribuição com PC ativo entra na fila do PC", out(PRONTO + [ATR(), ST])
 check("Com PC selecionado e desligado, falha registrada (sem fila parada)",
       out(BASE + [PROV(), FONE(), ATR(), ST]) == "desktop:falha")
 r = out(PRONTO + [ATR(), POLL()])
-check("Poll entrega destinatário/texto derivados do pedido", '"to": "5575999990001"' in r and "Cliente PC" in r and "R$ 240,00" in r and "attempt_token" in r, r)
+check("Poll entrega destinatário/texto derivados do pedido (aviso mínimo 019)", '"to": "5575999990001"' in r and "abrir pedido" in r and "Cliente PC" not in r and "attempt_token" in r, r)
 check("Telefone do poll diferente do esperado: sem job", '"job": null' in out(PRONTO + [ATR(), POLL(tel="557599990000")]))
 check("Pausado: sem job", '"job": null' in out(PRONTO + [ATR(), HB(pausado="true"), POLL()]))
 check("Desconectado: sem job", '"job": null' in out(PRONTO + [ATR(), HB(st="disconnected"), POLL()]))
@@ -138,8 +138,8 @@ SEG = [("userA", f"INSERT INTO orders(user_id,organization_id,client_name,addres
 r = out(PRONTO + [ATR(), POLLCAP(), BEGIN(), VENCE] + SEG + [POLL(), RES("uncertain"),
      ("root", f"SELECT status||'|'||resultado_origem FROM whatsapp_envios WHERE order_id={ORD}")])
 check("Queda após begin: prazo vira incerto, recibo 'uncertain' do journal aceito", r == "incerto|dispositivo", r)
-r = out(PRONTO + [ATR(), POLLCAP(), BEGIN(), VENCE] + SEG + [POLL()])
-check("Queda após begin não bloqueia a fila (próximo job entregue)", '"job": {' in r and "Cliente PC 3" in r, r)
+r = out(PRONTO + [ATR(), POLLCAP(), BEGIN(), VENCE] + SEG + [POLLCAP(), ("root", f"SELECT (position((SELECT id::text FROM orders WHERE client_name='Cliente PC 3') in {GV('job')}) > 0)::text")])
+check("Queda após begin não bloqueia a fila (próximo job entregue)", r == "true", r)
 r = out(PRONTO + [ATR(), POLLCAP(), VENCE, POLL(), RES("uncertain"), ST])
 check("Recibo de job não iniciado e já encerrado: confirmado sem alterar", r == "desktop:falha", r)
 r = out(PRONTO + [ATR(), POLLCAP(), REA(), RES("failed")])
@@ -176,10 +176,10 @@ r = out(INC + [("userA", f"SELECT whatsapp_desktop_reenviar((SELECT id FROM what
 check("Reenvio confirmado cria NOVO job ligado ao anterior, uma vez", r == "2|1", r)
 
 # --- sigilo de agregados ---
-r = out(BASE + [("root", f"SELECT _wd_texto(id) FROM orders WHERE client_name='Cliente PC'"), ])
+r = out(BASE + [("root", f"SELECT replace(_wd_texto(id), chr(10), ' ') FROM orders WHERE client_name='Cliente PC'"), ])
 r2 = out(BASE + [("root", f"SET session_replication_role=replica; UPDATE orders SET payment_method='agregado', price=97 WHERE client_name='Cliente PC'; SET session_replication_role=origin"),
-                 ("root", f"SELECT _wd_texto(id) FROM orders WHERE client_name='Cliente PC'")])
-check("Texto do PC nunca mostra preço de retirada de agregado", "R$" not in r2 and "reservado ao administrador" in r2 and "R$ 240,00" in r, r2)
+                 ("root", f"SELECT replace(_wd_texto(id), chr(10), ' ') FROM orders WHERE client_name='Cliente PC'")])
+check("Texto do PC nunca mostra preço (agregado ou não; aviso mínimo 019)", "R$" not in r2 and "R$" not in r and "Nova entrega #" in r2 and "Nova entrega #" in r, (r, r2))
 
 # --- claim concorrente (dados confirmados, duas sessões ao mesmo tempo) ---
 KC = "k-pc-conc-" + uuid.uuid4().hex[:8]

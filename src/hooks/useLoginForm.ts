@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { destinoAposLogin } from '@/utils/destinoLogin';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth';
 import { useToast } from '@/hooks/use-toast';
@@ -28,7 +29,7 @@ export function useLoginForm() {
       logger.debug("Login page - User already authenticated, redirecting", { module: 'auth', user: user.id });
       
       // Redireciona para a página anterior, senão para a raiz (que decide pelo papel)
-      const from = location.state?.from?.pathname || '/';
+      const from = destinoAposLogin(location.state?.from);
       navigate(from, { replace: true });
     }
   }, [user, navigate, location]);

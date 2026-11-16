@@ -158,3 +158,9 @@ Ver `docs/DECISOES_PENDENTES.md`.
 - [x] Testado isolado: `run_desktop018.py` 61/61; `run_aviso016.py` 25/25; unitários do protocolo 14/14 + núcleo Meta 8/8; tela no navegador isolado 6/6 (0 chamadas ao backend real).
 - [x] Aplicado no Cloud: migrações 0018, 0019 (revogação de privilégios herdados) e 0020 (recuperação do journal). Função publicada e testada só com entradas inválidas (405/401/400).
 - [ ] Teste real com o app Windows (pareamento + envio) — feito pelo usuário depois. Envio continua DESLIGADO.
+
+## Aviso mínimo ao entregador (candidato 019, 16/11/2026)
+- [x] Implementado: `_wd_texto` = "Nova entrega #NUM — abrir pedido" + link `https://gestaogasfacil.lovable.app/entregador/entregas?pedido=<id>` (sem dados do cliente); login volta ao pedido do link; entregador vê "Pedido indisponível" se não for mais dele; admin/operador são levados a Pedidos.
+- [x] Testado isolado: `run_aviso019.py` 15/15; `run_desktop018.py` 61/61 (3 asserções de texto ajustadas); `run_aviso016.py` 25/25; unitários 32/32.
+- [ ] Aplicar 019 no Cloud e publicar — aguardando conferência do diff pelo dono.
+- [ ] Caminho Meta (não conectado, não selecionado) ainda usa o modelo de 8 campos — decisão pendente.

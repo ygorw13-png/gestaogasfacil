@@ -1,4 +1,5 @@
 import { useCsrfProtection } from '@/utils/csrfProtection';
+import { destinoAposLogin } from '@/utils/destinoLogin';
 import LoginForm from '@/components/auth/LoginForm';
 import { useLoginForm } from '@/hooks/useLoginForm';
 import { validateEmail } from '@/utils/inputValidation';
@@ -54,7 +55,7 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      const from = location.state?.from?.pathname || '/';
+      const from = destinoAposLogin(location.state?.from);
       navigate(from, { replace: true });
     }
   }, [user, navigate, location]);
