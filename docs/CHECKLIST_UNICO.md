@@ -137,5 +137,7 @@ Ver `docs/DECISOES_PENDENTES.md`.
 - [x] Telefone só pelo vínculo colaborador ↔ conta (admin); fila `whatsapp_envios` gravada junto com a atribuição; reatribuição cancela pendentes do anterior.
 - [x] `whatsapp-envio` (servidor) e `whatsapp-admin` (Configurações > WhatsApp, só admin). Estados: aguardando, enviado à plataforma, falha, incerto, cancelado.
 - [x] Testes: banco isolado `run_aviso016.py` 25/25, segurança 27/27; unitários 10/10.
+- [x] Configurações > WhatsApp: número de teste da Meta (+1 555/sandbox) marcado como teste; envio automático só liga (no servidor, `whatsapp-admin` acao `ativar`) com número real e modelo APPROVED; custo exibido; unitários 8/8. Publicado.
+- [ ] Só WhatsApp, aceite/recusa e Entregue/Lido: exigem receber webhooks (não disponível nesta pilha; depende de atualizar o app). Número real da empresa: aguarda o administrador conectar.
 - [ ] Conectar o WhatsApp Business da empresa, criar/aprovar o modelo, ativar o envio (custo Meta por mensagem). Entregue/Lido e aceite pelo WhatsApp dependem de receber respostas (atualização do app).
 - [ ] Telas não conferidas no navegador (sem sessão de teste).
