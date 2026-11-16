@@ -42,9 +42,48 @@ export function registerOfflineSupport() {
     return;
   }
 
+  // Havia controlador antigo? Então uma troca de controlador = versão nova publicada.
+  const hadController = !!navigator.serviceWorker.controller;
+  let avisado = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || avisado) return;
+    avisado = true;
+    avisarNovaVersao();
+  });
+
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register(SW_URL).catch(() => {
-      /* offline opcional: falha silenciosa */
+    navigator.serviceWorker
+      .register(SW_URL)
+      .then((reg) => {
+        const checar = () => {
+          if (navigator.onLine) reg.update().catch(() => undefined);
+        };
+        // Procura versão nova ao voltar para a aba e a cada 15 minutos.
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') checar();
+        });
+        window.setInterval(checar, 15 * 60 * 1000);
+      })
+      .catch(() => {
+        /* offline opcional: falha silenciosa */
+      });
+  });
+}
+
+/**
+ * Versão nova ativa: oferece "Atualizar" e recarrega sozinho quando a aba fica em segundo
+ * plano sem janela aberta (a fila offline fica salva no aparelho; formulário aberto não é perdido).
+ */
+function avisarNovaVersao() {
+  const recarregar = () => window.location.reload();
+  void import('sonner').then(({ toast }) => {
+    toast('Nova versão do GásFácil disponível', {
+      duration: Infinity,
+      action: { label: 'Atualizar', onClick: recarregar },
     });
   });
+  const aoOcultar = () => {
+    if (document.visibilityState === 'hidden' && !document.querySelector('[role="dialog"]')) recarregar();
+  };
+  document.addEventListener('visibilitychange', aoOcultar);
 }
