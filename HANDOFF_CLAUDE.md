@@ -360,5 +360,5 @@ Publicado/aplicado: retirada de agregado sem preço, preço sigiloso, por conta 
 ## Atualização 16/11/2026 — Aplicativo do PC (candidato 018/018c)
 Endpoint `https://dufsbwslvnucptjwvtvd.supabase.co/functions/v1/whatsapp-desktop` (protocolo 1). Banco: `g1/candidate/sql/018_whatsapp_desktop.sql` (= drizzle 0018+0019+0020; `018c_recuperacao_journal.sql` é o recorte da 0020). Testes: `reset_com018.sh com_abertura` + `run_desktop018.py` (61/61). Envio do PC desligado; nenhum dispositivo pareado em produção.
 
-## Atualização 16/11/2026 — aviso mínimo (candidato 019, NÃO aplicado/publicado)
-`g1/candidate/sql/019_aviso_link.sql` troca só o corpo de `_wd_texto` (aviso do Aplicativo do PC: número + link). Testes: `reset_com019.sh com_abertura` + `run_aviso019.py` (15/15) + `run_desktop018.py` (61/61). Telas: `src/utils/destinoLogin.ts`, Login, useLoginForm, MinhasEntregas. Aguardando conferência do diff para aplicar no Cloud e publicar.
+## Atualização 16/11/2026 — aviso mínimo (candidato 019 aplicado no Cloud; frontend ainda não publicado)
+`g1/candidate/sql/019_aviso_link.sql` troca só o corpo de `_wd_texto` (aviso do Aplicativo do PC: número + link). Testes: `reset_com019.sh com_abertura` + `run_aviso019.py` (15/15) + `run_desktop018.py` (61/61). Telas: `src/utils/destinoLogin.ts`, Login, useLoginForm, MinhasEntregas. Cloud: migração 0021 (`drizzle/migrations/0021_g1_019_aviso_link.sql`, idêntica ao candidato) aplicada e conferida. Frontend: publicação pendente.

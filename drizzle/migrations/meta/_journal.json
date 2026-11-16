@@ -148,6 +148,13 @@
       "when": 1794860958101,
       "tag": "0020_g1_018c_desktop_recuperacao",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794864136410,
+      "tag": "0021_g1_019_aviso_link",
+      "breakpoints": true
     }
   ]
 }

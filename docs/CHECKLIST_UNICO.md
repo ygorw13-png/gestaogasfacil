@@ -162,5 +162,6 @@ Ver `docs/DECISOES_PENDENTES.md`.
 ## Aviso mínimo ao entregador (candidato 019, 16/11/2026)
 - [x] Implementado: `_wd_texto` = "Nova entrega #NUM — abrir pedido" + link `https://gestaogasfacil.lovable.app/entregador/entregas?pedido=<id>` (sem dados do cliente); login volta ao pedido do link; entregador vê "Pedido indisponível" se não for mais dele; admin/operador são levados a Pedidos.
 - [x] Testado isolado: `run_aviso019.py` 15/15; `run_desktop018.py` 61/61 (3 asserções de texto ajustadas); `run_aviso016.py` 25/25; unitários 32/32.
-- [ ] Aplicar 019 no Cloud e publicar — aguardando conferência do diff pelo dono.
+- [x] Aplicado no Cloud: migração 0021 (idêntica ao candidato 019); definição e privilégios conferidos (só postgres/service_role executam); pedidos, fila, vínculo do PC e configuração inalterados.
+- [ ] Frontend (login com retorno ao pedido, "Pedido indisponível") — publicação pendente.
 - [ ] Caminho Meta (não conectado, não selecionado) ainda usa o modelo de 8 campos — decisão pendente.
